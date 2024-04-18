@@ -17,7 +17,7 @@
 #include "common.hpp"
 #include "anim/Animatable.hpp"
 
-#define WINDOW_TITLE "Sliced v1"
+#define WINDOW_TITLE "Toast Beta"
 
 #define CANVAS_ZOOM_SPEED 0.04f
 #define CANVAS_ZOOM_SPEED_FAST 0.08f
