@@ -75,7 +75,7 @@ private:
         if (dockspaceFlags & ImGuiDockNodeFlags_PassthruCentralNode)
             windowFlags |= ImGuiWindowFlags_NoBackground;
 
-        ImGui::Begin(WINDOW_TITLE, nullptr, windowFlags);
+        ImGui::Begin(WINDOW_TITLE "###MainAppWindow", nullptr, windowFlags);
 
         ImGui::PopStyleVar(3);
 
