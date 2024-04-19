@@ -256,17 +256,20 @@ void App::Stop() {
 
 void App::SetupFonts() {
     GET_IMGUI_IO;
+    GET_APP_STATE;
 
-    ImFontConfig fontConfig;
-    fontConfig.FontDataOwnedByAtlas = false;
-    io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.0f, &fontConfig);
+    {
+        ImFontConfig fontConfig;
+        fontConfig.FontDataOwnedByAtlas = false;
+        appState.fontNormal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.0f, &fontConfig);
+    }
 
     {
         static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
 
-        ImFontConfig icons_config;
-        icons_config.MergeMode = true;
-        icons_config.PixelSnapH = true;
+        ImFontConfig fontConfig;
+        fontConfig.MergeMode = true;
+        fontConfig.PixelSnapH = true;
 
         io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
     }
@@ -274,11 +277,17 @@ void App::SetupFonts() {
     {
         static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
-        ImFontConfig icons_config;
-        icons_config.MergeMode = true;
-        icons_config.PixelSnapH = true;
+        ImFontConfig fontConfig;
+        fontConfig.MergeMode = true;
+        fontConfig.PixelSnapH = true;
 
-        io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.0f, &icons_config, icons_ranges);
+        appState.fontIcon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.0f, &fontConfig, icons_ranges);
+    }
+
+    {
+        ImFontConfig fontConfig;
+        fontConfig.FontDataOwnedByAtlas = false;
+        appState.fontLarge = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.0f, &fontConfig);
     }
 }
 

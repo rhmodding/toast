@@ -125,6 +125,10 @@ public:
         float timeLeft{ 0.f };
     } playerState;
 
+    ImFont* fontNormal;
+    ImFont* fontLarge;
+    ImFont* fontIcon;
+
 private:
     AppState() {} // Private constructor to prevent instantiation
 };
