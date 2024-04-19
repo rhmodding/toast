@@ -245,6 +245,13 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
             uvs[0], uvs[1], uvs[2], uvs[3],
             IM_COL32(255, 255, 255, allowOpacity ? ( (part.opacity * this->currentKey->opacity) / 255 ) : 255)
         );
+
+        /* // Draw bounding box
+        drawList->AddQuad(
+            transformedQuad[0], transformedQuad[1], transformedQuad[2], transformedQuad[3],
+            IM_COL32(255, 255, 255, 255)
+        );
+        */
     }
 }
 
