@@ -312,7 +312,7 @@ void App::Menubar() {
         static bool opened[4] = { true, true, true, true }; // Persistent user state
         if (ImGui::BeginTabBar("MyTabBar", tabBarFlags)) {
             for (int n = 0; n < IM_ARRAYSIZE(fileTabs); n++)
-                if (fileTabs[n].open && ImGui::BeginTabItem(fileTabs[n].name, &fileTabs[n].open, ImGuiTabItemFlags_None))
+                if (fileTabs[n].open && ImGui::BeginTabItem(fileTabs[n].name.c_str(), &fileTabs[n].open, ImGuiTabItemFlags_None))
                     ImGui::EndTabItem();
             ImGui::EndTabBar();
         }

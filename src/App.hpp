@@ -96,7 +96,7 @@ private:
     GLFWwindow* window{ nullptr };
 
     struct FileTab {
-        const char* name;
+        std::string name;
         bool open{ false };
     } fileTabs[32];
 
