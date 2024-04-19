@@ -11,9 +11,9 @@
 #include "archive/U8.hpp"
 #include "texture/TPL.hpp"
 
-#include <imgui_internal.h>
 
 #define GET_IMGUI_IO ImGuiIO& io = ImGui::GetIO();
+#include "imgui_internal.h"
 
 GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
     GLuint imageTexture;
