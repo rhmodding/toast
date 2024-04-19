@@ -124,6 +124,9 @@ namespace RvlCellAnim {
 
         this->sheetIndex = BYTESWAP_16(header->sheetIndex);
 
+        this->textureW = BYTESWAP_16(header->sheetW);
+        this->textureH = BYTESWAP_16(header->sheetH);
+
         size_t readOffset = sizeof(RvlCellAnimHeader);
 
         // Arrangements
