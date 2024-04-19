@@ -730,7 +730,8 @@ void App::Update() {
 
     this->Inspector();
 
-    static bool autoScrollTimeline{ false };
+    // TODO: implement timeline auto-scroll
+    // static bool autoScrollTimeline{ false };
 
     {
         static float f = 0.0f;
@@ -755,12 +756,12 @@ void App::Update() {
         ImGui::Dummy(ImVec2(2, 0));
         ImGui::SameLine();
 
-        // 2 columns
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(15, 0));
-        if (ImGui::BeginTable("TimelineToolbarTable", 3, ImGuiTableFlags_BordersInnerV)) {
+        
+        if (ImGui::BeginTable("TimelineToolbarTable", 2, ImGuiTableFlags_BordersInnerV)) {
             for (uint16_t row = 0; row < 1; row++) {
                 ImGui::TableNextRow();
-                for (uint16_t column = 0; column < 3; column++) {
+                for (uint16_t column = 0; column < 2; column++) {
                     ImGui::TableSetColumnIndex(column);
 
                     switch (column) {
@@ -878,9 +879,11 @@ void App::Update() {
                         } break;
 
                         case 2: {
+                            /*
                             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
 
                             ImGui::Checkbox("Auto-scroll timeline", &autoScrollTimeline);
+                            */
                         } break;
 
                         default: {
@@ -1032,9 +1035,11 @@ void App::Update() {
 
         ImGui::PopStyleVar();
 
+        /*
         if (autoScrollTimeline && appState.playerState.playing) {
             ImGui::SetScrollX(ImGui::GetScrollMaxX() * appState.playerState.getAnimationProgression());
         }
+        */
 
         ImGui::EndChild();
 
