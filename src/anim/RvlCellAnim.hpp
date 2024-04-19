@@ -6,21 +6,16 @@
 
 namespace RvlCellAnim {
     struct ArrangementPart {
-        uint16_t regionX;
-        uint16_t regionY;
-        uint16_t regionW;
-        uint16_t regionH;
+        uint16_t regionX, regionY;
+        uint16_t regionW, regionH;
 
-        int16_t positionX;
-        int16_t positionY;
+        int16_t positionX, positionY;
 
-        float scaleX;
-        float scaleY;
+        float scaleX, scaleY;
 
         float angle;
 
-        bool flipX;
-        bool flipY;
+        bool flipX, flipY;
 
         uint8_t opacity;
     };
@@ -34,8 +29,7 @@ namespace RvlCellAnim {
 
         uint16_t holdFrames;
 
-        float scaleX;
-        float scaleY;
+        float scaleX, scaleY;
 
         float angle;
 
@@ -49,6 +43,8 @@ namespace RvlCellAnim {
     class RvlCellAnimObject {
     public:
         uint16_t sheetIndex;
+
+        uint16_t textureW, textureH;
 
         std::vector<Arrangement> arrangements;
         std::vector<Animation> animations;

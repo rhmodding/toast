@@ -47,10 +47,8 @@ struct ArrangementPartRaw {
     int16_t positionX; // X position of rendered part (originates from top left)
     int16_t positionY; // Y position of rendered part (originates from top left)
 
-    uint8_t /* FLOAT */ scaleX[4]; // Value is uint8_t[4] but is later byte-swapped and casted to LE float
-    uint8_t /* FLOAT */ scaleY[4]; // Value is uint8_t[4] but is later byte-swapped and casted to LE float
-
-    uint8_t /* FLOAT */ angle[4]; // Value is uint8_t[4] but is later byte-swapped and casted to LE float
+    // Value is uint8_t[4] but is later byte-swapped and casted to LE float
+    uint8_t /* FLOAT */ scaleX[4], scaleY[4], angle[4];
 
     uint8_t flipX; // Horizontally flipped (boolean)
     uint8_t flipY; // Vertically flipped (boolean)
