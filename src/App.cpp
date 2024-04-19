@@ -308,9 +308,7 @@ void App::Menubar() {
             ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_TabListPopupButton |
             ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll;
 
-        const char* names[4] = { "Artichoke", "Beetroot", "Celery", "Daikon" };
-        static bool opened[4] = { true, true, true, true }; // Persistent user state
-        if (ImGui::BeginTabBar("MyTabBar", tabBarFlags)) {
+        if (ImGui::BeginTabBar("FileTabBar", tabBarFlags)) {
             for (int n = 0; n < ARRAY_LENGTH(fileTabs); n++)
                 if (fileTabs[n].open && ImGui::BeginTabItem(fileTabs[n].name.c_str(), &fileTabs[n].open, ImGuiTabItemFlags_None))
                     ImGui::EndTabItem();
