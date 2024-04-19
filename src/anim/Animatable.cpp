@@ -69,11 +69,11 @@ uint16_t Animatable::getCurrentKeyIndex() const {
     return this->currentKeyIndex;
 }
 
-RevCellAnim::AnimationKey* Animatable::getCurrentKey() const {
+RvlCellAnim::AnimationKey* Animatable::getCurrentKey() const {
     return this->currentKey;
 }
 
-RevCellAnim::Animation* Animatable::getCurrentAnimation() const {
+RvlCellAnim::Animation* Animatable::getCurrentAnimation() const {
     return this->currentAnimation;    
 }
 
@@ -84,9 +84,9 @@ int16_t Animatable::getHoldFramesLeft() const {
 ImVec2 Animatable::getPartWorldSpace(uint16_t animationIndex, uint16_t keyIndex, uint16_t partIndex) const {
     assert(this->cellanim);
 
-    RevCellAnim::AnimationKey* key = &this->cellanim->animations.at(animationIndex).keys.at(keyIndex);
-    RevCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
-    RevCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
+    RvlCellAnim::AnimationKey* key = &this->cellanim->animations.at(animationIndex).keys.at(keyIndex);
+    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
+    RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
 
     {
         float totalScaleX = key->scaleX * this->scaleX;
@@ -118,7 +118,7 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
     if (!this->cellanim || !this->currentAnimation || !this->visible)
         return false;
 
-    RevCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
+    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
 
     for (auto part : arrangement->parts) {
         if (allowOpacity) {
@@ -140,7 +140,7 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
     if (!this->visible)
         return;
 
-    RevCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
+    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
 
     for (auto part : arrangement->parts) {
         if ((part.opacity == 0) && allowOpacity)
@@ -255,7 +255,7 @@ void Animatable::DrawOrigins(ImDrawList* drawList, float radius, uint32_t color)
     if (!this->visible)
         return;
 
-    RevCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
+    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
 
     for (auto part : arrangement->parts) {
         float totalScaleX = this->currentKey->scaleX * this->scaleX;

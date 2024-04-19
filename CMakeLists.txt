@@ -16,7 +16,7 @@ set(SOURCES
     src/App.cpp
 
     src/anim/Animatable.cpp
-    src/anim/RevCellAnim.cpp
+    src/anim/RvlCellAnim.cpp
 
     src/archive/U8.cpp
 
@@ -41,7 +41,7 @@ set(HEADERS
     src/App.hpp
 
     src/anim/Animatable.hpp
-    src/anim/RevCellAnim.hpp
+    src/anim/RvlCellAnim.hpp
 
     src/archive/U8.hpp
 

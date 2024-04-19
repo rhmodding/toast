@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "RevCellAnim.hpp"
+#include "RvlCellAnim.hpp"
 
 #include "../common.hpp"
 
@@ -13,8 +13,8 @@ class Animatable {
 private:
     bool animating{ false };
 
-    RevCellAnim::Animation* currentAnimation{ nullptr };
-    RevCellAnim::AnimationKey* currentKey{ nullptr };
+    RvlCellAnim::Animation* currentAnimation{ nullptr };
+    RvlCellAnim::AnimationKey* currentKey{ nullptr };
 
     int16_t holdKey{ 0 };
 
@@ -22,7 +22,7 @@ private:
     uint16_t currentKeyIndex{ 0 };
 
 public:
-    RevCellAnim::RevCellAnimObject* cellanim{ nullptr };
+    RvlCellAnim::RvlCellAnimObject* cellanim{ nullptr };
     Common::Image* texture{ nullptr };
 
     ImVec2 offset{ 512, 512 };
@@ -32,7 +32,7 @@ public:
 
     bool visible{ true };
 
-    Animatable(RevCellAnim::RevCellAnimObject* cellanim, Common::Image* texture) : cellanim(cellanim), texture(texture) {}
+    Animatable(RvlCellAnim::RvlCellAnimObject* cellanim, Common::Image* texture) : cellanim(cellanim), texture(texture) {}
 
     ~Animatable() {};
 
@@ -47,8 +47,8 @@ public:
 
     int16_t getHoldFramesLeft() const;
 
-    RevCellAnim::AnimationKey* getCurrentKey() const;
-    RevCellAnim::Animation* getCurrentAnimation() const;
+    RvlCellAnim::AnimationKey* getCurrentKey() const;
+    RvlCellAnim::Animation* getCurrentAnimation() const;
 
     void Update();
 

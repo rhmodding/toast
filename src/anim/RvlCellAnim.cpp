@@ -1,4 +1,4 @@
-#include "RevCellAnim.hpp"
+#include "RvlCellAnim.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -11,8 +11,9 @@
 
 #pragma pack(push, 1) // Pack struct members tightly without padding
 
-struct RevCellAnimHeader {
+struct RvlCellAnimHeader {
     // Magic value (should always equal to 0x0132B4D8 [20100312] if valid)
+    // Could be a format revision timestamp? (2010/03/12)
     uint32_t magic;
 
     // Unknown value. Usually 0x04000400 [67109888]
@@ -114,25 +115,25 @@ float readBigEndianFloat(const uint8_t* bytes) {
     return result;
 }
 
-namespace RevCellAnim {
-    RevCellAnimObject::RevCellAnimObject(const char* revCellAnimData, const size_t dataSize) {
-        const RevCellAnimHeader* header = reinterpret_cast<const RevCellAnimHeader*>(revCellAnimData);
+namespace RvlCellAnim {
+    RvlCellAnimObject::RvlCellAnimObject(const char* RvlCellAnimData, const size_t dataSize) {
+        const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
         if (BYTESWAP_32(header->magic) != 0x0132B4D8) {
-            std::cerr << "[RevCellAnimObject::RevCellAnimObject] Invalid RevCellAnim binary: header magic failed check!\n";
+            std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: header magic failed check!\n";
             return;
         }
 
         this->sheetIndex = BYTESWAP_16(header->sheetIndex);
 
-        size_t readOffset = sizeof(RevCellAnimHeader);
+        size_t readOffset = sizeof(RvlCellAnimHeader);
 
         // Arrangements
         uint16_t arrangementCount = BYTESWAP_16(header->arrangementCount);
         this->arrangements.resize(arrangementCount);
 
         for (uint16_t i = 0; i < arrangementCount; i++) {
-            const ArrangementRaw* arrangementRaw = reinterpret_cast<const ArrangementRaw*>(revCellAnimData + readOffset);
+            const ArrangementRaw* arrangementRaw = reinterpret_cast<const ArrangementRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(ArrangementRaw);
 
             Arrangement arrangement;
@@ -141,7 +142,7 @@ namespace RevCellAnim {
             arrangement.parts.resize(arrangementPartCount);
 
             for (uint16_t j = 0; j < arrangementPartCount; j++) {
-                const ArrangementPartRaw* arrangementPartRaw = reinterpret_cast<const ArrangementPartRaw*>(revCellAnimData + readOffset);
+                const ArrangementPartRaw* arrangementPartRaw = reinterpret_cast<const ArrangementPartRaw*>(RvlCellAnimData + readOffset);
                 readOffset += sizeof(ArrangementPartRaw);
 
                 ArrangementPart arrangementPart;
@@ -170,7 +171,7 @@ namespace RevCellAnim {
             this->arrangements[i] = arrangement;
         }
 
-        uint16_t animationCount = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(revCellAnimData + readOffset));
+        uint16_t animationCount = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(RvlCellAnimData + readOffset));
         readOffset += sizeof(uint16_t);
 
         readOffset += sizeof(uint16_t); // Unknown value after animationCount
@@ -178,7 +179,7 @@ namespace RevCellAnim {
         this->animations.resize(animationCount);
 
         for (uint16_t i = 0; i < animationCount; i++) {
-            const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(revCellAnimData + readOffset);
+            const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(AnimationRaw);
 
             Animation animation;
@@ -187,7 +188,7 @@ namespace RevCellAnim {
             animation.keys.resize(keyCount);
 
             for (uint16_t j = 0; j < keyCount; j++) {
-                const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(revCellAnimData + readOffset);
+                const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(RvlCellAnimData + readOffset);
                 readOffset += sizeof(AnimationKeyRaw);
 
                 AnimationKey key;
@@ -211,7 +212,7 @@ namespace RevCellAnim {
     }
 
     // Note: the object is dynamically allocated here. Make sure to delete it when you're done!
-    RevCellAnimObject* ObjectFromFile(const char* path) {
+    RvlCellAnimObject* ObjectFromFile(const char* path) {
         std::ifstream file(path, std::ios::binary | std::ios::ate);
         //                                binary mode        seek to end
 
@@ -226,7 +227,7 @@ namespace RevCellAnim {
 
         file.close();
 
-        RevCellAnimObject* object = new RevCellAnimObject(buffer, fileSize);
+        RvlCellAnimObject* object = new RvlCellAnimObject(buffer, fileSize);
 
         delete[] buffer;
 

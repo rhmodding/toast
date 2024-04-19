@@ -101,7 +101,7 @@ private:
     } fileTabs[32];
 
     Common::Image cellanimSheet;
-    RevCellAnim::RevCellAnimObject* cellanim{ nullptr };
+    RvlCellAnim::RvlCellAnimObject* cellanim{ nullptr };
     Animatable* animatable{ nullptr };
     std::unordered_map<uint16_t, std::string> animationNames;
 }; // class App

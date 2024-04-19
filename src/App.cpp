@@ -225,7 +225,7 @@ App::App() {
         }
     }
 
-    this->cellanim = new RevCellAnim::RevCellAnimObject(brcadFiles.at(brcadIndex)->data.data(), brcadFiles.at(brcadIndex)->data.size());
+    this->cellanim = new RvlCellAnim::RvlCellAnimObject(brcadFiles.at(brcadIndex)->data.data(), brcadFiles.at(brcadIndex)->data.size());
 
     TPL::TPLTexture tplTexture = cellanimTPL.textures.at(this->cellanim->sheetIndex);
 
@@ -945,7 +945,7 @@ void App::Update() {
 
                             ImGui::Separator();
 
-                            RevCellAnim::AnimationKey* key = &this->animatable->getCurrentAnimation()->keys.at(i);
+                            RvlCellAnim::AnimationKey* key = &this->animatable->getCurrentAnimation()->keys.at(i);
 
                             ImGui::BulletText("Arrangement Index: %u", key->arrangementIndex);
                             ImGui::Dummy(ImVec2(0, 10));

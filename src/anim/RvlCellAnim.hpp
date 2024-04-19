@@ -1,10 +1,10 @@
-#ifndef REVCELLANIM_HPP
-#define REVCELLANIM_HPP
+#ifndef RVLCELLANIM_HPP
+#define RVLCELLANIM_HPP
 
 #include <vector>
 #include <cstdint>
 
-namespace RevCellAnim {
+namespace RvlCellAnim {
     struct ArrangementPart {
         uint16_t regionX;
         uint16_t regionY;
@@ -46,17 +46,17 @@ namespace RevCellAnim {
         std::vector<AnimationKey> keys;
     };
     
-    class RevCellAnimObject {
+    class RvlCellAnimObject {
     public:
         uint16_t sheetIndex;
 
         std::vector<Arrangement> arrangements;
         std::vector<Animation> animations;
 
-        RevCellAnimObject(const char* revCellAnimData, const size_t dataSize);
+        RvlCellAnimObject(const char* RvlCellAnimData, const size_t dataSize);
     };
 
-    RevCellAnimObject* ObjectFromFile(const char *filename);
+    RvlCellAnimObject* ObjectFromFile(const char *filename);
 }
 
-#endif // REVCELLANIM_HPP
+#endif // RVLCELLANIM_HPP
