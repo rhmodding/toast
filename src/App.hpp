@@ -17,10 +17,12 @@
 #include "common.hpp"
 #include "anim/Animatable.hpp"
 
-#define WINDOW_TITLE "Toast Beta"
+#include "window/WindowCanvas.hpp"
+#include "window/WindowHybridList.hpp"
+#include "window/WindowInspector.hpp"
+#include "window/WindowTimeline.hpp"
 
-#define CANVAS_ZOOM_SPEED 0.04f
-#define CANVAS_ZOOM_SPEED_FAST 0.08f
+#define WINDOW_TITLE "Toast Beta"
 
 class App {
 public:
@@ -39,19 +41,7 @@ public:
     uint8_t quit{ 0 };
 
 private:
-    void UpdateTheme() {
-        GET_APP_STATE;
-
-        if (appState.darkTheme) {
-            ImGui::StyleColorsDark();
-            appState.windowClearColor = ImVec4((24 / 255.f), (24 / 255.f), (24 / 255.f), 1.f);
-        }
-        else {
-            ImGui::StyleColorsLight();
-            appState.windowClearColor = ImVec4((248 / 255.f), (248 / 255.f), (248 / 255.f), 1.f);
-        }  
-    }
-
+    void UpdateTheme();
     void SetupFonts();
 
     void BeginMainWindow(ImGuiIO& io) {
@@ -88,10 +78,13 @@ private:
         }
     }
 
-    void Animations();
-    void Canvas();
-    void Inspector();
     void Menubar();
+
+    // Windows
+    WindowCanvas* windowCanvas;
+    WindowHybridList* windowHybridList;
+    WindowInspector* windowInspector;
+    WindowTimeline* windowTimeline;
 
     GLFWwindow* window{ nullptr };
 

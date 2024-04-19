@@ -11,8 +11,6 @@
 #include "archive/U8.hpp"
 #include "texture/TPL.hpp"
 
-
-#define GET_IMGUI_IO ImGuiIO& io = ImGui::GetIO();
 #include "imgui_internal.h"
 
 GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
@@ -240,6 +238,20 @@ App::App() {
 
     appState.playerState.setAnimatable(this->animatable);
     appState.playerState.updateSetFrameCount();
+
+    this->windowCanvas = new WindowCanvas;
+    this->windowCanvas->animatable = this->animatable;
+
+    this->windowHybridList = new WindowHybridList;
+    this->windowHybridList->animatable = this->animatable;
+    this->windowHybridList->animationNames = &this->animationNames;
+
+    this->windowInspector = new WindowInspector;
+    this->windowInspector->animatable = this->animatable;
+    this->windowInspector->animationNames = &this->animationNames;
+
+    this->windowTimeline = new WindowTimeline;
+    this->windowTimeline->animatable = this->animatable;
 }
 
 void App::Stop() {
@@ -252,6 +264,24 @@ void App::Stop() {
 
     Common::deleteIfNotNullptr(this->cellanim);
     Common::deleteIfNotNullptr(this->animatable);
+
+    Common::deleteIfNotNullptr(this->windowCanvas);
+    Common::deleteIfNotNullptr(this->windowHybridList);
+    Common::deleteIfNotNullptr(this->windowInspector);
+    Common::deleteIfNotNullptr(this->windowTimeline);
+}
+
+void App::UpdateTheme() {
+    GET_APP_STATE;
+
+    if (appState.darkTheme) {
+        ImGui::StyleColorsDark();
+        appState.windowClearColor = ImVec4((24 / 255.f), (24 / 255.f), (24 / 255.f), 1.f);
+    }
+    else {
+        ImGui::StyleColorsLight();
+        appState.windowClearColor = ImVec4((248 / 255.f), (248 / 255.f), (248 / 255.f), 1.f);
+    }  
 }
 
 void App::SetupFonts() {
@@ -271,7 +301,7 @@ void App::SetupFonts() {
         fontConfig.MergeMode = true;
         fontConfig.PixelSnapH = true;
 
-        io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
+        io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &fontConfig, icons_ranges);
     }
 
     {
@@ -328,365 +358,6 @@ void App::Menubar() {
     }
 }
 
-void App::Animations() {
-    GET_APP_STATE;
-
-    ImGui::Begin("Animations", nullptr);
-
-    static uint16_t selected{ 0 };
-
-    ImGui::BeginChild("AnimationList", ImVec2(0, 0), ImGuiChildFlags_Border);
-    {
-        for (uint16_t n = 0; n < this->animatable->cellanim->animations.size(); n++) {
-            char buf[128];
-
-            auto it = this->animationNames.find(n);
-            sprintf_s(buf, 128, "%d. %s", n, it != this->animationNames.end() ? it->second.c_str() : "(no macro defined)");
-
-            if (ImGui::Selectable(buf, selected == n)) {
-                selected = n;
-
-                this->animatable->setAnimation(selected);
-
-                appState.playerState.currentFrame = 0;
-                appState.playerState.updateSetFrameCount();
-                appState.playerState.updateCurrentFrame();
-            }
-        }
-    }
-    ImGui::EndChild();
-
-    ImGui::End();
-}
-
-void App::Canvas() {
-    static bool drawPartOrigin{ false };
-    static ImVec4 partOriginDrawColor{ 1, 1, 1, 1 };
-    static float partOriginDrawRadius{ 5.f };
-
-    static bool allowOpacity{ true };
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
-    ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_MenuBar);
-    ImGui::PopStyleVar();
-
-    static enum GridType : uint8_t {
-        GridType_None,
-        GridType_Dark,
-        GridType_Light,
-        
-        GridType_Custom
-    } gridType{ AppState::getInstance().darkTheme ? GridType_Dark : GridType_Light };
-    static ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
-
-    static ImVector<ImVec2> points;
-    static ImVec2 canvasUserOffset(0.0f, 0.0f); // User view pan
-    static bool opt_enable_context_menu{ true };
-    static bool adding_line{ false };
-
-    static float zoomState{ 0.f };
-
-    ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();      // ImDrawList API uses screen coordinates!
-    ImVec2 canvasSize = ImGui::GetContentRegionAvail();   // Resize canvas to what's available
-    ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
-
-    if (ImGui::BeginMenuBar()) {
-        if (ImGui::BeginMenu("Grid")) {
-            if (ImGui::MenuItem("None", nullptr, gridType == GridType_None))
-                gridType = GridType_None;
-
-            if (ImGui::MenuItem("Dark", nullptr, gridType == GridType_Dark))
-                gridType = GridType_Dark;
-
-            if (ImGui::MenuItem("Light", nullptr, gridType == GridType_Light))
-                gridType = GridType_Light;
-
-            if (ImGui::BeginMenu("Custom")) {
-                bool enabled = gridType == GridType_Custom;
-                if (ImGui::Checkbox("Enabled", &enabled)) {
-                    if (enabled)
-                        gridType = GridType_Custom;
-                    else
-                        gridType = AppState::getInstance().darkTheme ? GridType_Dark : GridType_Light;
-                };
-
-                ImGui::SeparatorText("Color Picker");
-
-                ImGui::ColorPicker4(
-                    "##ColorPicker",
-                    (float*)&customGridColor,
-                    ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
-                    nullptr
-                );
-
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("View")) {
-            if (ImGui::MenuItem("Reset", nullptr, false)) {
-                canvasUserOffset = { 0, 0 };
-                zoomState = 0;
-            }
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Rendering")) {
-            if (ImGui::BeginMenu("Draw Part Origin")) {
-                ImGui::Checkbox("Enabled", &drawPartOrigin);
-
-                ImGui::SeparatorText("Options");
-
-                ImGui::DragFloat("Radius", &partOriginDrawRadius, 0.1f);
-
-                ImGui::SeparatorText("Color Picker");
-
-                ImGui::ColorPicker4(
-                    "##ColorPicker",
-                    (float*)&partOriginDrawColor,
-                    ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
-                    nullptr
-                );
-
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::MenuItem("Enable part transparency", nullptr, allowOpacity))
-                allowOpacity = !allowOpacity;
-
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMenuBar();
-    }
-
-    uint32_t backgroundColor;
-    switch (gridType) {
-        case GridType_None:
-            backgroundColor = IM_COL32(0, 0, 0, 0);
-            break;
-        
-        case GridType_Dark:
-            backgroundColor = IM_COL32(50, 50, 50, 255);
-            break;
-
-        case GridType_Light:
-            backgroundColor = IM_COL32(255, 255, 255, 255);
-            break;
-
-        case GridType_Custom:
-            backgroundColor = IM_COL32(
-                customGridColor.x * 255,
-                customGridColor.y * 255,
-                customGridColor.z * 255,
-                customGridColor.w * 255
-            );
-            break;
-    
-        default:
-            break;
-    }
-
-    GET_IMGUI_IO;
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
-    drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor);
-
-    // This catches interactions
-    ImGui::InvisibleButton("CanvasInteractions", canvasSize,
-        ImGuiButtonFlags_MouseButtonLeft |
-        ImGuiButtonFlags_MouseButtonRight |
-        ImGuiButtonFlags_MouseButtonMiddle
-    );
-
-    const bool interactionHovered = ImGui::IsItemHovered();
-    const bool interactionActive = ImGui::IsItemActive(); // Held
-
-    const ImVec2 origin(
-        canvasTopLeft.x + canvasUserOffset.x + static_cast<int>(canvasSize.x / 2),
-        canvasTopLeft.y + canvasUserOffset.y + static_cast<int>(canvasSize.y / 2)
-    ); // Lock scrolled origin
-    const ImVec2 relativeMousePos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-    // Add first and second point
-    if (interactionHovered && !adding_line && ImGui::IsMouseClicked(ImGuiMouseButton_Middle))
-    {
-        points.push_back(relativeMousePos);
-        points.push_back(relativeMousePos);
-        adding_line = true;
-    }
-    if (adding_line)
-    {
-        points.back() = relativeMousePos;
-        if (!ImGui::IsMouseDown(ImGuiMouseButton_Middle))
-            adding_line = false;
-    }
-
-    // Pan (we use a zero mouse threshold when there's no context menu)
-    // You may decide to make that threshold dynamic based on whether the mouse is hovering something etc.
-    const float mousePanThreshold = opt_enable_context_menu ? -1.0f : 0.0f;
-
-    bool panningCanvas = interactionActive && (
-        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
-    );
-
-    if (panningCanvas) {
-        canvasUserOffset.x += io.MouseDelta.x;
-        canvasUserOffset.y += io.MouseDelta.y;
-    }
-
-    if (interactionHovered) {
-        GET_IMGUI_IO;
-
-        if (io.KeyShift) 
-            zoomState += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
-        else
-            zoomState += io.MouseWheel * CANVAS_ZOOM_SPEED;
-
-        if (zoomState < -0.90f)
-            zoomState = -0.90f;
-
-        if (zoomState > 9.f)
-            zoomState = 9.f;
-    }
-
-    // Context menu (under default mouse threshold)
-    ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-    if (opt_enable_context_menu && drag_delta.x == 0.0f && drag_delta.y == 0.0f)
-        ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
-    if (ImGui::BeginPopup("context"))
-    {
-        if (adding_line)
-            points.resize(points.size() - 2);
-
-        adding_line = false;
-        if (ImGui::MenuItem("Remove one", NULL, false, points.Size > 0)) { points.resize(points.size() - 2); }
-        if (ImGui::MenuItem("Remove all", NULL, false, points.Size > 0)) { points.clear(); }
-        ImGui::EndPopup();
-    }
-
-    // Draw grid + all lines in the canvas
-    drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
-
-    if (gridType != GridType_None) {
-        float GRID_STEP = 64.0f * (zoomState + 1);
-
-        for (float x = fmodf(canvasUserOffset.x + static_cast<int>(canvasSize.x / 2), GRID_STEP); x < canvasSize.x; x += GRID_STEP)
-            drawList->AddLine(ImVec2(canvasTopLeft.x + x, canvasTopLeft.y), ImVec2(canvasTopLeft.x + x, canvasBottomRight.y), IM_COL32(200, 200, 200, 40));
-        
-        for (float y = fmodf(canvasUserOffset.y + static_cast<int>(canvasSize.y / 2), GRID_STEP); y < canvasSize.y; y += GRID_STEP)
-            drawList->AddLine(ImVec2(canvasTopLeft.x, canvasTopLeft.y + y), ImVec2(canvasBottomRight.x, canvasTopLeft.y + y), IM_COL32(200, 200, 200, 40));
-    }
-
-    for (int n = 0; n < points.Size; n += 2)
-        drawList->AddLine(ImVec2(origin.x + points[n].x, origin.y + points[n].y), ImVec2(origin.x + points[n + 1].x, origin.y + points[n + 1].y), IM_COL32(255, 255, 0, 255), 2.0f);
-
-    bool animatableDoesDraw = this->animatable->getDoesDraw(allowOpacity);
-
-    if (animatableDoesDraw) {
-        this->animatable->scaleX = zoomState + 1;
-        this->animatable->scaleY = zoomState + 1;
-
-        this->animatable->offset = origin;
-        this->animatable->Draw(drawList, allowOpacity);
-    }
-
-    if (drawPartOrigin)
-        this->animatable->DrawOrigins(drawList, partOriginDrawRadius, IM_COL32(
-            partOriginDrawColor.x * 255,
-            partOriginDrawColor.y * 255,
-            partOriginDrawColor.z * 255,
-            partOriginDrawColor.w * 255
-        ));
-
-    drawList->PopClipRect();
-
-    ImU32 textColor;
-
-    switch (gridType) {
-        case GridType_None:
-            textColor = AppState::getInstance().darkTheme ? IM_COL32(255, 255, 255, 255) : IM_COL32(0, 0, 0, 255);
-            break;
-        
-        case GridType_Dark:
-            textColor = IM_COL32(255, 255, 255, 255);
-            break;
-
-        case GridType_Light:
-            textColor = IM_COL32(0, 0, 0, 255);
-            break;
-
-        case GridType_Custom: {
-            float y = 0.2126f * customGridColor.x + 0.7152f * customGridColor.y + 0.0722f * customGridColor.z;
-
-            if (y > 0.5f)
-                textColor = IM_COL32(0, 0, 0, 255);
-            else
-                textColor = IM_COL32(255, 255, 255, 255);
-        } break;
-    
-        default:
-            break;
-    }
-
-    float textDrawHeight = canvasTopLeft.y + 5.f;
-
-    if ((canvasUserOffset.x != 0.f) || (canvasUserOffset.y != 0.f)) {
-        char buffer[64] = { '\0' };
-        sprintf_s((char*)&buffer, 64, "Offset: %f, %f", canvasUserOffset.x, canvasUserOffset.y);
-
-        drawList->AddText(ImVec2(canvasTopLeft.x + 10, textDrawHeight), textColor, buffer);
-
-        textDrawHeight += 18.f;
-    }
-
-    if (zoomState != 0.f) {
-        char buffer[64] = { '\0' };
-        sprintf_s((char*)&buffer, 64, "Zoom: %u%% (hold [Shift] to zoom faster)", static_cast<uint16_t>((zoomState + 1) * 100));
-
-        drawList->AddText(
-            ImVec2(
-                canvasTopLeft.x + 10,
-                textDrawHeight
-            ),
-            textColor, buffer
-        );
-
-        textDrawHeight += 18.f;
-    }
-
-    if (!animatableDoesDraw) {
-        const char* text = "Nothing to draw on this frame";
-        ImVec2 textSize = ImGui::CalcTextSize(text);
-        drawList->AddText(
-            ImVec2(
-                canvasTopLeft.x + 10,
-                textDrawHeight
-            ),
-            textColor, text
-        );
-
-        textDrawHeight += 18.f;
-    }
-
-    ImGui::End();
-}
-
-void App::Inspector() {
-    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar);
-
-    if (ImGui::BeginMenuBar()) {
-        ImGui::Text("Placeholder");
-
-        ImGui::EndMenuBar();
-    }
-
-    ImGui::End();
-}
-
 void App::Update() {
     GET_APP_STATE;
     static ImGuiIO& io{ ImGui::GetIO() };
@@ -699,334 +370,21 @@ void App::Update() {
     ImGui::NewFrame();
 
     this->BeginMainWindow(io);
-
     this->Menubar();
 
     if (appState.enableDemoWindow)
         ImGui::ShowDemoWindow(&appState.enableDemoWindow);
 
     appState.playerState.Update();
-    this->Canvas();
 
-    this->Animations();
+    // Windows
+    this->windowCanvas->Update();
+    this->windowHybridList->Update();
+    this->windowInspector->Update();
+    this->windowTimeline->Update();
 
-    this->Inspector();
-
-    // TODO: implement timeline auto-scroll
+    // TODO: Implement timeline auto-scroll
     // static bool autoScrollTimeline{ false };
-
-    {
-        static float f = 0.0f;
-        static int counter = 0;
-
-        static uint16_t frameRate{60};
-
-        static uint16_t u16One{ 1 };
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
-        ImGui::Begin("Timeline");
-        ImGui::PopStyleVar();
-
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
-
-        ImGui::BeginChild("TimelineToolbar", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
-
-        ImGui::PopStyleColor();
-
-        ImGui::Dummy(ImVec2(0, 0.5f));
-        
-        ImGui::Dummy(ImVec2(2, 0));
-        ImGui::SameLine();
-
-        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(15, 0));
-        
-        if (ImGui::BeginTable("TimelineToolbarTable", 2, ImGuiTableFlags_BordersInnerV)) {
-            for (uint16_t row = 0; row < 1; row++) {
-                ImGui::TableNextRow();
-                for (uint16_t column = 0; column < 2; column++) {
-                    ImGui::TableSetColumnIndex(column);
-
-                    switch (column) {
-                        case 0: {
-                            char playPauseButtonLabel[32] = { '\0' };
-                            const char* playPauseIcon = appState.playerState.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
-
-                            strcpy_s(playPauseButtonLabel, 32, playPauseIcon);
-                            strcat_s(playPauseButtonLabel, 32, "##playPauseButton");
-
-                            if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
-                                if (
-                                    (appState.playerState.currentFrame == appState.playerState.frameCount - 1) &&
-                                    (appState.playerState.holdFramesLeft == 0)
-                                ) {
-                                    appState.playerState.currentFrame = 0;
-                                    appState.playerState.updateCurrentFrame();
-                                }
-
-                                appState.playerState.ResetTimer();
-                                appState.playerState.ToggleAnimating(!appState.playerState.playing);
-                            } 
-                            ImGui::SameLine();
-
-                            ImGui::Dummy(ImVec2(2, 0));
-                            ImGui::SameLine();
-
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", ImVec2(32-6, 32-6))) {
-                                appState.playerState.currentFrame = 0;
-                                appState.playerState.updateCurrentFrame();
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Go to first key");
-
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", ImVec2(32-6, 32-6))) {
-                                if (appState.playerState.currentFrame >= 1) {
-                                    appState.playerState.currentFrame--;
-                                    appState.playerState.updateCurrentFrame();
-                                }
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Step back a key");
-                            
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", ImVec2(32-6, 32-6))) {
-                                appState.playerState.playing = false;
-                                appState.playerState.currentFrame = 0;
-                                appState.playerState.updateCurrentFrame();
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Stop playback and go to first key");
-
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", ImVec2(32-6, 32-6))) {
-                                if (appState.playerState.currentFrame < appState.playerState.frameCount - 1) {
-                                    appState.playerState.currentFrame++;
-                                    appState.playerState.updateCurrentFrame();
-                                }
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Step forward a key");
-                            
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", ImVec2(32-6, 32-6))) {
-                                appState.playerState.currentFrame =
-                                    appState.playerState.frameCount -
-                                    (appState.playerState.frameCount > 0 ? 1 : 0);
-
-                                appState.playerState.updateCurrentFrame();
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Go to last key");
-
-                            ImGui::Dummy(ImVec2(2, 0));
-                            ImGui::SameLine();
-
-                            {
-                                bool popColor{ false }; // Use local boolean since state can be mutated by button
-                                if (appState.playerState.loopEnabled) {
-                                    popColor = true;
-                                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                                }
-
-                                if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT, ImVec2(32, 32)))
-                                    appState.playerState.loopEnabled = !appState.playerState.loopEnabled;
-
-                                ImGui::SetItemTooltip("Toggle looping");
-
-                                if (popColor)
-                                    ImGui::PopStyleColor();
-                            }
-                        } break;
-
-                        case 1: {
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
-
-                            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                            if (ImGui::InputScalar("Frame", ImGuiDataType_U16, &appState.playerState.currentFrame, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
-                                appState.playerState.updateCurrentFrame();
-                            }
-
-                            ImGui::SameLine();
-
-                            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-                            ImGui::InputScalar("Hold Frames Left", ImGuiDataType_U16, &appState.playerState.holdFramesLeft, nullptr, nullptr, "%u", ImGuiInputTextFlags_ReadOnly);
-                            ImGui::PopItemFlag();
-
-                            ImGui::SameLine();
-
-                            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                            ImGui::InputScalar("FPS", ImGuiDataType_U16, &appState.playerState.frameRate, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-                        } break;
-
-                        case 2: {
-                            /*
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
-
-                            ImGui::Checkbox("Auto-scroll timeline", &autoScrollTimeline);
-                            */
-                        } break;
-
-                        default: {
-
-                        } break;
-                    }
-                }
-            }
-
-            ImGui::EndTable();
-        }
-
-        ImGui::PopStyleVar();
-
-        ImGui::Dummy(ImVec2(0, 0.5f));
-
-        ImGui::EndChild();
-
-        ImGui::BeginChild("TimelineKeys", ImVec2(0, 0), 0, ImGuiWindowFlags_HorizontalScrollbar);
-
-        const ImVec2 buttonDimensions(22.f, 30.f);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(15, 0));
-        
-        if (ImGui::BeginTable("TimelineFrameTable", 2,
-                                                        ImGuiTableFlags_RowBg |
-                                                        ImGuiTableFlags_BordersInnerV |
-                                                        ImGuiTableFlags_ScrollX
-        )) {
-            ImGui::TableNextRow();
-            {
-                ImGui::TableSetColumnIndex(0);
-                ImGui::Dummy(ImVec2(5, 0));
-                ImGui::SameLine();
-                ImGui::TextUnformatted("Keys");
-                ImGui::TableSetColumnIndex(1);
-
-                {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
-                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
-                    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
-
-                    for (uint16_t i = 0; i < appState.playerState.frameCount; i++) {
-                        ImGui::PushID(i);
-
-                        bool popColor{ false };
-                        if (appState.playerState.currentFrame == i) {
-                            popColor = true;
-                            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                        }
-
-                        char buffer[16];
-                        sprintf_s(buffer, 16, "%u##KeyButton", i+1);
-
-                        if (ImGui::Button(buffer, buttonDimensions)) {
-                            appState.playerState.currentFrame = i;
-                            appState.playerState.updateCurrentFrame();
-                        }
-
-                        if (ImGui::BeginItemTooltip()) {
-                            ImGui::Text((char*)ICON_FA_KEY "  Key no. %u", i+1);
-
-                            ImGui::Separator();
-
-                            RvlCellAnim::AnimationKey* key = &this->animatable->getCurrentAnimation()->keys.at(i);
-
-                            ImGui::BulletText("Arrangement Index: %u", key->arrangementIndex);
-                            ImGui::Dummy(ImVec2(0, 10));
-                            ImGui::BulletText("Held for: %u frame(s)", key->holdFrames);
-                            ImGui::Dummy(ImVec2(0, 10));
-                            ImGui::BulletText("Scale X: %f", key->scaleX);
-                            ImGui::BulletText("Scale Y: %f", key->scaleY);
-                            ImGui::BulletText("Angle: %f", key->angle);
-                            ImGui::Dummy(ImVec2(0, 10));
-                            ImGui::BulletText("Opacity: %u/255", key->opacity);
-
-                            ImGui::EndTooltip();
-                        }
-
-                        if (popColor)
-                            ImGui::PopStyleColor();
-
-                        // Hold frame dummy
-
-                        uint16_t holdFrames = this->animatable->getCurrentAnimation()->keys.at(i).holdFrames;
-                        if (holdFrames > 1) {
-                            ImGui::SameLine();
-                            ImGui::Dummy(ImVec2(static_cast<float>(10 * holdFrames), buttonDimensions.y));
-                        }
-
-                        ImGui::SameLine();
-
-                        ImGui::PopID();
-                    }
-
-                    ImGui::PopStyleVar(3);
-                }
-            }
-
-            ImGui::TableNextRow();
-            {
-                ImGui::TableSetColumnIndex(0);
-                ImGui::Dummy(ImVec2(5, 0));
-                ImGui::SameLine();
-                ImGui::TextUnformatted("Hold Frames");
-                ImGui::TableSetColumnIndex(1);
-
-                {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
-                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
-                    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
-
-                    for (uint16_t i = 0; i < appState.playerState.frameCount; i++) {
-                        ImGui::PushID(i);
-
-                        // Key button dummy
-                        ImGui::Dummy(buttonDimensions);
-
-                        uint16_t holdFrames = this->animatable->getCurrentAnimation()->keys.at(i).holdFrames;
-                        if (holdFrames > 1) {
-                            ImGui::SameLine();
-
-                            ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(
-                                appState.playerState.currentFrame == i ?
-                                    ((holdFrames - appState.playerState.holdFramesLeft) / (float)holdFrames) :
-                                appState.playerState.currentFrame > i ?
-                                    1.0f : 0.0f,
-                                0.5f
-                            ));
-
-                            ImGui::BeginDisabled();
-                            ImGui::Button((char*)ICON_FA_HOURGLASS "", { static_cast<float>(10 * holdFrames), 30.f });
-                            ImGui::EndDisabled();
-
-                            ImGui::PopStyleVar();
-                        }
-
-                        ImGui::SameLine();
-
-                        ImGui::PopID();
-                    }
-
-                    ImGui::PopStyleVar(3);
-                }
-            }
-        
-            ImGui::EndTable();
-        }
-
-        ImGui::PopStyleVar();
-
-        /*
-        if (autoScrollTimeline && appState.playerState.playing) {
-            ImGui::SetScrollX(ImGui::GetScrollMaxX() * appState.playerState.getAnimationProgression());
-        }
-        */
-
-        ImGui::EndChild();
-
-        ImGui::End();
-    }
 
     // End main window
     ImGui::End();

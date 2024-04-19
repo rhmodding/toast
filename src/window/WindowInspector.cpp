@@ -1,0 +1,219 @@
+#include "WindowInspector.hpp"
+
+#include "imgui.h"
+
+#include "../font/FontAwesome.h"
+
+#include "../AppState.hpp"
+
+void WindowInspector::Level_Animation() {
+    GET_APP_STATE;
+
+    {
+        GET_WINDOW_DRAWLIST;
+
+        ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
+        ImVec2 canvasSize = { 92, 92 };
+        ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+
+        const ImVec2 origin(
+            canvasTopLeft.x + static_cast<int>(canvasSize.x / 2),
+            canvasTopLeft.y + static_cast<int>(canvasSize.y / 2)
+        );
+
+        uint32_t backgroundColor = appState.darkTheme ?
+            IM_COL32(50, 50, 50, 255) :
+            IM_COL32(255, 255, 255, 255);
+
+        drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor, ImGui::GetStyle().FrameRounding);
+
+        drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
+
+        this->animatable->offset = origin;
+        this->animatable->scaleX = 0.7f;
+        this->animatable->scaleY = 0.7f;
+        this->animatable->Draw(drawList);
+
+        drawList->PopClipRect();
+
+        ImGui::Dummy(canvasSize);
+    }
+
+    ImGui::SameLine();
+
+    uint16_t animationIndex = this->animatable->getCurrentAnimationIndex();
+    auto query = this->animationNames->find(animationIndex);
+
+    const char* animationName = 
+        query != this->animationNames->end() ?
+            query->second.c_str() : nullptr;
+
+    ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+
+        ImGui::Text("Animation no. %u:", animationIndex);
+
+        ImGui::PushFont(appState.fontLarge);
+        ImGui::TextWrapped("%s", animationName ? animationName : "(no macro defined)");
+        ImGui::PopFont();
+
+        ImGui::PopStyleVar();
+    }
+    ImGui::EndChild();
+
+
+    RvlCellAnim::Animation* animation = this->animatable->getCurrentAnimation();
+    static char newMacroName[128]{ "" };
+
+    ImGui::SeparatorText((char*)ICON_FA_PENCIL " Macro name");
+    if (ImGui::Button("Edit macro name..")) {
+        strcpy_s(newMacroName, 128, animationName ? animationName : "");
+        ImGui::OpenPopup("Edit macro name###EditMacroNamePopup");
+    }
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    if (ImGui::BeginPopupModal("Edit macro name###EditMacroNamePopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Edit macro name for animation no. %u:", animationIndex);
+        ImGui::InputText("##MacroNameInput", newMacroName, 128);
+
+        ImGui::Dummy({ 0, 15 });
+        ImGui::Separator();
+        ImGui::Dummy({ 0, 5 });
+
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+            query->second = newMacroName;
+            ImGui::CloseCurrentPopup();
+        } ImGui::SetItemDefaultFocus();
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Nevermind", ImVec2(120, 0)))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar();
+}
+
+const uint8_t uint8_one = 1;
+const uint16_t uint16_one = 1;
+
+void WindowInspector::Level_Key() {
+    GET_APP_STATE;
+
+    {
+        GET_WINDOW_DRAWLIST;
+
+        ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
+        ImVec2 canvasSize = { 92, 92 };
+        ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+
+        const ImVec2 origin(
+            canvasTopLeft.x + static_cast<int>(canvasSize.x / 2),
+            canvasTopLeft.y + static_cast<int>(canvasSize.y / 2)
+        );
+
+        uint32_t backgroundColor = appState.darkTheme ?
+            IM_COL32(50, 50, 50, 255) :
+            IM_COL32(255, 255, 255, 255);
+
+        drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor, ImGui::GetStyle().FrameRounding);
+
+        drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
+
+        this->animatable->offset = origin;
+        this->animatable->scaleX = 0.7f;
+        this->animatable->scaleY = 0.7f;
+        this->animatable->Draw(drawList);
+
+        drawList->PopClipRect();
+
+        ImGui::Dummy(canvasSize);
+    }
+
+    ImGui::SameLine();
+
+    uint16_t animationIndex = this->animatable->getCurrentAnimationIndex();
+    auto query = this->animationNames->find(animationIndex);
+
+    const char* animationName = 
+        query != this->animationNames->end() ?
+            query->second.c_str() : nullptr;
+
+    ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+
+        ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex);
+
+        ImGui::PushFont(appState.fontLarge);
+        ImGui::TextWrapped("Key no. %u", this->animatable->getCurrentKeyIndex());
+        ImGui::PopFont();
+
+        ImGui::PopStyleVar();
+    }
+    ImGui::EndChild();
+
+    RvlCellAnim::AnimationKey* animKey = this->animatable->getCurrentKey();
+
+    ImGui::SeparatorText((char*)ICON_FA_KEY " Properties");
+
+    ImGui::InputScalar("Arrangement Index", ImGuiDataType_U16, &animKey->arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+
+    uint16_t holdFrames = animKey->holdFrames;
+    if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+        if (holdFrames <= 1)
+            animKey->holdFrames = 1;
+        else
+            animKey->holdFrames = holdFrames;
+    };
+
+    ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
+
+    float scaleValues[2] = { animKey->scaleX, animKey->scaleY };
+    if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
+        animKey->scaleX = scaleValues[0];
+        animKey->scaleY = scaleValues[1];
+    }
+    ImGui::SliderFloat("Angle Z", &animKey->angle, -360.f, 360.f, "%.0f deg");
+
+    ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
+
+    ImGui::InputScalar("Opacity", ImGuiDataType_U8, &animKey->opacity, &uint8_one, nullptr, "%u");
+}
+
+void WindowInspector::Update() {
+    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar);
+
+    if (ImGui::BeginMenuBar()) {
+        if (ImGui::BeginMenu("Level")) {
+            if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation))
+                inspectorLevel = InspectorLevel_Animation;
+            if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key))
+                inspectorLevel = InspectorLevel_Key;
+            if (ImGui::MenuItem("Arrangement", nullptr, inspectorLevel == InspectorLevel_Arrangement))
+                inspectorLevel = InspectorLevel_Arrangement;
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
+    switch (inspectorLevel) {
+        case InspectorLevel_Animation:
+            this->Level_Animation();
+            break;
+    
+        case InspectorLevel_Key:
+            this->Level_Key();
+            break;
+
+        default:
+            ImGui::Text("Inspector level not implemented.");
+            break;
+    }
+
+    ImGui::End();
+}

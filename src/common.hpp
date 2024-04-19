@@ -24,6 +24,9 @@
 
 #define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
+#define GET_IMGUI_IO ImGuiIO& io = ImGui::GetIO()
+#define GET_WINDOW_DRAWLIST ImDrawList* drawList = ImGui::GetWindowDrawList()
+
 namespace Common {
     template <typename T>
     void ReadAtOffset(const char* source, size_t& offset, const size_t sourceSize, T& buffer) {

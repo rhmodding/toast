@@ -1,0 +1,273 @@
+#include "WindowCanvas.hpp"
+
+void WindowCanvas::Menubar() {
+    if (ImGui::BeginMenuBar()) {
+        if (ImGui::BeginMenu("Grid")) {
+            if (ImGui::MenuItem("None", nullptr, gridType == GridType_None))
+                gridType = GridType_None;
+
+            if (ImGui::MenuItem("Dark", nullptr, gridType == GridType_Dark))
+                gridType = GridType_Dark;
+
+            if (ImGui::MenuItem("Light", nullptr, gridType == GridType_Light))
+                gridType = GridType_Light;
+
+            if (ImGui::BeginMenu("Custom")) {
+                bool enabled = gridType == GridType_Custom;
+                if (ImGui::Checkbox("Enabled", &enabled)) {
+                    if (enabled)
+                        gridType = GridType_Custom;
+                    else
+                        gridType = AppState::getInstance().darkTheme ? GridType_Dark : GridType_Light;
+                };
+
+                ImGui::SeparatorText("Color Picker");
+
+                ImGui::ColorPicker4(
+                    "##ColorPicker",
+                    (float*)&customGridColor,
+                    ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
+                    nullptr
+                );
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Grid Lines", nullptr, &this->enableGridLines, gridType != GridType_None);
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("View")) {
+            if (ImGui::MenuItem("Reset", nullptr, false)) {
+                this->canvasOffset = { 0.f, 0.f };
+                this->canvasZoom = 0.f;
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Rendering")) {
+            if (ImGui::BeginMenu("Draw Part Origin")) {
+                ImGui::Checkbox("Enabled", &drawPartOrigin);
+
+                ImGui::SeparatorText("Options");
+
+                ImGui::DragFloat("Radius", &partOriginDrawRadius, 0.1f);
+
+                ImGui::SeparatorText("Color Picker");
+
+                ImGui::ColorPicker4(
+                    "##ColorPicker",
+                    (float*)&partOriginDrawColor,
+                    ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
+                    nullptr
+                );
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::MenuItem("Enable part transparency", nullptr, allowOpacity))
+                allowOpacity = !allowOpacity;
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+}
+
+void WindowCanvas::Update() {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+    ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_MenuBar);
+    ImGui::PopStyleVar();
+
+    // Note: ImDrawList uses screen coordinates
+    ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
+    ImVec2 canvasSize = ImGui::GetContentRegionAvail();
+    ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+
+    this->Menubar();
+
+    uint32_t backgroundColor{ 0 };
+    switch (this->gridType) {
+        case GridType_None:
+            backgroundColor = IM_COL32_BLACK_TRANS;
+            break;
+        
+        case GridType_Dark:
+            backgroundColor = IM_COL32(50, 50, 50, 255);
+            break;
+
+        case GridType_Light:
+            backgroundColor = IM_COL32(255, 255, 255, 255);
+            break;
+
+        case GridType_Custom:
+            backgroundColor = IM_COL32(
+                customGridColor.x * 255,
+                customGridColor.y * 255,
+                customGridColor.z * 255,
+                customGridColor.w * 255
+            );
+            break;
+    
+        default:
+            break;
+    }
+
+    GET_IMGUI_IO;
+    GET_WINDOW_DRAWLIST;
+
+    drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor);
+
+    // This catches interactions
+    ImGui::InvisibleButton("CanvasInteractions", canvasSize,
+        ImGuiButtonFlags_MouseButtonLeft |
+        ImGuiButtonFlags_MouseButtonRight |
+        ImGuiButtonFlags_MouseButtonMiddle
+    );
+
+    const bool interactionHovered = ImGui::IsItemHovered();
+    const bool interactionActive = ImGui::IsItemActive(); // Held
+
+    const ImVec2 origin(
+        canvasTopLeft.x + this->canvasOffset.x + static_cast<int>(canvasSize.x / 2),
+        canvasTopLeft.y + this->canvasOffset.y + static_cast<int>(canvasSize.y / 2)
+    );
+    const ImVec2 relativeMousePos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+
+    // Panning
+    const float mousePanThreshold = -1.0f;
+    bool panningCanvas = interactionActive && (
+        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
+    );
+
+    if (panningCanvas) {
+        this->canvasOffset.x += io.MouseDelta.x;
+        this->canvasOffset.y += io.MouseDelta.y;
+    }
+
+    const float maxZoom = 9.f;
+    const float minZoom = -0.90f;
+
+    if (interactionHovered) {
+        GET_IMGUI_IO;
+
+        if (io.KeyShift) 
+            this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
+        else
+            this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED;
+
+        if (this->canvasZoom < minZoom)
+            this->canvasZoom = minZoom;
+
+        if (this->canvasZoom > maxZoom)
+            this->canvasZoom = maxZoom;
+    }
+
+    // Draw grid + all lines in the canvas
+    drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
+
+    if ((this->gridType != GridType_None) && this->enableGridLines) {
+        float GRID_STEP = 64.0f * (this->canvasZoom + 1);
+
+        for (float x = fmodf(this->canvasOffset.x + static_cast<int>(canvasSize.x / 2), GRID_STEP); x < canvasSize.x; x += GRID_STEP)
+            drawList->AddLine(ImVec2(canvasTopLeft.x + x, canvasTopLeft.y), ImVec2(canvasTopLeft.x + x, canvasBottomRight.y), IM_COL32(200, 200, 200, 40));
+        
+        for (float y = fmodf(this->canvasOffset.y + static_cast<int>(canvasSize.y / 2), GRID_STEP); y < canvasSize.y; y += GRID_STEP)
+            drawList->AddLine(ImVec2(canvasTopLeft.x, canvasTopLeft.y + y), ImVec2(canvasBottomRight.x, canvasTopLeft.y + y), IM_COL32(200, 200, 200, 40));
+    }
+
+    bool animatableDoesDraw = this->animatable->getDoesDraw(allowOpacity);
+
+    if (animatableDoesDraw) {
+        this->animatable->scaleX = this->canvasZoom + 1;
+        this->animatable->scaleY = this->canvasZoom + 1;
+
+        this->animatable->offset = origin;
+        this->animatable->Draw(drawList, allowOpacity);
+    }
+
+    if (drawPartOrigin)
+        this->animatable->DrawOrigins(drawList, partOriginDrawRadius, IM_COL32(
+            partOriginDrawColor.x * 255,
+            partOriginDrawColor.y * 255,
+            partOriginDrawColor.z * 255,
+            partOriginDrawColor.w * 255
+        ));
+
+    drawList->PopClipRect();
+
+    uint32_t textColor{ 0 };
+    switch (this->gridType) {
+        case GridType_None:
+            textColor = AppState::getInstance().darkTheme ? IM_COL32_WHITE : IM_COL32_BLACK;
+            break;
+        
+        case GridType_Dark:
+            textColor = IM_COL32_WHITE;
+            break;
+
+        case GridType_Light:
+            textColor = IM_COL32_BLACK;
+            break;
+
+        case GridType_Custom: {
+            float y = 0.2126f * customGridColor.x + 0.7152f * customGridColor.y + 0.0722f * customGridColor.z;
+
+            if (y > 0.5f)
+                textColor = IM_COL32_BLACK;
+            else
+                textColor = IM_COL32_WHITE;
+        } break;
+    
+        default:
+            break;
+    }
+
+    float textDrawHeight = canvasTopLeft.y + 5.f;
+
+    if ((this->canvasOffset.x != 0.f) || (this->canvasOffset.y != 0.f)) {
+        char buffer[64] = { '\0' };
+        sprintf_s((char*)&buffer, 64, "Offset: %f, %f", this->canvasOffset.x, this->canvasOffset.y);
+
+        drawList->AddText(ImVec2(canvasTopLeft.x + 10, textDrawHeight), textColor, buffer);
+
+        textDrawHeight += 3.f + ImGui::CalcTextSize(buffer).y;
+    }
+
+    if (this->canvasZoom != 0.f) {
+        char buffer[64] = { '\0' };
+        sprintf_s((char*)&buffer, 64, "Zoom: %u%% (hold [Shift] to zoom faster)", static_cast<uint16_t>((this->canvasZoom + 1) * 100));
+
+        drawList->AddText(
+            ImVec2(
+                canvasTopLeft.x + 10,
+                textDrawHeight
+            ),
+            textColor, buffer
+        );
+
+        textDrawHeight += 3.f + ImGui::CalcTextSize(buffer).y;
+    }
+
+    if (!animatableDoesDraw) {
+        const char* text = "Nothing to draw on this frame";
+        ImVec2 textSize = ImGui::CalcTextSize(text);
+        drawList->AddText(
+            ImVec2(
+                canvasTopLeft.x + 10,
+                textDrawHeight
+            ),
+            textColor, text
+        );
+
+        textDrawHeight += 3.f + ImGui::CalcTextSize(text).y;
+    }
+
+    ImGui::End();
+}

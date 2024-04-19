@@ -25,6 +25,11 @@ set(SOURCES
     src/texture/ImageConvert.cpp
     src/texture/TPL.cpp
 
+    src/window/WindowTimeline.cpp
+    src/window/WindowCanvas.cpp
+    src/window/WindowHybridList.cpp
+    src/window/WindowInspector.cpp
+
     src/common.cpp
 
     src/stb/stb_image.h
@@ -49,6 +54,13 @@ set(HEADERS
 
     src/texture/ImageConvert.hpp
     src/texture/TPL.hpp
+
+    src/window/BaseWindow.hpp
+
+    src/window/WindowTimeline.hpp
+    src/window/WindowCanvas.hpp
+    src/window/WindowHybridList.hpp
+    src/window/WindowInspector.hpp
 
     src/common.hpp
 )
