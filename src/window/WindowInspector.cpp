@@ -150,7 +150,7 @@ void WindowInspector::Level_Key() {
         animKey->scaleX = scaleValues[0];
         animKey->scaleY = scaleValues[1];
     }
-    ImGui::SliderFloat("Angle Z", &animKey->angle, -360.f, 360.f, "%.0f deg");
+    ImGui::SliderFloat("Angle Z", &animKey->angle, -360.f, 360.f, "%.1f deg");
 
     ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
 
@@ -221,6 +221,40 @@ void WindowInspector::Level_Arrangement() {
             //ImGui::PopStyleVar();
         }
         ImGui::EndChild();
+
+        RvlCellAnim::Arrangement* arrangementPtr =
+            &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+
+        RvlCellAnim::ArrangementPart* partPtr = &arrangementPtr->parts.at(appState.selectedPart);
+
+        ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
+
+        int positionValues[2] = {
+            partPtr->positionX - (this->realPosition ? 0 : 512),
+            partPtr->positionY - (this->realPosition ? 0 : 512)
+        };
+        if (ImGui::DragInt2("Position XY", positionValues, 1.f)) {
+            partPtr->positionX = static_cast<int16_t>(
+                positionValues[0] + (this->realPosition ? 0 : 512)
+            );
+            partPtr->positionY = static_cast<int16_t>(
+                positionValues[1] + (this->realPosition ? 0 : 512)
+            );
+        }
+
+        float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
+        if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
+            partPtr->scaleX = scaleValues[0];
+            partPtr->scaleY = scaleValues[1];
+        }
+        ImGui::SliderFloat("Angle Z", &partPtr->angle, -360.f, 360.f, "%.1f deg");
+
+        ImGui::Checkbox("Flip X", &partPtr->flipX);
+        ImGui::Checkbox("Flip Y", &partPtr->flipY);
+
+        ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
+
+        ImGui::InputScalar("Opacity", ImGuiDataType_U8, &partPtr->opacity, &uint8_one, nullptr, "%u");
     }
     ImGui::EndChild();
 
@@ -313,6 +347,14 @@ void WindowInspector::Update() {
 
                 appState.playerState.ToggleAnimating(false);
                 this->animatable->SubmitAnimationKeyPtr(&appState.controlKey);
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Options")) {
+            if (ImGui::MenuItem("Enable real canvas offset (512, 512)", nullptr, this->realPosition)) {
+                this->realPosition = !this->realPosition;
             }
 
             ImGui::EndMenu();
