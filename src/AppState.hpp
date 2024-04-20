@@ -52,7 +52,7 @@ public:
             if (this->currentFrame >= this->frameCount)
                 this->currentFrame = this->frameCount - 1;
 
-            animatable->setAnimationKey(this->currentFrame);
+            this->animatable->setAnimationKey(this->currentFrame);
 
             this->holdFramesLeft = 0;
         }
@@ -85,7 +85,7 @@ public:
             for (uint16_t keyIndex = 0; keyIndex < currentFrame; keyIndex++)
                 result += this->animatable->getCurrentAnimation()->keys.at(keyIndex).holdFrames;
 
-            result += animatable->getCurrentKey()->holdFrames - this->holdFramesLeft;
+            result += this->animatable->getCurrentKey()->holdFrames - this->holdFramesLeft;
 
             return result;
         }
@@ -113,8 +113,8 @@ public:
 
                     this->playing = this->animatable->isAnimating();
 
-                    this->currentFrame = animatable->getCurrentKeyIndex();
-                    this->holdFramesLeft = animatable->getHoldFramesLeft();
+                    this->currentFrame = this->animatable->getCurrentKeyIndex();
+                    this->holdFramesLeft = this->animatable->getHoldFramesLeft();
                 }
             }
         }
