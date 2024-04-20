@@ -1,6 +1,5 @@
 #include "App.hpp"
 
-#include "font/CustomFont.h"
 #include "font/SegoeUI.h"
 #include "font/FontAwesome.h"
 
@@ -252,6 +251,10 @@ App::App() {
 
     this->windowTimeline = new WindowTimeline;
     this->windowTimeline->animatable = this->animatable;
+
+    this->windowSpritesheet = new WindowSpritesheet;
+    this->windowSpritesheet->animatable = this->animatable;
+    this->windowSpritesheet->sheet = &this->cellanimSheet;
 }
 
 void App::Stop() {
@@ -269,6 +272,7 @@ void App::Stop() {
     Common::deleteIfNotNullptr(this->windowHybridList);
     Common::deleteIfNotNullptr(this->windowInspector);
     Common::deleteIfNotNullptr(this->windowTimeline);
+    Common::deleteIfNotNullptr(this->windowSpritesheet);
 }
 
 void App::UpdateTheme() {
@@ -295,16 +299,6 @@ void App::SetupFonts() {
     }
 
     {
-        static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
-
-        ImFontConfig fontConfig;
-        fontConfig.MergeMode = true;
-        fontConfig.PixelSnapH = true;
-
-        io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &fontConfig, icons_ranges);
-    }
-
-    {
         static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
         ImFontConfig fontConfig;
@@ -326,14 +320,14 @@ void App::Menubar() {
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
-            if (ImGui::MenuItem((char*)ICON_IGFD_RESET " About " WINDOW_TITLE, "", nullptr)) {
+            if (ImGui::MenuItem((char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
                 appState.showAboutWindow = true;
                 ImGui::SetWindowFocus("About " WINDOW_TITLE);
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem((char*)ICON_IGFD_CANCEL " Quit", "Alt+F4", nullptr))
+            if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", "Alt+F4", nullptr))
                 this->quit = 0xFF;
 
             ImGui::EndMenu();
