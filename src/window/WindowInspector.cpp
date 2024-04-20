@@ -249,17 +249,22 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6, ImGui::GetStyle().ItemSpacing.y });
 
+            float firstButtonWidth = ImGui::CalcTextSize((char*) ICON_FA_ARROW_DOWN "").x + (ImGui::GetStyle().FramePadding.x * 2);
+            float basePositionX = ImGui::GetWindowContentRegionMax().x - ImGui::GetStyle().WindowPadding.x - 10.f;
+            
             ImGui::SameLine();
-            if (ImGui::SmallButton((char*) ICON_FA_ARROW_DOWN "")) {
-                uint16_t nSwap = n - 1;
+            ImGui::SetCursorPosX(basePositionX - firstButtonWidth - ImGui::GetStyle().ItemSpacing.x);
+            if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
+                uint16_t nSwap = n + 1;
                 if (nSwap >= 0 && nSwap < arrangementPtr->parts.size()) {
                     std::swap(arrangementPtr->parts.at(n), arrangementPtr->parts.at(nSwap));
                     appState.selectedPart = nSwap;
                 }
             }
             ImGui::SameLine();
-            if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
-                uint16_t nSwap = n + 1;
+            ImGui::SetCursorPosX(basePositionX);
+            if (ImGui::SmallButton((char*) ICON_FA_ARROW_DOWN "")) {
+                uint16_t nSwap = n - 1;
                 if (nSwap >= 0 && nSwap < arrangementPtr->parts.size()) {
                     std::swap(arrangementPtr->parts.at(n), arrangementPtr->parts.at(nSwap));
                     appState.selectedPart = nSwap;
