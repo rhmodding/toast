@@ -18,7 +18,8 @@ public:
     enum InspectorLevel: uint8_t {
         InspectorLevel_Animation,
         InspectorLevel_Key,
-        InspectorLevel_Arrangement
+        InspectorLevel_Arrangement,
+        InspectorLevel_Arrangement_Im
     } inspectorLevel{ InspectorLevel_Animation };
 
 private:

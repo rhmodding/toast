@@ -166,13 +166,40 @@ void WindowInspector::Level_Arrangement() {
 
     ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
     {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+        //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
         ImGui::PushFont(appState.fontLarge);
-        ImGui::TextWrapped("Arrangement no. %u", appState.controlKey.arrangementIndex);
+        ImGui::TextWrapped("Arrangement no.");
         ImGui::PopFont();
 
-        ImGui::PopStyleVar();
+        ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
+        ImGui::InputScalar(
+            "##ArrangementInput",
+            ImGuiDataType_U16,
+            &this->animatable->getCurrentKey()->arrangementIndex,
+            nullptr, nullptr,
+            "%u"
+        );
+
+        const float buttonSize = ImGui::GetFrameHeight();
+        const float xInnerSpacing = ImGui::GetStyle().ItemInnerSpacing.x;
+
+        ImGui::PushButtonRepeat(true);
+
+        ImGui::SameLine(0.f, xInnerSpacing);
+        if (ImGui::Button("-##ArrangementInputSub", ImVec2(buttonSize, buttonSize))) {
+            if (this->animatable->getCurrentKey()->arrangementIndex > 0)
+                this->animatable->getCurrentKey()->arrangementIndex--;
+        }
+        ImGui::SameLine(0.f, xInnerSpacing);
+        if (ImGui::Button("+##ArrangementInputAdd", ImVec2(buttonSize, buttonSize))) {
+            if (this->animatable->getCurrentKey()->arrangementIndex < 65535)
+                this->animatable->getCurrentKey()->arrangementIndex++;
+        }
+
+        ImGui::PopButtonRepeat();
+        
+        //ImGui::PopStyleVar();
     }
     ImGui::EndChild();
 }
@@ -190,10 +217,14 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Animation;
             if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key))
                 inspectorLevel = InspectorLevel_Key;
-            if (ImGui::MenuItem("Arrangement", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
+            if (ImGui::MenuItem("Arrangement (Immediate)", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
+                inspectorLevel = InspectorLevel_Arrangement_Im;
+            }
+            if (ImGui::MenuItem("Arrangement (Outside Anim)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
                 inspectorLevel = InspectorLevel_Arrangement;
 
                 appState.arrangementMode = true;
+                appState.playerState.ToggleAnimating(false);
                 appState.controlKey.arrangementIndex = this->animatable->getCurrentKey()->arrangementIndex;
                 this->animatable->SubmitAnimationKeyPtr(&appState.controlKey);
             }
@@ -225,6 +256,10 @@ void WindowInspector::Update() {
             break;
 
         case InspectorLevel_Arrangement:
+            this->Level_Arrangement();
+            break;
+
+        case InspectorLevel_Arrangement_Im:
             this->Level_Arrangement();
             break;
 
