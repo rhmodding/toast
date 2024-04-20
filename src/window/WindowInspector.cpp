@@ -245,13 +245,11 @@ void WindowInspector::Level_Arrangement() {
             if (ImGui::Selectable(buffer, appState.selectedPart == n))
                 appState.selectedPart = n;
 
-            ImGui::SameLine(); ImGui::Dummy({ 10, 0 });
-
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6, ImGui::GetStyle().ItemSpacing.y });
 
             float firstButtonWidth = ImGui::CalcTextSize((char*) ICON_FA_ARROW_DOWN "").x + (ImGui::GetStyle().FramePadding.x * 2);
             float basePositionX = ImGui::GetWindowContentRegionMax().x - ImGui::GetStyle().WindowPadding.x - 10.f;
-            
+
             ImGui::SameLine();
             ImGui::SetCursorPosX(basePositionX - firstButtonWidth - ImGui::GetStyle().ItemSpacing.x);
             if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
