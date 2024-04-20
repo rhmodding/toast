@@ -24,6 +24,7 @@ public:
 private:
     void Level_Animation();
     void Level_Key();
+    void Level_Arrangement();
 };
 
 #endif // WINDOWINSPECTOR_HPP

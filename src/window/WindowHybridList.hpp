@@ -18,7 +18,6 @@ public:
 
     Animatable* animatable;
 
-    uint16_t selectedAnimation{ 0 };
     std::unordered_map<uint16_t, std::string>* animationNames;
 
 private:

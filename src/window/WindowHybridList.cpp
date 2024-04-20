@@ -5,32 +5,41 @@
 void WindowHybridList::Update() {
     GET_APP_STATE;
 
-    ImGui::Begin("Animations###HybridList", nullptr);
+    ImGui::Begin(appState.arrangementMode ? "Arrangements###HybridList" : "Animations###HybridList", nullptr);
 
-    ImGui::BeginChild("AnimationList", ImVec2(0, 0), ImGuiChildFlags_Border);
+    ImGui::BeginChild("List", ImVec2(0, 0), ImGuiChildFlags_Border);
     {
-        for (uint16_t n = 0; n < this->animatable->cellanim->animations.size(); n++) {
-            char buffer[128];
+        if (!appState.arrangementMode)
+            for (uint16_t n = 0; n < this->animatable->cellanim->animations.size(); n++) {
+                char buffer[128];
 
-            auto query = this->animationNames->find(n);
-            sprintf_s(
-                buffer, 128, "%d. %s", n,
+                auto query = this->animationNames->find(n);
+                sprintf_s(
+                    buffer, 128, "%d. %s", n,
 
-                query != this->animationNames->end() ?
-                    query->second.c_str() :
-                    "(no macro defined)"
-            );
+                    query != this->animationNames->end() ?
+                        query->second.c_str() :
+                        "(no macro defined)"
+                );
 
-            if (ImGui::Selectable(buffer, this->selectedAnimation == n)) {
-                this->selectedAnimation = n;
+                if (ImGui::Selectable(buffer, appState.selectedAnimation == n)) {
+                    appState.selectedAnimation = n;
 
-                this->animatable->setAnimation(this->selectedAnimation);
+                    this->animatable->setAnimation(appState.selectedAnimation);
 
-                appState.playerState.currentFrame = 0;
-                appState.playerState.updateSetFrameCount();
-                appState.playerState.updateCurrentFrame();
+                    appState.playerState.currentFrame = 0;
+                    appState.playerState.updateSetFrameCount();
+                    appState.playerState.updateCurrentFrame();
+                }
             }
-        }
+        else
+            for (uint16_t n = 0; n < this->animatable->cellanim->arrangements.size(); n++) {
+                char buffer[32];
+                sprintf_s(buffer, 32, "Arrangement no. %d", n);
+
+                if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n))
+                    appState.controlKey.arrangementIndex = n;
+            }
     }
     ImGui::EndChild();
 

@@ -6,38 +6,43 @@
 
 #include "../AppState.hpp"
 
+const uint8_t uint8_one = 1;
+const uint16_t uint16_one = 1;
+
+void DrawPreview(AppState& appState, Animatable* animatable) {
+    GET_WINDOW_DRAWLIST;
+
+    ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
+    ImVec2 canvasSize = { 92, 92 };
+    ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+
+    const ImVec2 origin(
+        canvasTopLeft.x + static_cast<int>(canvasSize.x / 2),
+        canvasTopLeft.y + static_cast<int>(canvasSize.y / 2)
+    );
+
+    uint32_t backgroundColor = appState.darkTheme ?
+        IM_COL32(50, 50, 50, 255) :
+        IM_COL32(255, 255, 255, 255);
+
+    drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor, ImGui::GetStyle().FrameRounding);
+
+    drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
+
+    animatable->offset = origin;
+    animatable->scaleX = 0.7f;
+    animatable->scaleY = 0.7f;
+    animatable->Draw(drawList);
+
+    drawList->PopClipRect();
+
+    ImGui::Dummy(canvasSize);
+}
+
 void WindowInspector::Level_Animation() {
     GET_APP_STATE;
 
-    {
-        GET_WINDOW_DRAWLIST;
-
-        ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
-        ImVec2 canvasSize = { 92, 92 };
-        ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
-
-        const ImVec2 origin(
-            canvasTopLeft.x + static_cast<int>(canvasSize.x / 2),
-            canvasTopLeft.y + static_cast<int>(canvasSize.y / 2)
-        );
-
-        uint32_t backgroundColor = appState.darkTheme ?
-            IM_COL32(50, 50, 50, 255) :
-            IM_COL32(255, 255, 255, 255);
-
-        drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor, ImGui::GetStyle().FrameRounding);
-
-        drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
-
-        this->animatable->offset = origin;
-        this->animatable->scaleX = 0.7f;
-        this->animatable->scaleY = 0.7f;
-        this->animatable->Draw(drawList);
-
-        drawList->PopClipRect();
-
-        ImGui::Dummy(canvasSize);
-    }
+    DrawPreview(appState, this->animatable);
 
     ImGui::SameLine();
 
@@ -96,41 +101,10 @@ void WindowInspector::Level_Animation() {
     ImGui::PopStyleVar();
 }
 
-const uint8_t uint8_one = 1;
-const uint16_t uint16_one = 1;
-
 void WindowInspector::Level_Key() {
     GET_APP_STATE;
 
-    {
-        GET_WINDOW_DRAWLIST;
-
-        ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
-        ImVec2 canvasSize = { 92, 92 };
-        ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
-
-        const ImVec2 origin(
-            canvasTopLeft.x + static_cast<int>(canvasSize.x / 2),
-            canvasTopLeft.y + static_cast<int>(canvasSize.y / 2)
-        );
-
-        uint32_t backgroundColor = appState.darkTheme ?
-            IM_COL32(50, 50, 50, 255) :
-            IM_COL32(255, 255, 255, 255);
-
-        drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor, ImGui::GetStyle().FrameRounding);
-
-        drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
-
-        this->animatable->offset = origin;
-        this->animatable->scaleX = 0.7f;
-        this->animatable->scaleY = 0.7f;
-        this->animatable->Draw(drawList);
-
-        drawList->PopClipRect();
-
-        ImGui::Dummy(canvasSize);
-    }
+    DrawPreview(appState, this->animatable);
 
     ImGui::SameLine();
 
@@ -183,7 +157,31 @@ void WindowInspector::Level_Key() {
     ImGui::InputScalar("Opacity", ImGuiDataType_U8, &animKey->opacity, &uint8_one, nullptr, "%u");
 }
 
+void WindowInspector::Level_Arrangement() {
+    GET_APP_STATE;
+
+    DrawPreview(appState, this->animatable);
+
+    ImGui::SameLine();
+
+    ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+
+        ImGui::PushFont(appState.fontLarge);
+        ImGui::TextWrapped("Arrangement no. %u", appState.controlKey.arrangementIndex);
+        ImGui::PopFont();
+
+        ImGui::PopStyleVar();
+    }
+    ImGui::EndChild();
+}
+
 void WindowInspector::Update() {
+    GET_APP_STATE;
+
+    static InspectorLevel lastInspectorLevel{ inspectorLevel };
+
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar);
 
     if (ImGui::BeginMenuBar()) {
@@ -192,14 +190,30 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Animation;
             if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key))
                 inspectorLevel = InspectorLevel_Key;
-            if (ImGui::MenuItem("Arrangement", nullptr, inspectorLevel == InspectorLevel_Arrangement))
+            if (ImGui::MenuItem("Arrangement", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
                 inspectorLevel = InspectorLevel_Arrangement;
+
+                appState.arrangementMode = true;
+                appState.controlKey.arrangementIndex = this->animatable->getCurrentKey()->arrangementIndex;
+                this->animatable->SubmitAnimationKeyPtr(&appState.controlKey);
+            }
 
             ImGui::EndMenu();
         }
 
         ImGui::EndMenuBar();
     }
+
+    if (
+        lastInspectorLevel == InspectorLevel_Arrangement &&
+        inspectorLevel != InspectorLevel_Arrangement
+    ) {
+        this->animatable->setAnimation(appState.selectedAnimation);
+    }
+
+    lastInspectorLevel = inspectorLevel;
+
+    appState.arrangementMode = inspectorLevel == InspectorLevel_Arrangement;
 
     switch (inspectorLevel) {
         case InspectorLevel_Animation:
@@ -208,6 +222,10 @@ void WindowInspector::Update() {
     
         case InspectorLevel_Key:
             this->Level_Key();
+            break;
+
+        case InspectorLevel_Arrangement:
+            this->Level_Arrangement();
             break;
 
         default:

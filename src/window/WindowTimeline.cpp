@@ -16,6 +16,9 @@ void WindowTimeline::Update() {
     ImGui::Begin("Timeline");
     ImGui::PopStyleVar();
 
+    if (appState.arrangementMode)
+        ImGui::BeginDisabled();
+
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
 
     ImGui::BeginChild("TimelineToolbar", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
@@ -313,6 +316,9 @@ void WindowTimeline::Update() {
         */
     }
     ImGui::EndChild();
+
+    if (appState.arrangementMode)
+        ImGui::EndDisabled();
 
     ImGui::End();
 }

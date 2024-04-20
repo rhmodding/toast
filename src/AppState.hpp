@@ -129,6 +129,11 @@ public:
     ImFont* fontLarge;
     ImFont* fontIcon;
 
+    bool arrangementMode{ false };
+    RvlCellAnim::AnimationKey controlKey{ 0, 1, 1.f, 1.f, 0.f, 255 };
+
+    uint16_t selectedAnimation{ 0 };
+
 private:
     AppState() {} // Private constructor to prevent instantiation
 };

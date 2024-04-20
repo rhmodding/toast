@@ -133,6 +133,14 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
     return false;
 }
 
+void Animatable::SubmitAnimationKeyPtr(RvlCellAnim::AnimationKey* key) {
+    assert(this->cellanim);
+    assert(key);
+
+    this->animating = false;
+    this->currentKey = key;
+}
+
 void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
     assert(this->cellanim);
     assert(this->currentAnimation);

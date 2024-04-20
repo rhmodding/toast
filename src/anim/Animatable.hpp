@@ -50,6 +50,8 @@ public:
     RvlCellAnim::AnimationKey* getCurrentKey() const;
     RvlCellAnim::Animation* getCurrentAnimation() const;
 
+    void SubmitAnimationKeyPtr(RvlCellAnim::AnimationKey* key);
+
     void Update();
 
     void Draw(ImDrawList* drawList, bool allowOpacity = true);
