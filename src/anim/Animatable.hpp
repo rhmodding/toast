@@ -61,7 +61,10 @@ public:
     // Does the Animatable actually draw anything at all to the screen?
     bool getDoesDraw(bool allowOpacity = true) const;
 
-    ImVec2 getPartWorldSpace(uint16_t animationIndex, uint16_t keyIndex, uint16_t partIndex) const;
+    ImVec2 getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
+
+    // IMPORTANT: delete[] after usage!
+    ImVec2* getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
 };
 
 #endif // ANIMATABLE_HPP

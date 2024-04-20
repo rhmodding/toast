@@ -81,10 +81,9 @@ int16_t Animatable::getHoldFramesLeft() const {
     return this->holdKey;
 }
 
-ImVec2 Animatable::getPartWorldSpace(uint16_t animationIndex, uint16_t keyIndex, uint16_t partIndex) const {
+ImVec2 Animatable::getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
     assert(this->cellanim);
 
-    RvlCellAnim::AnimationKey* key = &this->cellanim->animations.at(animationIndex).keys.at(keyIndex);
     RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
     RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
 
@@ -112,6 +111,93 @@ ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
     float y = v.x * s + v.y * c;
 
     return { x + origin.x, y + origin.y };
+}
+
+// IMPORTANT: delete[] after usage!
+ImVec2* Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
+    assert(this->cellanim);
+
+    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
+    RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
+
+    uint16_t sourceRect[4] = { part.regionX, part.regionY, part.regionW, part.regionH };
+
+    // float totalScaleX = this->currentKey->scaleX * this->scaleX;
+    // float totalScaleY = this->currentKey->scaleY * this->scaleY;
+
+    ImVec2 keyCenter = {
+        CANVAS_ORIGIN + (this->offset.x - 512),
+        CANVAS_ORIGIN + (this->offset.y - 512)
+    };
+
+    ImVec2 topLeftOffset = {
+        CANVAS_ORIGIN + (part.positionX - CANVAS_ORIGIN) + (this->offset.x - 512),
+        CANVAS_ORIGIN + (part.positionY - CANVAS_ORIGIN) + (this->offset.y - 512),
+    };
+
+    ImVec2 bottomRightOffset = {
+        topLeftOffset.x + (part.regionW * part.scaleX),
+        topLeftOffset.y + (part.regionH * part.scaleY)
+    };
+
+    ImVec2* transformedQuad = new ImVec2[4];
+
+    transformedQuad[0] = topLeftOffset;
+    transformedQuad[1] = { bottomRightOffset.x, topLeftOffset.y };
+    transformedQuad[2] = bottomRightOffset;
+    transformedQuad[3] = { topLeftOffset.x, bottomRightOffset.y };
+
+    ImVec2 center = {
+        (topLeftOffset.x + bottomRightOffset.x) / 2.0f,
+        (topLeftOffset.y + bottomRightOffset.y) / 2.0f
+    };
+
+    // Transformations
+    {
+        // Flip operations
+        if (part.flipX) {
+            std::swap(transformedQuad[0], transformedQuad[1]);
+            std::swap(transformedQuad[2], transformedQuad[3]);
+        }
+
+        if (part.flipY) {
+            std::swap(transformedQuad[0], transformedQuad[2]);
+            std::swap(transformedQuad[1], transformedQuad[3]);
+        }
+
+        // Rotation
+        if (fmod(part.angle, 360)) {
+            transformedQuad[0] = rotateVec2(transformedQuad[0], part.angle, center);
+            transformedQuad[1] = rotateVec2(transformedQuad[1], part.angle, center);
+            transformedQuad[2] = rotateVec2(transformedQuad[2], part.angle, center);
+            transformedQuad[3] = rotateVec2(transformedQuad[3], part.angle, center);
+        }
+
+        // Key & animatable scale
+        {
+            transformedQuad[0].x = ((transformedQuad[0].x - keyCenter.x) * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[0].y = ((transformedQuad[0].y - keyCenter.y) * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+
+            transformedQuad[1].x = ((transformedQuad[1].x - keyCenter.x) * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[1].y = ((transformedQuad[1].y - keyCenter.y) * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+
+            transformedQuad[2].x = ((transformedQuad[2].x - keyCenter.x) * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[2].y = ((transformedQuad[2].y - keyCenter.y) * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+
+            transformedQuad[3].x = ((transformedQuad[3].x - keyCenter.x) * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[3].y = ((transformedQuad[3].y - keyCenter.y) * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+        }
+
+        // Key rotation
+        if (fmod(this->currentKey->angle, 360)) {
+            transformedQuad[0] = rotateVec2(transformedQuad[0], this->currentKey->angle, keyCenter);
+            transformedQuad[1] = rotateVec2(transformedQuad[1], this->currentKey->angle, keyCenter);
+            transformedQuad[2] = rotateVec2(transformedQuad[2], this->currentKey->angle, keyCenter);
+            transformedQuad[3] = rotateVec2(transformedQuad[3], this->currentKey->angle, keyCenter);
+        }
+    }
+
+    return transformedQuad;
 }
 
 bool Animatable::getDoesDraw(bool allowOpacity) const {
