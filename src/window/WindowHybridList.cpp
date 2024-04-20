@@ -30,6 +30,12 @@ void WindowHybridList::Update() {
                     appState.playerState.currentFrame = 0;
                     appState.playerState.updateSetFrameCount();
                     appState.playerState.updateCurrentFrame();
+
+                    RvlCellAnim::Arrangement* arrangementPtr =
+                        &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+
+                    if (appState.selectedPart >= arrangementPtr->parts.size())
+                        appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
                 }
             }
         else
@@ -37,8 +43,15 @@ void WindowHybridList::Update() {
                 char buffer[32];
                 sprintf_s(buffer, 32, "Arrangement no. %d", n);
 
-                if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n))
+                if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n)) {
                     appState.controlKey.arrangementIndex = n;
+
+                    RvlCellAnim::Arrangement* arrangementPtr =
+                        &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+
+                    if (appState.selectedPart >= arrangementPtr->parts.size())
+                        appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
+                }
             }
     }
     ImGui::EndChild();

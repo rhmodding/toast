@@ -133,6 +133,8 @@ public:
     RvlCellAnim::AnimationKey controlKey{ 0, 1, 1.f, 1.f, 0.f, 255 };
 
     uint16_t selectedAnimation{ 0 };
+    uint16_t selectedPart{ 0 };
+    bool drawSelectedPartBounding{ false };
 
 private:
     AppState() {} // Private constructor to prevent instantiation

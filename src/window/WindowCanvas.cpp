@@ -192,6 +192,14 @@ void WindowCanvas::Update() {
         this->animatable->Draw(drawList, allowOpacity);
     }
 
+    GET_APP_STATE;
+
+    if (appState.drawSelectedPartBounding) {
+        ImVec2* bounding = this->animatable->getPartWorldQuad(this->animatable->getCurrentKey(), appState.selectedPart);
+        drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], IM_COL32_WHITE);
+        delete[] bounding;
+    }
+
     if (drawPartOrigin)
         this->animatable->DrawOrigins(drawList, partOriginDrawRadius, IM_COL32(
             partOriginDrawColor.x * 255,

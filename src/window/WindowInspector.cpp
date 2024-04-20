@@ -160,46 +160,116 @@ void WindowInspector::Level_Key() {
 void WindowInspector::Level_Arrangement() {
     GET_APP_STATE;
 
-    DrawPreview(appState, this->animatable);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
-    ImGui::SameLine();
-
-    ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+    ImGui::BeginChild("ArrangementOverview", { 0, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY);
+    ImGui::PopStyleVar();
     {
-        //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+        DrawPreview(appState, this->animatable);
 
-        ImGui::PushFont(appState.fontLarge);
-        ImGui::TextWrapped("Arrangement no.");
-        ImGui::PopFont();
+        ImGui::SameLine();
 
-        ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-        ImGui::InputScalar(
-            "##ArrangementInput",
-            ImGuiDataType_U16,
-            &this->animatable->getCurrentKey()->arrangementIndex,
-            nullptr, nullptr,
-            "%u"
-        );
+        ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+        {
+            //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
-        const float buttonSize = ImGui::GetFrameHeight();
-        const float xInnerSpacing = ImGui::GetStyle().ItemInnerSpacing.x;
+            ImGui::PushFont(appState.fontLarge);
+            ImGui::TextWrapped("Arrangement no.");
+            ImGui::PopFont();
 
-        ImGui::PushButtonRepeat(true);
+            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
+            ImGui::InputScalar(
+                "##ArrangementInput",
+                ImGuiDataType_U16,
+                &this->animatable->getCurrentKey()->arrangementIndex,
+                nullptr, nullptr,
+                "%u"
+            );
 
-        ImGui::SameLine(0.f, xInnerSpacing);
-        if (ImGui::Button("-##ArrangementInputSub", ImVec2(buttonSize, buttonSize))) {
-            if (this->animatable->getCurrentKey()->arrangementIndex > 0)
-                this->animatable->getCurrentKey()->arrangementIndex--;
+            const float buttonSize = ImGui::GetFrameHeight();
+            const float xInnerSpacing = ImGui::GetStyle().ItemInnerSpacing.x;
+
+            ImGui::PushButtonRepeat(true);
+
+            ImGui::SameLine(0.f, xInnerSpacing);
+            if (ImGui::Button("-##ArrangementInputSub", ImVec2(buttonSize, buttonSize))) {
+                if (this->animatable->getCurrentKey()->arrangementIndex > 0){
+                    this->animatable->getCurrentKey()->arrangementIndex--;
+
+                    RvlCellAnim::Arrangement* arrangementPtr =
+                        &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+
+                    if (appState.selectedPart >= arrangementPtr->parts.size())
+                        appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
+                }
+            }
+            ImGui::SameLine(0.f, xInnerSpacing);
+            if (ImGui::Button("+##ArrangementInputAdd", ImVec2(buttonSize, buttonSize))) {
+                if (this->animatable->getCurrentKey()->arrangementIndex < 65535) {
+                    this->animatable->getCurrentKey()->arrangementIndex++;
+
+                    RvlCellAnim::Arrangement* arrangementPtr =
+                        &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+
+                    if (appState.selectedPart >= arrangementPtr->parts.size())
+                        appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
+                }
+            }
+
+            ImGui::PopButtonRepeat();
+            
+            //ImGui::PopStyleVar();
         }
-        ImGui::SameLine(0.f, xInnerSpacing);
-        if (ImGui::Button("+##ArrangementInputAdd", ImVec2(buttonSize, buttonSize))) {
-            if (this->animatable->getCurrentKey()->arrangementIndex < 65535)
-                this->animatable->getCurrentKey()->arrangementIndex++;
-        }
+        ImGui::EndChild();
+    }
+    ImGui::EndChild();
 
-        ImGui::PopButtonRepeat();
-        
-        //ImGui::PopStyleVar();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+
+    ImGui::BeginChild("ArrangementParts", { 0, 0 }, ImGuiChildFlags_Border);
+    ImGui::PopStyleVar();
+    {
+        ImGui::SeparatorText((char*)ICON_FA_IMAGE " Parts");
+
+        RvlCellAnim::Arrangement* arrangementPtr =
+            &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+
+        // Use a signed 32-bit integer since n will eventually be a negative value
+        for (int n = static_cast<int>(arrangementPtr->parts.size()) - 1; n >= 0; n--) {
+            ImGui::PushID(n);
+
+            char buffer[32];
+            sprintf_s(buffer, 32, "Part no. %u", n+1);
+
+            ImGui::SetNextItemAllowOverlap();
+            if (ImGui::Selectable(buffer, appState.selectedPart == n))
+                appState.selectedPart = n;
+
+            ImGui::SameLine(); ImGui::Dummy({ 10, 0 });
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6, ImGui::GetStyle().ItemSpacing.y });
+
+            ImGui::SameLine();
+            if (ImGui::SmallButton((char*) ICON_FA_ARROW_DOWN "")) {
+                uint16_t nSwap = n - 1;
+                if (nSwap >= 0 && nSwap < arrangementPtr->parts.size()) {
+                    std::swap(arrangementPtr->parts.at(n), arrangementPtr->parts.at(nSwap));
+                    appState.selectedPart = nSwap;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
+                uint16_t nSwap = n + 1;
+                if (nSwap >= 0 && nSwap < arrangementPtr->parts.size()) {
+                    std::swap(arrangementPtr->parts.at(n), arrangementPtr->parts.at(nSwap));
+                    appState.selectedPart = nSwap;
+                }
+            }
+
+            ImGui::PopStyleVar();
+
+            ImGui::PopID();
+        }
     }
     ImGui::EndChild();
 }
@@ -209,7 +279,13 @@ void WindowInspector::Update() {
 
     static InspectorLevel lastInspectorLevel{ inspectorLevel };
 
-    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar);
+    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar |
+        (
+            (inspectorLevel == InspectorLevel_Arrangement || inspectorLevel == InspectorLevel_Arrangement_Im) ?
+            ImGuiWindowFlags_NoScrollbar :
+            0
+        )
+    );
 
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Level")) {
@@ -219,13 +295,20 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Key;
             if (ImGui::MenuItem("Arrangement (Immediate)", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
                 inspectorLevel = InspectorLevel_Arrangement_Im;
+
+                appState.drawSelectedPartBounding = true;
+                appState.selectedPart = 0;
             }
             if (ImGui::MenuItem("Arrangement (Outside Anim)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
                 inspectorLevel = InspectorLevel_Arrangement;
 
                 appState.arrangementMode = true;
-                appState.playerState.ToggleAnimating(false);
+                appState.drawSelectedPartBounding = true;
+
                 appState.controlKey.arrangementIndex = this->animatable->getCurrentKey()->arrangementIndex;
+                appState.selectedPart = 0;
+
+                appState.playerState.ToggleAnimating(false);
                 this->animatable->SubmitAnimationKeyPtr(&appState.controlKey);
             }
 
@@ -235,12 +318,15 @@ void WindowInspector::Update() {
         ImGui::EndMenuBar();
     }
 
-    if (
-        lastInspectorLevel == InspectorLevel_Arrangement &&
-        inspectorLevel != InspectorLevel_Arrangement
-    ) {
+    bool lastWasArrangement = lastInspectorLevel == InspectorLevel_Arrangement &&
+        inspectorLevel != InspectorLevel_Arrangement;
+    bool lastWasArrangementIm = lastInspectorLevel == InspectorLevel_Arrangement_Im &&
+        inspectorLevel != InspectorLevel_Arrangement_Im;
+
+    if (lastWasArrangement || lastWasArrangementIm)
+        appState.drawSelectedPartBounding = false;
+    if (lastWasArrangement)
         this->animatable->setAnimation(appState.selectedAnimation);
-    }
 
     lastInspectorLevel = inspectorLevel;
 
