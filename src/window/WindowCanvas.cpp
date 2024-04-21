@@ -51,22 +51,29 @@ void WindowCanvas::Menubar() {
                 this->canvasZoom = 0.f;
             }
 
+            if (ImGui::MenuItem("Reset to Safe Area", nullptr, false)) {
+                this->canvasOffset = { 0.f, 0.f };
+
+                ImVec2 rect = feverSafeAreaSize;
+
+                float scale;
+                Common::fitRectangle(rect, this->canvasSize, scale);
+
+                this->canvasZoom = scale - 1.f - 0.1f;
+            }
+
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Rendering")) {
-            if (ImGui::BeginMenu("Draw Part Origin")) {
-                ImGui::Checkbox("Enabled", &drawPartOrigin);
-
-                ImGui::SeparatorText("Options");
-
-                ImGui::DragFloat("Radius", &partOriginDrawRadius, 0.1f);
+            if (ImGui::BeginMenu("Draw Bounding Boxes")) {
+                ImGui::Checkbox("For all parts", &drawAllBounding);
 
                 ImGui::SeparatorText("Color Picker");
 
                 ImGui::ColorPicker4(
                     "##ColorPicker",
-                    (float*)&partOriginDrawColor,
+                    (float*)&partBoundingDrawColor,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
                 );
@@ -77,6 +84,8 @@ void WindowCanvas::Menubar() {
             if (ImGui::BeginMenu("Safe Area")) {
                 ImGui::Checkbox("Enabled", &this->visualizeSafeArea);
                 
+                ImGui::SeparatorText("Options");
+
                 bool pushDisable{ false };
                 if (!this->visualizeSafeArea) {
                     pushDisable = true;
@@ -108,8 +117,8 @@ void WindowCanvas::Update() {
 
     // Note: ImDrawList uses screen coordinates
     ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
-    ImVec2 canvasSize = ImGui::GetContentRegionAvail();
-    ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+    this->canvasSize = ImGui::GetContentRegionAvail();
+    ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + this->canvasSize.x, canvasTopLeft.y + this->canvasSize.y);
 
     this->Menubar();
 
@@ -146,7 +155,7 @@ void WindowCanvas::Update() {
     drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor);
 
     // This catches interactions
-    ImGui::InvisibleButton("CanvasInteractions", canvasSize,
+    ImGui::InvisibleButton("CanvasInteractions", this->canvasSize,
         ImGuiButtonFlags_MouseButtonLeft |
         ImGuiButtonFlags_MouseButtonRight |
         ImGuiButtonFlags_MouseButtonMiddle
@@ -156,8 +165,8 @@ void WindowCanvas::Update() {
     const bool interactionActive = ImGui::IsItemActive(); // Held
 
     const ImVec2 origin(
-        canvasTopLeft.x + this->canvasOffset.x + static_cast<int>(canvasSize.x / 2),
-        canvasTopLeft.y + this->canvasOffset.y + static_cast<int>(canvasSize.y / 2)
+        canvasTopLeft.x + this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2),
+        canvasTopLeft.y + this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2)
     );
     const ImVec2 relativeMousePos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
@@ -197,10 +206,10 @@ void WindowCanvas::Update() {
     if ((this->gridType != GridType_None) && this->enableGridLines) {
         float GRID_STEP = 64.0f * (this->canvasZoom + 1);
 
-        for (float x = fmodf(this->canvasOffset.x + static_cast<int>(canvasSize.x / 2), GRID_STEP); x < canvasSize.x; x += GRID_STEP)
+        for (float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP); x < this->canvasSize.x; x += GRID_STEP)
             drawList->AddLine(ImVec2(canvasTopLeft.x + x, canvasTopLeft.y), ImVec2(canvasTopLeft.x + x, canvasBottomRight.y), IM_COL32(200, 200, 200, 40));
         
-        for (float y = fmodf(this->canvasOffset.y + static_cast<int>(canvasSize.y / 2), GRID_STEP); y < canvasSize.y; y += GRID_STEP)
+        for (float y = fmodf(this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP); y < this->canvasSize.y; y += GRID_STEP)
             drawList->AddLine(ImVec2(canvasTopLeft.x, canvasTopLeft.y + y), ImVec2(canvasBottomRight.x, canvasTopLeft.y + y), IM_COL32(200, 200, 200, 40));
     }
 
@@ -220,17 +229,37 @@ void WindowCanvas::Update() {
 
     if (appState.drawSelectedPartBounding && appState.selectedPart >= 0) {
         ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
-        drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], IM_COL32_WHITE);
+        drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], IM_COL32(
+            partBoundingDrawColor.x * 255,
+            partBoundingDrawColor.y * 255,
+            partBoundingDrawColor.z * 255,
+            partBoundingDrawColor.w * 255
+        ));
         delete[] bounding;
     }
 
-    if (drawPartOrigin)
-        globalAnimatable->DrawOrigins(drawList, partOriginDrawRadius, IM_COL32(
-            partOriginDrawColor.x * 255,
-            partOriginDrawColor.y * 255,
-            partOriginDrawColor.z * 255,
-            partOriginDrawColor.w * 255
-        ));
+    if (this->drawAllBounding) {
+        RvlCellAnim::Arrangement* arrangementPtr =
+            &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+
+        for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
+            uint32_t color = IM_COL32(
+                partBoundingDrawColor.x * 255,
+                partBoundingDrawColor.y * 255,
+                partBoundingDrawColor.z * 255,
+                partBoundingDrawColor.w * 255
+            );
+
+            if (appState.drawSelectedPartBounding && appState.selectedPart == i)
+                color = IM_COL32(255, 255, 0, 255);
+
+            ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
+
+            drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], color);
+
+            delete[] bounding;
+        }
+    }
 
     if (this->visualizeSafeArea) {
         ImVec2 boxTopLeft = {

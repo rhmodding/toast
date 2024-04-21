@@ -20,8 +20,8 @@ public:
 
     ImVec2 canvasOffset{ 0.f, 0.f };
 
-    bool   drawPartOrigin{ false };
-    ImVec4 partOriginDrawColor{ 1.f, 1.f, 1.f, 1.f };
+    bool   drawAllBounding{ false };
+    ImVec4 partBoundingDrawColor{ 1.f, 1.f, 1.f, 1.f };
     float  partOriginDrawRadius{ 5.f };
 
     bool   allowOpacity{ true };
@@ -43,6 +43,7 @@ public:
     uint8_t safeAreaAlpha{ 255 };
 
 private:
+    ImVec2 canvasSize;
 
     void Menubar();
 };
