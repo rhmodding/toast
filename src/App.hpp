@@ -21,6 +21,7 @@
 #include "window/WindowHybridList.hpp"
 #include "window/WindowInspector.hpp"
 #include "window/WindowTimeline.hpp"
+#include "window/WindowSpritesheet.hpp"
 
 #define WINDOW_TITLE "Toast Beta"
 
@@ -85,6 +86,7 @@ private:
     WindowHybridList* windowHybridList;
     WindowInspector* windowInspector;
     WindowTimeline* windowTimeline;
+    WindowSpritesheet* windowSpritesheet;
 
     GLFWwindow* window{ nullptr };
 

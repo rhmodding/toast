@@ -29,6 +29,7 @@ set(SOURCES
     src/window/WindowCanvas.cpp
     src/window/WindowHybridList.cpp
     src/window/WindowInspector.cpp
+    src/window/WindowSpritesheet.cpp
 
     src/common.cpp
 
@@ -61,6 +62,7 @@ set(HEADERS
     src/window/WindowCanvas.hpp
     src/window/WindowHybridList.hpp
     src/window/WindowInspector.hpp
+    src/window/WindowSpritesheet.hpp
 
     src/common.hpp
 )

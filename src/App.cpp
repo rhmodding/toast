@@ -376,6 +376,7 @@ void App::Update() {
     this->windowHybridList->Update();
     this->windowInspector->Update();
     this->windowTimeline->Update();
+    this->windowSpritesheet->Update();
 
     // TODO: Implement timeline auto-scroll
     // static bool autoScrollTimeline{ false };
