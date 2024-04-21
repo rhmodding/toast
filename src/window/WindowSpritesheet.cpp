@@ -5,16 +5,6 @@
 #include <iostream>
 #include "../SessionManager.hpp"
 
-void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
-    float widthRatio = targetRect.x / rectToFit.x;
-    float heightRatio = targetRect.y / rectToFit.y;
-    
-    scale = std::min(widthRatio, heightRatio);
-    
-    rectToFit.x *= scale;
-    rectToFit.y *= scale;
-}
-
 void WindowSpritesheet::Update() {
     GET_SESSION_MANAGER;
 
@@ -108,7 +98,7 @@ void WindowSpritesheet::Update() {
     );
 
     float scale;
-    fitRectangle(imageRect, canvasSize, scale);
+    Common::fitRectangle(imageRect, canvasSize, scale);
 
     ImVec2 imagePosition = ImVec2(
         ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * 0.5f,

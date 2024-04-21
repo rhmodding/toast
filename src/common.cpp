@@ -46,6 +46,16 @@ namespace Common {
         return true;
     }
 
+    void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
+        float widthRatio = targetRect.x / rectToFit.x;
+        float heightRatio = targetRect.y / rectToFit.y;
+        
+        scale = std::min(widthRatio, heightRatio);
+        
+        rectToFit.x *= scale;
+        rectToFit.y *= scale;
+    }
+
     float EaseInOut(float t) {
         return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
     }

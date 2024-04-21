@@ -10,6 +10,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "imgui.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 
 #ifdef _MSC_VER
@@ -60,6 +62,8 @@ namespace Common {
         if (setNullptr)
             ptr = nullptr;
     }
+
+    void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
 
     float EaseInOut(float t);
     float EaseOut(float t);
