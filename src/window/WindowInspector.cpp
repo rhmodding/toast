@@ -368,8 +368,11 @@ void WindowInspector::Update() {
     bool lastWasArrangementIm = lastInspectorLevel == InspectorLevel_Arrangement_Im &&
         inspectorLevel != InspectorLevel_Arrangement_Im;
 
-    if (lastWasArrangement || lastWasArrangementIm)
-        appState.drawSelectedPartBounding = false;
+    if (lastWasArrangement || lastWasArrangementIm) {
+        if (inspectorLevel != InspectorLevel_Arrangement && inspectorLevel != InspectorLevel_Arrangement_Im)
+            appState.drawSelectedPartBounding = false;
+    }
+        
     if (lastWasArrangement)
         this->animatable->setAnimation(appState.selectedAnimation);
 
