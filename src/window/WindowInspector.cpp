@@ -5,6 +5,7 @@
 #include "../font/FontAwesome.h"
 
 #include "../AppState.hpp"
+#include "../SessionManager.hpp"
 
 const uint8_t uint8_one = 1;
 const uint16_t uint16_one = 1;
@@ -42,16 +43,17 @@ void DrawPreview(AppState& appState, Animatable* animatable) {
 void WindowInspector::Level_Animation() {
     GET_APP_STATE;
     GET_ANIMATABLE;
+    GET_SESSION_MANAGER;
 
     DrawPreview(appState, globalAnimatable);
 
     ImGui::SameLine();
 
     uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
-    auto query = this->animationNames->find(animationIndex);
+    auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(animationIndex);
 
     const char* animationName = 
-        query != this->animationNames->end() ?
+        query != sessionManager.getCurrentSession()->getAnimationNames()->end() ?
             query->second.c_str() : nullptr;
 
     ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
@@ -105,16 +107,17 @@ void WindowInspector::Level_Animation() {
 void WindowInspector::Level_Key() {
     GET_APP_STATE;
     GET_ANIMATABLE;
+    GET_SESSION_MANAGER;
 
     DrawPreview(appState, globalAnimatable);
 
     ImGui::SameLine();
 
     uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
-    auto query = this->animationNames->find(animationIndex);
+    auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(animationIndex);
 
     const char* animationName = 
-        query != this->animationNames->end() ?
+        query != sessionManager.getCurrentSession()->getAnimationNames()->end() ?
             query->second.c_str() : nullptr;
 
     ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);

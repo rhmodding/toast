@@ -4,6 +4,8 @@
 
 #include "GLFW/glfw3.h"
 
+#include "../SessionManager.hpp"
+
 void WindowHybridList::FlashWindow() {
     this->flashWindow = true;
     this->flashTimer = static_cast<float>(glfwGetTime());
@@ -67,11 +69,13 @@ void WindowHybridList::Update() {
             for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
                 char buffer[128];
 
-                auto query = this->animationNames->find(n);
+                GET_SESSION_MANAGER;
+
+                auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(n);
                 sprintf_s(
                     buffer, 128, "%d. %s", n,
 
-                    query != this->animationNames->end() ?
+                    query != sessionManager.getCurrentSession()->getAnimationNames()->end() ?
                         query->second.c_str() :
                         "(no macro defined)"
                 );
@@ -89,7 +93,7 @@ void WindowHybridList::Update() {
                         &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
-                        appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
+                        appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
                 }
             }
         else

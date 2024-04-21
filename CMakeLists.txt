@@ -33,6 +33,10 @@ set(SOURCES
 
     src/common.cpp
 
+    src/AppState.cpp
+
+    src/SessionManager.cpp
+
     src/stb/stb_image.h
 )
 
@@ -63,6 +67,10 @@ set(HEADERS
     src/window/WindowHybridList.hpp
     src/window/WindowInspector.hpp
     src/window/WindowSpritesheet.hpp
+
+    src/AppState.hpp
+
+    src/SessionManager.hpp
 
     src/common.hpp
 )

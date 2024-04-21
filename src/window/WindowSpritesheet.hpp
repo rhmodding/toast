@@ -13,8 +13,6 @@ class WindowSpritesheet : public BaseWindow {
 public:
     void Update() override;
 
-    Common::Image* sheet;
-
     enum GridType : uint8_t {
         GridType_None,
         GridType_Dark,

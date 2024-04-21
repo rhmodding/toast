@@ -12,8 +12,6 @@ class WindowInspector : public BaseWindow {
 public:
     void Update() override;
 
-    std::unordered_map<uint16_t, std::string>* animationNames;
-
     enum InspectorLevel: uint8_t {
         InspectorLevel_Animation,
         InspectorLevel_Key,

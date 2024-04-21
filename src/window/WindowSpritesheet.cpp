@@ -3,6 +3,7 @@
 #include "imgui.h"
 
 #include <iostream>
+#include "../SessionManager.hpp"
 
 void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
     float widthRatio = targetRect.x / rectToFit.x;
@@ -15,6 +16,8 @@ void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
 }
 
 void WindowSpritesheet::Update() {
+    GET_SESSION_MANAGER;
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
     ImGui::Begin("Spritesheet", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar);
     ImGui::PopStyleVar();
@@ -100,8 +103,8 @@ void WindowSpritesheet::Update() {
     drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor);
 
     ImVec2 imageRect = ImVec2(
-        static_cast<float>(this->sheet->width),
-        static_cast<float>(this->sheet->height)
+        static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->width),
+        static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->height)
     );
 
     float scale;
@@ -113,7 +116,7 @@ void WindowSpritesheet::Update() {
     );
 
     drawList->AddImage(
-        (void*)(intptr_t)this->sheet->texture,
+        (void*)(intptr_t)sessionManager.getCurrentSession()->getCellanimSheet()->texture,
         imagePosition,
         { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
     );

@@ -16,8 +16,6 @@ class WindowHybridList : public BaseWindow {
 public:
     void Update() override;
 
-    std::unordered_map<uint16_t, std::string>* animationNames;
-
 private:
     bool flashWindow{ false };
     bool flashTrigger{ false };
