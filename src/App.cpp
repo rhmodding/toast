@@ -405,6 +405,45 @@ void App::Menubar() {
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Windows")) {
+            if (ImGui::MenuItem("Canvas", "", !!this->windowCanvas)) {
+                if (this->windowCanvas)
+                    Common::deleteIfNotNullptr(this->windowCanvas);
+                else
+                    this->windowCanvas = new WindowCanvas;
+            }
+
+            if (ImGui::MenuItem("Animation- / Arrangement List", "", !!this->windowHybridList)) {
+                if (this->windowHybridList)
+                    Common::deleteIfNotNullptr(this->windowHybridList);
+                else
+                    this->windowHybridList = new WindowHybridList;
+            }
+
+            if (ImGui::MenuItem("Inspector", "", !!this->windowInspector)) {
+                if (this->windowInspector)
+                    Common::deleteIfNotNullptr(this->windowInspector);
+                else
+                    this->windowInspector = new WindowInspector;
+            }
+
+            if (ImGui::MenuItem("Spritesheet", "", !!this->windowSpritesheet)) {
+                if (this->windowSpritesheet)
+                    Common::deleteIfNotNullptr(this->windowSpritesheet);
+                else
+                    this->windowSpritesheet = new WindowSpritesheet;
+            }
+
+            if (ImGui::MenuItem("Timeline", "", !!this->windowTimeline)) {
+                if (this->windowTimeline)
+                    Common::deleteIfNotNullptr(this->windowTimeline);
+                else
+                    this->windowTimeline = new WindowTimeline;
+            }
+
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
 
