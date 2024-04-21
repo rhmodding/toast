@@ -1,5 +1,10 @@
 #include "WindowCanvas.hpp"
 
+const ImVec2 feverSafeAreaSize(832, 456);
+const ImVec2 megamixSafeAreaSize(440, 240);
+
+const uint8_t uint8_one = 1;
+
 void WindowCanvas::Menubar() {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Grid")) {
@@ -65,6 +70,23 @@ void WindowCanvas::Menubar() {
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
                 );
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Safe Area")) {
+                ImGui::Checkbox("Enabled", &this->visualizeSafeArea);
+                
+                bool pushDisable{ false };
+                if (!this->visualizeSafeArea) {
+                    pushDisable = true;
+                    ImGui::BeginDisabled(true);
+                }
+
+                ImGui::DragScalar("Alpha", ImGuiDataType_U8, &this->safeAreaAlpha);
+
+                if (pushDisable)
+                    ImGui::EndDisabled();
 
                 ImGui::EndMenu();
             }
@@ -209,6 +231,41 @@ void WindowCanvas::Update() {
             partOriginDrawColor.z * 255,
             partOriginDrawColor.w * 255
         ));
+
+    if (this->visualizeSafeArea) {
+        ImVec2 boxTopLeft = {
+            origin.x - ((feverSafeAreaSize.x * (this->canvasZoom + 1)) / 2),
+            origin.y - ((feverSafeAreaSize.y * (this->canvasZoom + 1)) / 2)
+        };
+
+        ImVec2 boxBottomRight = {
+            boxTopLeft.x + (feverSafeAreaSize.x * (this->canvasZoom + 1)),
+            boxTopLeft.y + (feverSafeAreaSize.y * (this->canvasZoom + 1))
+        };
+
+        uint32_t color = IM_COL32(0, 0, 0, this->safeAreaAlpha);
+
+        drawList->AddRectFilled( // Top Box
+            canvasTopLeft,
+            { canvasBottomRight.x, boxTopLeft.y },
+            color
+        );
+        drawList->AddRectFilled( // Left Box
+            { canvasTopLeft.x, boxTopLeft.y },
+            { boxTopLeft.x, boxBottomRight.y },
+            color
+        );
+        drawList->AddRectFilled( // Right Box
+            { boxBottomRight.x, boxTopLeft.y },
+            { canvasBottomRight.x, boxBottomRight.y },
+            color
+        );
+        drawList->AddRectFilled( // Bottom Box
+            { canvasTopLeft.x, boxBottomRight.y },
+            canvasBottomRight,
+            color
+        );
+    }
 
     drawList->PopClipRect();
 

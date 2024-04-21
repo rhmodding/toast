@@ -38,7 +38,9 @@ public:
     ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
     bool   enableGridLines{ true };
 
-    bool   visualizeSafeArea{ false };
+
+    bool    visualizeSafeArea{ false };
+    uint8_t safeAreaAlpha{ 255 };
 
 private:
 
