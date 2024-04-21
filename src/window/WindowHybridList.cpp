@@ -2,8 +2,60 @@
 
 #include "imgui.h"
 
+#include "GLFW/glfw3.h"
+
+void WindowHybridList::FlashWindow() {
+    this->flashWindow = true;
+    this->flashTimer = static_cast<float>(glfwGetTime());
+}
+
+void WindowHybridList::ResetFlash() {
+    this->flashWindow = false;
+    this->flashTrigger = false;
+}
+
+ImVec4 adjustBrightness(const ImVec4& color, float factor) {
+    ImVec4 adjustedColor;
+
+    adjustedColor.x = std::lerp(color.x, 1.f, factor);
+    adjustedColor.y = std::lerp(color.y, 1.f, factor);
+    adjustedColor.z = std::lerp(color.z, 1.f, factor);
+    adjustedColor.w = color.w; // Alpha remains unchanged
+    
+    // Ensure color components are within [0, 1] range
+    adjustedColor.x = std::min(std::max(adjustedColor.x, 0.0f), 1.0f);
+    adjustedColor.y = std::min(std::max(adjustedColor.y, 0.0f), 1.0f);
+    adjustedColor.z = std::min(std::max(adjustedColor.z, 0.0f), 1.0f);
+
+    return adjustedColor;
+}
+
+#define WINDOW_FLASH_TIME .3f // seconds
+
 void WindowHybridList::Update() {
     GET_APP_STATE;
+
+    static bool lastArrangementMode{appState.arrangementMode };
+    if (lastArrangementMode != appState.arrangementMode) {
+        this->flashTrigger = true;
+        this->FlashWindow();
+    }
+
+    lastArrangementMode = appState.arrangementMode;
+
+    if (this->flashWindow && (static_cast<float>(glfwGetTime()) - this->flashTimer > WINDOW_FLASH_TIME))
+        ResetFlash();
+
+    if (this->flashWindow) {
+        ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        ImGui::PushStyleColor(
+            ImGuiCol_WindowBg,
+            adjustBrightness(
+                color,
+                (this->flashTimer - static_cast<float>(glfwGetTime())) + WINDOW_FLASH_TIME
+            )
+        );
+    }
 
     ImGui::Begin(appState.arrangementMode ? "Arrangements###HybridList" : "Animations###HybridList", nullptr);
 
@@ -57,4 +109,7 @@ void WindowHybridList::Update() {
     ImGui::EndChild();
 
     ImGui::End();
+
+    if (this->flashWindow)
+        ImGui::PopStyleColor();
 }
