@@ -13,6 +13,12 @@
 
 #include "SessionManager.hpp"
 
+#if defined(__APPLE__)
+    #define EXIT_SHORTCUT "Cmd+Q"
+#else
+    #define EXIT_SHORTCUT "Alt+F4"
+#endif
+
 App* gAppPtr{ nullptr };
 
 App::App() {
@@ -189,7 +195,7 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", "Alt+F4", nullptr))
+            if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", EXIT_SHORTCUT, nullptr))
                 this->quit = 0xFF;
 
             ImGui::EndMenu();
