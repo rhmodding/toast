@@ -182,26 +182,28 @@ void WindowCanvas::Update() {
             drawList->AddLine(ImVec2(canvasTopLeft.x, canvasTopLeft.y + y), ImVec2(canvasBottomRight.x, canvasTopLeft.y + y), IM_COL32(200, 200, 200, 40));
     }
 
-    bool animatableDoesDraw = this->animatable->getDoesDraw(allowOpacity);
+    GET_ANIMATABLE;
+
+    bool animatableDoesDraw = globalAnimatable->getDoesDraw(allowOpacity);
 
     if (animatableDoesDraw) {
-        this->animatable->scaleX = this->canvasZoom + 1;
-        this->animatable->scaleY = this->canvasZoom + 1;
+        globalAnimatable->scaleX = this->canvasZoom + 1;
+        globalAnimatable->scaleY = this->canvasZoom + 1;
 
-        this->animatable->offset = origin;
-        this->animatable->Draw(drawList, allowOpacity);
+        globalAnimatable->offset = origin;
+        globalAnimatable->Draw(drawList, allowOpacity);
     }
 
     GET_APP_STATE;
 
     if (appState.drawSelectedPartBounding) {
-        ImVec2* bounding = this->animatable->getPartWorldQuad(this->animatable->getCurrentKey(), appState.selectedPart);
+        ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
         drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], IM_COL32_WHITE);
         delete[] bounding;
     }
 
     if (drawPartOrigin)
-        this->animatable->DrawOrigins(drawList, partOriginDrawRadius, IM_COL32(
+        globalAnimatable->DrawOrigins(drawList, partOriginDrawRadius, IM_COL32(
             partOriginDrawColor.x * 255,
             partOriginDrawColor.y * 255,
             partOriginDrawColor.z * 255,

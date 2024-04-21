@@ -16,8 +16,6 @@ class WindowHybridList : public BaseWindow {
 public:
     void Update() override;
 
-    Animatable* animatable;
-
     std::unordered_map<uint16_t, std::string>* animationNames;
 
 private:

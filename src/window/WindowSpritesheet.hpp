@@ -13,7 +13,6 @@ class WindowSpritesheet : public BaseWindow {
 public:
     void Update() override;
 
-    Animatable* animatable;
     Common::Image* sheet;
 
     enum GridType : uint8_t {

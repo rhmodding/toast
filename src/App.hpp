@@ -129,8 +129,6 @@ private:
     int16_t PushSessionTraditional(const char* paths[3]);
 
     void FreeSession(Session* session);
-
-    Animatable* animatable{ nullptr };
 }; // class App
 
 #endif // APP_HPP

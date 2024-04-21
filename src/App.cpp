@@ -298,34 +298,28 @@ App::App() {
 void App::SessionChanged() {
     if (this->currentSession >= 0) {
         GET_APP_STATE;
+        GET_ANIMATABLE;
 
-        Common::deleteIfNotNullptr(this->animatable);
+        Common::deleteIfNotNullptr(globalAnimatable);
 
-        this->animatable = new Animatable(
+        globalAnimatable = new Animatable(
             this->sessions[this->currentSession].getCellanim(),
             this->sessions[this->currentSession].getCellanimSheet()
         );
-        this->animatable->setAnimation(0);
-
-        appState.playerState.setAnimatable(this->animatable);
+        
+        globalAnimatable->setAnimation(0);
         appState.playerState.updateSetFrameCount();
 
-        if (this->windowCanvas) {
-            this->windowCanvas->animatable = this->animatable;
-        }
+        appState.selectedAnimation = 0;
+        appState.selectedPart = 0;
+
         if (this->windowHybridList) {
-            this->windowHybridList->animatable = this->animatable;
             this->windowHybridList->animationNames = this->sessions[this->currentSession].getAnimationNames();
         }     
         if (this->windowInspector) {
-            this->windowInspector->animatable = this->animatable;
             this->windowInspector->animationNames = this->sessions[this->currentSession].getAnimationNames();
         }
-        if (this->windowTimeline) {
-            this->windowTimeline->animatable = this->animatable;
-        }     
         if (this->windowSpritesheet) {
-            this->windowSpritesheet->animatable = this->animatable;
             this->windowSpritesheet->sheet = this->sessions[this->currentSession].getCellanimSheet();
         } 
     }
@@ -344,7 +338,7 @@ void App::Stop() {
             this->FreeSession(&this->sessions[i]);
     }
 
-    Common::deleteIfNotNullptr(this->animatable);
+    Common::deleteIfNotNullptr(AppState::getInstance().globalAnimatable);
 
     Common::deleteIfNotNullptr(this->windowCanvas);
     Common::deleteIfNotNullptr(this->windowHybridList);

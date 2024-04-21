@@ -8,8 +8,6 @@
 class WindowTimeline : public BaseWindow {
 public:
     void Update() override;
-
-    Animatable* animatable;
 };
 
 #endif // WINDOWTIMELINE_HPP

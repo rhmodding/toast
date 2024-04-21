@@ -61,8 +61,10 @@ void WindowHybridList::Update() {
 
     ImGui::BeginChild("List", ImVec2(0, 0), ImGuiChildFlags_Border);
     {
+        GET_ANIMATABLE;
+
         if (!appState.arrangementMode)
-            for (uint16_t n = 0; n < this->animatable->cellanim->animations.size(); n++) {
+            for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
                 char buffer[128];
 
                 auto query = this->animationNames->find(n);
@@ -77,21 +79,21 @@ void WindowHybridList::Update() {
                 if (ImGui::Selectable(buffer, appState.selectedAnimation == n)) {
                     appState.selectedAnimation = n;
 
-                    this->animatable->setAnimation(appState.selectedAnimation);
+                    globalAnimatable->setAnimation(appState.selectedAnimation);
 
                     appState.playerState.currentFrame = 0;
                     appState.playerState.updateSetFrameCount();
                     appState.playerState.updateCurrentFrame();
 
                     RvlCellAnim::Arrangement* arrangementPtr =
-                        &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+                        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
                         appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
                 }
             }
         else
-            for (uint16_t n = 0; n < this->animatable->cellanim->arrangements.size(); n++) {
+            for (uint16_t n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
                 char buffer[32];
                 sprintf_s(buffer, 32, "Arrangement no. %d", n);
 
@@ -99,7 +101,7 @@ void WindowHybridList::Update() {
                     appState.controlKey.arrangementIndex = n;
 
                     RvlCellAnim::Arrangement* arrangementPtr =
-                        &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+                        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
                         appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);

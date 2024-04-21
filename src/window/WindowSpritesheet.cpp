@@ -121,8 +121,10 @@ void WindowSpritesheet::Update() {
     GET_APP_STATE;
 
     if (this->drawBounding) {
+        GET_ANIMATABLE;
+
         RvlCellAnim::Arrangement* arrangementPtr =
-            &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+            &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
         for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
             if (appState.drawSelectedPartBounding && i != appState.selectedPart)

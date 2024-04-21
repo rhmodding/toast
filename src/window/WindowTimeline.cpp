@@ -11,6 +11,7 @@
 
 void WindowTimeline::Update() {
     GET_APP_STATE;
+    GET_ANIMATABLE;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
     ImGui::Begin("Timeline");
@@ -222,7 +223,7 @@ void WindowTimeline::Update() {
 
                             ImGui::Separator();
 
-                            RvlCellAnim::AnimationKey* key = &this->animatable->getCurrentAnimation()->keys.at(i);
+                            RvlCellAnim::AnimationKey* key = &globalAnimatable->getCurrentAnimation()->keys.at(i);
 
                             ImGui::BulletText("Arrangement Index: %u", key->arrangementIndex);
                             ImGui::Dummy(ImVec2(0, 10));
@@ -242,7 +243,7 @@ void WindowTimeline::Update() {
 
                         // Hold frame dummy
 
-                        uint16_t holdFrames = this->animatable->getCurrentAnimation()->keys.at(i).holdFrames;
+                        uint16_t holdFrames = globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames;
                         if (holdFrames > 1) {
                             ImGui::SameLine();
                             ImGui::Dummy(ImVec2(static_cast<float>(10 * holdFrames), buttonDimensions.y));
@@ -276,7 +277,7 @@ void WindowTimeline::Update() {
                         // Key button dummy
                         ImGui::Dummy(buttonDimensions);
 
-                        uint16_t holdFrames = this->animatable->getCurrentAnimation()->keys.at(i).holdFrames;
+                        uint16_t holdFrames = globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames;
                         if (holdFrames > 1) {
                             ImGui::SameLine();
 

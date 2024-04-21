@@ -38,8 +38,6 @@ public:
     ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
     bool   enableGridLines{ true };
 
-    Animatable* animatable;
-
 private:
 
     void Menubar();

@@ -41,12 +41,13 @@ void DrawPreview(AppState& appState, Animatable* animatable) {
 
 void WindowInspector::Level_Animation() {
     GET_APP_STATE;
+    GET_ANIMATABLE;
 
-    DrawPreview(appState, this->animatable);
+    DrawPreview(appState, globalAnimatable);
 
     ImGui::SameLine();
 
-    uint16_t animationIndex = this->animatable->getCurrentAnimationIndex();
+    uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
     auto query = this->animationNames->find(animationIndex);
 
     const char* animationName = 
@@ -68,7 +69,7 @@ void WindowInspector::Level_Animation() {
     ImGui::EndChild();
 
 
-    RvlCellAnim::Animation* animation = this->animatable->getCurrentAnimation();
+    RvlCellAnim::Animation* animation = globalAnimatable->getCurrentAnimation();
     static char newMacroName[128]{ "" };
 
     ImGui::SeparatorText((char*)ICON_FA_PENCIL " Macro name");
@@ -103,12 +104,13 @@ void WindowInspector::Level_Animation() {
 
 void WindowInspector::Level_Key() {
     GET_APP_STATE;
+    GET_ANIMATABLE;
 
-    DrawPreview(appState, this->animatable);
+    DrawPreview(appState, globalAnimatable);
 
     ImGui::SameLine();
 
-    uint16_t animationIndex = this->animatable->getCurrentAnimationIndex();
+    uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
     auto query = this->animationNames->find(animationIndex);
 
     const char* animationName = 
@@ -122,14 +124,14 @@ void WindowInspector::Level_Key() {
         ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex);
 
         ImGui::PushFont(appState.fontLarge);
-        ImGui::TextWrapped("Key no. %u", this->animatable->getCurrentKeyIndex());
+        ImGui::TextWrapped("Key no. %u", globalAnimatable->getCurrentKeyIndex());
         ImGui::PopFont();
 
         ImGui::PopStyleVar();
     }
     ImGui::EndChild();
 
-    RvlCellAnim::AnimationKey* animKey = this->animatable->getCurrentKey();
+    RvlCellAnim::AnimationKey* animKey = globalAnimatable->getCurrentKey();
 
     ImGui::SeparatorText((char*)ICON_FA_KEY " Properties");
 
@@ -159,13 +161,14 @@ void WindowInspector::Level_Key() {
 
 void WindowInspector::Level_Arrangement() {
     GET_APP_STATE;
+    GET_ANIMATABLE;
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
     ImGui::BeginChild("ArrangementOverview", { 0, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY);
     ImGui::PopStyleVar();
     {
-        DrawPreview(appState, this->animatable);
+        DrawPreview(appState, globalAnimatable);
 
         ImGui::SameLine();
 
@@ -181,7 +184,7 @@ void WindowInspector::Level_Arrangement() {
             ImGui::InputScalar(
                 "##ArrangementInput",
                 ImGuiDataType_U16,
-                &this->animatable->getCurrentKey()->arrangementIndex,
+                &globalAnimatable->getCurrentKey()->arrangementIndex,
                 nullptr, nullptr,
                 "%u"
             );
@@ -193,11 +196,11 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::SameLine(0.f, xInnerSpacing);
             if (ImGui::Button("-##ArrangementInputSub", ImVec2(buttonSize, buttonSize))) {
-                if (this->animatable->getCurrentKey()->arrangementIndex > 0){
-                    this->animatable->getCurrentKey()->arrangementIndex--;
+                if (globalAnimatable->getCurrentKey()->arrangementIndex > 0){
+                    globalAnimatable->getCurrentKey()->arrangementIndex--;
 
                     RvlCellAnim::Arrangement* arrangementPtr =
-                        &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+                        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
                         appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
@@ -205,11 +208,11 @@ void WindowInspector::Level_Arrangement() {
             }
             ImGui::SameLine(0.f, xInnerSpacing);
             if (ImGui::Button("+##ArrangementInputAdd", ImVec2(buttonSize, buttonSize))) {
-                if (this->animatable->getCurrentKey()->arrangementIndex < 65535) {
-                    this->animatable->getCurrentKey()->arrangementIndex++;
+                if (globalAnimatable->getCurrentKey()->arrangementIndex < 65535) {
+                    globalAnimatable->getCurrentKey()->arrangementIndex++;
 
                     RvlCellAnim::Arrangement* arrangementPtr =
-                        &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+                        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
                         appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
@@ -223,7 +226,7 @@ void WindowInspector::Level_Arrangement() {
         ImGui::EndChild();
 
         RvlCellAnim::Arrangement* arrangementPtr =
-            &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+            &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
         RvlCellAnim::ArrangementPart* partPtr = &arrangementPtr->parts.at(appState.selectedPart);
 
@@ -266,7 +269,7 @@ void WindowInspector::Level_Arrangement() {
         ImGui::SeparatorText((char*)ICON_FA_IMAGE " Parts");
 
         RvlCellAnim::Arrangement* arrangementPtr =
-            &this->animatable->cellanim->arrangements.at(this->animatable->getCurrentKey()->arrangementIndex);
+            &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
         // Use a signed 32-bit integer since n will eventually be a negative value
         for (int n = static_cast<int>(arrangementPtr->parts.size()) - 1; n >= 0; n--) {
@@ -313,6 +316,7 @@ void WindowInspector::Level_Arrangement() {
 
 void WindowInspector::Update() {
     GET_APP_STATE;
+    GET_ANIMATABLE;
 
     static InspectorLevel lastInspectorLevel{ inspectorLevel };
 
@@ -342,11 +346,11 @@ void WindowInspector::Update() {
                 appState.arrangementMode = true;
                 appState.drawSelectedPartBounding = true;
 
-                appState.controlKey.arrangementIndex = this->animatable->getCurrentKey()->arrangementIndex;
+                appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
                 appState.selectedPart = 0;
 
                 appState.playerState.ToggleAnimating(false);
-                this->animatable->SubmitAnimationKeyPtr(&appState.controlKey);
+                globalAnimatable->SubmitAnimationKeyPtr(&appState.controlKey);
             }
 
             ImGui::EndMenu();
@@ -374,7 +378,7 @@ void WindowInspector::Update() {
     }
         
     if (lastWasArrangement)
-        this->animatable->setAnimation(appState.selectedAnimation);
+        globalAnimatable->setAnimation(appState.selectedAnimation);
 
     lastInspectorLevel = inspectorLevel;
 

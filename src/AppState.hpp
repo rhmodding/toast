@@ -12,6 +12,8 @@
 // Stores instance of AppState in local appState.
 #define GET_APP_STATE AppState& appState = AppState::getInstance()
 
+#define GET_ANIMATABLE Animatable*& globalAnimatable = AppState::getInstance().globalAnimatable
+
 class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>; // Allow access to base class constructor
 
@@ -36,23 +38,23 @@ public:
 
         uint16_t frameRate{ 60 };
 
-        void setAnimatable(Animatable* ptr) {
-            this->animatable = ptr;
-        }
-
         void updateSetFrameCount() {
+            GET_ANIMATABLE;
+
             this->frameCount = static_cast<uint16_t>(
-                this->animatable->cellanim->animations.at(
-                    this->animatable->getCurrentAnimationIndex()
+                globalAnimatable->cellanim->animations.at(
+                    globalAnimatable->getCurrentAnimationIndex()
                 ).keys.size()
             );
         }
 
         void updateCurrentFrame() {
+            GET_ANIMATABLE;
+
             if (this->currentFrame >= this->frameCount)
                 this->currentFrame = this->frameCount - 1;
 
-            this->animatable->setAnimationKey(this->currentFrame);
+            globalAnimatable->setAnimationKey(this->currentFrame);
 
             this->holdFramesLeft = 0;
         }
@@ -63,14 +65,18 @@ public:
         }
 
         void ToggleAnimating(bool animating) {
+            GET_ANIMATABLE;
+
             this->playing = animating;
-            this->animatable->setAnimating(animating);
+            globalAnimatable->setAnimating(animating);
         }
 
         uint16_t getTotalPseudoFrames() {
             uint16_t result{ 0 };
 
-            for (auto key : this->animatable->getCurrentAnimation()->keys)
+            GET_ANIMATABLE;
+
+            for (auto key : globalAnimatable->getCurrentAnimation()->keys)
                 result += key.holdFrames;
 
             return result;
@@ -82,10 +88,12 @@ public:
 
             uint16_t result{ 0 };
 
-            for (uint16_t keyIndex = 0; keyIndex < currentFrame; keyIndex++)
-                result += this->animatable->getCurrentAnimation()->keys.at(keyIndex).holdFrames;
+            GET_ANIMATABLE;
 
-            result += this->animatable->getCurrentKey()->holdFrames - this->holdFramesLeft;
+            for (uint16_t keyIndex = 0; keyIndex < currentFrame; keyIndex++)
+                result += globalAnimatable->getCurrentAnimation()->keys.at(keyIndex).holdFrames;
+
+            result += globalAnimatable->getCurrentKey()->holdFrames - this->holdFramesLeft;
 
             return result;
         }
@@ -95,7 +103,9 @@ public:
         }
 
         void Update() {
-            if (playing && animatable) {
+            GET_ANIMATABLE;
+
+            if (playing && globalAnimatable) {
                 double now = glfwGetTime();
                 float delta = static_cast<float>(now - this->previous);
                 this->previous = now;
@@ -104,23 +114,21 @@ public:
                 if (timeLeft <= 0.f) {
                     this->timeLeft = 1 / (float)frameRate;
 
-                    this->animatable->Update();
+                    globalAnimatable->Update();
 
-                    if (!this->animatable->isAnimating() && this->loopEnabled) {
-                        this->animatable->setAnimation(this->animatable->getCurrentAnimationIndex());
-                        this->animatable->setAnimating(true);
+                    if (!globalAnimatable->isAnimating() && this->loopEnabled) {
+                        globalAnimatable->setAnimation(globalAnimatable->getCurrentAnimationIndex());
+                        globalAnimatable->setAnimating(true);
                     }
 
-                    this->playing = this->animatable->isAnimating();
+                    this->playing = globalAnimatable->isAnimating();
 
-                    this->currentFrame = this->animatable->getCurrentKeyIndex();
-                    this->holdFramesLeft = this->animatable->getHoldFramesLeft();
+                    this->currentFrame = globalAnimatable->getCurrentKeyIndex();
+                    this->holdFramesLeft = globalAnimatable->getHoldFramesLeft();
                 }
             }
         }
     private:
-        Animatable* animatable;
-
         double previous{ 0.f };
         float timeLeft{ 0.f };
     } playerState;
@@ -135,6 +143,8 @@ public:
     uint16_t selectedAnimation{ 0 };
     uint16_t selectedPart{ 0 };
     bool drawSelectedPartBounding{ false };
+    
+    Animatable* globalAnimatable{ nullptr };
 
 private:
     AppState() {} // Private constructor to prevent instantiation
