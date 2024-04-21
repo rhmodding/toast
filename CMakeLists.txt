@@ -12,6 +12,8 @@ set(SOURCES
     ext/imgui/backends/imgui_impl_glfw.cpp
     ext/imgui/backends/imgui_impl_opengl3.cpp
 
+    ext/ImGuiFileDialog/ImGuiFileDialog.cpp
+
     src/main.cpp
     src/App.cpp
 
@@ -47,6 +49,8 @@ set(HEADERS
     ext/imgui/backends/imgui_impl_glfw.h
     ext/imgui/backends/imgui_impl_opengl3.h
     ext/imgui/backends/imgui_impl_opengl3_loader.h
+
+    ext/ImGuiFileDialog/ImGuiFileDialog.h
 
     src/App.hpp
 
