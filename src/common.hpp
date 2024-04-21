@@ -53,9 +53,12 @@ namespace Common {
     constexpr uint32_t magicToUint32(const char* magic, bool bigEndian = false);
 
     template <typename T>
-    void deleteIfNotNullptr(T* ptr) {
+    void deleteIfNotNullptr(T*& ptr, bool setNullptr = true) {
         if (ptr)
             delete ptr;
+
+        if (setNullptr)
+            ptr = nullptr;
     }
 
     float EaseInOut(float t);
