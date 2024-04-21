@@ -81,6 +81,15 @@ private:
 
     void Menubar();
 
+    enum PushSessionError {
+        PushSessionError_FailOpenArchive = -1,
+        PushSessionError_FailFindTPL = -2,
+        PushSessionError_FailFindBXCAD = -3,
+        PushSessionError_FailGetTexture = -4,
+        PushSessionError_RootDirNotFound = -5,
+        PushSessionError_NoBXCADsFound = -6,
+    };
+
     // Windows
     WindowCanvas* windowCanvas;
     WindowHybridList* windowHybridList;
@@ -90,15 +99,38 @@ private:
 
     GLFWwindow* window{ nullptr };
 
-    struct FileTab {
+    struct Session {
         std::string name;
         bool open{ false };
-    } fileTabs[32];
+        uint16_t cellIndex{ 1 };
 
-    Common::Image cellanimSheet;
-    RvlCellAnim::RvlCellAnimObject* cellanim{ nullptr };
+        std::vector<RvlCellAnim::RvlCellAnimObject*> cellanims;
+        std::vector<Common::Image*> cellanimSheets;
+        std::vector<std::unordered_map<uint16_t, std::string>*> animationNames;
+        std::vector<std::string> cellNames;
+
+        RvlCellAnim::RvlCellAnimObject* getCellanim() {
+            return this->cellanims.at(this->cellIndex);
+        }
+        Common::Image* getCellanimSheet() {
+            return this->cellanimSheets.at(this->cellIndex);
+        }
+        std::unordered_map<uint16_t, std::string>* getAnimationNames() {
+            return this->animationNames.at(this->cellIndex);
+        }
+    } sessions[64];
+    int16_t currentSession{ -1 };
+
+    void SessionChanged();
+
+    // Push session from Arc file (SZS).
+    int16_t PushSessionFromArc(const char* arcPath);
+    // Push session from BRCAD, PNG, and H file respectively
+    int16_t PushSessionTraditional(const char* paths[3]);
+
+    void FreeSession(Session* session);
+
     Animatable* animatable{ nullptr };
-    std::unordered_map<uint16_t, std::string> animationNames;
 }; // class App
 
 #endif // APP_HPP
