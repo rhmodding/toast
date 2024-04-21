@@ -9,6 +9,8 @@
 
 #include "App.hpp"
 
+#include "AppState.hpp"
+
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
 // Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
@@ -37,7 +39,7 @@ int main(int argc, char** argv) {
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != nullptr);
 
-    while ((!glfwWindowShouldClose(app->getWindow())) || app->quit)
+    while (!app->quit)
         app->Update();
 
     app->Stop();

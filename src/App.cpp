@@ -12,6 +12,8 @@
 
 #include "imgui_internal.h"
 
+App* gAppPtr{ nullptr };
+
 GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
     GLuint imageTexture;
     
@@ -105,6 +107,14 @@ App::App() {
 
     this->window = glfwCreateWindow(1280, 720, WINDOW_TITLE, nullptr, nullptr);
     assert(this->window);
+
+    gAppPtr = this;
+    glfwSetWindowCloseCallback(this->window, [](GLFWwindow* window) {
+        std::cout << "Window close callback\n";
+
+        extern App* gAppPtr;
+        gAppPtr->quit = 0xFF;
+    });
 
     glfwMakeContextCurrent(this->window);
     glfwSwapInterval(1); // Enable vsync
