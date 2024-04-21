@@ -12,6 +12,7 @@
 // Stores instance of AppState in local appState.
 #define GET_APP_STATE AppState& appState = AppState::getInstance()
 
+// Stores globalAnimatable refpointer in local globalAnimatable.
 #define GET_ANIMATABLE Animatable*& globalAnimatable = AppState::getInstance().globalAnimatable
 
 class AppState : public Singleton<AppState> {
@@ -38,96 +39,19 @@ public:
 
         uint16_t frameRate{ 60 };
 
-        void updateSetFrameCount() {
-            GET_ANIMATABLE;
+        void updateSetFrameCount();
+        void updateCurrentFrame();
 
-            this->frameCount = static_cast<uint16_t>(
-                globalAnimatable->cellanim->animations.at(
-                    globalAnimatable->getCurrentAnimationIndex()
-                ).keys.size()
-            );
-        }
+        void ResetTimer();
 
-        void updateCurrentFrame() {
-            GET_ANIMATABLE;
+        void ToggleAnimating(bool animating);
 
-            if (this->currentFrame >= this->frameCount)
-                this->currentFrame = this->frameCount - 1;
+        uint16_t getTotalPseudoFrames();
+        uint16_t getCurrentPseudoFrames();
 
-            globalAnimatable->setAnimationKey(this->currentFrame);
+        float getAnimationProgression();
 
-            this->holdFramesLeft = 0;
-        }
-
-        void ResetTimer() {
-            this->timeLeft = 1 / (float)frameRate;
-            this->previous = glfwGetTime();
-        }
-
-        void ToggleAnimating(bool animating) {
-            GET_ANIMATABLE;
-
-            this->playing = animating;
-            globalAnimatable->setAnimating(animating);
-        }
-
-        uint16_t getTotalPseudoFrames() {
-            uint16_t result{ 0 };
-
-            GET_ANIMATABLE;
-
-            for (auto key : globalAnimatable->getCurrentAnimation()->keys)
-                result += key.holdFrames;
-
-            return result;
-        }
-
-        uint16_t getCurrentPseudoFrames() {
-            if (!this->playing && this->currentFrame == 0 && this->holdFramesLeft == 0)
-                return 0;
-
-            uint16_t result{ 0 };
-
-            GET_ANIMATABLE;
-
-            for (uint16_t keyIndex = 0; keyIndex < currentFrame; keyIndex++)
-                result += globalAnimatable->getCurrentAnimation()->keys.at(keyIndex).holdFrames;
-
-            result += globalAnimatable->getCurrentKey()->holdFrames - this->holdFramesLeft;
-
-            return result;
-        }
-
-        float getAnimationProgression() {
-            return this->getCurrentPseudoFrames() / static_cast<float>(this->getTotalPseudoFrames());
-        }
-
-        void Update() {
-            GET_ANIMATABLE;
-
-            if (playing && globalAnimatable) {
-                double now = glfwGetTime();
-                float delta = static_cast<float>(now - this->previous);
-                this->previous = now;
-
-                this->timeLeft -= delta;
-                if (timeLeft <= 0.f) {
-                    this->timeLeft = 1 / (float)frameRate;
-
-                    globalAnimatable->Update();
-
-                    if (!globalAnimatable->isAnimating() && this->loopEnabled) {
-                        globalAnimatable->setAnimation(globalAnimatable->getCurrentAnimationIndex());
-                        globalAnimatable->setAnimating(true);
-                    }
-
-                    this->playing = globalAnimatable->isAnimating();
-
-                    this->currentFrame = globalAnimatable->getCurrentKeyIndex();
-                    this->holdFramesLeft = globalAnimatable->getHoldFramesLeft();
-                }
-            }
-        }
+        void Update();
     private:
         double previous{ 0.f };
         float timeLeft{ 0.f };
@@ -141,7 +65,6 @@ public:
     RvlCellAnim::AnimationKey controlKey{ 0, 1, 1.f, 1.f, 0.f, 255 };
 
     uint16_t selectedAnimation{ 0 };
-
     // Apparently there can be 0 parts in an arrangement. In that case we set selectedPart to -1
     int32_t selectedPart{ -1 };
 
