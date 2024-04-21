@@ -203,7 +203,7 @@ void WindowInspector::Level_Arrangement() {
                         &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
-                        appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
+                        appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
                 }
             }
             ImGui::SameLine(0.f, xInnerSpacing);
@@ -215,7 +215,7 @@ void WindowInspector::Level_Arrangement() {
                         &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
-                        appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
+                        appState.selectedPart = static_cast<int32_t>(arrangementPtr->parts.size() - 1);
                 }
             }
 
@@ -228,36 +228,40 @@ void WindowInspector::Level_Arrangement() {
         RvlCellAnim::Arrangement* arrangementPtr =
             &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
-        RvlCellAnim::ArrangementPart* partPtr = &arrangementPtr->parts.at(appState.selectedPart);
+        RvlCellAnim::ArrangementPart* partPtr = appState.selectedPart >= 0 ? &arrangementPtr->parts.at(appState.selectedPart) : nullptr;
 
-        ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
+        if (partPtr) {
+            ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
 
-        int positionValues[2] = {
-            partPtr->positionX - (this->realPosition ? 0 : 512),
-            partPtr->positionY - (this->realPosition ? 0 : 512)
-        };
-        if (ImGui::DragInt2("Position XY", positionValues, 1.f)) {
-            partPtr->positionX = static_cast<int16_t>(
-                positionValues[0] + (this->realPosition ? 0 : 512)
-            );
-            partPtr->positionY = static_cast<int16_t>(
-                positionValues[1] + (this->realPosition ? 0 : 512)
-            );
+            int positionValues[2] = {
+                partPtr->positionX - (this->realPosition ? 0 : 512),
+                partPtr->positionY - (this->realPosition ? 0 : 512)
+            };
+            if (ImGui::DragInt2("Position XY", positionValues, 1.f)) {
+                partPtr->positionX = static_cast<int16_t>(
+                    positionValues[0] + (this->realPosition ? 0 : 512)
+                );
+                partPtr->positionY = static_cast<int16_t>(
+                    positionValues[1] + (this->realPosition ? 0 : 512)
+                );
+            }
+
+            float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
+            if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
+                partPtr->scaleX = scaleValues[0];
+                partPtr->scaleY = scaleValues[1];
+            }
+            ImGui::SliderFloat("Angle Z", &partPtr->angle, -360.f, 360.f, "%.1f deg");
+
+            ImGui::Checkbox("Flip X", &partPtr->flipX);
+            ImGui::Checkbox("Flip Y", &partPtr->flipY);
+
+            ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
+
+            ImGui::InputScalar("Opacity", ImGuiDataType_U8, &partPtr->opacity, &uint8_one, nullptr, "%u");
+        } else {
+            ImGui::Text("No part selected.");
         }
-
-        float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
-        if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
-            partPtr->scaleX = scaleValues[0];
-            partPtr->scaleY = scaleValues[1];
-        }
-        ImGui::SliderFloat("Angle Z", &partPtr->angle, -360.f, 360.f, "%.1f deg");
-
-        ImGui::Checkbox("Flip X", &partPtr->flipX);
-        ImGui::Checkbox("Flip Y", &partPtr->flipY);
-
-        ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
-
-        ImGui::InputScalar("Opacity", ImGuiDataType_U8, &partPtr->opacity, &uint8_one, nullptr, "%u");
     }
     ImGui::EndChild();
 
@@ -338,7 +342,7 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Arrangement_Im;
 
                 appState.drawSelectedPartBounding = true;
-                appState.selectedPart = 0;
+                appState.selectedPart = -1;
             }
             if (ImGui::MenuItem("Arrangement (Outside Anim)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
                 inspectorLevel = InspectorLevel_Arrangement;
@@ -347,7 +351,7 @@ void WindowInspector::Update() {
                 appState.drawSelectedPartBounding = true;
 
                 appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
-                appState.selectedPart = 0;
+                appState.selectedPart = -1;
 
                 appState.playerState.ToggleAnimating(false);
                 globalAnimatable->SubmitAnimationKeyPtr(&appState.controlKey);

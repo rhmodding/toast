@@ -196,7 +196,7 @@ void WindowCanvas::Update() {
 
     GET_APP_STATE;
 
-    if (appState.drawSelectedPartBounding) {
+    if (appState.drawSelectedPartBounding && appState.selectedPart >= 0) {
         ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
         drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], IM_COL32_WHITE);
         delete[] bounding;

@@ -104,7 +104,7 @@ void WindowHybridList::Update() {
                         &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
-                        appState.selectedPart = static_cast<uint16_t>(arrangementPtr->parts.size() - 1);
+                        appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
                 }
             }
     }

@@ -311,7 +311,7 @@ void App::SessionChanged() {
         appState.playerState.updateSetFrameCount();
 
         appState.selectedAnimation = 0;
-        appState.selectedPart = 0;
+        appState.selectedPart = -1;
 
         if (this->windowHybridList) {
             this->windowHybridList->animationNames = this->sessions[this->currentSession].getAnimationNames();

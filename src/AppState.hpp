@@ -141,7 +141,10 @@ public:
     RvlCellAnim::AnimationKey controlKey{ 0, 1, 1.f, 1.f, 0.f, 255 };
 
     uint16_t selectedAnimation{ 0 };
-    uint16_t selectedPart{ 0 };
+
+    // Apparently there can be 0 parts in an arrangement. In that case we set selectedPart to -1
+    int32_t selectedPart{ -1 };
+
     bool drawSelectedPartBounding{ false };
     
     Animatable* globalAnimatable{ nullptr };
