@@ -56,6 +56,9 @@ public:
         PushSessionError_FailGetTexture = -4,
         PushSessionError_RootDirNotFound = -5,
         PushSessionError_NoBXCADsFound = -6,
+        PushSessionError_FailOpenBXCAD = -7,
+        PushSessionError_FailOpenPNG = -8,
+        PushSessionError_FailOpenHFile = -9,
     };
 
     // Push session from Arc file (SZS).
