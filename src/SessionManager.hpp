@@ -21,7 +21,7 @@ public:
     struct Session {
         std::string name;
         bool open{ false };
-        uint16_t cellIndex{ 1 };
+        uint16_t cellIndex{ 0 };
 
         std::vector<RvlCellAnim::RvlCellAnimObject*> cellanims;
         std::vector<Common::Image*> cellanimSheets;
