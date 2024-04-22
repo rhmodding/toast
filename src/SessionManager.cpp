@@ -4,6 +4,7 @@
 #include "texture/TPL.hpp"
 
 #include <sstream>
+#include <fstream>
 
 #include "AppState.hpp"
 
@@ -167,6 +168,54 @@ int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
 
     for (auto brcad : brcadFiles)
         this->sessions[index].cellNames.push_back(brcad->name);
+
+    return index;
+}
+
+int16_t SessionManager::PushSessionTraditional(const char* paths[3]) {
+    uint8_t index = 0;
+
+    RvlCellAnim::RvlCellAnimObject* cellanim = RvlCellAnim::ObjectFromFile(paths[0]);
+    if (!cellanim)
+        return PushSessionError_FailOpenBXCAD;
+
+    Common::Image* image = new Common::Image;
+    image->LoadFromFile(paths[1]);
+
+    if (!image->texture)
+        return PushSessionError_FailOpenPNG;
+
+    std::unordered_map<uint16_t, std::string>* animationNames =
+        new std::unordered_map<uint16_t, std::string>;
+    
+    std::ifstream headerFile(paths[2]);
+    if (!headerFile.is_open())
+        return PushSessionError_FailOpenHFile;
+
+    std::string line;
+    while (std::getline(headerFile, line)) {
+        if (line.compare(0, 7, "#define") == 0) {
+            std::istringstream lineStream(line);
+            std::string define, key;
+            uint16_t value;
+
+            lineStream >> define >> key >> value;
+
+            size_t commentPos = key.find("//");
+            if (commentPos != std::string::npos) {
+                key = key.substr(0, commentPos);
+            }
+
+            animationNames->insert({ value, key });
+        }
+    }
+
+    this->sessions[index].open = true;
+    this->sessions[index].name = paths[0];
+
+    this->sessions[index].animationNames.push_back(animationNames);
+    this->sessions[index].cellanims.push_back(cellanim);
+    this->sessions[index].cellanimSheets.push_back(image);
 
     return index;
 }
