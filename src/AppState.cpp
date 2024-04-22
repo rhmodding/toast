@@ -12,11 +12,18 @@ void AppState::PlayerState::updateSetFrameCount() {
 
 void AppState::PlayerState::updateCurrentFrame() {
     GET_ANIMATABLE;
+    GET_APP_STATE;
 
     if (this->currentFrame >= this->frameCount)
         this->currentFrame = this->frameCount - 1;
 
     globalAnimatable->setAnimationKey(this->currentFrame);
+
+    RvlCellAnim::Arrangement* arrangementPtr =
+        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+
+    if (appState.selectedPart >= arrangementPtr->parts.size())
+        appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
 
     this->holdFramesLeft = 0;
 }
