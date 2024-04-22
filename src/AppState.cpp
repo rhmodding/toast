@@ -87,6 +87,14 @@ void AppState::PlayerState::Update() {
 
             this->currentFrame = globalAnimatable->getCurrentKeyIndex();
             this->holdFramesLeft = globalAnimatable->getHoldFramesLeft();
+
+            GET_APP_STATE;
+
+            RvlCellAnim::Arrangement* arrangementPtr =
+                &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+
+            if (appState.selectedPart >= arrangementPtr->parts.size())
+                appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
         }
     }
 }
