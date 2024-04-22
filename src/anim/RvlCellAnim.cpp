@@ -217,7 +217,8 @@ namespace RvlCellAnim {
         std::ifstream file(path, std::ios::binary | std::ios::ate);
         //                                binary mode        seek to end
 
-        assert(file.is_open());
+        if (!file.is_open())
+            return nullptr;
 
         std::streampos fileSize = file.tellg();
         file.seekg(0, std::ios::beg);
