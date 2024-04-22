@@ -77,6 +77,7 @@ namespace Common {
 
         GLuint texture;
 
+        Image() = default;
         Image(uint16_t width, uint16_t height, GLuint texture) : width(width), height(height), texture(texture) {}
 
         bool LoadFromFile(const char* filename) {
