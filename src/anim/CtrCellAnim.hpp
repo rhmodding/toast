@@ -62,10 +62,7 @@ namespace CtrCellAnim {
 
     struct Animation {
         std::string animationName;
-
-        // TODO: figure this out later
-        int32_t interpolation;
-
+        bool isInterpolated;
         std::vector<AnimationKey> keys;
     };
     
