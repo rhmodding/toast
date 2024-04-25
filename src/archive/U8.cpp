@@ -205,7 +205,7 @@ namespace U8 {
 
         if (pos == std::string::npos) {
             // No '/' found: It's a file, go find it
-            for (File file : directory.files)
+            for (const File& file : directory.files)
                 if (file.name == path)
                     return file;
 
