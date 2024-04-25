@@ -6,6 +6,8 @@
 
 namespace Yaz0 {
     std::optional<std::vector<char>> decompress(const char* compressedData, const size_t dataSize);
+
+    std::vector<char> compress(const char* data, const size_t dataSize);
 }
 
 #endif // YAZ0_HPP
