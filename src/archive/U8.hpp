@@ -8,6 +8,7 @@
 namespace U8 {
     class Directory;
 
+    // Note: storing a Directory or File directly is very expensive! Consider storing a pointer or reference instead.
     class File {
     public:
         std::string name;
@@ -19,6 +20,7 @@ namespace U8 {
         File(const std::string& n);
     };
 
+    // Note: storing a Directory or File directly is very expensive! Consider storing a pointer or reference instead.
     class Directory {
     public:
         std::string name;
