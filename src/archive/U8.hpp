@@ -46,6 +46,8 @@ namespace U8 {
     public:
         Directory structure{ "root" };
 
+        std::vector<char> Reserialize();
+
         U8ArchiveObject(const char* archiveData, const size_t dataSize);
     };
 

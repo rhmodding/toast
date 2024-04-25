@@ -11,8 +11,11 @@
 #include <cstdint>
 
 #include "../compression/Yaz0.hpp"
+#include <stack>
 
 #pragma pack(push, 1) // Pack struct members tightly without padding
+
+#define HEADER_MAGIC 0x55AA382D
 
 struct U8ArchiveHeader {
     // Magic value (should always equal to 0x55AA382D [1437218861] if valid)
@@ -169,6 +172,12 @@ namespace U8 {
         }
 
         return;
+    }
+
+    std::vector<char> U8ArchiveObject::Reserialize() {
+        // TODO: implement
+
+        return std::vector<char>();
     }
 
     std::optional<U8ArchiveObject> readYaz0U8Archive(const std::string& filePath) {
