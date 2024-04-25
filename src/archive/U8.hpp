@@ -25,6 +25,9 @@ namespace U8 {
         std::vector<File> files;
         std::vector<Directory> subdirectories;
 
+        // So we don't have to re-calculate for re-serialization.
+        uint32_t totalNodeCount;
+
         Directory* parent{ nullptr };
 
         void AddFile(File& file);

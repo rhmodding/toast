@@ -91,10 +91,10 @@ namespace U8 {
 
         nodes.push_back(rootNode);
 
-        uint32_t totalNodeCount = rootNode.size;
+        this->structure.totalNodeCount = rootNode.size;
 
         // Read rest of nodes
-        for (uint32_t i = 0; i < totalNodeCount - 1; i++) {
+        for (uint32_t i = 0; i < this->structure.totalNodeCount - 1; i++) {
             U8ArchiveNode node;
             Common::ReadAtOffset(archiveData, readOffset, dataSize, node);
 
@@ -106,7 +106,7 @@ namespace U8 {
 
         // Read string pool
         std::vector<std::string> stringList;
-        for (uint32_t i = 0; i < totalNodeCount; i++) {
+        for (uint32_t i = 0; i < this->structure.totalNodeCount; i++) {
             std::string str;
 
             char c;
@@ -149,6 +149,8 @@ namespace U8 {
             }
             else if (node.type == 0x1) {
                 Directory directory(stringList[i]);
+
+                directory.totalNodeCount = node.size;
 
                 currentDirectory->AddDirectory(directory);
 
