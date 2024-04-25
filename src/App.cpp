@@ -13,6 +13,8 @@
 
 #include "SessionManager.hpp"
 
+#include "../ext/ImGuiFileDialog/ImGuiFileDialog.h"
+
 #if defined(__APPLE__)
     #define EXIT_SHORTCUT "Cmd+Q"
 #else
@@ -106,22 +108,11 @@ App::App() {
 
     this->SetupFonts();
 
-    // Init brcad
-
-    GET_SESSION_MANAGER;
-
-    sessionManager.currentSession = sessionManager.PushSessionFromArc("E:\\Dolphin-x64\\Games\\tengoku-j\\content2\\cellanim\\rap\\ver0\\cellanim.szs");
-    if (sessionManager.currentSession < 0) {
-        exit(1);
-    }
-
     this->windowCanvas = new WindowCanvas;
     this->windowHybridList = new WindowHybridList;
     this->windowInspector = new WindowInspector;
     this->windowTimeline = new WindowTimeline;
     this->windowSpritesheet = new WindowSpritesheet;
-
-    sessionManager.SessionChanged();
 }
 
 void App::Stop() {
@@ -197,6 +188,29 @@ void App::Menubar() {
 
             if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", EXIT_SHORTCUT, nullptr))
                 this->quit = 0xFF;
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("File")) {
+            // TODO: add Apple shortcut
+            if (ImGui::MenuItem((char*)ICON_FA_FILE_IMPORT " Open (arc)...", "Ctrl+O", nullptr)) {
+                IGFD::FileDialogConfig dialogConfig;
+                dialogConfig.path = ".";
+                dialogConfig.countSelectionMax = 1;
+                dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+
+                ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodArc", "Choose an Cellanim Arc file", ".szs", dialogConfig);
+            }
+
+            if (ImGui::MenuItem((char*)ICON_FA_FILE_IMPORT " Open (seperated)...", "", nullptr)) {
+                IGFD::FileDialogConfig dialogConfig;
+                dialogConfig.path = ".";
+                dialogConfig.countSelectionMax = 1;
+                dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+
+                ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodTraditional-1", "Choose the BRCAD file", ".brcad", dialogConfig);
+            }
 
             ImGui::EndMenu();
         }
@@ -311,17 +325,113 @@ void App::Update() {
 
     appState.playerState.Update();
 
+    bool sessionAvailable = !!SessionManager::getInstance().getCurrentSession();
+
     // Windows
-    if (this->windowCanvas)
-        this->windowCanvas->Update();
-    if (this->windowHybridList)
-        this->windowHybridList->Update();
-    if (this->windowInspector)
-        this->windowInspector->Update();
-    if (this->windowTimeline)
-        this->windowTimeline->Update();
-    if (this->windowSpritesheet)
-        this->windowSpritesheet->Update();
+    if (sessionAvailable) {
+        if (this->windowCanvas)
+            this->windowCanvas->Update();
+        if (this->windowHybridList)
+            this->windowHybridList->Update();
+        if (this->windowInspector)
+            this->windowInspector->Update();
+        if (this->windowTimeline)
+            this->windowTimeline->Update();
+        if (this->windowSpritesheet)
+            this->windowSpritesheet->Update();
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodArc")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            GET_SESSION_MANAGER;
+
+            sessionManager.currentSession = sessionManager.PushSessionFromArc(filePathName.c_str());
+            sessionManager.SessionChanged();
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    static char* traditionalPushPaths[3]{ nullptr };
+
+    if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodTraditional-1")) {
+        bool openNext{ false };
+        IGFD::FileDialogConfig dialogConfig;
+
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            traditionalPushPaths[0] = new char[filePathName.length() + 1];
+            strcpy_s(traditionalPushPaths[0], filePathName.length() + 1, filePathName.c_str());
+
+            dialogConfig.path = filePath;
+            dialogConfig.countSelectionMax = 1;
+            dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+            openNext = true;
+        } else {
+            Common::deleteIfNotNullptr(traditionalPushPaths[0]);
+            Common::deleteIfNotNullptr(traditionalPushPaths[1]);
+            Common::deleteIfNotNullptr(traditionalPushPaths[2]);
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+
+        if (openNext)
+            ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodTraditional-2", "Choose the image file", ".png", dialogConfig);
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodTraditional-2")) {
+        bool openNext{ false };
+        IGFD::FileDialogConfig dialogConfig;
+
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            traditionalPushPaths[1] = new char[filePathName.length() + 1];
+            strcpy_s(traditionalPushPaths[1], filePathName.length() + 1, filePathName.c_str());
+
+            dialogConfig.path = filePath;
+            dialogConfig.countSelectionMax = 1;
+            dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+
+            openNext = true;
+        } else {
+            Common::deleteIfNotNullptr(traditionalPushPaths[0]);
+            Common::deleteIfNotNullptr(traditionalPushPaths[1]);
+            Common::deleteIfNotNullptr(traditionalPushPaths[2]);
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+
+        if (openNext)
+            ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodTraditional-3", "Choose the header file", ".h", dialogConfig);
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodTraditional-3")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            traditionalPushPaths[2] = new char[filePathName.length() + 1];
+            strcpy_s(traditionalPushPaths[2], filePathName.length() + 1, filePathName.c_str());
+
+            GET_SESSION_MANAGER;
+
+            sessionManager.currentSession = sessionManager.PushSessionTraditional((const char**)traditionalPushPaths);
+            sessionManager.SessionChanged();
+        }
+
+        Common::deleteIfNotNullptr(traditionalPushPaths[0]);
+        Common::deleteIfNotNullptr(traditionalPushPaths[1]);
+        Common::deleteIfNotNullptr(traditionalPushPaths[2]);
+
+        ImGuiFileDialog::Instance()->Close();
+    }
 
     // TODO: Implement timeline auto-scroll
     // static bool autoScrollTimeline{ false };
