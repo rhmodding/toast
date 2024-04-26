@@ -20,7 +20,7 @@
 
 // Main code
 int main(int argc, char** argv) {
-    App* app = new App;
+    new App;
 
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -39,12 +39,14 @@ int main(int argc, char** argv) {
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != nullptr);
 
-    while (!app->quit)
-        app->Update();
+    extern App* gAppPtr;
 
-    app->Stop();
+    while (!gAppPtr->quit)
+        gAppPtr->Update();
 
-    delete app;
+    gAppPtr->Stop();
+
+    delete gAppPtr;
 
     return 0;
 }
