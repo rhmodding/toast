@@ -4,6 +4,9 @@
 
 #include "GLFW/glfw3.h"
 
+#include <sstream>
+#include <string>
+
 #include "../SessionManager.hpp"
 
 void WindowHybridList::FlashWindow() {
@@ -67,20 +70,20 @@ void WindowHybridList::Update() {
 
         if (!appState.arrangementMode)
             for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
-                char buffer[128];
+                std::stringstream fmtStream;
 
                 GET_SESSION_MANAGER;
 
                 auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(n);
-                sprintf_s(
-                    buffer, 128, "%d. %s", n,
 
+                const char* animName =
                     query != sessionManager.getCurrentSession()->getAnimationNames()->end() ?
                         query->second.c_str() :
-                        "(no macro defined)"
-                );
+                        "(no macro defined)";
 
-                if (ImGui::Selectable(buffer, appState.selectedAnimation == n)) {
+                fmtStream << std::to_string(n) << ". " << animName;
+
+                if (ImGui::Selectable(fmtStream.str().c_str(), appState.selectedAnimation == n)) {
                     appState.selectedAnimation = n;
 
                     globalAnimatable->setAnimation(appState.selectedAnimation);
@@ -99,7 +102,7 @@ void WindowHybridList::Update() {
         else
             for (uint16_t n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
                 char buffer[32];
-                sprintf_s(buffer, 32, "Arrangement no. %d", n);
+                sprintf(buffer, "Arrangement no. %d", n);
 
                 if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n)) {
                     appState.controlKey.arrangementIndex = n;

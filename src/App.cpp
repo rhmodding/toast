@@ -6,6 +6,9 @@
 #include <iostream>
 #include <vector>
 
+#include <string>
+#include <sstream>
+
 #include "archive/U8.hpp"
 #include "texture/TPL.hpp"
 
@@ -282,11 +285,12 @@ void App::Menubar() {
                         ImGui::Text("Select a Cellanim:");
                         ImGui::Separator();
                         for (uint16_t i = 0; i < sessionManager.sessions[n].cellanims.size(); i++) {
-                            char buffer[64];
                             std::string* str = &sessionManager.sessions[n].cellNames.at(i);
-                            sprintf_s(buffer, 64, "%u. %s", i, str->substr(0, str->size() - 6).c_str());
 
-                            if (ImGui::MenuItem(buffer, nullptr, sessionManager.sessions[n].cellIndex == i)) {
+                            std::stringstream fmtStream;
+                            fmtStream << std::to_string(i) << ". " << str->substr(0, str->size() - 6);
+
+                            if (ImGui::MenuItem(fmtStream.str().c_str(), nullptr, sessionManager.sessions[n].cellIndex == i)) {
                                 ImGui::CloseCurrentPopup();
                                 sessionManager.sessions[n].cellIndex = i;
                                 sessionManager.SessionChanged();
@@ -366,7 +370,7 @@ void App::Update() {
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             traditionalPushPaths[0] = new char[filePathName.length() + 1];
-            strcpy_s(traditionalPushPaths[0], filePathName.length() + 1, filePathName.c_str());
+            strcpy(traditionalPushPaths[0], filePathName.c_str());
 
             dialogConfig.path = filePath;
             dialogConfig.countSelectionMax = 1;
@@ -393,7 +397,7 @@ void App::Update() {
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             traditionalPushPaths[1] = new char[filePathName.length() + 1];
-            strcpy_s(traditionalPushPaths[1], filePathName.length() + 1, filePathName.c_str());
+            strcpy(traditionalPushPaths[1], filePathName.c_str());
 
             dialogConfig.path = filePath;
             dialogConfig.countSelectionMax = 1;
@@ -418,7 +422,7 @@ void App::Update() {
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             traditionalPushPaths[2] = new char[filePathName.length() + 1];
-            strcpy_s(traditionalPushPaths[2], filePathName.length() + 1, filePathName.c_str());
+            strcpy(traditionalPushPaths[2], filePathName.c_str());
 
             GET_SESSION_MANAGER;
 
