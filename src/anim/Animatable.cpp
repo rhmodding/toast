@@ -6,9 +6,9 @@
 
 #include "../common.hpp"
 
-#define CANVAS_ORIGIN 512
+#include <math.h>
 
-#define M_PI 3.14159265358979323846
+#define CANVAS_ORIGIN 512
 
 void Animatable::setAnimation(uint16_t animIndex) {
     assert(this->cellanim);
@@ -101,8 +101,8 @@ ImVec2 Animatable::getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t pa
 }
 
 ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
-    float s = static_cast<float>(std::sin(angle * (M_PI / 180)));
-    float c = static_cast<float>(std::cos(angle * (M_PI / 180)));
+    float s = sinf(angle * (M_PI / 180));
+    float c = cosf(angle * (M_PI / 180));
 
     v.x -= origin.x;
     v.y -= origin.y;
