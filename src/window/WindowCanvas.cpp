@@ -343,7 +343,7 @@ void WindowCanvas::Update() {
 
     if (this->canvasZoom != 0.f) {
         std::stringstream fmtStream;
-        fmtStream << "Zoom: " << std::to_string(static_cast<uint16_t>((this->canvasZoom + 1) * 100)) << " (hold [Shift] to zoom faster)";
+        fmtStream << "Zoom: " << std::to_string(static_cast<uint16_t>((this->canvasZoom + 1) * 100)) << "% (hold [Shift] to zoom faster)";
 
         drawList->AddText(
             ImVec2(
