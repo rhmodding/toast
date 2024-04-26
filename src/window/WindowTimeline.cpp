@@ -44,7 +44,7 @@ void WindowTimeline::Update() {
                             char playPauseButtonLabel[24] = { '\0' };
                             const char* playPauseIcon = appState.playerState.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
 
-                            sprintf(playPauseButtonLabel, "%c##playPauseButton", playPauseIcon);
+                            sprintf(playPauseButtonLabel, "%s##playPauseButton", playPauseIcon);
 
                             if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
                                 if (
