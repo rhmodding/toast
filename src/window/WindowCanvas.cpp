@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 
+#include <math.h>
+
 const ImVec2 feverSafeAreaSize(832, 456);
 const ImVec2 megamixSafeAreaSize(440, 240);
 
