@@ -81,7 +81,7 @@ void WindowHybridList::Update() {
                         query->second.c_str() :
                         "(no macro defined)";
 
-                fmtStream << std::to_string(n) << ". " << animName;
+                fmtStream << std::to_string(n+1) << ". " << animName;
 
                 if (ImGui::Selectable(fmtStream.str().c_str(), appState.selectedAnimation == n)) {
                     appState.selectedAnimation = n;
@@ -102,7 +102,7 @@ void WindowHybridList::Update() {
         else
             for (uint16_t n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
                 char buffer[32];
-                sprintf(buffer, "Arrangement no. %d", n);
+                sprintf(buffer, "Arrangement no. %d", n+1);
 
                 if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n)) {
                     appState.controlKey.arrangementIndex = n;
