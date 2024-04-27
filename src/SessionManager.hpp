@@ -19,9 +19,13 @@ class SessionManager : public Singleton<SessionManager> {
 
 public:
     struct Session {
-        std::string name;
+        std::string mainPath;
         bool open{ false };
         uint16_t cellIndex{ 0 };
+
+        bool traditionalMethod{ false };
+        std::string* pngPath{ nullptr };
+        std::string* headerPath{ nullptr };
 
         std::vector<RvlCellAnim::RvlCellAnimObject*> cellanims;
         std::vector<Common::Image*> cellanimSheets;

@@ -24,6 +24,8 @@
     #define EXIT_SHORTCUT "Alt+F4"
 #endif
 
+#define GL_SILENCE_DEPRECATION
+
 App* gAppPtr{ nullptr };
 
 App::App() {
@@ -274,7 +276,7 @@ void App::Menubar() {
                 if (
                     sessionManager.sessions[n].open &&
                     ImGui::BeginTabItem(
-                        sessionManager.sessions[n].name.c_str(),
+                        sessionManager.sessions[n].mainPath.c_str(),
                         &sessionManager.sessions[n].open,
                         ImGuiTabItemFlags_None
                     )

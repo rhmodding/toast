@@ -8,6 +8,8 @@
 
 #include "AppState.hpp"
 
+#define GL_SILENCE_DEPRECATION
+
 GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
     GLuint imageTexture;
     
@@ -160,7 +162,7 @@ int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
         );
 
     this->sessions[index].open = true;
-    this->sessions[index].name = arcPath;
+    this->sessions[index].mainPath = arcPath;
     
     this->sessions[index].animationNames = animationNames;
     this->sessions[index].cellanims = cellanims;
@@ -211,7 +213,10 @@ int16_t SessionManager::PushSessionTraditional(const char* paths[3]) {
     }
 
     this->sessions[index].open = true;
-    this->sessions[index].name = paths[0];
+    this->sessions[index].mainPath = paths[0];
+
+    this->sessions[index].pngPath = new std::string(paths[1]);
+    this->sessions[index].headerPath = new std::string(paths[2]);
 
     this->sessions[index].animationNames.push_back(animationNames);
     this->sessions[index].cellanims.push_back(cellanim);
@@ -232,6 +237,9 @@ void SessionManager::FreeSession(Session* session) {
     session->cellanims.clear();
     session->cellanimSheets.clear();
     session->cellNames.clear();
+
+    Common::deleteIfNotNullptr(session->pngPath);
+    Common::deleteIfNotNullptr(session->headerPath);
 
     session->open = false;
 }
