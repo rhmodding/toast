@@ -8,6 +8,8 @@
 
 #include "AppState.hpp"
 
+#include "common.hpp"
+
 #define GL_SILENCE_DEPRECATION
 
 GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
@@ -73,8 +75,24 @@ GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
     return imageTexture;
 }
 
+int16_t SessionManager::firstFreeSessionIndex() {
+    int16_t index = -1;
+    for (int16_t i = 0; i < ARRAY_LENGTH(this->sessions); ++i) {
+        if (this->sessions[i].open == false) {
+            index = i;
+            break;
+        }
+    }
+
+    return index;
+}
+
 int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
-    uint8_t index = 0;
+    int16_t index = this->firstFreeSessionIndex();
+    if (index < 0) {
+        this->lastSessionError = SessionOpenError_SessionsFull;
+        return -1;
+    }
 
     auto archiveResult = U8::readYaz0U8Archive(arcPath);
     if (!archiveResult.has_value())
@@ -175,7 +193,11 @@ int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
 }
 
 int16_t SessionManager::PushSessionTraditional(const char* paths[3]) {
-    uint8_t index = 0;
+    int16_t index = this->firstFreeSessionIndex();
+    if (index < 0) {
+        this->lastSessionError = SessionOpenError_SessionsFull;
+        return -1;
+    }
 
     RvlCellAnim::RvlCellAnimObject* cellanim = RvlCellAnim::ObjectFromFile(paths[0]);
     if (!cellanim)
