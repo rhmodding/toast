@@ -81,6 +81,8 @@ private:
 
     void Menubar();
 
+    void UpdatePopups();
+
     // Windows
     WindowCanvas* windowCanvas;
     WindowHybridList* windowHybridList;

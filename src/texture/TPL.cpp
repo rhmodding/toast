@@ -43,7 +43,7 @@ struct TPLHeader {
     TPL::TPLTexFilter minFilter;
     TPL::TPLTexFilter magFilter;
 
-    float_t LODBias;
+    float LODBias;
 
     // Boolean value
     uint8_t edgeLODEnable;

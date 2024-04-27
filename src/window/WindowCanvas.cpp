@@ -1,5 +1,10 @@
 #include "WindowCanvas.hpp"
 
+#include <sstream>
+#include <string>
+
+#include <math.h>
+
 const ImVec2 feverSafeAreaSize(832, 456);
 const ImVec2 megamixSafeAreaSize(440, 240);
 
@@ -328,27 +333,27 @@ void WindowCanvas::Update() {
     float textDrawHeight = canvasTopLeft.y + 5.f;
 
     if ((this->canvasOffset.x != 0.f) || (this->canvasOffset.y != 0.f)) {
-        char buffer[64] = { '\0' };
-        sprintf_s((char*)&buffer, 64, "Offset: %f, %f", this->canvasOffset.x, this->canvasOffset.y);
+        std::stringstream fmtStream;
+        fmtStream << "Offset: " << std::to_string(this->canvasOffset.x) << ", " << std::to_string(this->canvasOffset.y);
 
-        drawList->AddText(ImVec2(canvasTopLeft.x + 10, textDrawHeight), textColor, buffer);
+        drawList->AddText(ImVec2(canvasTopLeft.x + 10, textDrawHeight), textColor, fmtStream.str().c_str());
 
-        textDrawHeight += 3.f + ImGui::CalcTextSize(buffer).y;
+        textDrawHeight += 3.f + ImGui::CalcTextSize(fmtStream.str().c_str()).y;
     }
 
     if (this->canvasZoom != 0.f) {
-        char buffer[64] = { '\0' };
-        sprintf_s((char*)&buffer, 64, "Zoom: %u%% (hold [Shift] to zoom faster)", static_cast<uint16_t>((this->canvasZoom + 1) * 100));
+        std::stringstream fmtStream;
+        fmtStream << "Zoom: " << std::to_string(static_cast<uint16_t>((this->canvasZoom + 1) * 100)) << "% (hold [Shift] to zoom faster)";
 
         drawList->AddText(
             ImVec2(
                 canvasTopLeft.x + 10,
                 textDrawHeight
             ),
-            textColor, buffer
+            textColor, fmtStream.str().c_str()
         );
 
-        textDrawHeight += 3.f + ImGui::CalcTextSize(buffer).y;
+        textDrawHeight += 3.f + ImGui::CalcTextSize(fmtStream.str().c_str()).y;
     }
 
     if (!animatableDoesDraw) {

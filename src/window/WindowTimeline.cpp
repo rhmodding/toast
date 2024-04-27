@@ -41,11 +41,10 @@ void WindowTimeline::Update() {
 
                     switch (column) {
                         case 0: {
-                            char playPauseButtonLabel[32] = { '\0' };
+                            char playPauseButtonLabel[24] = { '\0' };
                             const char* playPauseIcon = appState.playerState.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
 
-                            strcpy_s(playPauseButtonLabel, 32, playPauseIcon);
-                            strcat_s(playPauseButtonLabel, 32, "##playPauseButton");
+                            sprintf(playPauseButtonLabel, "%s##playPauseButton", playPauseIcon);
 
                             if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
                                 if (
@@ -210,8 +209,8 @@ void WindowTimeline::Update() {
                             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
                         }
 
-                        char buffer[16];
-                        sprintf_s(buffer, 16, "%u##KeyButton", i+1);
+                        char buffer[18];
+                        sprintf(buffer, "%u##KeyButton", i+1);
 
                         if (ImGui::Button(buffer, buttonDimensions)) {
                             appState.playerState.currentFrame = i;

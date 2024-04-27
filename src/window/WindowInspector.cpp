@@ -72,18 +72,25 @@ void WindowInspector::Level_Animation() {
 
 
     RvlCellAnim::Animation* animation = globalAnimatable->getCurrentAnimation();
-    static char newMacroName[128]{ "" };
+    static char newMacroName[256]{ "" };
 
     ImGui::SeparatorText((char*)ICON_FA_PENCIL " Macro name");
     if (ImGui::Button("Edit macro name..")) {
-        strcpy_s(newMacroName, 128, animationName ? animationName : "");
-        ImGui::OpenPopup("Edit macro name###EditMacroNamePopup");
+        std::string copyName(animationName ? animationName : "");
+        if (copyName.size() > 256)
+            copyName.resize(256); // Truncate
+
+        strcpy(newMacroName, copyName.c_str());
+        ImGui::OpenPopup("###EditMacroNamePopup");
     }
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
     if (ImGui::BeginPopupModal("Edit macro name###EditMacroNamePopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("Edit macro name for animation no. %u:", animationIndex);
-        ImGui::InputText("##MacroNameInput", newMacroName, 128);
+        ImGui::InputText("##MacroNameInput", newMacroName, 256);
 
         ImGui::Dummy({ 0, 15 });
         ImGui::Separator();
@@ -282,8 +289,8 @@ void WindowInspector::Level_Arrangement() {
         for (int n = static_cast<int>(arrangementPtr->parts.size()) - 1; n >= 0; n--) {
             ImGui::PushID(n);
 
-            char buffer[32];
-            sprintf_s(buffer, 32, "Part no. %u", n+1);
+            char buffer[16];
+            sprintf(buffer, "Part no. %u", n+1);
 
             ImGui::SetNextItemAllowOverlap();
             if (ImGui::Selectable(buffer, appState.selectedPart == n))

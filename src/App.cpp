@@ -6,6 +6,9 @@
 #include <iostream>
 #include <vector>
 
+#include <string>
+#include <sstream>
+
 #include "archive/U8.hpp"
 #include "texture/TPL.hpp"
 
@@ -20,6 +23,8 @@
 #else
     #define EXIT_SHORTCUT "Alt+F4"
 #endif
+
+#define GL_SILENCE_DEPRECATION
 
 App* gAppPtr{ nullptr };
 
@@ -268,25 +273,32 @@ void App::Menubar() {
             for (int n = 0; n < ARRAY_LENGTH(sessionManager.sessions); n++) {
                 ImGui::PushID(n);
 
+                bool sessionOpen = sessionManager.sessions[n].open;
                 if (
                     sessionManager.sessions[n].open &&
                     ImGui::BeginTabItem(
-                        sessionManager.sessions[n].name.c_str(),
-                        &sessionManager.sessions[n].open,
+                        sessionManager.sessions[n].mainPath.c_str(),
+                        &sessionOpen,
                         ImGuiTabItemFlags_None
                     )
                 ) {
+                    if (sessionManager.currentSession != n) {
+                        sessionManager.currentSession = n;
+                        sessionManager.SessionChanged();
+                    }
+
                     ImGui::EndTabItem();
 
                     if (ImGui::BeginPopupContextItem()) {
                         ImGui::Text("Select a Cellanim:");
                         ImGui::Separator();
                         for (uint16_t i = 0; i < sessionManager.sessions[n].cellanims.size(); i++) {
-                            char buffer[64];
                             std::string* str = &sessionManager.sessions[n].cellNames.at(i);
-                            sprintf_s(buffer, 64, "%u. %s", i, str->substr(0, str->size() - 6).c_str());
 
-                            if (ImGui::MenuItem(buffer, nullptr, sessionManager.sessions[n].cellIndex == i)) {
+                            std::stringstream fmtStream;
+                            fmtStream << std::to_string(i) << ". " << str->substr(0, str->size() - 6);
+
+                            if (ImGui::MenuItem(fmtStream.str().c_str(), nullptr, sessionManager.sessions[n].cellIndex == i)) {
                                 ImGui::CloseCurrentPopup();
                                 sessionManager.sessions[n].cellIndex = i;
                                 sessionManager.SessionChanged();
@@ -297,6 +309,11 @@ void App::Menubar() {
                     }
                 }
 
+                if (!sessionOpen && sessionManager.sessions[n].open) {
+                    sessionManager.FreeSession(&sessionManager.sessions[n]);
+                    sessionManager.SessionChanged();
+                }
+
                 ImGui::PopID();
             }
             ImGui::EndTabBar();
@@ -304,6 +321,62 @@ void App::Menubar() {
 
         ImGui::EndMenuBar();
     }
+}
+
+void App::UpdatePopups() {
+    SessionManager::SessionOpenError errorCode = SessionManager::getInstance().lastSessionError;
+
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    if (ImGui::BeginPopupModal((
+        "There was an error opening the session. (" +
+        std::to_string(errorCode) +
+        ")###SessionOpenErr"
+    ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        std::string errorMessage;
+        switch (errorCode) {
+            case SessionManager::SessionOpenError_FailOpenArchive:
+                errorMessage = "The archive file could not be opened.";
+                break;
+            case SessionManager::SessionOpenError_FailFindTPL:
+                errorMessage = "The archive does not contain the cellanim.tpl file.";
+                break;
+            case SessionManager::SessionOpenError_RootDirNotFound:
+                errorMessage = "The archive does not contain a root directory.";
+                break;
+            case SessionManager::SessionOpenError_NoBXCADsFound:
+                errorMessage = "The archive does not contain any brcad/bccad files.";
+                break;
+            case SessionManager::SessionOpenError_FailOpenBXCAD:
+                errorMessage = "The brcad/bccad file could not be opened.";
+                break;
+            case SessionManager::SessionOpenError_FailOpenPNG:
+                errorMessage = "The image file (.png) could not be opened.";
+                break;
+            case SessionManager::SessionOpenError_FailOpenHFile:
+                errorMessage = "The header file (.h) could not be opened.";
+                break;
+            case SessionManager::SessionOpenError_SessionsFull:
+                errorMessage = "The maximum amount of sessions are already open.";
+                break;
+            default:
+                errorMessage = "An unknown error has occurred.";
+                break;
+        }
+
+        ImGui::TextUnformatted(errorMessage.c_str());
+
+        ImGui::Dummy({0, 5});
+
+        if (ImGui::Button("Alright", ImVec2(120, 0)))
+            ImGui::CloseCurrentPopup();
+        ImGui::SetItemDefaultFocus();
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar();
 }
 
 void App::Update() {
@@ -348,8 +421,14 @@ void App::Update() {
 
             GET_SESSION_MANAGER;
 
-            sessionManager.currentSession = sessionManager.PushSessionFromArc(filePathName.c_str());
-            sessionManager.SessionChanged();
+            int16_t result = sessionManager.PushSessionFromArc(filePathName.c_str());
+
+            if (result < 0)
+                ImGui::OpenPopup("###SessionOpenErr");
+            else {
+                sessionManager.currentSession = result;
+                sessionManager.SessionChanged();
+            }
         }
 
         ImGuiFileDialog::Instance()->Close();
@@ -366,7 +445,7 @@ void App::Update() {
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             traditionalPushPaths[0] = new char[filePathName.length() + 1];
-            strcpy_s(traditionalPushPaths[0], filePathName.length() + 1, filePathName.c_str());
+            strcpy(traditionalPushPaths[0], filePathName.c_str());
 
             dialogConfig.path = filePath;
             dialogConfig.countSelectionMax = 1;
@@ -393,7 +472,7 @@ void App::Update() {
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             traditionalPushPaths[1] = new char[filePathName.length() + 1];
-            strcpy_s(traditionalPushPaths[1], filePathName.length() + 1, filePathName.c_str());
+            strcpy(traditionalPushPaths[1], filePathName.c_str());
 
             dialogConfig.path = filePath;
             dialogConfig.countSelectionMax = 1;
@@ -418,12 +497,18 @@ void App::Update() {
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             traditionalPushPaths[2] = new char[filePathName.length() + 1];
-            strcpy_s(traditionalPushPaths[2], filePathName.length() + 1, filePathName.c_str());
+            strcpy(traditionalPushPaths[2], filePathName.c_str());
 
             GET_SESSION_MANAGER;
 
-            sessionManager.currentSession = sessionManager.PushSessionTraditional((const char**)traditionalPushPaths);
-            sessionManager.SessionChanged();
+            int16_t result = sessionManager.PushSessionTraditional((const char**)traditionalPushPaths);
+
+            if (result < 0)
+                ImGui::OpenPopup("###SessionOpenErr");
+            else {
+                sessionManager.currentSession = result;
+                sessionManager.SessionChanged();
+            }
         }
 
         Common::deleteIfNotNullptr(traditionalPushPaths[0]);
@@ -432,6 +517,8 @@ void App::Update() {
 
         ImGuiFileDialog::Instance()->Close();
     }
+
+    this->UpdatePopups();
 
     // TODO: Implement timeline auto-scroll
     // static bool autoScrollTimeline{ false };
