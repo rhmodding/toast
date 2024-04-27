@@ -281,6 +281,11 @@ void App::Menubar() {
                         ImGuiTabItemFlags_None
                     )
                 ) {
+                    if (sessionManager.currentSession != n) {
+                        sessionManager.currentSession = n;
+                        sessionManager.SessionChanged();
+                    }
+
                     ImGui::EndTabItem();
 
                     if (ImGui::BeginPopupContextItem()) {
@@ -428,8 +433,14 @@ void App::Update() {
 
             GET_SESSION_MANAGER;
 
-            sessionManager.currentSession = sessionManager.PushSessionTraditional((const char**)traditionalPushPaths);
-            sessionManager.SessionChanged();
+            int16_t result = sessionManager.PushSessionTraditional((const char**)traditionalPushPaths);
+
+            if (result < 0)
+                ImGui::OpenPopup("###SessionOpenErr");
+            else {
+                sessionManager.currentSession = result;
+                sessionManager.SessionChanged();
+            }
         }
 
         Common::deleteIfNotNullptr(traditionalPushPaths[0]);
@@ -438,6 +449,8 @@ void App::Update() {
 
         ImGuiFileDialog::Instance()->Close();
     }
+
+    this->UpdatePopups();
 
     // TODO: Implement timeline auto-scroll
     // static bool autoScrollTimeline{ false };
