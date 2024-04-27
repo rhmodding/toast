@@ -53,17 +53,17 @@ public:
 
     void SessionChanged();
 
-    enum PushSessionError {
-        PushSessionError_FailOpenArchive = -1,
-        PushSessionError_FailFindTPL = -2,
-        PushSessionError_FailFindBXCAD = -3,
-        PushSessionError_FailGetTexture = -4,
-        PushSessionError_RootDirNotFound = -5,
-        PushSessionError_NoBXCADsFound = -6,
-        PushSessionError_FailOpenBXCAD = -7,
-        PushSessionError_FailOpenPNG = -8,
-        PushSessionError_FailOpenHFile = -9,
-    };
+    enum SessionOpenError: int16_t {
+        SessionOpenError_None = 0,
+        SessionOpenError_FailOpenArchive = -1,
+        SessionOpenError_FailFindTPL = -2,
+        SessionOpenError_RootDirNotFound = -3,
+        SessionOpenError_NoBXCADsFound = -4,
+        SessionOpenError_FailOpenBXCAD = -5,
+        SessionOpenError_FailOpenPNG = -6,
+        SessionOpenError_FailOpenHFile = -7,
+        SessionOpenError_SessionsFull = -8,
+    } lastSessionError{ SessionOpenError_None };
 
     // Push session from Arc file (SZS).
     int16_t PushSessionFromArc(const char* arcPath);
@@ -75,6 +75,8 @@ public:
     void FreeAllSessions();
 
 private:
+    int16_t firstFreeSessionIndex();
+
     SessionManager() {} // Private constructor to prevent instantiation
 };
 

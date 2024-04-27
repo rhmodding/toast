@@ -317,6 +317,59 @@ void App::Menubar() {
     }
 }
 
+void App::UpdatePopups() {
+    SessionManager::SessionOpenError errorCode = SessionManager::getInstance().lastSessionError;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    if (ImGui::BeginPopupModal((
+        "There was an error opening the session. (" +
+        std::to_string(errorCode) +
+        ")###SessionOpenErr"
+    ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        std::string errorMessage;
+        switch (errorCode) {
+            case SessionManager::SessionOpenError_FailOpenArchive:
+                errorMessage = "The archive file could not be opened.";
+                break;
+            case SessionManager::SessionOpenError_FailFindTPL:
+                errorMessage = "The archive does not contain the cellanim.tpl file.";
+                break;
+            case SessionManager::SessionOpenError_RootDirNotFound:
+                errorMessage = "The archive does not contain a root directory.";
+                break;
+            case SessionManager::SessionOpenError_NoBXCADsFound:
+                errorMessage = "The archive does not contain any brcad/bccad files.";
+                break;
+            case SessionManager::SessionOpenError_FailOpenBXCAD:
+                errorMessage = "The brcad/bccad file could not be opened.";
+                break;
+            case SessionManager::SessionOpenError_FailOpenPNG:
+                errorMessage = "The image file (.png) could not be opened.";
+                break;
+            case SessionManager::SessionOpenError_FailOpenHFile:
+                errorMessage = "The header file (.h) could not be opened.";
+                break;
+            case SessionManager::SessionOpenError_SessionsFull:
+                errorMessage = "The maximum amount of sessions are already open.";
+                break;
+            default:
+                errorMessage = "An unknown error has occurred.";
+                break;
+        }
+
+        ImGui::TextUnformatted(errorMessage.c_str());
+
+        ImGui::Dummy({0, 5});
+
+        if (ImGui::Button("Alright", ImVec2(120, 0)))
+            ImGui::CloseCurrentPopup();
+        ImGui::SetItemDefaultFocus();
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar();
+}
+
 void App::Update() {
     GET_APP_STATE;
     static ImGuiIO& io{ ImGui::GetIO() };
@@ -359,8 +412,14 @@ void App::Update() {
 
             GET_SESSION_MANAGER;
 
-            sessionManager.currentSession = sessionManager.PushSessionFromArc(filePathName.c_str());
-            sessionManager.SessionChanged();
+            int16_t result = sessionManager.PushSessionFromArc(filePathName.c_str());
+
+            if (result < 0)
+                ImGui::OpenPopup("###SessionOpenErr");
+            else {
+                sessionManager.currentSession = result;
+                sessionManager.SessionChanged();
+            }
         }
 
         ImGuiFileDialog::Instance()->Close();

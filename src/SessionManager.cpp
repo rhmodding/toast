@@ -95,17 +95,23 @@ int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
     }
 
     auto archiveResult = U8::readYaz0U8Archive(arcPath);
-    if (!archiveResult.has_value())
-        return PushSessionError_FailOpenArchive;
+    if (!archiveResult.has_value()) {
+        this->lastSessionError = SessionOpenError_FailOpenArchive;
+        return -1;
+    }
 
     U8::U8ArchiveObject* archiveObject = &archiveResult.value();
 
-    if (archiveObject->structure.subdirectories.size() < 1)
-        return PushSessionError_RootDirNotFound;
+    if (archiveObject->structure.subdirectories.size() < 1) {
+        this->lastSessionError = SessionOpenError_RootDirNotFound;
+        return -1;
+    }
 
     auto tplSearch = U8::findFile("./cellanim.tpl", archiveObject->structure);
-    if (!tplSearch.has_value())
-        return PushSessionError_FailFindTPL;
+    if (!tplSearch.has_value()) {
+        this->lastSessionError = SessionOpenError_FailFindTPL;
+        return -1;
+    }
 
     U8::File* tplFile = &tplSearch.value();
     TPL::TPLObject tplObject =
@@ -118,8 +124,10 @@ int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
         }
     }
 
-    if (brcadFiles.size() < 1)
-        return PushSessionError_NoBXCADsFound;
+    if (brcadFiles.size() < 1) {
+        this->lastSessionError = SessionOpenError_NoBXCADsFound;
+        return -1;
+    }
 
     std::vector<std::unordered_map<uint16_t, std::string>*> animationNames(brcadFiles.size());
     std::vector<RvlCellAnim::RvlCellAnimObject*> cellanims(brcadFiles.size());
@@ -189,6 +197,8 @@ int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
     for (auto brcad : brcadFiles)
         this->sessions[index].cellNames.push_back(brcad->name);
 
+    this->lastSessionError = SessionOpenError_None;
+
     return index;
 }
 
@@ -200,21 +210,27 @@ int16_t SessionManager::PushSessionTraditional(const char* paths[3]) {
     }
 
     RvlCellAnim::RvlCellAnimObject* cellanim = RvlCellAnim::ObjectFromFile(paths[0]);
-    if (!cellanim)
-        return PushSessionError_FailOpenBXCAD;
+    if (!cellanim) {
+        this->lastSessionError = SessionOpenError_FailOpenBXCAD;
+        return -1;
+    }
 
     Common::Image* image = new Common::Image;
     image->LoadFromFile(paths[1]);
 
-    if (!image->texture)
-        return PushSessionError_FailOpenPNG;
+    if (!image->texture) {
+        this->lastSessionError = SessionOpenError_FailOpenPNG;
+        return -1;
+    }
 
     std::unordered_map<uint16_t, std::string>* animationNames =
         new std::unordered_map<uint16_t, std::string>;
     
     std::ifstream headerFile(paths[2]);
-    if (!headerFile.is_open())
-        return PushSessionError_FailOpenHFile;
+    if (!headerFile.is_open()) {
+        this->lastSessionError = SessionOpenError_FailOpenHFile;
+        return -1;
+    }
 
     std::string line;
     while (std::getline(headerFile, line)) {
