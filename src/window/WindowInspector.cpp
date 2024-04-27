@@ -84,6 +84,9 @@ void WindowInspector::Level_Animation() {
         ImGui::OpenPopup("###EditMacroNamePopup");
     }
 
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
     if (ImGui::BeginPopupModal("Edit macro name###EditMacroNamePopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("Edit macro name for animation no. %u:", animationIndex);
