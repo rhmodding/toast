@@ -276,6 +276,8 @@ void SessionManager::FreeSession(Session* session) {
     session->cellanimSheets.clear();
     session->cellNames.clear();
 
+    session->cellIndex = 0;
+
     Common::deleteIfNotNullptr(session->pngPath);
     Common::deleteIfNotNullptr(session->headerPath);
 
@@ -290,6 +292,9 @@ void SessionManager::FreeAllSessions() {
 }
 
 void SessionManager::SessionChanged() {
+    if (!this->getCurrentSession()->open)
+        this->currentSession = -1;
+
     if (this->currentSession >= 0) {
         GET_APP_STATE;
         GET_ANIMATABLE;

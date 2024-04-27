@@ -273,11 +273,12 @@ void App::Menubar() {
             for (int n = 0; n < ARRAY_LENGTH(sessionManager.sessions); n++) {
                 ImGui::PushID(n);
 
+                bool sessionOpen = sessionManager.sessions[n].open;
                 if (
                     sessionManager.sessions[n].open &&
                     ImGui::BeginTabItem(
                         sessionManager.sessions[n].mainPath.c_str(),
-                        &sessionManager.sessions[n].open,
+                        &sessionOpen,
                         ImGuiTabItemFlags_None
                     )
                 ) {
@@ -306,6 +307,11 @@ void App::Menubar() {
                             
                         ImGui::EndPopup();
                     }
+                }
+
+                if (!sessionOpen && sessionManager.sessions[n].open) {
+                    sessionManager.FreeSession(&sessionManager.sessions[n]);
+                    sessionManager.SessionChanged();
                 }
 
                 ImGui::PopID();
