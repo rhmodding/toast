@@ -81,7 +81,7 @@ void WindowInspector::Level_Animation() {
             copyName.resize(256); // Truncate
 
         strcpy(newMacroName, copyName.c_str());
-        ImGui::OpenPopup("Edit macro name###EditMacroNamePopup");
+        ImGui::OpenPopup("###EditMacroNamePopup");
     }
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
