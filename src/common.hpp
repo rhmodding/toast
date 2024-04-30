@@ -68,6 +68,10 @@ namespace Common {
     float EaseInOut(float t);
     float EaseOut(float t);
 
+    constexpr ImVec4 RGBAtoImVec4(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        return ImVec4(r / 255.f, g / 255.f, b / 255.f, a / 255.f);
+    }
+
     // Simple helper function to load an image into a OpenGL texture with common settings
     bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, int* height);
 

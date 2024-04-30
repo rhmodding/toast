@@ -144,11 +144,11 @@ void App::UpdateTheme() {
 
     if (appState.darkTheme) {
         ImGui::StyleColorsDark();
-        appState.windowClearColor = ImVec4((24 / 255.f), (24 / 255.f), (24 / 255.f), 1.f);
+        appState.windowClearColor = Common::RGBAtoImVec4(24, 24, 24, 255);
     }
     else {
         ImGui::StyleColorsLight();
-        appState.windowClearColor = ImVec4((248 / 255.f), (248 / 255.f), (248 / 255.f), 1.f);
+        appState.windowClearColor = Common::RGBAtoImVec4(248, 248, 248, 255);
     }  
 }
 

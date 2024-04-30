@@ -23,7 +23,7 @@ public:
     bool showAboutWindow{ false };
 
     bool darkTheme{ true };
-    ImVec4 windowClearColor{ ImVec4((24 / 255.f), (24 / 255.f), (24 / 255.f), 1.f) };
+    ImVec4 windowClearColor{ Common::RGBAtoImVec4(24, 24, 24, 255) };
 
     struct PlayerState {
         bool loopEnabled{ false };
