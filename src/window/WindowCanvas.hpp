@@ -43,9 +43,13 @@ public:
     uint8_t safeAreaAlpha{ 255 };
 
 private:
+    ImVec2 canvasTopLeft;
     ImVec2 canvasSize;
+    
 
     void Menubar();
+
+    void DrawCanvasText();
 };
 
 #endif // WINDOWCANVAS_HPP

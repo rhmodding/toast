@@ -351,14 +351,14 @@ void WindowInspector::Update() {
             if (ImGui::MenuItem("Arrangement (Immediate)", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
                 inspectorLevel = InspectorLevel_Arrangement_Im;
 
-                appState.drawSelectedPartBounding = true;
+                appState.focusOnSelectedPart = true;
                 appState.selectedPart = -1;
             }
             if (ImGui::MenuItem("Arrangement (Outside Anim)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
                 inspectorLevel = InspectorLevel_Arrangement;
 
                 appState.arrangementMode = true;
-                appState.drawSelectedPartBounding = true;
+                appState.focusOnSelectedPart = true;
 
                 appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
                 appState.selectedPart = -1;
@@ -388,7 +388,7 @@ void WindowInspector::Update() {
 
     if (lastWasArrangement || lastWasArrangementIm) {
         if (inspectorLevel != InspectorLevel_Arrangement && inspectorLevel != InspectorLevel_Arrangement_Im)
-            appState.drawSelectedPartBounding = false;
+            appState.focusOnSelectedPart = false;
     }
         
     if (lastWasArrangement)

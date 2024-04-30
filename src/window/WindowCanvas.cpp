@@ -5,6 +5,57 @@
 
 #include <math.h>
 
+bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
+    double x = point.x, y = point.y;
+    bool inside = false;
+ 
+    // Store the first point in the polygon and initialize
+    // the second point
+    ImVec2 p1 = polygon[0];
+    ImVec2 p2;
+ 
+    // Loop through each edge in the polygon
+    for (uint16_t i = 1; i <= numVertices; i++) {
+        // Get the next point in the polygon
+        p2 = polygon[i % numVertices];
+ 
+        // Check if the point is above the minimum y
+        // coordinate of the edge
+        if (y > std::min(p1.y, p2.y)) {
+            // Check if the point is below the maximum y
+            // coordinate of the edge
+            if (y <= std::max(p1.y, p2.y)) {
+                // Check if the point is to the left of the
+                // maximum x coordinate of the edge
+                if (x <= std::max(p1.x, p2.x)) {
+                    // Calculate the x-intersection of the
+                    // line connecting the point to the edge
+                    double x_intersection
+                        = (y - p1.y) * (p2.x - p1.x)
+                              / (p2.y - p1.y)
+                          + p1.x;
+ 
+                    // Check if the point is on the same
+                    // line as the edge or to the left of
+                    // the x-intersection
+                    if (p1.x == p2.x
+                        || x <= x_intersection) {
+                        // Flip the inside flag
+                        inside = !inside;
+                    }
+                }
+            }
+        }
+ 
+        // Store the current point as the first point for
+        // the next iteration
+        p1 = p2;
+    }
+ 
+    // Return the value of the inside flag
+    return inside;
+}
+
 const ImVec2 feverSafeAreaSize(832, 456);
 const ImVec2 megamixSafeAreaSize(440, 240);
 
@@ -121,12 +172,16 @@ void WindowCanvas::Update() {
     ImGui::PopStyleVar();
 
     // Note: ImDrawList uses screen coordinates
-    ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
+    this->canvasTopLeft = ImGui::GetCursorScreenPos();
     this->canvasSize = ImGui::GetContentRegionAvail();
-    ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + this->canvasSize.x, canvasTopLeft.y + this->canvasSize.y);
+    ImVec2 canvasBottomRight = ImVec2(
+        this->canvasTopLeft.x + this->canvasSize.x,
+        this->canvasTopLeft.y + this->canvasSize.y
+    );
 
     this->Menubar();
 
+    // Determine background color
     uint32_t backgroundColor{ 0 };
     switch (this->gridType) {
         case GridType_None:
@@ -151,13 +206,14 @@ void WindowCanvas::Update() {
             break;
     
         default:
+            // The default value of backgroundColor is already 0.
             break;
     }
 
     GET_IMGUI_IO;
     GET_WINDOW_DRAWLIST;
 
-    drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor);
+    drawList->AddRectFilled(this->canvasTopLeft, canvasBottomRight, backgroundColor);
 
     // This catches interactions
     ImGui::InvisibleButton("CanvasInteractions", this->canvasSize,
@@ -170,139 +226,218 @@ void WindowCanvas::Update() {
     const bool interactionActive = ImGui::IsItemActive(); // Held
 
     const ImVec2 origin(
-        canvasTopLeft.x + this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2),
-        canvasTopLeft.y + this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2)
+        this->canvasTopLeft.x + this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2),
+        this->canvasTopLeft.y + this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2)
     );
-    const ImVec2 relativeMousePos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
 
-    // Panning
+    // Dragging
     const float mousePanThreshold = -1.0f;
-    bool panningCanvas = interactionActive && (
+    bool draggingCanvas = interactionActive && (
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
     );
 
-    if (panningCanvas) {
-        this->canvasOffset.x += io.MouseDelta.x;
-        this->canvasOffset.y += io.MouseDelta.y;
-    }
-
-    const float maxZoom = 9.f;
-    const float minZoom = -0.90f;
-
-    if (interactionHovered) {
-        GET_IMGUI_IO;
-
-        if (io.KeyShift) 
-            this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
-        else
-            this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED;
-
-        if (this->canvasZoom < minZoom)
-            this->canvasZoom = minZoom;
-
-        if (this->canvasZoom > maxZoom)
-            this->canvasZoom = maxZoom;
-    }
-
-    // Draw grid + all lines in the canvas
-    drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
-
-    if ((this->gridType != GridType_None) && this->enableGridLines) {
-        float GRID_STEP = 64.0f * (this->canvasZoom + 1);
-
-        for (float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP); x < this->canvasSize.x; x += GRID_STEP)
-            drawList->AddLine(ImVec2(canvasTopLeft.x + x, canvasTopLeft.y), ImVec2(canvasTopLeft.x + x, canvasBottomRight.y), IM_COL32(200, 200, 200, 40));
-        
-        for (float y = fmodf(this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP); y < this->canvasSize.y; y += GRID_STEP)
-            drawList->AddLine(ImVec2(canvasTopLeft.x, canvasTopLeft.y + y), ImVec2(canvasBottomRight.x, canvasTopLeft.y + y), IM_COL32(200, 200, 200, 40));
-    }
+    static bool lastDraggingCanvas{ draggingCanvas };
+    static ImVec2 dragPartOffset{ 0, 0 };
+    
+    static bool hoveringOverSelected{ false };
 
     GET_ANIMATABLE;
-
-    bool animatableDoesDraw = globalAnimatable->getDoesDraw(allowOpacity);
-
-    if (animatableDoesDraw) {
-        globalAnimatable->scaleX = this->canvasZoom + 1;
-        globalAnimatable->scaleY = this->canvasZoom + 1;
-
-        globalAnimatable->offset = origin;
-        globalAnimatable->Draw(drawList, allowOpacity);
-    }
-
     GET_APP_STATE;
 
-    if (appState.drawSelectedPartBounding && appState.selectedPart >= 0) {
+    RvlCellAnim::Arrangement* arrangementPtr =
+        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+
+    // Update animatable position and scale
+    // We need to do this before any calculations since
+    // WindowInspector can mutate the position and scale of
+    // the globalAnimatable.
+    {
+        globalAnimatable->offset = origin;
+
+        globalAnimatable->scaleX = this->canvasZoom + 1;
+        globalAnimatable->scaleY = this->canvasZoom + 1;
+    }
+
+    // Selected part start / stop dragging
+    if ((lastDraggingCanvas != draggingCanvas) && hoveringOverSelected) {
+        if (draggingCanvas) {
+            dragPartOffset = ImVec2(
+                arrangementPtr->parts.at(appState.selectedPart).positionX,
+                arrangementPtr->parts.at(appState.selectedPart).positionY
+            );
+        }
+        else {
+            arrangementPtr->parts.at(appState.selectedPart).positionX = static_cast<int16_t>(dragPartOffset.x);
+            arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
+        }
+    }
+    lastDraggingCanvas = draggingCanvas;
+
+    // Determine if hovering over selected part
+    if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
         ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
-        drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], IM_COL32(
-            partBoundingDrawColor.x * 255,
-            partBoundingDrawColor.y * 255,
-            partBoundingDrawColor.z * 255,
-            partBoundingDrawColor.w * 255
-        ));
+
+        ImVec2 polygon[5] = {
+            bounding[0],
+            bounding[1],
+            bounding[2],
+            bounding[3],
+            bounding[0]
+        };
+
+        hoveringOverSelected = isPointInPolygon(io.MousePos, polygon, 5);
+
         delete[] bounding;
     }
 
-    if (this->drawAllBounding) {
-        RvlCellAnim::Arrangement* arrangementPtr =
-            &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
-
-        for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
-            uint32_t color = IM_COL32(
-                partBoundingDrawColor.x * 255,
-                partBoundingDrawColor.y * 255,
-                partBoundingDrawColor.z * 255,
-                partBoundingDrawColor.w * 255
-            );
-
-            if (appState.drawSelectedPartBounding && appState.selectedPart == i)
-                color = IM_COL32(255, 255, 0, 255);
-
-            ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
-
-            drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], color);
-
-            delete[] bounding;
+    // Dragging canvas / selected part
+    if (draggingCanvas) {
+        if (hoveringOverSelected) {
+            dragPartOffset.x += io.MouseDelta.x / ((canvasZoom) + 1.f);
+            dragPartOffset.y += io.MouseDelta.y / ((canvasZoom) + 1.f);
+        
+            arrangementPtr->parts.at(appState.selectedPart).positionX = static_cast<int16_t>(dragPartOffset.x);
+            arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
+        }
+        else {
+            this->canvasOffset.x += io.MouseDelta.x;
+            this->canvasOffset.y += io.MouseDelta.y;
         }
     }
 
-    if (this->visualizeSafeArea) {
-        ImVec2 boxTopLeft = {
-            origin.x - ((feverSafeAreaSize.x * (this->canvasZoom + 1)) / 2),
-            origin.y - ((feverSafeAreaSize.y * (this->canvasZoom + 1)) / 2)
-        };
+    // Canvas zooming
+    {
+        const float maxZoom = 9.f;
+        const float minZoom = -0.90f;
 
-        ImVec2 boxBottomRight = {
-            boxTopLeft.x + (feverSafeAreaSize.x * (this->canvasZoom + 1)),
-            boxTopLeft.y + (feverSafeAreaSize.y * (this->canvasZoom + 1))
-        };
+        if (interactionHovered) {
+            GET_IMGUI_IO;
 
-        uint32_t color = IM_COL32(0, 0, 0, this->safeAreaAlpha);
+            if (io.KeyShift) 
+                this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
+            else
+                this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED;
 
-        drawList->AddRectFilled( // Top Box
-            canvasTopLeft,
-            { canvasBottomRight.x, boxTopLeft.y },
-            color
-        );
-        drawList->AddRectFilled( // Left Box
-            { canvasTopLeft.x, boxTopLeft.y },
-            { boxTopLeft.x, boxBottomRight.y },
-            color
-        );
-        drawList->AddRectFilled( // Right Box
-            { boxBottomRight.x, boxTopLeft.y },
-            { canvasBottomRight.x, boxBottomRight.y },
-            color
-        );
-        drawList->AddRectFilled( // Bottom Box
-            { canvasTopLeft.x, boxBottomRight.y },
-            canvasBottomRight,
-            color
-        );
+            if (this->canvasZoom < minZoom)
+                this->canvasZoom = minZoom;
+
+            if (this->canvasZoom > maxZoom)
+                this->canvasZoom = maxZoom;
+        }
     }
 
+    drawList->PushClipRect(this->canvasTopLeft, canvasBottomRight, true);
+    // Start drawing
+    {
+        // Draw grid
+        if ((this->gridType != GridType_None) && this->enableGridLines) {
+            float GRID_STEP = 64.0f * (this->canvasZoom + 1);
+
+            for (float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP); x < this->canvasSize.x; x += GRID_STEP)
+                drawList->AddLine(
+                    ImVec2(this->canvasTopLeft.x + x, this->canvasTopLeft.y),
+                    ImVec2(this->canvasTopLeft.x + x, canvasBottomRight.y),
+                    IM_COL32(200, 200, 200, 40)
+                );
+            
+            for (float y = fmodf(this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP); y < this->canvasSize.y; y += GRID_STEP)
+                drawList->AddLine(
+                    ImVec2(this->canvasTopLeft.x, this->canvasTopLeft.y + y),
+                    ImVec2(canvasBottomRight.x, this->canvasTopLeft.y + y),
+                    IM_COL32(200, 200, 200, 40)
+                );
+        }
+    
+        // Draw animatable
+        globalAnimatable->Draw(drawList, allowOpacity);
+
+        // Draw selected part bounds
+        if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
+            ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
+            drawList->AddQuad(
+                bounding[0], bounding[1], bounding[2], bounding[3],
+
+                // Yellow color if hovering
+                !hoveringOverSelected ? IM_COL32(
+                    partBoundingDrawColor.x * 255,
+                    partBoundingDrawColor.y * 255,
+                    partBoundingDrawColor.z * 255,
+                    partBoundingDrawColor.w * 255
+                ) : IM_COL32(255, 255, 0, 255)
+            );
+            delete[] bounding;
+        }
+
+        // Draw all part bounds if enabled
+        if (this->drawAllBounding)
+            for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
+                if (appState.focusOnSelectedPart && appState.selectedPart == i)
+                    continue; // Skip over part if bounds are already drawn
+
+                uint32_t color = IM_COL32(
+                    partBoundingDrawColor.x * 255,
+                    partBoundingDrawColor.y * 255,
+                    partBoundingDrawColor.z * 255,
+                    partBoundingDrawColor.w * 255
+                );
+
+                ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
+                drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], color);
+                delete[] bounding;
+            }
+    
+        // Draw safe area if enabled
+        if (this->visualizeSafeArea) {
+            ImVec2 boxTopLeft = {
+                origin.x - ((feverSafeAreaSize.x * (this->canvasZoom + 1)) / 2),
+                origin.y - ((feverSafeAreaSize.y * (this->canvasZoom + 1)) / 2)
+            };
+
+            ImVec2 boxBottomRight = {
+                boxTopLeft.x + (feverSafeAreaSize.x * (this->canvasZoom + 1)),
+                boxTopLeft.y + (feverSafeAreaSize.y * (this->canvasZoom + 1))
+            };
+
+            uint32_t color = IM_COL32(0, 0, 0, this->safeAreaAlpha);
+
+            drawList->AddRectFilled( // Top Box
+                canvasTopLeft,
+                { canvasBottomRight.x, boxTopLeft.y },
+                color
+            );
+            drawList->AddRectFilled( // Left Box
+                { canvasTopLeft.x, boxTopLeft.y },
+                { boxTopLeft.x, boxBottomRight.y },
+                color
+            );
+            drawList->AddRectFilled( // Right Box
+                { boxBottomRight.x, boxTopLeft.y },
+                { canvasBottomRight.x, boxBottomRight.y },
+                color
+            );
+            drawList->AddRectFilled( // Bottom Box
+                { canvasTopLeft.x, boxBottomRight.y },
+                canvasBottomRight,
+                color
+            );
+        }
+    }
     drawList->PopClipRect();
 
+    this->DrawCanvasText();
+
+    // Set tooltip
+    if (hoveringOverSelected && !draggingCanvas)
+        ImGui::SetTooltip(
+            "Part no. %u\nYou can drag this part to change it's position.",
+            appState.selectedPart + 1
+        );
+
+    ImGui::End();
+}
+
+void WindowCanvas::DrawCanvasText() {
     uint32_t textColor{ 0 };
     switch (this->gridType) {
         case GridType_None:
@@ -330,24 +465,20 @@ void WindowCanvas::Update() {
             break;
     }
 
-    float textDrawHeight = canvasTopLeft.y + 5.f;
+    float textDrawHeight = this->canvasTopLeft.y + 5.f;
+
+    GET_WINDOW_DRAWLIST;
 
     if ((this->canvasOffset.x != 0.f) || (this->canvasOffset.y != 0.f)) {
         std::stringstream fmtStream;
-        fmtStream << "Offset: " << std::to_string(this->canvasOffset.x) << ", " << std::to_string(this->canvasOffset.y);
-
-        drawList->AddText(ImVec2(canvasTopLeft.x + 10, textDrawHeight), textColor, fmtStream.str().c_str());
-
-        textDrawHeight += 3.f + ImGui::CalcTextSize(fmtStream.str().c_str()).y;
-    }
-
-    if (this->canvasZoom != 0.f) {
-        std::stringstream fmtStream;
-        fmtStream << "Zoom: " << std::to_string(static_cast<uint16_t>((this->canvasZoom + 1) * 100)) << "% (hold [Shift] to zoom faster)";
+        fmtStream <<
+            "Offset: " <<
+            std::to_string(this->canvasOffset.x) << ", " <<
+            std::to_string(this->canvasOffset.y);
 
         drawList->AddText(
             ImVec2(
-                canvasTopLeft.x + 10,
+                this->canvasTopLeft.x + 10,
                 textDrawHeight
             ),
             textColor, fmtStream.str().c_str()
@@ -356,12 +487,30 @@ void WindowCanvas::Update() {
         textDrawHeight += 3.f + ImGui::CalcTextSize(fmtStream.str().c_str()).y;
     }
 
-    if (!animatableDoesDraw) {
-        const char* text = "Nothing to draw on this frame";
-        ImVec2 textSize = ImGui::CalcTextSize(text);
+    if (this->canvasZoom != 0.f) {
+        std::stringstream fmtStream;
+        fmtStream <<
+            "Zoom: " <<
+            std::to_string(static_cast<uint16_t>((this->canvasZoom + 1) * 100)) <<
+            "% (hold [Shift] to zoom faster)";
+
         drawList->AddText(
             ImVec2(
-                canvasTopLeft.x + 10,
+                this->canvasTopLeft.x + 10,
+                textDrawHeight
+            ),
+            textColor, fmtStream.str().c_str()
+        );
+
+        textDrawHeight += 3.f + ImGui::CalcTextSize(fmtStream.str().c_str()).y;
+    }
+
+    if (!AppState::getInstance().globalAnimatable->getDoesDraw(this->allowOpacity)) {
+        const char* text = "Nothing to draw on this frame";
+
+        drawList->AddText(
+            ImVec2(
+                this->canvasTopLeft.x + 10,
                 textDrawHeight
             ),
             textColor, text
@@ -369,6 +518,4 @@ void WindowCanvas::Update() {
 
         textDrawHeight += 3.f + ImGui::CalcTextSize(text).y;
     }
-
-    ImGui::End();
 }
