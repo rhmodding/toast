@@ -256,6 +256,10 @@ void App::Menubar() {
                     this->windowTimeline = new WindowTimeline;
             }
 
+            ImGui::Separator();
+
+            ImGui::MenuItem("Dear ImGui demo window", "", &appState.enableDemoWindow);
+
             ImGui::EndMenu();
         }
 
