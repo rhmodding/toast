@@ -131,6 +131,13 @@ IF (UNIX AND NOT APPLE) # Linux
     )
 ENDIF()
 
+# zeldamods zlib for Yaz0
+option(ZLIB_ENABLE_TESTS "" OFF)
+
+add_subdirectory(ext/zeldamods.zlib-ng)
+
+target_link_libraries(toast PRIVATE zlib)
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET toast PROPERTY CXX_STANDARD 20)
 endif()

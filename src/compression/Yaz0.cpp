@@ -8,6 +8,19 @@
 #include <optional>
 #include <cstdint>
 
+#include <fstream>
+
+#include <zlib-ng.h>
+#include <array>
+
+constexpr const size_t ChunksPerGroup = 8;
+constexpr const size_t MaximumMatchLength = 0xFF + 0x12;
+constexpr const size_t WindowSize = 0x1000;
+constexpr const uint32_t ZlibMinMatch = 3;
+
+// The Yaz0 compression algorithm originates from
+// https://github.com/zeldamods/syaz0
+
 #pragma pack(push, 1) // Pack struct members tightly without padding
 
 struct Yaz0Header {
@@ -17,135 +30,98 @@ struct Yaz0Header {
     // Size of the file before compression in bytes
     uint32_t uncompressedSize;
 
-    // Reserved bytes. These are always present in the header
+    // Reserved bytes. reserved[0] in newer Yaz0 files are used for data alignment but
+    // Rhythm Heaven Fever doesn't use the newer revision.
     uint32_t reserved[2];
 };
 
 #pragma pack(pop) // Reset packing alignment to default
 
-// TODO: test compression
-
-unsigned long compressionSearch(const char* src, uint32_t pos, int max_len, uint32_t range, uint32_t src_end)
-{
-    unsigned long found_len = 1;
-    unsigned long found = 0;
-
-    long search;
-    uint32_t cmp_end, cmp1, cmp2;
-    char c1;
-    uint32_t len;
-
-    if (pos + 2 < src_end)
-    {
-        search = ((long)pos - (long)range);
-        if (search < 0)
-            search = 0;
-
-        cmp_end = (uint32_t)(pos + max_len);
-        if (cmp_end > src_end)
-            cmp_end = src_end;
-
-        c1 = src[pos];
-        while (search < pos)
-        {
-            const char* searchPtr = (const char *)memchr(src, c1, src_end);
-
-            if (!searchPtr)
-                break;
-            search = searchPtr - src;
-
-            cmp1 = (uint32_t)(search + 1);
-            cmp2 = pos + 1;
-
-            while (cmp2 < cmp_end && src[cmp1] == src[cmp2])
-            {
-                cmp1++; cmp2++;
-            }
-
-            len = cmp2 - pos;
-            if (found_len < len)
-            {
-                found_len = len;
-                found = (uint32_t)search;
-                if ((long)found_len == max_len)
-                    break;
-            }
-
-            search++;
-        }
-    }
-
-    return (unsigned long)((found << 32) | found_len);
-}
-
 namespace Yaz0 {
-    std::vector<char> compress(const char* data, const size_t dataSize, uint8_t compressionLevel = 3) {
+    std::optional<std::vector<char>> compress(const char* data, const size_t dataSize, uint8_t compressionLevel) {
+        std::vector<char> result(sizeof(Yaz0Header));
+        result.reserve(dataSize);
+
         Yaz0Header header;
 
-        strncpy(header.magic, "Yaz0", 4);
-        header.uncompressedSize = static_cast<uint32_t>(dataSize);
+        header.magic[0] = 'Y';
+        header.magic[1] = 'a';
+        header.magic[2] = 'z';
+        header.magic[3] = '0';
+        header.uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize));
         header.reserved[0] = 0x0000;
         header.reserved[1] = 0x0000;
+        
+        // Copy header
+        memcpy(result.data(), &header, sizeof(Yaz0Header));
 
-        uint32_t range =
-            compressionLevel == 0 ?
-                0 :
-            compressionLevel < 9 ?
-                0x10E0 * compressionLevel / 9 - 0x0E0 :
-            0x1000;
+        // Compression
+        {
+            struct CompressionData {
+                size_t pendingChunks{ 0 };
+                std::bitset<8> groupHeader;
+                std::size_t groupHeaderOffset{ sizeof(Yaz0Header) }; // Skip header
 
-        size_t readOffset;
+                std::vector<char>& buffer;
 
-        std::vector<char> result(dataSize + (dataSize + 8) / 8);
-        size_t destOffset{ sizeof(Yaz0Header) + 1 };
-        size_t opcodeOffset{ 0 };
+                CompressionData(std::vector<char>& buffer) : buffer(buffer) {}
+            } compressionData(result);
 
-        unsigned long found{ 0 };
-        unsigned long foundLen{ 0 };
-        uint32_t delta;
-        int maxLen{ 0x111 };
+            result.push_back(0xFF);
 
-        while (readOffset < dataSize) {
-            opcodeOffset = destOffset;
+            {
+                std::array<uint_least8_t, 8> dummy{};
+                size_t dummy_size = dummy.size();
+                const int ret = zng_compress2(
+                    dummy.data(), &dummy_size, (const uint8_t*)data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
+                    [](void* w, uint32_t dist, uint32_t lc) {
+                        CompressionData* compressionData = static_cast<CompressionData*>(w);
 
-            result[destOffset] = 0;
-            destOffset++;
+                        if (dist == 0) {
+                            // Literal.
+                            compressionData->groupHeader.set(static_cast<uint8_t>(7 - compressionData->pendingChunks));
+                            compressionData->buffer.push_back(static_cast<char>(lc));
+                        } else {
+                            uint32_t distance = dist - 1;
+                            uint32_t length = lc + ZlibMinMatch;
 
-            for (uint8_t i = 0; i < 8; i++) {
-                if (readOffset >= dataSize)
-                    break;
-                
-                foundLen = 1;
+                            if (length < 18) {
+                                compressionData->buffer.push_back(static_cast<char>(
+                                    ((length - 2) << 4) | static_cast<char>(distance >> 8)
+                                ));
+                                compressionData->buffer.push_back(static_cast<char>(distance));
+                            } else {
+                                // If the match is longer than 18 bytes, 3 bytes are needed to write the match.
+                                const size_t actual_length = std::min<size_t>(MaximumMatchLength, length);
+                                compressionData->buffer.push_back(static_cast<char>(distance >> 8));
+                                compressionData->buffer.push_back(static_cast<char>(distance));
+                                compressionData->buffer.push_back(static_cast<char>(actual_length - 0x12));
+                            }
+                        }
 
-                if (range != 0) {
-                    // Going after speed here.
-                    // Dunno if using a tuple is slower, so I don't want to risk it.
-                    unsigned long search = compressionSearch(data, readOffset, maxLen, range, dataSize);
-                    found = search >> 32;
-                    foundLen = search & 0xFFFFFFFF;
+                        ++compressionData->pendingChunks;
+                        if (compressionData->pendingChunks == ChunksPerGroup) {
+                            // Write group header
+                            compressionData->buffer[compressionData->groupHeaderOffset] =
+                                static_cast<char>(compressionData->groupHeader.to_ulong());
+                            
+                            // Reset values
+                            compressionData->pendingChunks = 0;
+                            compressionData->groupHeader.reset();
+                            compressionData->groupHeaderOffset = compressionData->buffer.size();
+                            compressionData->buffer.push_back(0xFF);
+                        }
+                    },
+                    &compressionData);
+
+                if (ret != Z_OK) {
+                    std::cerr << "[Yaz0::compress] zng_compress failed with code " << std::to_string(ret) << ".\n";
+                    return std::nullopt; // return nothing (std::optional)
                 }
 
-                if (foundLen > 2) {
-                    delta = readOffset - found - 1;
-
-                    if (foundLen < 0x12)
-                    {
-                        result[destOffset] = delta >> 8 | (foundLen - 2) << 4; destOffset++;
-                        result[destOffset] = delta & 0xFF; destOffset++;
-                    }
-                    else
-                    {
-                        result[destOffset] = delta >> 8; destOffset++;
-                        result[destOffset] = delta & 0xFF; destOffset++;
-                        result[destOffset] = (foundLen - 0x12) & 0xFF; destOffset++;
-                    }
-
-                    readOffset += foundLen;
-                }
-                else {
-                    result[opcodeOffset] |= 1 << (7 - i);
-                    result[destOffset] = data[readOffset]; destOffset++; readOffset++;
-                }
+                if (compressionData.pendingChunks != 0)
+                    compressionData.buffer[compressionData.groupHeaderOffset] =
+                        static_cast<char>(compressionData.groupHeader.to_ulong());
             }
         }
 
@@ -230,6 +206,24 @@ namespace Yaz0 {
 
             opcodeByte <<= 1;
             bitsLeft--;
+        }
+
+        auto newYaz0 = compress(destination.data(), destination.size(), 0);
+        if (newYaz0.has_value()) {
+            std::ofstream file("/users/angelo/toast/output.szs", std::ios::binary);
+    
+            if (file.is_open()) {
+                // Write vector contents to file
+                file.write(reinterpret_cast<const char*>(newYaz0.value().data()), newYaz0.value().size());
+                
+                // Close the file
+                file.close();
+                std::cout << "Data written to file successfully.\n";
+            } else {
+                std::cerr << "Unable to open file.\n";
+            }
+        } else {
+            std::cerr << "Unable to compress.\n";
         }
 
         return destination;
