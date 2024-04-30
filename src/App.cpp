@@ -309,6 +309,18 @@ void App::Menubar() {
                     }
                 }
 
+                if (sessionManager.sessions[n].open) {
+                    std::string* cellName = &sessionManager.sessions[n].cellNames.at(
+                        sessionManager.sessions[n].cellIndex
+                    );
+
+                    ImGui::SetItemTooltip(
+                        "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
+                        sessionManager.sessions[n].mainPath.c_str(),
+                        cellName->substr(0, cellName->size() - 6).c_str()
+                    );
+                }
+
                 if (!sessionOpen && sessionManager.sessions[n].open) {
                     sessionManager.FreeSession(&sessionManager.sessions[n]);
                     sessionManager.SessionChanged();
