@@ -42,18 +42,15 @@ namespace Yaz0 {
         std::vector<char> result(sizeof(Yaz0Header));
         result.reserve(dataSize);
 
-        Yaz0Header header;
+        Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
 
-        header.magic[0] = 'Y';
-        header.magic[1] = 'a';
-        header.magic[2] = 'z';
-        header.magic[3] = '0';
-        header.uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize));
-        header.reserved[0] = 0x0000;
-        header.reserved[1] = 0x0000;
-        
-        // Copy header
-        memcpy(result.data(), &header, sizeof(Yaz0Header));
+        header->magic[0] = 'Y';
+        header->magic[1] = 'a';
+        header->magic[2] = 'z';
+        header->magic[3] = '0';
+        header->uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize));
+        header->reserved[0] = 0x0000;
+        header->reserved[1] = 0x0000;
 
         // Compression
         {
