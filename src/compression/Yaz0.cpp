@@ -72,10 +72,10 @@ namespace Yaz0 {
             {
                 std::array<uint_least8_t, 8> dummy{};
                 size_t dummy_size = dummy.size();
-                const int ret = zng_compress2(
+                const int zlibRun = zng_compress2(
                     dummy.data(), &dummy_size, (const uint8_t*)data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
-                    [](void* w, uint32_t dist, uint32_t lc) {
-                        CompressionData* compressionData = static_cast<CompressionData*>(w);
+                    [](void* data, uint32_t dist, uint32_t lc) {
+                        CompressionData* compressionData = static_cast<CompressionData*>(data);
 
                         if (dist == 0) {
                             // Literal.
@@ -114,8 +114,8 @@ namespace Yaz0 {
                     },
                     &compressionData);
 
-                if (ret != Z_OK) {
-                    std::cerr << "[Yaz0::compress] zng_compress failed with code " << std::to_string(ret) << ".\n";
+                if (zlibRun != Z_OK) {
+                    std::cerr << "[Yaz0::compress] zng_compress failed with code " << std::to_string(zlibRun) << ".\n";
                     return std::nullopt; // return nothing (std::optional)
                 }
 
