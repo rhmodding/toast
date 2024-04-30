@@ -89,6 +89,7 @@ ENDIF()
 target_include_directories(toast PRIVATE
     ext/imgui/
     ext/imgui/backends
+    ext/ImGuiFileDialog
     libs/glfw/include
 )
 

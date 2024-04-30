@@ -16,7 +16,7 @@
 
 #include "SessionManager.hpp"
 
-#include "../ext/ImGuiFileDialog/ImGuiFileDialog.h"
+#include <ImGuiFileDialog.h>
 
 #if defined(__APPLE__)
     #define EXIT_SHORTCUT "Cmd+Q"
