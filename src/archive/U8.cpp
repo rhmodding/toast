@@ -22,13 +22,13 @@ struct U8ArchiveHeader {
     uint32_t magic;
 
     // Offset to the root (first) node, always 0x20
-    int32_t rootNodeOffset;
+    uint32_t rootNodeOffset;
 
     // Size of header from the root node to the end of string pool
-    int32_t headerSize;
+    uint32_t headerSize;
 
     // Offset to data: this is rootNodeOffset + headerSize, aligned to 0x40
-    int32_t dataOffset;
+    uint32_t dataOffset;
 
     // Reserved bytes. These are always present in the header
     uint32_t reserved[4];
