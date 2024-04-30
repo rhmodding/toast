@@ -19,10 +19,10 @@ class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>; // Allow access to base class constructor
 
 public:
-    bool enableDemoWindow{ true };
+    bool enableDemoWindow{ false };
     bool showAboutWindow{ false };
 
-    uint8_t darkTheme{ 0xff };
+    bool darkTheme{ true };
     ImVec4 windowClearColor{ ImVec4((24 / 255.f), (24 / 255.f), (24 / 255.f), 1.f) };
 
     struct PlayerState {
