@@ -9,6 +9,8 @@
 
 #include "../common.hpp"
 
+#define HEADER_MAGIC 0xD8B43201
+
 #pragma pack(push, 1) // Pack struct members tightly without padding
 
 struct RvlCellAnimHeader {
@@ -113,11 +115,22 @@ float readBigEndianFloat(const uint8_t* bytes) {
     return result;
 }
 
+// Cast LE float to uint8_t[4] and byte-swap
+void writeBigEndianFloat(float value, uint8_t* bytes) {
+    uint32_t intValue;
+    std::memcpy(&intValue, &value, sizeof(float));
+
+    bytes[0] = static_cast<uint8_t>(intValue >> 24);
+    bytes[1] = static_cast<uint8_t>(intValue >> 16);
+    bytes[2] = static_cast<uint8_t>(intValue >> 8);
+    bytes[3] = static_cast<uint8_t>(intValue);
+}
+
 namespace RvlCellAnim {
     RvlCellAnimObject::RvlCellAnimObject(const char* RvlCellAnimData, const size_t dataSize) {
         const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
-        if (BYTESWAP_32(header->magic) != 0x0132B4D8) {
+        if (header->magic != HEADER_MAGIC) {
             std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: header magic failed check!\n";
             return;
         }
@@ -210,6 +223,117 @@ namespace RvlCellAnim {
 
             this->animations[i] = animation;
         }
+    }
+
+    std::vector<char> RvlCellAnimObject::Reserialize() {
+        // Allocate header now
+        std::vector<char> result(sizeof(RvlCellAnimHeader));
+
+        RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
+        header->magic = HEADER_MAGIC;
+
+        header->unknown_0 = 0x00000000;
+        header->unknown_1 = 0x0000;
+        header->unknown_2 = 0x0000;
+
+        header->sheetIndex = BYTESWAP_16(this->sheetIndex);
+
+        header->sheetW = BYTESWAP_16(this->textureW);
+        header->sheetH = BYTESWAP_16(this->textureH);
+
+        header->arrangementCount = BYTESWAP_16(this->arrangements.size());
+
+        size_t writeOffset{ sizeof(RvlCellAnimHeader) };
+
+        for (const Arrangement& arrangement : this->arrangements) {
+            result.resize(
+                result.size() +
+                sizeof(ArrangementRaw) +
+                (sizeof(ArrangementPartRaw) * arrangement.parts.size())
+            );
+
+            ArrangementRaw* arrangementRaw = reinterpret_cast<ArrangementRaw*>(result.data() + writeOffset);
+            writeOffset += sizeof(ArrangementRaw);
+
+            arrangementRaw->partsCount = BYTESWAP_16(arrangement.parts.size());
+            arrangementRaw->unknown = 0x0000;
+
+            for (const ArrangementPart& part : arrangement.parts) {
+                ArrangementPartRaw* arrangementPartRaw =
+                    reinterpret_cast<ArrangementPartRaw*>(result.data() + writeOffset);
+                writeOffset += sizeof(ArrangementPartRaw);
+
+                arrangementPartRaw->regionX = BYTESWAP_16(part.regionX);
+                arrangementPartRaw->regionY = BYTESWAP_16(part.regionY);
+                arrangementPartRaw->regionW = BYTESWAP_16(part.regionW);
+                arrangementPartRaw->regionH = BYTESWAP_16(part.regionH);
+
+                arrangementPartRaw->positionX = BYTESWAP_16(part.positionX);
+                arrangementPartRaw->positionY = BYTESWAP_16(part.positionY);
+
+                arrangementPartRaw->flipX = part.flipX ? 0x01 : 0x00;
+                arrangementPartRaw->flipY = part.flipY ? 0x01 : 0x00;
+
+                arrangementPartRaw->opacity = part.opacity;
+
+                arrangementPartRaw->unknown_1 = 0x00000000;
+                arrangementPartRaw->unknown_2 = 0x00;
+
+                writeBigEndianFloat(part.scaleX, arrangementPartRaw->scaleX);
+                writeBigEndianFloat(part.scaleY, arrangementPartRaw->scaleY);
+                writeBigEndianFloat(part.angle, arrangementPartRaw->angle);
+            }
+        }
+    
+        // Write animation count + unknown value
+        {
+            result.resize(
+                result.size() +
+                sizeof(uint16_t) + sizeof(uint16_t)
+            );
+
+            uint16_t* animationCount = reinterpret_cast<uint16_t*>(result.data() + writeOffset);
+            uint16_t* unknownValue = reinterpret_cast<uint16_t*>(result.data() + writeOffset + sizeof(uint16_t));
+
+            *animationCount = BYTESWAP_16(this->animations.size());
+            *unknownValue = 0x0000;
+
+            writeOffset += sizeof(uint16_t) + sizeof(uint16_t);
+        }
+
+        for (const Animation& animation : this->animations) {
+            result.resize(
+                result.size() +
+                sizeof(AnimationRaw) +
+                (sizeof(AnimationKeyRaw) * animation.keys.size())
+            );
+
+            AnimationRaw* animationRaw = reinterpret_cast<AnimationRaw*>(result.data() + writeOffset);
+            writeOffset += sizeof(AnimationRaw);
+
+            animationRaw->keyCount = BYTESWAP_16(animation.keys.size());
+            animationRaw->unknown = 0x0000;
+
+            for (const AnimationKey& key : animation.keys) {
+                AnimationKeyRaw* animationKeyRaw =
+                    reinterpret_cast<AnimationKeyRaw*>(result.data() + writeOffset);
+                writeOffset += sizeof(AnimationKeyRaw);
+
+                animationKeyRaw->arrangementIndex = BYTESWAP_16(key.arrangementIndex);
+
+                animationKeyRaw->holdFrames = BYTESWAP_16(key.holdFrames);
+
+                animationKeyRaw->opacity = key.opacity;
+
+                writeBigEndianFloat(key.scaleX, animationKeyRaw->scaleX);
+                writeBigEndianFloat(key.scaleY, animationKeyRaw->scaleY);
+                writeBigEndianFloat(key.angle, animationKeyRaw->angle);
+
+                animationKeyRaw->unknown = 0x00000000;
+            }
+        }
+    
+        return result;
     }
 
     // Note: the object is dynamically allocated here. Make sure to delete it when you're done!

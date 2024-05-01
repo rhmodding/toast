@@ -49,6 +49,8 @@ namespace RvlCellAnim {
         std::vector<Arrangement> arrangements;
         std::vector<Animation> animations;
 
+        std::vector<char> Reserialize();
+
         RvlCellAnimObject(const char* RvlCellAnimData, const size_t dataSize);
     };
 
