@@ -33,6 +33,7 @@ namespace CtrCellAnim {
         uint8_t opacity;
 
         // Used as an ID to programmatically control parts from the game.
+        // Also used to identify parts during interpolation.
         uint8_t designation;
 
         StereoDepth depth;
