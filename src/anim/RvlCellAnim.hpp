@@ -9,6 +9,8 @@ namespace RvlCellAnim {
         uint16_t regionX, regionY;
         uint16_t regionW, regionH;
 
+        uint32_t unknown;
+
         int16_t positionX, positionY;
 
         float scaleX, scaleY;
@@ -34,6 +36,8 @@ namespace RvlCellAnim {
         float angle;
 
         uint8_t opacity;
+
+        uint32_t unknown;
     };
 
     struct Animation {
