@@ -18,3 +18,8 @@ CMakeCache.txt
 imgui.ini
 
 ROADMAP.txt
+
+*.szs
+*.brcad
+*.u8
+*.tpl
