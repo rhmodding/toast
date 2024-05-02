@@ -374,7 +374,7 @@ void SessionManager::FreeAllSessions() {
 }
 
 void SessionManager::SessionChanged() {
-    if (!this->getCurrentSession()->open)
+    if (this->getCurrentSession() && !this->getCurrentSession()->open)
         this->currentSession = -1;
 
     if (this->currentSession >= 0) {
