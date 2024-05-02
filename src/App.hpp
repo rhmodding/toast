@@ -83,6 +83,8 @@ private:
 
     void UpdatePopups();
 
+    void UpdateFileDialogs();
+
     // Windows
     WindowCanvas* windowCanvas;
     WindowHybridList* windowHybridList;

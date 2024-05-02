@@ -10,6 +10,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <deque>
 
 // Stores instance of SessionManager in local sessionManager.
 #define GET_SESSION_MANAGER SessionManager& sessionManager = SessionManager::getInstance()
@@ -19,8 +20,10 @@ class SessionManager : public Singleton<SessionManager> {
 
 public:
     struct Session {
-        std::string mainPath;
         bool open{ false };
+
+        std::string mainPath;
+
         uint16_t cellIndex{ 0 };
 
         bool traditionalMethod{ false };
@@ -32,6 +35,9 @@ public:
         std::vector<std::unordered_map<uint16_t, std::string>*> animationNames;
         std::vector<std::string> cellNames;
 
+        // TODO: think of a better solution
+        std::vector<char>* binaryTpl;
+
         RvlCellAnim::RvlCellAnimObject* getCellanim() {
             return this->cellanims.at(this->cellIndex);
         }
@@ -41,19 +47,21 @@ public:
         std::unordered_map<uint16_t, std::string>* getAnimationNames() {
             return this->animationNames.at(this->cellIndex);
         }
-    } sessions[64];
-    int16_t currentSession{ -1 };
+    };
+    std::deque<Session> sessionList;
+
+    int32_t currentSession{ -1 };
 
     Session* getCurrentSession() {
         if (this->currentSession >= 0)
-            return &this->sessions[this->currentSession];
+            return &this->sessionList.at(this->currentSession);
         
         return nullptr;
     }
 
     void SessionChanged();
 
-    enum SessionOpenError: int16_t {
+    enum SessionError: int16_t {
         SessionOpenError_None = 0,
         SessionOpenError_FailOpenArchive = -1,
         SessionOpenError_FailFindTPL = -2,
@@ -63,20 +71,24 @@ public:
         SessionOpenError_FailOpenPNG = -6,
         SessionOpenError_FailOpenHFile = -7,
         SessionOpenError_SessionsFull = -8,
+
+        SessionOutError_FailOpenFile = -9,
+        SessionOutError_ZlibError = -10,
     } lastSessionError{ SessionOpenError_None };
 
     // Push session from Arc file (SZS).
-    int16_t PushSessionFromArc(const char* arcPath);
+    int32_t PushSessionFromArc(const char* arcPath);
     // Push session from BRCAD, PNG, and H file respectively
-    int16_t PushSessionTraditional(const char* paths[3]);
+    int32_t PushSessionTraditional(const char* paths[3]);
 
-    void FreeSession(Session* session);
+    int32_t ExportSessionArc(Session* session, const char* outPath);
+
+    void ClearSessionPtr(Session* session);
+    void FreeSessionIndex(int32_t index);
 
     void FreeAllSessions();
 
 private:
-    int16_t firstFreeSessionIndex();
-
     SessionManager() {} // Private constructor to prevent instantiation
 };
 

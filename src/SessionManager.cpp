@@ -3,6 +3,8 @@
 #include "archive/U8.hpp"
 #include "texture/TPL.hpp"
 
+#include "compression/Yaz0.hpp"
+
 #include <sstream>
 #include <fstream>
 
@@ -75,24 +77,8 @@ GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
     return imageTexture;
 }
 
-int16_t SessionManager::firstFreeSessionIndex() {
-    int16_t index = -1;
-    for (int16_t i = 0; i < ARRAY_LENGTH(this->sessions); ++i) {
-        if (this->sessions[i].open == false) {
-            index = i;
-            break;
-        }
-    }
-
-    return index;
-}
-
-int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
-    int16_t index = this->firstFreeSessionIndex();
-    if (index < 0) {
-        this->lastSessionError = SessionOpenError_SessionsFull;
-        return -1;
-    }
+int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
+    Session newSession;
 
     auto archiveResult = U8::readYaz0U8Archive(arcPath);
     if (!archiveResult.has_value()) {
@@ -187,27 +173,27 @@ int16_t SessionManager::PushSessionFromArc(const char* arcPath) {
             LoadTPLTextureIntoGLTexture(tplObject.textures.at(cellanims.at(i)->sheetIndex))
         );
 
-    this->sessions[index].open = true;
-    this->sessions[index].mainPath = arcPath;
+    newSession.binaryTpl = new std::vector<char>(tplFile->data);
+
+    newSession.open = true;
+    newSession.mainPath = arcPath;
     
-    this->sessions[index].animationNames = animationNames;
-    this->sessions[index].cellanims = cellanims;
-    this->sessions[index].cellanimSheets = cellanimSheets;
+    newSession.animationNames = animationNames;
+    newSession.cellanims = cellanims;
+    newSession.cellanimSheets = cellanimSheets;
 
     for (auto brcad : brcadFiles)
-        this->sessions[index].cellNames.push_back(brcad->name);
+        newSession.cellNames.push_back(brcad->name);
+
+    this->sessionList.push_back(newSession);
 
     this->lastSessionError = SessionOpenError_None;
 
-    return index;
+    return this->sessionList.size() - 1;
 }
 
-int16_t SessionManager::PushSessionTraditional(const char* paths[3]) {
-    int16_t index = this->firstFreeSessionIndex();
-    if (index < 0) {
-        this->lastSessionError = SessionOpenError_SessionsFull;
-        return -1;
-    }
+int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
+    Session newSession;
 
     RvlCellAnim::RvlCellAnimObject* cellanim = RvlCellAnim::ObjectFromFile(paths[0]);
     if (!cellanim) {
@@ -250,20 +236,98 @@ int16_t SessionManager::PushSessionTraditional(const char* paths[3]) {
         }
     }
 
-    this->sessions[index].open = true;
-    this->sessions[index].mainPath = paths[0];
+    newSession.open = true;
+    newSession.mainPath = paths[0];
 
-    this->sessions[index].pngPath = new std::string(paths[1]);
-    this->sessions[index].headerPath = new std::string(paths[2]);
+    newSession.pngPath = new std::string(paths[1]);
+    newSession.headerPath = new std::string(paths[2]);
 
-    this->sessions[index].animationNames.push_back(animationNames);
-    this->sessions[index].cellanims.push_back(cellanim);
-    this->sessions[index].cellanimSheets.push_back(image);
+    newSession.animationNames.push_back(animationNames);
+    newSession.cellanims.push_back(cellanim);
+    newSession.cellanimSheets.push_back(image);
 
-    return index;
+    this->sessionList.push_back(newSession);
+
+    this->lastSessionError = SessionOpenError_None;
+
+    return this->sessionList.size() - 1;
 }
 
-void SessionManager::FreeSession(Session* session) {
+int32_t SessionManager::ExportSessionArc(Session* session, const char* outPath) {
+    U8::U8ArchiveObject archive;
+
+    U8::Directory directory(".");
+    
+    // BRCAD files
+    for (uint16_t i = 0; i < session->cellanims.size(); i++) {
+        U8::File file(session->cellNames.at(i));
+
+        file.data = session->cellanims.at(i)->Reserialize();
+
+        directory.AddFile(file);
+    }
+
+    // H files
+    for (uint16_t i = 0; i < session->animationNames.size(); i++) {
+        std::stringstream stream;
+
+        auto map = session->animationNames.at(i);
+        for (auto it = map->begin(); it != map->end(); ++it) {
+            stream << "#define " << it->second << " " << std::to_string(it->first);
+            
+            if (std::next(it) != map->end())
+                stream << "\n";
+        }
+    
+        U8::File file(
+            "rcad_" +
+            session->cellNames.at(i).substr(0, session->cellNames.at(i).size() - 6) +
+            "_labels.h"
+        );
+
+        char c;
+        while (stream.get(c))
+            file.data.push_back(c);
+
+        directory.AddFile(file);
+    }
+
+    // TPL file
+    {
+        U8::File file("cellanim.tpl");
+        file.data = *session->binaryTpl;
+
+        directory.AddFile(file);
+    }
+
+    archive.structure.AddDirectory(directory);
+
+    auto archiveRaw = archive.Reserialize();
+    auto compressedArchive = Yaz0::compress(archiveRaw.data(), archiveRaw.size());
+
+    if (!compressedArchive.has_value()) {
+        this->lastSessionError = SessionOutError_ZlibError;
+        return -1;
+    }
+
+    std::ofstream file(outPath, std::ios::binary);
+
+    if (file.is_open()) {
+        file.write(
+            reinterpret_cast<const char*>(compressedArchive.value().data()),
+            compressedArchive.value().size()
+        );
+        
+        file.close();
+    } else {
+        this->lastSessionError = SessionOutError_FailOpenFile;
+        return -1;
+    }
+
+    return 0;
+}
+
+void SessionManager::ClearSessionPtr(Session* session) {
     for (auto animationNameList : session->animationNames)
         delete animationNameList;
     for (auto cellanim : session->cellanims)
@@ -276,6 +340,9 @@ void SessionManager::FreeSession(Session* session) {
     session->cellanimSheets.clear();
     session->cellNames.clear();
 
+    session->binaryTpl->clear();
+    delete session->binaryTpl;
+
     session->cellIndex = 0;
 
     Common::deleteIfNotNullptr(session->pngPath);
@@ -284,11 +351,26 @@ void SessionManager::FreeSession(Session* session) {
     session->open = false;
 }
 
+void SessionManager::FreeSessionIndex(int32_t index) {
+    if (index >= this->sessionList.size() || index < 0)
+        return;
+
+    if (this->sessionList.at(index).open)
+        this->ClearSessionPtr(&this->sessionList.at(index));
+
+    std::deque<Session>::iterator it = this->sessionList.begin() + index;
+    this->sessionList.erase(it);
+
+    // Correct currentSession
+    if (this->sessionList.empty())
+        this->currentSession = -1;
+    else if (static_cast<size_t>(this->currentSession) >= this->sessionList.size())
+        this->currentSession = this->sessionList.size() - 1;
+}
+
 void SessionManager::FreeAllSessions() {
-    for (uint16_t i = 0; i < ARRAY_LENGTH(this->sessions); i++) {
-        if (this->sessions[i].open)
-            this->FreeSession(&this->sessions[i]);
-    }
+    for (uint32_t i = 0; i < this->sessionList.size(); i++)
+        this->FreeSessionIndex(i);
 }
 
 void SessionManager::SessionChanged() {
@@ -302,8 +384,8 @@ void SessionManager::SessionChanged() {
         Common::deleteIfNotNullptr(globalAnimatable);
 
         globalAnimatable = new Animatable(
-            this->sessions[this->currentSession].getCellanim(),
-            this->sessions[this->currentSession].getCellanimSheet()
+            this->getCurrentSession()->getCellanim(),
+            this->getCurrentSession()->getCellanimSheet()
         );
         
         globalAnimatable->setAnimation(0);

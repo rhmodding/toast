@@ -46,6 +46,8 @@ namespace U8 {
         std::vector<char> Reserialize();
 
         U8ArchiveObject(const char* archiveData, const size_t dataSize);
+
+        U8ArchiveObject() {};
     };
 
     std::optional<U8ArchiveObject> readYaz0U8Archive(const std::string& filePath);

@@ -198,6 +198,36 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("File")) {
+            GET_SESSION_MANAGER;
+
+            if (ImGui::MenuItem(
+                (char*)ICON_FA_FILE_EXPORT " Save (arc)", "Ctrl+S", false,
+                    !!sessionManager.getCurrentSession() &&
+                    !sessionManager.getCurrentSession()->traditionalMethod
+            )) {
+                int32_t result = sessionManager.ExportSessionArc(
+                    sessionManager.getCurrentSession(),
+                    sessionManager.getCurrentSession()->mainPath.c_str()
+                );
+
+                if (result < 0)
+                    ImGui::OpenPopup("###SessionOutErr");
+            }
+
+            if (ImGui::MenuItem(
+                (char*)ICON_FA_FILE_EXPORT " Save as (arc)...", "Ctrl+Shift+S", false,
+                !!sessionManager.getCurrentSession()
+            )) {
+                IGFD::FileDialogConfig dialogConfig;
+                dialogConfig.path = ".";
+                dialogConfig.countSelectionMax = 1;
+                dialogConfig.flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_ConfirmOverwrite;
+
+                ImGuiFileDialog::Instance()->OpenDialog("DialogExportSessionMethodArc", "Select a file to save to", ".szs", dialogConfig);
+            }
+
+            ImGui::Separator();
+
             // TODO: add Apple shortcut
             if (ImGui::MenuItem((char*)ICON_FA_FILE_IMPORT " Open (arc)...", "Ctrl+O", nullptr)) {
                 IGFD::FileDialogConfig dialogConfig;
@@ -274,14 +304,14 @@ void App::Menubar() {
         GET_SESSION_MANAGER;
 
         if (ImGui::BeginTabBar("FileTabBar", tabBarFlags)) {
-            for (int n = 0; n < ARRAY_LENGTH(sessionManager.sessions); n++) {
+            for (int n = 0; n < sessionManager.sessionList.size(); n++) {
                 ImGui::PushID(n);
 
-                bool sessionOpen = sessionManager.sessions[n].open;
+                bool sessionOpen = sessionManager.sessionList.at(n).open;
                 if (
-                    sessionManager.sessions[n].open &&
+                    sessionManager.sessionList.at(n).open &&
                     ImGui::BeginTabItem(
-                        sessionManager.sessions[n].mainPath.c_str(),
+                        sessionManager.sessionList.at(n).mainPath.c_str(),
                         &sessionOpen,
                         ImGuiTabItemFlags_None
                     )
@@ -296,15 +326,15 @@ void App::Menubar() {
                     if (ImGui::BeginPopupContextItem()) {
                         ImGui::Text("Select a Cellanim:");
                         ImGui::Separator();
-                        for (uint16_t i = 0; i < sessionManager.sessions[n].cellanims.size(); i++) {
-                            std::string* str = &sessionManager.sessions[n].cellNames.at(i);
+                        for (uint16_t i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
+                            std::string* str = &sessionManager.sessionList.at(n).cellNames.at(i);
 
                             std::stringstream fmtStream;
                             fmtStream << std::to_string(i) << ". " << str->substr(0, str->size() - 6);
 
-                            if (ImGui::MenuItem(fmtStream.str().c_str(), nullptr, sessionManager.sessions[n].cellIndex == i)) {
+                            if (ImGui::MenuItem(fmtStream.str().c_str(), nullptr, sessionManager.sessionList.at(n).cellIndex == i)) {
                                 ImGui::CloseCurrentPopup();
-                                sessionManager.sessions[n].cellIndex = i;
+                                sessionManager.sessionList.at(n).cellIndex = i;
                                 sessionManager.SessionChanged();
                             }
                         }
@@ -313,20 +343,20 @@ void App::Menubar() {
                     }
                 }
 
-                if (sessionManager.sessions[n].open) {
-                    std::string* cellName = &sessionManager.sessions[n].cellNames.at(
-                        sessionManager.sessions[n].cellIndex
+                if (sessionManager.sessionList.at(n).open) {
+                    std::string* cellName = &sessionManager.sessionList.at(n).cellNames.at(
+                        sessionManager.sessionList.at(n).cellIndex
                     );
 
                     ImGui::SetItemTooltip(
                         "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
-                        sessionManager.sessions[n].mainPath.c_str(),
+                        sessionManager.sessionList.at(n).mainPath.c_str(),
                         cellName->substr(0, cellName->size() - 6).c_str()
                     );
                 }
 
-                if (!sessionOpen && sessionManager.sessions[n].open) {
-                    sessionManager.FreeSession(&sessionManager.sessions[n]);
+                if (!sessionOpen && sessionManager.sessionList.at(n).open) {
+                    sessionManager.FreeSessionIndex(n);
                     sessionManager.SessionChanged();
                 }
 
@@ -340,95 +370,116 @@ void App::Menubar() {
 }
 
 void App::UpdatePopups() {
-    SessionManager::SessionOpenError errorCode = SessionManager::getInstance().lastSessionError;
-
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-    if (ImGui::BeginPopupModal((
-        "There was an error opening the session. (" +
-        std::to_string(errorCode) +
-        ")###SessionOpenErr"
-    ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        std::string errorMessage;
-        switch (errorCode) {
-            case SessionManager::SessionOpenError_FailOpenArchive:
-                errorMessage = "The archive file could not be opened.";
-                break;
-            case SessionManager::SessionOpenError_FailFindTPL:
-                errorMessage = "The archive does not contain the cellanim.tpl file.";
-                break;
-            case SessionManager::SessionOpenError_RootDirNotFound:
-                errorMessage = "The archive does not contain a root directory.";
-                break;
-            case SessionManager::SessionOpenError_NoBXCADsFound:
-                errorMessage = "The archive does not contain any brcad/bccad files.";
-                break;
-            case SessionManager::SessionOpenError_FailOpenBXCAD:
-                errorMessage = "The brcad/bccad file could not be opened.";
-                break;
-            case SessionManager::SessionOpenError_FailOpenPNG:
-                errorMessage = "The image file (.png) could not be opened.";
-                break;
-            case SessionManager::SessionOpenError_FailOpenHFile:
-                errorMessage = "The header file (.h) could not be opened.";
-                break;
-            case SessionManager::SessionOpenError_SessionsFull:
-                errorMessage = "The maximum amount of sessions are already open.";
-                break;
-            default:
-                errorMessage = "An unknown error has occurred.";
-                break;
+    {
+        SessionManager::SessionError errorCode = SessionManager::getInstance().lastSessionError;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+        
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        if (ImGui::BeginPopupModal((
+            "There was an error opening the session. (" +
+            std::to_string(errorCode) +
+            ")###SessionOpenErr"
+        ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            std::string errorMessage;
+            switch (errorCode) {
+                case SessionManager::SessionOpenError_FailOpenArchive:
+                    errorMessage = "The archive file could not be opened.";
+                    break;
+                case SessionManager::SessionOpenError_FailFindTPL:
+                    errorMessage = "The archive does not contain the cellanim.tpl file.";
+                    break;
+                case SessionManager::SessionOpenError_RootDirNotFound:
+                    errorMessage = "The archive does not contain a root directory.";
+                    break;
+                case SessionManager::SessionOpenError_NoBXCADsFound:
+                    errorMessage = "The archive does not contain any brcad/bccad files.";
+                    break;
+                case SessionManager::SessionOpenError_FailOpenBXCAD:
+                    errorMessage = "The brcad/bccad file could not be opened.";
+                    break;
+                case SessionManager::SessionOpenError_FailOpenPNG:
+                    errorMessage = "The image file (.png) could not be opened.";
+                    break;
+                case SessionManager::SessionOpenError_FailOpenHFile:
+                    errorMessage = "The header file (.h) could not be opened.";
+                    break;
+                case SessionManager::SessionOpenError_SessionsFull:
+                    errorMessage = "The maximum amount of sessions are already open.";
+                    break;
+                default:
+                    errorMessage = "An unknown error has occurred.";
+                    break;
+            }
+
+            ImGui::TextUnformatted(errorMessage.c_str());
+
+            ImGui::Dummy({0, 5});
+
+            if (ImGui::Button("Alright", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+            ImGui::SetItemDefaultFocus();
+
+            ImGui::EndPopup();
         }
+        
 
-        ImGui::TextUnformatted(errorMessage.c_str());
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        if (ImGui::BeginPopupModal((
+            "There was an error exporting the session. (" +
+            std::to_string(errorCode) +
+            ")###SessionOutErr"
+        ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            std::string errorMessage;
+            switch (errorCode) {
+                case SessionManager::SessionOutError_FailOpenFile:
+                    errorMessage = "The destination file could not be opened for reading.";
+                    break;
+                case SessionManager::SessionOutError_ZlibError:
+                    errorMessage = "Zlib raised an error while compressing the file.";
+                    break;
+                default:
+                    errorMessage = "An unknown error has occurred.";
+                    break;
+            }
 
-        ImGui::Dummy({0, 5});
+            ImGui::TextUnformatted(errorMessage.c_str());
 
-        if (ImGui::Button("Alright", ImVec2(120, 0)))
-            ImGui::CloseCurrentPopup();
-        ImGui::SetItemDefaultFocus();
+            ImGui::Dummy({0, 5});
 
-        ImGui::EndPopup();
+            if (ImGui::Button("Alright", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+            ImGui::SetItemDefaultFocus();
+
+            ImGui::EndPopup();
+        }
+        
+        ImGui::PopStyleVar();
     }
-    ImGui::PopStyleVar();
 }
 
-void App::Update() {
-    GET_APP_STATE;
-    static ImGuiIO& io{ ImGui::GetIO() };
+void App::UpdateFileDialogs() {
+    if (ImGuiFileDialog::Instance()->Display("DialogExportSessionMethodArc")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
-    glfwPollEvents();
+            GET_SESSION_MANAGER;
 
-    // Start frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+            int32_t result = sessionManager.ExportSessionArc(
+                sessionManager.getCurrentSession(), filePathName.c_str()
+            );
 
-    this->BeginMainWindow(io);
-    this->Menubar();
+            if (result < 0)
+                ImGui::OpenPopup("###SessionOutErr");
+        }
 
-    if (appState.enableDemoWindow)
-        ImGui::ShowDemoWindow(&appState.enableDemoWindow);
-
-    appState.playerState.Update();
-
-    bool sessionAvailable = !!SessionManager::getInstance().getCurrentSession();
-
-    // Windows
-    if (sessionAvailable) {
-        if (this->windowCanvas)
-            this->windowCanvas->Update();
-        if (this->windowHybridList)
-            this->windowHybridList->Update();
-        if (this->windowInspector)
-            this->windowInspector->Update();
-        if (this->windowTimeline)
-            this->windowTimeline->Update();
-        if (this->windowSpritesheet)
-            this->windowSpritesheet->Update();
+        ImGuiFileDialog::Instance()->Close();
     }
+
+#pragma region Push Session Dialogs
 
     if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodArc")) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
@@ -437,7 +488,7 @@ void App::Update() {
 
             GET_SESSION_MANAGER;
 
-            int16_t result = sessionManager.PushSessionFromArc(filePathName.c_str());
+            int32_t result = sessionManager.PushSessionFromArc(filePathName.c_str());
 
             if (result < 0)
                 ImGui::OpenPopup("###SessionOpenErr");
@@ -517,7 +568,7 @@ void App::Update() {
 
             GET_SESSION_MANAGER;
 
-            int16_t result = sessionManager.PushSessionTraditional((const char**)traditionalPushPaths);
+            int32_t result = sessionManager.PushSessionTraditional((const char**)traditionalPushPaths);
 
             if (result < 0)
                 ImGui::OpenPopup("###SessionOpenErr");
@@ -533,6 +584,46 @@ void App::Update() {
 
         ImGuiFileDialog::Instance()->Close();
     }
+
+#pragma endregion
+}
+
+void App::Update() {
+    GET_APP_STATE;
+    static ImGuiIO& io{ ImGui::GetIO() };
+
+    glfwPollEvents();
+
+    // Start frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    this->BeginMainWindow(io);
+    this->Menubar();
+
+    if (appState.enableDemoWindow)
+        ImGui::ShowDemoWindow(&appState.enableDemoWindow);
+
+    appState.playerState.Update();
+
+    bool sessionAvailable = !!SessionManager::getInstance().getCurrentSession();
+
+    // Windows
+    if (sessionAvailable) {
+        if (this->windowCanvas)
+            this->windowCanvas->Update();
+        if (this->windowHybridList)
+            this->windowHybridList->Update();
+        if (this->windowInspector)
+            this->windowInspector->Update();
+        if (this->windowTimeline)
+            this->windowTimeline->Update();
+        if (this->windowSpritesheet)
+            this->windowSpritesheet->Update();
+    }
+
+    this->UpdateFileDialogs();
 
     this->UpdatePopups();
 
