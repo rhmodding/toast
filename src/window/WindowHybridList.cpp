@@ -104,10 +104,13 @@ void WindowHybridList::Update() {
                 char buffer[32];
                 sprintf(buffer, "Arrangement no. %d", n+1);
 
+                RvlCellAnim::Arrangement* arrangementPtr =
+                    &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+
                 if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n)) {
                     appState.controlKey.arrangementIndex = n;
 
-                    RvlCellAnim::Arrangement* arrangementPtr =
+                    arrangementPtr =
                         &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
