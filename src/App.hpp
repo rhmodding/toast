@@ -85,6 +85,8 @@ private:
 
     void UpdateFileDialogs();
 
+    void HandleShortcuts();
+
     // Windows
     WindowCanvas* windowCanvas;
     WindowHybridList* windowHybridList;

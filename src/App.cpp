@@ -19,10 +19,79 @@
 #include <ImGuiFileDialog.h>
 
 #if defined(__APPLE__)
-    #define EXIT_SHORTCUT "Cmd+Q"
+    #define SCS_EXIT "Cmd+Q"
+    #define SCST_CTRL "Cmd"
+    #define SCT_CTRL ImGui::GetIO().KeySuper
 #else
-    #define EXIT_SHORTCUT "Alt+F4"
+    #define SCS_EXIT "Alt+F4"
+    #define SCST_CTRL "Ctrl"
+    #define SCT_CTRL ImGui::GetIO().KeyCtrl
 #endif
+
+#define SCS_LAUNCH_OPEN_ARC_DIALOG SCST_CTRL "+O"
+#define SC_LAUNCH_OPEN_ARC_DIALOG \
+            SCT_CTRL && \
+            ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_O))
+
+#define SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG SCST_CTRL "+Shift+O"
+#define SC_LAUNCH_OPEN_TRADITIONAL_DIALOG \
+            SCT_CTRL && \
+            ImGui::GetIO().KeyShift && \
+            ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_O))
+
+#define SCS_SAVE_CURRENT_SESSION_ARC SCST_CTRL "+S"
+#define SC_SAVE_CURRENT_SESSION_ARC \
+            SCT_CTRL && \
+            ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_S))
+
+#define SCS_LAUNCH_SAVE_AS_ARC_DIALOG SCST_CTRL "+Shift+S"
+#define SC_LAUNCH_SAVE_AS_ARC_DIALOG \
+            SCT_CTRL && \
+            ImGui::GetIO().KeyShift && \
+            ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_S))
+
+#pragma region Actions
+
+void A_LaunchOpenArcDialog() {
+    IGFD::FileDialogConfig dialogConfig;
+    dialogConfig.path = ".";
+    dialogConfig.countSelectionMax = 1;
+    dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+
+    ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodArc", "Choose an Cellanim Arc file", ".szs", dialogConfig);
+}
+
+void A_LaunchOpenTraditionalDialog() {
+    IGFD::FileDialogConfig dialogConfig;
+    dialogConfig.path = ".";
+    dialogConfig.countSelectionMax = 1;
+    dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+
+    ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodTraditional-1", "Choose the BRCAD file", ".brcad", dialogConfig);
+}
+
+void A_SaveCurrentSessionArc() {
+    GET_SESSION_MANAGER;
+
+    int32_t result = sessionManager.ExportSessionArc(
+        sessionManager.getCurrentSession(),
+        sessionManager.getCurrentSession()->mainPath.c_str()
+    );
+
+    if (result < 0)
+        ImGui::OpenPopup("###SessionOutErr");
+}
+
+void A_LaunchSaveAsArcDialog() {
+    IGFD::FileDialogConfig dialogConfig;
+    dialogConfig.path = ".";
+    dialogConfig.countSelectionMax = 1;
+    dialogConfig.flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_ConfirmOverwrite;
+
+    ImGuiFileDialog::Instance()->OpenDialog("DialogExportSessionMethodArc", "Select a file to save to", ".szs", dialogConfig);
+}
+
+#pragma endregion
 
 #define GL_SILENCE_DEPRECATION
 
@@ -33,7 +102,7 @@ App::App() {
         std::cerr << "GLFW Error (" << error_code << "): " << description << '\n';
     });
     assert(glfwInit());
-    
+
     #if defined(IMGUI_IMPL_OPENGL_ES2)
         // GL ES 2.0 + GLSL 100
         const char* glslVersion = "#version 100";
@@ -191,7 +260,7 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", EXIT_SHORTCUT, nullptr))
+            if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", SCS_EXIT, nullptr))
                 this->quit = 0xFF;
 
             ImGui::EndMenu();
@@ -201,51 +270,34 @@ void App::Menubar() {
             GET_SESSION_MANAGER;
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_EXPORT " Save (arc)", "Ctrl+S", false,
+                (char*)ICON_FA_FILE_EXPORT " Save (arc)", SCS_SAVE_CURRENT_SESSION_ARC, false,
                     !!sessionManager.getCurrentSession() &&
                     !sessionManager.getCurrentSession()->traditionalMethod
-            )) {
-                int32_t result = sessionManager.ExportSessionArc(
-                    sessionManager.getCurrentSession(),
-                    sessionManager.getCurrentSession()->mainPath.c_str()
-                );
-
-                if (result < 0)
-                    ImGui::OpenPopup("###SessionOutErr");
-            }
+            ))
+                A_SaveCurrentSessionArc();
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_EXPORT " Save as (arc)...", "Ctrl+Shift+S", false,
+                (char*)ICON_FA_FILE_EXPORT " Save as (arc)...", SCS_LAUNCH_SAVE_AS_ARC_DIALOG, false,
                 !!sessionManager.getCurrentSession()
-            )) {
-                IGFD::FileDialogConfig dialogConfig;
-                dialogConfig.path = ".";
-                dialogConfig.countSelectionMax = 1;
-                dialogConfig.flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_ConfirmOverwrite;
-
-                ImGuiFileDialog::Instance()->OpenDialog("DialogExportSessionMethodArc", "Select a file to save to", ".szs", dialogConfig);
-            }
+            ))
+                A_LaunchSaveAsArcDialog();
 
             ImGui::Separator();
 
             // TODO: add Apple shortcut
-            if (ImGui::MenuItem((char*)ICON_FA_FILE_IMPORT " Open (arc)...", "Ctrl+O", nullptr)) {
-                IGFD::FileDialogConfig dialogConfig;
-                dialogConfig.path = ".";
-                dialogConfig.countSelectionMax = 1;
-                dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+            if (ImGui::MenuItem(
+                (char*)ICON_FA_FILE_IMPORT " Open (arc)...",
+                SCS_LAUNCH_OPEN_ARC_DIALOG,
+                nullptr
+            ))
+                A_LaunchOpenArcDialog();
 
-                ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodArc", "Choose an Cellanim Arc file", ".szs", dialogConfig);
-            }
-
-            if (ImGui::MenuItem((char*)ICON_FA_FILE_IMPORT " Open (seperated)...", "", nullptr)) {
-                IGFD::FileDialogConfig dialogConfig;
-                dialogConfig.path = ".";
-                dialogConfig.countSelectionMax = 1;
-                dialogConfig.flags = ImGuiFileDialogFlags_Modal;
-
-                ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodTraditional-1", "Choose the BRCAD file", ".brcad", dialogConfig);
-            }
+            if (ImGui::MenuItem(
+                (char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
+                SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG,
+                nullptr
+            ))
+                A_LaunchOpenTraditionalDialog();
 
             ImGui::EndMenu();
         }
@@ -588,6 +640,17 @@ void App::UpdateFileDialogs() {
 #pragma endregion
 }
 
+void App::HandleShortcuts() {
+    if (SC_LAUNCH_OPEN_ARC_DIALOG)
+        A_LaunchOpenArcDialog();
+    if (SC_LAUNCH_OPEN_TRADITIONAL_DIALOG)
+        A_LaunchOpenTraditionalDialog();
+    if (SC_SAVE_CURRENT_SESSION_ARC)
+        A_SaveCurrentSessionArc();
+    if (SC_LAUNCH_SAVE_AS_ARC_DIALOG)
+        A_LaunchSaveAsArcDialog();
+}
+
 void App::Update() {
     GET_APP_STATE;
     static ImGuiIO& io{ ImGui::GetIO() };
@@ -601,6 +664,8 @@ void App::Update() {
 
     this->BeginMainWindow(io);
     this->Menubar();
+
+    this->HandleShortcuts();
 
     if (appState.enableDemoWindow)
         ImGui::ShowDemoWindow(&appState.enableDemoWindow);
