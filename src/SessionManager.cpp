@@ -12,8 +12,6 @@
 
 #include "common.hpp"
 
-#define GL_SILENCE_DEPRECATION
-
 GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
     GLuint imageTexture;
     

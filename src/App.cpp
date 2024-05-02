@@ -93,8 +93,6 @@ void A_LaunchSaveAsArcDialog() {
 
 #pragma endregion
 
-#define GL_SILENCE_DEPRECATION
-
 App* gAppPtr{ nullptr };
 
 App::App() {
