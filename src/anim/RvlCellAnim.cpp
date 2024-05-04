@@ -245,7 +245,7 @@ namespace RvlCellAnim {
         header->sheetW = BYTESWAP_16(this->textureW);
         header->sheetH = BYTESWAP_16(this->textureH);
 
-        header->arrangementCount = BYTESWAP_16(this->arrangements.size());
+        header->arrangementCount = BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size()));
 
         size_t writeOffset{ sizeof(RvlCellAnimHeader) };
 
@@ -259,7 +259,7 @@ namespace RvlCellAnim {
             ArrangementRaw* arrangementRaw = reinterpret_cast<ArrangementRaw*>(result.data() + writeOffset);
             writeOffset += sizeof(ArrangementRaw);
 
-            arrangementRaw->partsCount = BYTESWAP_16(arrangement.parts.size());
+            arrangementRaw->partsCount = BYTESWAP_16(static_cast<uint16_t>(arrangement.parts.size()));
             arrangementRaw->unknown = 0x0000;
 
             for (const ArrangementPart& part : arrangement.parts) {
@@ -299,7 +299,7 @@ namespace RvlCellAnim {
             uint16_t* animationCount = reinterpret_cast<uint16_t*>(result.data() + writeOffset);
             uint16_t* unknownValue = reinterpret_cast<uint16_t*>(result.data() + writeOffset + sizeof(uint16_t));
 
-            *animationCount = BYTESWAP_16(this->animations.size());
+            *animationCount = BYTESWAP_16(static_cast<uint16_t>(this->animations.size()));
             *unknownValue = 0x0000;
 
             writeOffset += sizeof(uint16_t) + sizeof(uint16_t);
@@ -315,7 +315,7 @@ namespace RvlCellAnim {
             AnimationRaw* animationRaw = reinterpret_cast<AnimationRaw*>(result.data() + writeOffset);
             writeOffset += sizeof(AnimationRaw);
 
-            animationRaw->keyCount = BYTESWAP_16(animation.keys.size());
+            animationRaw->keyCount = BYTESWAP_16(static_cast<uint16_t>(animation.keys.size()));
             animationRaw->unknown = 0x0000;
 
             for (const AnimationKey& key : animation.keys) {

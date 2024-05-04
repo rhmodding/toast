@@ -69,7 +69,7 @@ namespace Yaz0 {
                 CompressionData(std::vector<char>& buffer) : buffer(buffer) {}
             } compressionData(result);
 
-            result.push_back(0xFF);
+            result.push_back(0xFFu);
 
             {
                 std::array<uint_least8_t, 8> dummy{};
@@ -111,7 +111,7 @@ namespace Yaz0 {
                             compressionData->pendingChunks = 0;
                             compressionData->groupHeader.reset();
                             compressionData->groupHeaderOffset = compressionData->buffer.size();
-                            compressionData->buffer.push_back(0xFF);
+                            compressionData->buffer.push_back(0xFFu);
                         }
                     },
                     &compressionData);

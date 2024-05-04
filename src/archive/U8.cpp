@@ -219,17 +219,17 @@ namespace U8 {
 
                 ++index;
             } else if (index < currentDir->files.size() + currentDir->subdirectories.size()) {
-                index -= currentDir->files.size();
+                index -= static_cast<uint32_t>(currentDir->files.size());
                 Directory* subDir = &currentDir->subdirectories[index];
 
                 flattenedArchive.push_back({ 0x01, subDir, parentList.back(), 0 });
 
-                parentList.push_back(flattenedArchive.size() - 1);
+                parentList.push_back(static_cast<uint32_t>(flattenedArchive.size() - 1));
                 directoryStack.push({ subDir, 0});
                 ++index;
             } else {
                 for (uint32_t parentIndex : parentList)
-                    flattenedArchive.at(parentIndex).nextOutOfDir = flattenedArchive.size();
+                    flattenedArchive.at(parentIndex).nextOutOfDir = static_cast<uint32_t>(flattenedArchive.size());
 
                 parentList.pop_back();
                 directoryStack.pop();
@@ -246,20 +246,21 @@ namespace U8 {
         for (const FlatEntry& entry : flattenedArchive) {
             if (entry.type == 0x01) {
                 stringOffsets.push_back(stringPoolSize);
-                stringPoolSize += reinterpret_cast<Directory*>(entry.ptr)->name.size() + 1;
+                stringPoolSize += static_cast<uint32_t>(reinterpret_cast<Directory*>(entry.ptr)->name.size() + 1);
             }
             else if (entry.type == 0x00) {
                 stringOffsets.push_back(stringPoolSize);
-                stringPoolSize += reinterpret_cast<File*>(entry.ptr)->name.size() + 1;
+                stringPoolSize += static_cast<uint32_t>(reinterpret_cast<File*>(entry.ptr)->name.size() + 1);
             }
             else
                 stringOffsets.push_back(0);
         }
 
-        uint32_t dataOffset =
+        uint32_t dataOffset = static_cast<uint32_t>(
             sizeof(U8ArchiveHeader) +
             (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-            stringPoolSize;
+            stringPoolSize
+        );
 
         dataOffset += 0x20 - (dataOffset % 0x20);
 
@@ -269,7 +270,7 @@ namespace U8 {
 
             if (entry.type == 0x00) {
                 dataOffsets.push_back(dataOffset + dataSize);
-                dataSize += reinterpret_cast<File*>(entry.ptr)->data.size();
+                dataSize += static_cast<uint32_t>(reinterpret_cast<File*>(entry.ptr)->data.size());
 
                 if (i+1 != flattenedArchive.size())
                     dataSize = (dataSize + 31) & ~31;
@@ -279,7 +280,9 @@ namespace U8 {
         }
 
         header->dataOffset = BYTESWAP_32(dataOffset);
-        header->headerSize = BYTESWAP_32((sizeof(U8ArchiveNode) * flattenedArchive.size()) + stringPoolSize);
+        header->headerSize = BYTESWAP_32(static_cast<uint32_t>(
+            (sizeof(U8ArchiveNode) * flattenedArchive.size()) + stringPoolSize
+        ));
 
         result.resize(dataOffset + dataSize);
 
@@ -331,7 +334,7 @@ namespace U8 {
 
                     node->type = 0x00;
 
-                    node->size = BYTESWAP_32(data->size());
+                    node->size = BYTESWAP_32(static_cast<uint32_t>(data->size()));
 
                     node->dataOffset = BYTESWAP_32(dataOffsets.at(i));
 

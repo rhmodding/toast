@@ -187,7 +187,7 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
 
     this->lastSessionError = SessionOpenError_None;
 
-    return this->sessionList.size() - 1;
+    return static_cast<int32_t>(this->sessionList.size() - 1);
 }
 
 int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
@@ -248,7 +248,7 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
 
     this->lastSessionError = SessionOpenError_None;
 
-    return this->sessionList.size() - 1;
+    return static_cast<int32_t>(this->sessionList.size() - 1);
 }
 
 int32_t SessionManager::ExportSessionArc(Session* session, const char* outPath) {
@@ -363,7 +363,7 @@ void SessionManager::FreeSessionIndex(int32_t index) {
     if (this->sessionList.empty())
         this->currentSession = -1;
     else if (static_cast<size_t>(this->currentSession) >= this->sessionList.size())
-        this->currentSession = this->sessionList.size() - 1;
+        this->currentSession = static_cast<int32_t>(this->sessionList.size() - 1);
 }
 
 void SessionManager::FreeAllSessions() {

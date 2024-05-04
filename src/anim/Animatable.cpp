@@ -102,8 +102,8 @@ ImVec2 Animatable::getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t pa
 }
 
 ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
-    float s = sinf(angle * (M_PI / 180));
-    float c = cosf(angle * (M_PI / 180));
+    float s = sinf(angle * ((float)M_PI / 180.f));
+    float c = cosf(angle * ((float)M_PI / 180.f));
 
     v.x -= origin.x;
     v.y -= origin.y;
