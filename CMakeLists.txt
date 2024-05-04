@@ -79,6 +79,11 @@ set(HEADERS
     src/common.hpp
 )
 
+# Disable MSVC unsafe function warnings (strcpy, sprintf, etc..)
+IF (MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+ENDIF()
+
 IF (APPLE)
     add_executable (toast MACOSX_BUNDLE ${SOURCES} ${HEADERS})
 ELSE()
