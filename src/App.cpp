@@ -668,12 +668,10 @@ void App::Update() {
     if (appState.enableDemoWindow)
         ImGui::ShowDemoWindow(&appState.enableDemoWindow);
 
-    appState.playerState.Update();
+    if (!!SessionManager::getInstance().getCurrentSession()) {
+        appState.playerState.Update();
 
-    bool sessionAvailable = !!SessionManager::getInstance().getCurrentSession();
-
-    // Windows
-    if (sessionAvailable) {
+        // Windows
         if (this->windowCanvas)
             this->windowCanvas->Update();
         if (this->windowHybridList)
