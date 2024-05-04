@@ -6,6 +6,7 @@
 
 #include "../common.hpp"
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #define CANVAS_ORIGIN 512

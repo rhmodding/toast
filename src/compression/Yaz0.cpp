@@ -2,16 +2,21 @@
 
 #include "../common.hpp"
 
-#include <string>
-#include <iostream>
-#include <vector>
-#include <optional>
 #include <cstdint>
 
+#include <iostream>
 #include <fstream>
 
-#include <zlib-ng.h>
+#include <optional>
+
+#include <string>
+#include <vector>
+#include <bitset>
 #include <array>
+
+#include <algorithm>
+
+#include <zlib-ng.h>
 
 constexpr const size_t ChunksPerGroup = 8;
 constexpr const size_t MaximumMatchLength = 0xFF + 0x12;
@@ -72,7 +77,7 @@ namespace Yaz0 {
                 const int zlibRun = zng_compress2(
                     dummy.data(), &dummy_size, (const uint8_t*)data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
                     [](void* data, uint32_t dist, uint32_t lc) {
-                        CompressionData* compressionData = static_cast<CompressionData*>(data);
+                        CompressionData* compressionData = reinterpret_cast<CompressionData*>(data);
 
                         if (dist == 0) {
                             // Literal.
