@@ -282,8 +282,8 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
             }
 
             if (part.flipY) {
-                std::swap(transformedQuad[0], transformedQuad[2]);
-                std::swap(transformedQuad[1], transformedQuad[3]);
+                std::swap(transformedQuad[0], transformedQuad[3]);
+                std::swap(transformedQuad[1], transformedQuad[2]);
             }
 
             // Rotation
