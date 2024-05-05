@@ -208,9 +208,9 @@ namespace TPL {
             // Image Data
             header->dataOffset = BYTESWAP_32(writeOffset);
 
-            uint32_t imageSize = ImageConvert::getImageByteSize(
+            uint32_t imageSize = static_cast<uint32_t>(ImageConvert::getImageByteSize(
                 format, this->textures.at(i).width, this->textures.at(i).height
-            );
+            ));
             result.resize(result.size() + imageSize);
 
             std::vector<char> imageData(imageSize);
