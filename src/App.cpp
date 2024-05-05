@@ -139,6 +139,9 @@ App::App() {
     glfwMakeContextCurrent(this->window);
     glfwSwapInterval(1); // Enable vsync
 
+    // Config
+    ConfigManager::getInstance().LoadConfig();
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
 
