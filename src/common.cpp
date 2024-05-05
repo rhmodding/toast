@@ -14,6 +14,28 @@ namespace Common {
         return result;
     }
 
+    float readBigEndianFloat(const uint8_t* bytes) {
+        uint32_t intValue = (static_cast<uint32_t>(bytes[0]) << 24) |
+                            (static_cast<uint32_t>(bytes[1]) << 16) |
+                            (static_cast<uint32_t>(bytes[2]) << 8) |
+                            static_cast<uint32_t>(bytes[3]);
+
+        float result;
+        std::memcpy(&result, &intValue, sizeof(float));
+        
+        return result;
+    }
+
+    void writeBigEndianFloat(float value, uint8_t* bytes) {
+        uint32_t intValue;
+        std::memcpy(&intValue, &value, sizeof(float));
+
+        bytes[0] = static_cast<uint8_t>(intValue >> 24);
+        bytes[1] = static_cast<uint8_t>(intValue >> 16);
+        bytes[2] = static_cast<uint8_t>(intValue >> 8);
+        bytes[3] = static_cast<uint8_t>(intValue);
+    }
+
     bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, int* height)  {
         // Load from file
         int imageWidth{ 0 };

@@ -102,30 +102,6 @@ struct AnimationKeyRaw {
 
 #pragma pack(pop) // Reset packing alignment to default
 
-// Byte-swap and cast uint8_t[4] to LE float
-float readBigEndianFloat(const uint8_t* bytes) {
-    uint32_t intValue = (static_cast<uint32_t>(bytes[0]) << 24) |
-                        (static_cast<uint32_t>(bytes[1]) << 16) |
-                        (static_cast<uint32_t>(bytes[2]) << 8) |
-                        static_cast<uint32_t>(bytes[3]);
-
-    float result;
-    std::memcpy(&result, &intValue, sizeof(float));
-    
-    return result;
-}
-
-// Cast LE float to uint8_t[4] and byte-swap
-void writeBigEndianFloat(float value, uint8_t* bytes) {
-    uint32_t intValue;
-    std::memcpy(&intValue, &value, sizeof(float));
-
-    bytes[0] = static_cast<uint8_t>(intValue >> 24);
-    bytes[1] = static_cast<uint8_t>(intValue >> 16);
-    bytes[2] = static_cast<uint8_t>(intValue >> 8);
-    bytes[3] = static_cast<uint8_t>(intValue);
-}
-
 namespace RvlCellAnim {
     RvlCellAnimObject::RvlCellAnimObject(const char* RvlCellAnimData, const size_t dataSize) {
         const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
@@ -169,10 +145,10 @@ namespace RvlCellAnim {
                 arrangementPart.positionX = BYTESWAP_16(arrangementPartRaw->positionX);
                 arrangementPart.positionY = BYTESWAP_16(arrangementPartRaw->positionY);
 
-                arrangementPart.scaleX = readBigEndianFloat(&arrangementPartRaw->scaleX[0]);
-                arrangementPart.scaleY = readBigEndianFloat(&arrangementPartRaw->scaleY[0]);
+                arrangementPart.scaleX = Common::readBigEndianFloat(&arrangementPartRaw->scaleX[0]);
+                arrangementPart.scaleY = Common::readBigEndianFloat(&arrangementPartRaw->scaleY[0]);
 
-                arrangementPart.angle = readBigEndianFloat(&arrangementPartRaw->angle[0]);
+                arrangementPart.angle = Common::readBigEndianFloat(&arrangementPartRaw->angle[0]);
 
                 arrangementPart.flipX = arrangementPartRaw->flipX != 0;
                 arrangementPart.flipY = arrangementPartRaw->flipY != 0;
@@ -213,10 +189,10 @@ namespace RvlCellAnim {
 
                 key.holdFrames = BYTESWAP_16(keyRaw->holdFrames);
 
-                key.scaleX = readBigEndianFloat(&keyRaw->scaleX[0]);
-                key.scaleY = readBigEndianFloat(&keyRaw->scaleY[0]);
+                key.scaleX = Common::readBigEndianFloat(&keyRaw->scaleX[0]);
+                key.scaleY = Common::readBigEndianFloat(&keyRaw->scaleY[0]);
 
-                key.angle = readBigEndianFloat(&keyRaw->angle[0]);
+                key.angle = Common::readBigEndianFloat(&keyRaw->angle[0]);
 
                 key.opacity = keyRaw->opacity;
 
@@ -283,9 +259,9 @@ namespace RvlCellAnim {
                 arrangementPartRaw->unknown_1 = BYTESWAP_32(part.unknown);
                 arrangementPartRaw->unknown_2 = 0x00;
 
-                writeBigEndianFloat(part.scaleX, arrangementPartRaw->scaleX);
-                writeBigEndianFloat(part.scaleY, arrangementPartRaw->scaleY);
-                writeBigEndianFloat(part.angle, arrangementPartRaw->angle);
+                Common::writeBigEndianFloat(part.scaleX, arrangementPartRaw->scaleX);
+                Common::writeBigEndianFloat(part.scaleY, arrangementPartRaw->scaleY);
+                Common::writeBigEndianFloat(part.angle, arrangementPartRaw->angle);
             }
         }
     
@@ -329,9 +305,9 @@ namespace RvlCellAnim {
 
                 animationKeyRaw->opacity = key.opacity;
 
-                writeBigEndianFloat(key.scaleX, animationKeyRaw->scaleX);
-                writeBigEndianFloat(key.scaleY, animationKeyRaw->scaleY);
-                writeBigEndianFloat(key.angle, animationKeyRaw->angle);
+                Common::writeBigEndianFloat(key.scaleX, animationKeyRaw->scaleX);
+                Common::writeBigEndianFloat(key.scaleY, animationKeyRaw->scaleY);
+                Common::writeBigEndianFloat(key.angle, animationKeyRaw->angle);
 
                 animationKeyRaw->unknown = BYTESWAP_32(key.unknown);
             }
