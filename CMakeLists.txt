@@ -77,6 +77,8 @@ set(HEADERS
 
     src/SessionManager.hpp
 
+    src/ConfigManager.hpp
+
     src/common.hpp
 
     src/ConsoleSplash.hpp
