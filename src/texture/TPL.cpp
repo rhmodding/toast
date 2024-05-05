@@ -7,6 +7,8 @@
 
 #include "ImageConvert.hpp"
 
+#define TPL_VERSION_NUMBER 0x30AF2000
+
 struct TPLClutHeader {
     uint16_t numEntries;
     uint8_t unpacked;
@@ -59,7 +61,7 @@ namespace TPL {
     TPLObject::TPLObject(const char* tplData, const size_t dataSize) {
         const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
 
-        if (BYTESWAP_32(palette->versionNumber) != 0x0020AF30) {
+        if (palette->versionNumber != TPL_VERSION_NUMBER) {
             std::cerr << "[TPLObject::TPLObject] Invalid TPL binary: invalid version number for texture palette!\n";
             return;
         }
