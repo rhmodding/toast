@@ -77,6 +77,8 @@ namespace TPL {
     public:
         std::vector<TPLTexture> textures;
 
+        std::vector<char> Reserialize();
+
         TPLObject(const char* tplData, const size_t dataSize);
 
         TPLObject();
