@@ -6,6 +6,8 @@
 #include <cstdint>
 
 #include "anim/RvlCellAnim.hpp"
+#include "texture/TPL.hpp"
+
 #include "common.hpp"
 
 #include <unordered_map>
@@ -34,9 +36,6 @@ public:
         std::vector<Common::Image*> cellanimSheets;
         std::vector<std::unordered_map<uint16_t, std::string>*> animationNames;
         std::vector<std::string> cellNames;
-
-        // TODO: think of a better solution
-        std::vector<char>* binaryTpl;
 
         RvlCellAnim::RvlCellAnimObject* getCellanim() {
             return this->cellanims.at(this->cellIndex);

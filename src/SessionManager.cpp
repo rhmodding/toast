@@ -1,7 +1,6 @@
 #include "SessionManager.hpp"
 
 #include "archive/U8.hpp"
-#include "texture/TPL.hpp"
 
 #include "compression/Yaz0.hpp"
 
@@ -171,8 +170,6 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
             LoadTPLTextureIntoGLTexture(tplObject.textures.at(cellanims.at(i)->sheetIndex))
         );
 
-    newSession.binaryTpl = new std::vector<char>(tplFile->data);
-
     newSession.open = true;
     newSession.mainPath = arcPath;
     
@@ -293,7 +290,48 @@ int32_t SessionManager::ExportSessionArc(Session* session, const char* outPath) 
     // TPL file
     {
         U8::File file("cellanim.tpl");
-        file.data = *session->binaryTpl;
+
+        TPL::TPLObject tplObject;
+
+        for (uint32_t i = 0; i < session->cellanimSheets.size(); i++) {
+            glBindTexture(GL_TEXTURE_2D, session->cellanimSheets.at(i)->texture);
+
+            TPL::TPLTexture tplTexture;
+            tplTexture.data.resize(
+                session->cellanimSheets.at(i)->width *
+                session->cellanimSheets.at(i)->height *
+                4
+            );
+
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
+
+            tplTexture.width = session->cellanimSheets.at(i)->width;
+            tplTexture.height = session->cellanimSheets.at(i)->height;
+
+            GLint wrapModeS, wrapModeT;
+            glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapModeS);
+            glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapModeT);
+
+            tplTexture.wrapS = wrapModeS == GL_REPEAT ?
+                TPL::TPL_WRAP_MODE_REPEAT :
+                TPL::TPL_WRAP_MODE_CLAMP;
+            tplTexture.wrapT = wrapModeT == GL_REPEAT ?
+                TPL::TPL_WRAP_MODE_REPEAT :
+                TPL::TPL_WRAP_MODE_CLAMP;
+
+            tplTexture.minFilter = TPL::TPL_TEX_FILTER_LINEAR;
+            tplTexture.magFilter = TPL::TPL_TEX_FILTER_LINEAR;
+
+            tplTexture.mipMap = 1;
+
+            tplTexture.valid = 0xFFu;
+
+            tplObject.textures.push_back(tplTexture);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+        
+        file.data = tplObject.Reserialize();
 
         directory.AddFile(file);
     }
@@ -337,9 +375,6 @@ void SessionManager::ClearSessionPtr(Session* session) {
     session->cellanims.clear();
     session->cellanimSheets.clear();
     session->cellNames.clear();
-
-    session->binaryTpl->clear();
-    delete session->binaryTpl;
 
     session->cellIndex = 0;
 
