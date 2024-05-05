@@ -143,21 +143,22 @@ namespace TPL {
 
         uint32_t writeOffset{ sizeof(TPLPalette) };
 
-        std::vector<TPLDescriptor*> descriptors;
         for (uint32_t i = 0; i < this->textures.size(); i++) {
             TPLDescriptor* descriptor = reinterpret_cast<TPLDescriptor*>(result.data() + writeOffset);
             writeOffset += sizeof(TPLDescriptor);
 
             descriptor->CLUTHeaderOffset = 0x00000000;
             descriptor->textureHeaderOffset = 0x00000000;
-
-            descriptors.push_back(descriptor);
         }
 
         for (uint32_t i = 0; i < this->textures.size(); i++) {
-            TPLDescriptor* descriptor = descriptors.at(i);
             if (!this->textures.at(i).valid) 
                 continue;
+
+            TPLDescriptor* descriptor = reinterpret_cast<TPLDescriptor*>(
+                result.data() + sizeof(TPLPalette) +
+                (sizeof(TPLDescriptor) * i)
+            );
 
             descriptor->textureHeaderOffset = BYTESWAP_32(writeOffset);
 
@@ -200,8 +201,8 @@ namespace TPL {
 
             header->edgeLODEnable = 0x00;
 
-            header->maxLOD = 0x01;
-            header->minLOD = 0x01;
+            header->maxLOD = 0x00;
+            header->minLOD = 0x00;
 
             header->unpacked = 0x00;
 
