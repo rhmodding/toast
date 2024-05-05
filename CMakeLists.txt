@@ -77,6 +77,8 @@ set(HEADERS
     src/SessionManager.hpp
 
     src/common.hpp
+
+    src/ConsoleSplash.hpp
 )
 
 # Disable MSVC unsafe function warnings (strcpy, sprintf, etc..)
