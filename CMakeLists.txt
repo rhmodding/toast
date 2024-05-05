@@ -40,6 +40,7 @@ set(SOURCES
     src/SessionManager.cpp
 
     src/stb/stb_image.h
+    src/stb/stb_image_write.h
 )
 
 set(HEADERS
