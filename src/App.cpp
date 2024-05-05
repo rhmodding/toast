@@ -18,6 +18,8 @@
 
 #include <ImGuiFileDialog.h>
 
+#include "ConfigManager.hpp"
+
 #if defined(__APPLE__)
     #define SCS_EXIT "Cmd+Q"
     #define SCST_CTRL "Cmd"
@@ -54,7 +56,7 @@
 
 void A_LaunchOpenArcDialog() {
     IGFD::FileDialogConfig dialogConfig;
-    dialogConfig.path = ".";
+    dialogConfig.path = ConfigManager::getInstance().config.lastFileDialogPath;
     dialogConfig.countSelectionMax = 1;
     dialogConfig.flags = ImGuiFileDialogFlags_Modal;
 
@@ -63,7 +65,7 @@ void A_LaunchOpenArcDialog() {
 
 void A_LaunchOpenTraditionalDialog() {
     IGFD::FileDialogConfig dialogConfig;
-    dialogConfig.path = ".";
+    dialogConfig.path = ConfigManager::getInstance().config.lastFileDialogPath;
     dialogConfig.countSelectionMax = 1;
     dialogConfig.flags = ImGuiFileDialogFlags_Modal;
 
@@ -84,7 +86,7 @@ void A_SaveCurrentSessionArc() {
 
 void A_LaunchSaveAsArcDialog() {
     IGFD::FileDialogConfig dialogConfig;
-    dialogConfig.path = ".";
+    dialogConfig.path = ConfigManager::getInstance().config.lastFileDialogPath;
     dialogConfig.countSelectionMax = 1;
     dialogConfig.flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_ConfirmOverwrite;
 
@@ -516,6 +518,9 @@ void App::UpdateFileDialogs() {
             std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
+            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
+            ConfigManager::getInstance().SaveConfig();
+
             GET_SESSION_MANAGER;
 
             int32_t result = sessionManager.ExportSessionArc(
@@ -535,6 +540,9 @@ void App::UpdateFileDialogs() {
         if (ImGuiFileDialog::Instance()->IsOk()) {
             std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
+            ConfigManager::getInstance().SaveConfig();
 
             GET_SESSION_MANAGER;
 
@@ -560,6 +568,9 @@ void App::UpdateFileDialogs() {
         if (ImGuiFileDialog::Instance()->IsOk()) {
             std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
+            ConfigManager::getInstance().SaveConfig();
 
             traditionalPushPaths[0] = new char[filePathName.length() + 1];
             strcpy(traditionalPushPaths[0], filePathName.c_str());
@@ -588,6 +599,9 @@ void App::UpdateFileDialogs() {
             std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
+            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
+            ConfigManager::getInstance().SaveConfig();
+
             traditionalPushPaths[1] = new char[filePathName.length() + 1];
             strcpy(traditionalPushPaths[1], filePathName.c_str());
 
@@ -612,6 +626,9 @@ void App::UpdateFileDialogs() {
         if (ImGuiFileDialog::Instance()->IsOk()) {
             std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
+            ConfigManager::getInstance().SaveConfig();
 
             traditionalPushPaths[2] = new char[filePathName.length() + 1];
             strcpy(traditionalPushPaths[2], filePathName.c_str());
