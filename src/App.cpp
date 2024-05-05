@@ -211,6 +211,8 @@ void App::Stop() {
 void App::UpdateTheme() {
     GET_APP_STATE;
 
+    appState.darkTheme = ConfigManager::getInstance().config.darkTheme;
+
     if (appState.darkTheme) {
         ImGui::StyleColorsDark();
         appState.windowClearColor = Common::RGBAtoImVec4(24, 24, 24, 255);
