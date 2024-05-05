@@ -130,6 +130,106 @@ namespace TPL {
         }
     }
 
+    std::vector<char> TPLObject::Reserialize() {
+        std::vector<char> result(
+            sizeof(TPLPalette) +
+            ((sizeof(TPLDescriptor) + sizeof(TPLHeader)) * this->textures.size())
+        );
+
+        TPLPalette* palette = reinterpret_cast<TPLPalette*>(result.data());
+        palette->versionNumber = TPL_VERSION_NUMBER;
+        palette->descriptorCount = BYTESWAP_32(static_cast<uint32_t>(this->textures.size()));
+        palette->descriptorsOffset = BYTESWAP_32(sizeof(TPLPalette));
+
+        uint32_t writeOffset{ sizeof(TPLPalette) };
+
+        std::vector<TPLDescriptor*> descriptors;
+        for (uint32_t i = 0; i < this->textures.size(); i++) {
+            TPLDescriptor* descriptor = reinterpret_cast<TPLDescriptor*>(result.data() + writeOffset);
+            writeOffset += sizeof(TPLDescriptor);
+
+            descriptor->CLUTHeaderOffset = 0x00000000;
+            descriptor->textureHeaderOffset = 0x00000000;
+
+            descriptors.push_back(descriptor);
+        }
+
+        for (uint32_t i = 0; i < this->textures.size(); i++) {
+            TPLDescriptor* descriptor = descriptors.at(i);
+            if (!this->textures.at(i).valid) 
+                continue;
+
+            descriptor->textureHeaderOffset = BYTESWAP_32(writeOffset);
+
+            TPLHeader* header = reinterpret_cast<TPLHeader*>(result.data() + writeOffset);
+            writeOffset += sizeof(TPLHeader);
+
+            TPLImageFormat format = TPL_IMAGE_FORMAT_RGBA32; // TODO: add options for different format
+            bool hasPalette =
+                (format == TPL_IMAGE_FORMAT_C4) ||
+                (format == TPL_IMAGE_FORMAT_C8) ||
+                (format == TPL_IMAGE_FORMAT_C14X2);
+
+            // CLUT Header
+            TPLClutHeader* clutHeader{ nullptr };
+            if (hasPalette) {
+                result.resize(result.size() + sizeof(TPLClutHeader));
+
+                descriptor->CLUTHeaderOffset = BYTESWAP_32(writeOffset);
+
+                clutHeader = reinterpret_cast<TPLClutHeader*>(result.data() + writeOffset);
+                writeOffset += sizeof(TPLClutHeader);
+
+                // TODO: implement
+            }
+
+            header->width = BYTESWAP_16(this->textures.at(i).width);
+            header->height = BYTESWAP_16(this->textures.at(i).height);
+
+            header->format = BYTESWAP_32(TPL_IMAGE_FORMAT_RGBA32);
+
+            header->dataOffset = BYTESWAP_32(writeOffset);
+
+            header->wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(this->textures.at(i).wrapS));
+            header->wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(this->textures.at(i).wrapT));
+
+            header->minFilter = static_cast<TPLTexFilter>(BYTESWAP_32(this->textures.at(i).minFilter));
+            header->magFilter = static_cast<TPLTexFilter>(BYTESWAP_32(this->textures.at(i).magFilter));
+
+            header->LODBias = 0.f;
+
+            header->edgeLODEnable = 0x00;
+
+            header->maxLOD = 0x01;
+            header->minLOD = 0x01;
+
+            header->unpacked = 0x00;
+
+            // Image Data
+            header->dataOffset = BYTESWAP_32(writeOffset);
+
+            uint32_t imageSize = ImageConvert::getImageByteSize(
+                format, this->textures.at(i).width, this->textures.at(i).height
+            );
+            result.resize(result.size() + imageSize);
+
+            std::vector<char> imageData(imageSize);
+            ImageConvert::fromRGBA32(
+                imageData,
+                format,
+                this->textures.at(i).width,
+                this->textures.at(i).height,
+                this->textures.at(i).data
+            );
+
+            memcpy(result.data() + writeOffset, imageData.data(), imageData.size());
+
+            writeOffset += static_cast<uint32_t>(imageData.size());
+        }
+
+        return result;
+    }
+
     std::optional<TPLObject> readTPLFile(const std::string& filePath) {
         std::ifstream file(filePath, std::ios::binary);
         if (!file.is_open()) {
