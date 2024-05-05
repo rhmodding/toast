@@ -210,24 +210,6 @@ namespace Yaz0 {
             bitsLeft--;
         }
 
-        auto newYaz0 = compress(destination.data(), destination.size(), 0);
-        if (newYaz0.has_value()) {
-            std::ofstream file("/users/angelo/toast/output.szs", std::ios::binary);
-    
-            if (file.is_open()) {
-                // Write vector contents to file
-                file.write(reinterpret_cast<const char*>(newYaz0.value().data()), newYaz0.value().size());
-                
-                // Close the file
-                file.close();
-                std::cout << "Data written to file successfully.\n";
-            } else {
-                std::cerr << "Unable to open file.\n";
-            }
-        } else {
-            std::cerr << "Unable to compress.\n";
-        }
-
         return destination;
     }
 } // namespace Yaz0
