@@ -73,6 +73,8 @@ namespace TPL {
 
             size_t savedOffset = readOffset;
 
+            TPLTexture textureData;
+
             if (descriptor.textureHeaderOffset != 0) {
                 readOffset = BYTESWAP_32(descriptor.textureHeaderOffset);
 
@@ -85,8 +87,6 @@ namespace TPL {
                 Common::ReadAtOffset(tplData, readOffset, dataSize, clutHeader);
 
                 // Start handling
-                TPLTexture textureData;
-
                 textureData.width = BYTESWAP_16(header.width);
                 textureData.height = BYTESWAP_16(header.height);
 
@@ -116,8 +116,13 @@ namespace TPL {
                 }
 
                 ImageConvert::toRGBA32(textureData.data, format, textureData.width, textureData.height, data);
-                this->textures.push_back(textureData);
+
+                textureData.valid = 0xFFu;
             }
+            else
+                textureData.valid = 0x00;
+
+            this->textures.push_back(textureData);
 
             readOffset = savedOffset;
         }

@@ -24,6 +24,8 @@ namespace TPL {
     };
 
     struct TPLTexture {
+        uint8_t valid; // Did the texture have a valid offset?
+
         uint16_t width;
         uint16_t height;
 
