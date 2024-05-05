@@ -78,6 +78,8 @@ namespace TPL {
         std::vector<TPLTexture> textures;
 
         TPLObject(const char* tplData, const size_t dataSize);
+
+        TPLObject();
     };
 
     std::optional<TPLObject> readTPLFile(const std::string& filePath);
