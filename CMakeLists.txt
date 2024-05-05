@@ -147,6 +147,11 @@ add_subdirectory(ext/zeldamods.zlib-ng)
 
 target_link_libraries(toast PRIVATE zlib)
 
+# JSON library
+add_subdirectory(ext/nlohmann.json)
+
+target_link_libraries(toast PRIVATE nlohmann_json::nlohmann_json)
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET toast PROPERTY CXX_STANDARD 20)
 endif()

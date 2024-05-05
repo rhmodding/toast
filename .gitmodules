@@ -8,3 +8,6 @@
 [submodule "ext/zeldamods.zlib-ng"]
 	path = ext/zeldamods.zlib-ng
 	url = https://github.com/zeldamods/zlib-ng/
+[submodule "ext/nlohmann.json"]
+	path = ext/nlohmann.json
+	url = https://github.com/nlohmann/json.git
