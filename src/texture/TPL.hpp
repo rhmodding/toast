@@ -81,7 +81,7 @@ namespace TPL {
 
         TPLObject(const char* tplData, const size_t dataSize);
 
-        TPLObject();
+        TPLObject() {};
     };
 
     std::optional<TPLObject> readTPLFile(const std::string& filePath);
