@@ -24,11 +24,13 @@ void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, int offset = 0) {
     dest[offset + 3] = 0xFFu;
 }
 
-#pragma region IMPLEMENTATIONS
+//////////////////////////////////////////////////////////////////
+
+#pragma region FROM IMPLEMENTATIONS
 
 #pragma region Ixx
 
-void IMPLEMENTATION_I4(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_I4(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     size_t readOffset = 0;
 
     int numBlocksX = srcWidth / 8; // 8 byte block width
@@ -67,7 +69,7 @@ void IMPLEMENTATION_I4(std::vector<char>& result, uint16_t srcWidth, uint16_t sr
     }
 }
 
-void IMPLEMENTATION_I8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_I8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     for (int y = 0; y < srcHeight; ++y) {
         for (int x = 0; x < srcWidth; ++x) {
             // Index of the current pixel in the I8 texture
@@ -88,7 +90,7 @@ void IMPLEMENTATION_I8(std::vector<char>& result, uint16_t srcWidth, uint16_t sr
     }
 }
 
-void IMPLEMENTATION_IA4(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_IA4(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     size_t readOffset = 0;
 
     int numBlocksX = srcWidth / 8;
@@ -122,7 +124,7 @@ void IMPLEMENTATION_IA4(std::vector<char>& result, uint16_t srcWidth, uint16_t s
     }
 }
 
-void IMPLEMENTATION_IA8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_IA8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     for (int y = 0; y < srcHeight; ++y) {
         for (int x = 0; x < srcWidth; ++x) {
             // Index of the current pixel in the IA8 texture
@@ -148,7 +150,7 @@ void IMPLEMENTATION_IA8(std::vector<char>& result, uint16_t srcWidth, uint16_t s
 
 #pragma region RGBxxx
 
-void IMPLEMENTATION_RGB565(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_RGB565(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     for (int y = 0; y < srcHeight; ++y) {
         for (int x = 0; x < srcWidth; ++x) {
             // Index of the current pixel in the RGB565 texture
@@ -175,7 +177,7 @@ void IMPLEMENTATION_RGB565(std::vector<char>& result, uint16_t srcWidth, uint16_
     }
 }
 
-void IMPLEMENTATION_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     size_t readOffset = 0;
 
     for (int yy = 0; yy < srcHeight; yy += 4) {
@@ -219,7 +221,7 @@ void IMPLEMENTATION_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint16_
     }
 }
 
-void IMPLEMENTATION_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     size_t readOffset = 0;
 
     int numBlocksW = srcWidth / 4;
@@ -264,7 +266,7 @@ void IMPLEMENTATION_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_
 
 #pragma region CMPR // Open this if you love Pain
 
-void IMPLEMENTATION_CMPR(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_CMPR(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     size_t readOffset = 0;
 
     for (int y = 0; y < srcHeight; y += 4) {
@@ -329,48 +331,114 @@ void IMPLEMENTATION_CMPR(std::vector<char>& result, uint16_t srcWidth, uint16_t 
 
 #pragma endregion
 
+//////////////////////////////////////////////////////////////////
+
+#pragma region TO IMPLEMENTATIONS
+
+#pragma region RGBxxx
+
+void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+    size_t writeOffset = 0;
+
+    int numBlocksW = srcWidth / 4;
+    int numBlocksH = srcHeight / 4;
+
+    for (int yBlock = 0; yBlock < numBlocksH; yBlock++) {
+        for (int xBlock = 0; xBlock < numBlocksW; xBlock++) {
+            
+            // 1st subblock
+            for (int pY = 0; pY < 4; pY++) {
+                for (int pX = 0; pX < 4; pX++) {
+                    if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
+                        continue;
+
+                    int fromIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
+                    result[writeOffset + 0] = data[fromIndex + 3]; // alpha
+                    result[writeOffset + 1] = data[fromIndex + 0]; // red
+
+                    writeOffset += 2;
+                }
+            }
+
+            // 2nd subblock
+            for (int pY = 0; pY < 4; pY++) {
+                for (int pX = 0; pX < 4; pX++) {
+                    if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
+                        continue;
+
+                    int fromIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
+                    result[writeOffset + 0] = data[fromIndex + 1]; // green
+                    result[writeOffset + 1] = data[fromIndex + 2]; // blue
+
+                    writeOffset += 2;
+                }
+            }
+
+        }
+    }
+}
+
+#pragma endregion
+
+#pragma endregion
+
+//////////////////////////////////////////////////////////////////
+
 bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat type, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     result.resize(srcWidth * srcHeight * RGBA32_PIXEL_SIZE);
 
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4: 
-            IMPLEMENTATION_I4(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_I4(result, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_I8:
-            IMPLEMENTATION_I8(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_I8(result, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_IA4:
-            IMPLEMENTATION_IA4(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_IA4(result, srcWidth, srcHeight, data);
             break;
         
         case IMGFMT::TPL_IMAGE_FORMAT_IA8:
-            IMPLEMENTATION_IA8(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_IA8(result, srcWidth, srcHeight, data);
             break;
         
         case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
-            IMPLEMENTATION_RGB565(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGB565(result, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            IMPLEMENTATION_RGB5A3(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGB5A3(result, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            IMPLEMENTATION_RGBA32(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGBA32(result, srcWidth, srcHeight, data);
             break;
 
         // TODO: Palette-based formats
 
         case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
-            IMPLEMENTATION_CMPR(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_CMPR(result, srcWidth, srcHeight, data);
             break;
 
         default:
             return false;
     }
 
+    return true;
+}
+
+bool ImageConvert::fromRGBA32(std::vector<char>& result, const TPL::TPLImageFormat type, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+    switch (type) {
+        case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
+            IMPLEMENTATION_TO_RGBA32(result, srcWidth, srcHeight, data);
+            break;
+        
+        default:
+            return false;
+    }
+    
     return true;
 }
 
