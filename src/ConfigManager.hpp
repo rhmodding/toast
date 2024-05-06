@@ -73,6 +73,7 @@ public:
         json data;
 
         data["theme"] = this->config.darkTheme ? "dark" : "light";
+
         data["imageEditorPath"] = this->config.imageEditorPath;
         data["lastFileDialogPath"] = this->config.lastFileDialogPath;
 
