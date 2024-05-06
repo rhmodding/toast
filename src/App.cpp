@@ -190,6 +190,7 @@ App::App() {
     this->windowInspector = new WindowInspector;
     this->windowTimeline = new WindowTimeline;
     this->windowSpritesheet = new WindowSpritesheet;
+    this->windowConfig = new WindowConfig;
 }
 
 void App::Stop() {
@@ -691,6 +692,9 @@ void App::Update() {
         if (this->windowSpritesheet)
             this->windowSpritesheet->Update();
     }
+
+    if (this->windowConfig->open)
+        this->windowConfig->Update();
 
     this->UpdateFileDialogs();
 

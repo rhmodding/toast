@@ -22,6 +22,7 @@
 #include "window/WindowInspector.hpp"
 #include "window/WindowTimeline.hpp"
 #include "window/WindowSpritesheet.hpp"
+#include "window/WindowConfig.hpp"
 
 #define WINDOW_TITLE "Toast Beta"
 
@@ -92,6 +93,8 @@ private:
     WindowInspector* windowInspector;
     WindowTimeline* windowTimeline;
     WindowSpritesheet* windowSpritesheet;
+
+    WindowConfig* windowConfig;
 
     GLFWwindow* window{ nullptr };
 }; // class App
