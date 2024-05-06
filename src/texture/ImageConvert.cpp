@@ -442,7 +442,7 @@ bool ImageConvert::fromRGBA32(std::vector<char>& result, const TPL::TPLImageForm
     return true;
 }
 
-size_t ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, uint16_t width, uint16_t height) {
+uint32_t ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, uint16_t width, uint16_t height) {
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4:
             return width * height / 2;
