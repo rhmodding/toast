@@ -151,7 +151,7 @@ namespace Yaz0 {
         uint8_t bitsLeft{ 0 };
         uint8_t opcodeByte{ 0 };
 
-        while (destOffset <= uncompressedSize) {
+        while (destOffset < uncompressedSize) {
             // Read new opcode byte if no bits left
             if (bitsLeft == 0) {
                 Common::ReadAtOffset(dataSource, readOffset, dataSize, opcodeByte);
