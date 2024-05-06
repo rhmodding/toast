@@ -252,6 +252,13 @@ void App::Menubar() {
 
             ImGui::Separator();
 
+            if (ImGui::MenuItem((char*)ICON_FA_WRENCH " Config", "", nullptr)) {
+                this->windowConfig->open = true;
+                ImGui::SetWindowFocus("Config");
+            }
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", SCS_EXIT, nullptr))
                 this->quit = 0xFF;
 
