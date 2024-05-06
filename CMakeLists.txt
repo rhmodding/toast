@@ -33,6 +33,8 @@ set(SOURCES
     src/window/WindowInspector.cpp
     src/window/WindowSpritesheet.cpp
 
+    src/window/WindowConfig.cpp
+
     src/common.cpp
 
     src/AppState.cpp
@@ -72,6 +74,8 @@ set(HEADERS
     src/window/WindowHybridList.hpp
     src/window/WindowInspector.hpp
     src/window/WindowSpritesheet.hpp
+
+    src/window/WindowConfig.hpp
 
     src/AppState.hpp
 
