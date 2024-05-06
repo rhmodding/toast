@@ -42,7 +42,6 @@ public:
     uint8_t quit{ 0 };
 
 private:
-    void UpdateTheme();
     void SetupFonts();
 
     void BeginMainWindow(ImGuiIO& io) {

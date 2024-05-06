@@ -1,5 +1,20 @@
 #include "AppState.hpp"
 
+#include "ConfigManager.hpp"
+
+void AppState::UpdateTheme() {
+    this->darkTheme = ConfigManager::getInstance().config.darkTheme;
+
+    if (this->darkTheme) {
+        ImGui::StyleColorsDark();
+        this->windowClearColor = Common::RGBAtoImVec4(24, 24, 24, 255);
+    }
+    else {
+        ImGui::StyleColorsLight();
+        this->windowClearColor = Common::RGBAtoImVec4(248, 248, 248, 255);
+    }
+}
+
 void AppState::PlayerState::updateSetFrameCount() {
     GET_ANIMATABLE;
 

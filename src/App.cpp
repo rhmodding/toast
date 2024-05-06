@@ -153,7 +153,7 @@ App::App() {
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
 
-    this->UpdateTheme();
+    AppState::getInstance().UpdateTheme();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
@@ -209,21 +209,7 @@ void App::Stop() {
     Common::deleteIfNotNullptr(this->windowInspector);
     Common::deleteIfNotNullptr(this->windowTimeline);
     Common::deleteIfNotNullptr(this->windowSpritesheet);
-}
-
-void App::UpdateTheme() {
-    GET_APP_STATE;
-
-    appState.darkTheme = ConfigManager::getInstance().config.darkTheme;
-
-    if (appState.darkTheme) {
-        ImGui::StyleColorsDark();
-        appState.windowClearColor = Common::RGBAtoImVec4(24, 24, 24, 255);
-    }
-    else {
-        ImGui::StyleColorsLight();
-        appState.windowClearColor = Common::RGBAtoImVec4(248, 248, 248, 255);
-    }  
+    Common::deleteIfNotNullptr(this->windowConfig);
 }
 
 void App::SetupFonts() {

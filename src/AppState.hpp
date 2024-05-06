@@ -25,6 +25,8 @@ public:
     bool darkTheme{ true };
     ImVec4 windowClearColor{ Common::RGBAtoImVec4(24, 24, 24, 255) };
 
+    void UpdateTheme();
+
     struct PlayerState {
         bool loopEnabled{ false };
         bool playing{ false };
