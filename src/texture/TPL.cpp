@@ -141,55 +141,40 @@ namespace TPL {
         palette->descriptorCount = BYTESWAP_32(static_cast<uint32_t>(this->textures.size()));
         palette->descriptorsOffset = BYTESWAP_32(sizeof(TPLPalette));
 
-        uint32_t writeOffset{ sizeof(TPLPalette) };
-
+        // Write descriptors and headers
         for (uint32_t i = 0; i < this->textures.size(); i++) {
-            TPLDescriptor* descriptor = reinterpret_cast<TPLDescriptor*>(result.data() + writeOffset);
-            writeOffset += sizeof(TPLDescriptor);
-
-            descriptor->CLUTHeaderOffset = 0x00000000;
-            descriptor->textureHeaderOffset = 0x00000000;
-        }
-
-        for (uint32_t i = 0; i < this->textures.size(); i++) {
-            if (!this->textures.at(i).valid) 
-                continue;
-
             TPLDescriptor* descriptor = reinterpret_cast<TPLDescriptor*>(
                 result.data() + sizeof(TPLPalette) +
                 (sizeof(TPLDescriptor) * i)
             );
+            TPLHeader* header = reinterpret_cast<TPLHeader*>(
+                result.data() + sizeof(TPLPalette) +
+                (sizeof(TPLDescriptor) * this->textures.size()) +
+                (sizeof(TPLHeader) * i)
+            );
 
-            descriptor->textureHeaderOffset = BYTESWAP_32(writeOffset);
+            if (!this->textures.at(i).valid) {
+                // Original texture couldn't be read properly, makes no sense to write it
+                descriptor->CLUTHeaderOffset = 0x00000000;
+                descriptor->textureHeaderOffset = 0x00000000;
+                continue;
+            }
 
-            TPLHeader* header = reinterpret_cast<TPLHeader*>(result.data() + writeOffset);
-            writeOffset += sizeof(TPLHeader);
+            descriptor->CLUTHeaderOffset = 0x00000000;
+            descriptor->textureHeaderOffset = BYTESWAP_32(static_cast<uint32_t>(
+                reinterpret_cast<char*>(header) - result.data()
+            ));
 
             TPLImageFormat format = TPL_IMAGE_FORMAT_RGBA32; // TODO: add options for different format
-            bool hasPalette =
-                (format == TPL_IMAGE_FORMAT_C4) ||
-                (format == TPL_IMAGE_FORMAT_C8) ||
-                (format == TPL_IMAGE_FORMAT_C14X2);
 
-            // CLUT Header
-            TPLClutHeader* clutHeader{ nullptr };
-            if (hasPalette) {
-                result.resize(result.size() + sizeof(TPLClutHeader));
-
-                descriptor->CLUTHeaderOffset = BYTESWAP_32(writeOffset);
-
-                clutHeader = reinterpret_cast<TPLClutHeader*>(result.data() + writeOffset);
-                writeOffset += sizeof(TPLClutHeader);
-
-                // TODO: implement
-            }
+            // TODO: implement support for CLUT header writing
 
             header->width = BYTESWAP_16(this->textures.at(i).width);
             header->height = BYTESWAP_16(this->textures.at(i).height);
 
             header->format = BYTESWAP_32(TPL_IMAGE_FORMAT_RGBA32);
 
-            header->dataOffset = BYTESWAP_32(writeOffset);
+            // header->dataOffset gets set in the image data writing portion.
 
             header->wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(this->textures.at(i).wrapS));
             header->wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(this->textures.at(i).wrapT));
@@ -205,27 +190,47 @@ namespace TPL {
             header->minLOD = 0x00;
 
             header->unpacked = 0x00;
+        }
 
-            // Image Data
+        // Image data write offset
+        uint32_t writeOffset = static_cast<uint32_t>(
+            sizeof(TPLPalette) +
+            ((sizeof(TPLDescriptor) + sizeof(TPLHeader)) * this->textures.size())
+        );
+
+        // Write image data.
+        // Note: result is dynamically resized in this portion.
+        for (uint32_t i = 0; i < this->textures.size(); i++) {
+            TPLHeader* header = reinterpret_cast<TPLHeader*>(
+                result.data() + sizeof(TPLPalette) +
+                (sizeof(TPLDescriptor) * this->textures.size()) +
+                (sizeof(TPLHeader) * i)
+            );
+
+            // Align writeOffset to 64 bytes
+            writeOffset = (writeOffset + 0x3F) & ~0x3F;
+
+            // Set data offset
             header->dataOffset = BYTESWAP_32(writeOffset);
 
-            uint32_t imageSize = static_cast<uint32_t>(ImageConvert::getImageByteSize(
-                format, this->textures.at(i).width, this->textures.at(i).height
-            ));
-            result.resize(result.size() + imageSize);
+            uint32_t imageSize = ImageConvert::getImageByteSize(
+                static_cast<TPL::TPLImageFormat>(BYTESWAP_32(header->format)),
+                this->textures.at(i).width, this->textures.at(i).height
+            );
 
             std::vector<char> imageData(imageSize);
             ImageConvert::fromRGBA32(
                 imageData,
-                format,
+                static_cast<TPL::TPLImageFormat>(BYTESWAP_32(header->format)),
                 this->textures.at(i).width,
                 this->textures.at(i).height,
                 this->textures.at(i).data
             );
 
+            result.resize(writeOffset + imageSize);
             memcpy(result.data() + writeOffset, imageData.data(), imageData.size());
 
-            writeOffset += static_cast<uint32_t>(imageData.size());
+            writeOffset += imageSize;
         }
 
         return result;
