@@ -416,6 +416,7 @@ void App::Menubar() {
 void App::UpdatePopups() {
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 
+    // This doesn't need the override ID since it's launched on the same level.
     {
         SessionManager::SessionError errorCode = SessionManager::getInstance().lastSessionError;
 
@@ -502,6 +503,50 @@ void App::UpdatePopups() {
         
         ImGui::PopStyleVar();
     }
+
+
+    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+
+    {
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+        if (ImGui::BeginPopupModal("Modifying texture via image editor###DialogWaitForModifiedPNG", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Once the modified texture is ready, select the \"Ready\" option.\n To cancel, select \"Nevermind\".");
+
+            ImGui::Dummy({ 0, 15 });
+            ImGui::Separator();
+            ImGui::Dummy({ 0, 5 });
+
+            if (ImGui::Button("Ready", ImVec2(120, 0))) {
+                GET_SESSION_MANAGER;
+
+                Common::Image* newImage = new Common::Image();
+                newImage->LoadFromFile("./tmp_editTexture.png");
+
+                if (newImage->texture) {
+                    sessionManager.getCurrentSession()->getCellanimSheet()->FreeTexture();
+                    delete sessionManager.getCurrentSession()->getCellanimSheet();
+                    sessionManager.getCurrentSession()->getCellanimSheet() = newImage;
+                    
+                    sessionManager.SessionChanged();
+                }
+
+                ImGui::CloseCurrentPopup();
+            } ImGui::SetItemDefaultFocus();
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Nevermind", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
+        }
+        ImGui::PopStyleVar();
+    }
+
+    ImGui::PopID();
 }
 
 void App::UpdateFileDialogs() {
@@ -645,6 +690,31 @@ void App::UpdateFileDialogs() {
     }
 
 #pragma endregion
+
+    if (ImGuiFileDialog::Instance()->Display("DialogReplaceCurrentTexturePNG")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
+            ConfigManager::getInstance().SaveConfig();
+
+            GET_SESSION_MANAGER;
+
+            Common::Image* newImage = new Common::Image();
+            newImage->LoadFromFile(filePathName.c_str());
+
+            if (newImage->texture) {
+                sessionManager.getCurrentSession()->getCellanimSheet()->FreeTexture();
+                delete sessionManager.getCurrentSession()->getCellanimSheet();
+                sessionManager.getCurrentSession()->getCellanimSheet() = newImage;
+                
+                sessionManager.SessionChanged();
+            }
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+    }
 }
 
 void App::HandleShortcuts() {

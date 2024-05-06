@@ -8,6 +8,7 @@
 #include <cstdint>
 
 #include "imgui.h"
+#include "imgui_internal.h"
 
 // Stores instance of AppState in local appState.
 #define GET_APP_STATE AppState& appState = AppState::getInstance()
@@ -58,6 +59,8 @@ public:
         double previous{ 0.f };
         float timeLeft{ 0.f };
     } playerState;
+
+    ImGuiID globalPopupID{ ImHashStr("GlobalPopupID") };
 
     ImFont* fontNormal;
     ImFont* fontLarge;
