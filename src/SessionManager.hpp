@@ -40,7 +40,7 @@ public:
         RvlCellAnim::RvlCellAnimObject* getCellanim() {
             return this->cellanims.at(this->cellIndex);
         }
-        Common::Image* getCellanimSheet() {
+        Common::Image*& getCellanimSheet() {
             return this->cellanimSheets.at(this->cellIndex);
         }
         std::unordered_map<uint16_t, std::string>* getAnimationNames() {
