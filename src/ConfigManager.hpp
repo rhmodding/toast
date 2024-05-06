@@ -44,6 +44,7 @@ public:
         if (!file.is_open()) {
             firstTime = true;
 
+            this->ResetConfig();
             this->SaveConfig();
 
             return;
@@ -77,6 +78,10 @@ public:
 
         file << std::setw(4) << data << std::endl; // Pretty print JSON with indentation
         file.close();
+    }
+
+    void ResetConfig() {
+        config = Config{};
     }
 
 private:
