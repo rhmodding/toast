@@ -26,6 +26,13 @@ public:
         std::string imageEditorPath{ "" };
 
         std::string lastFileDialogPath{ "." };
+
+        bool operator==(const Config& other) {
+            return
+                this->darkTheme == other.darkTheme &&
+                this->imageEditorPath == other.imageEditorPath &&
+                this->lastFileDialogPath == other.lastFileDialogPath;
+        }
     } config;
 
     bool firstTime{ false };
