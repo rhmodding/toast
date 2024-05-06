@@ -92,6 +92,10 @@ namespace Common {
         bool LoadFromFile(const char* filename) {
             return LoadTextureFromFile(filename, &this->texture, &this->width, &this->height);
         }
+
+        void FreeTexture() {
+            glDeleteTextures(1, &this->texture);
+        }
     };
 }
 

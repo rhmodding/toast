@@ -368,8 +368,10 @@ void SessionManager::ClearSessionPtr(Session* session) {
         delete animationNameList;
     for (auto cellanim : session->cellanims)
         delete cellanim;
-    for (auto cellanimSheet : session->cellanimSheets)
+    for (auto cellanimSheet : session->cellanimSheets) {
+        cellanimSheet->FreeTexture();
         delete cellanimSheet;
+    }
 
     session->animationNames.clear();
     session->cellanims.clear();
