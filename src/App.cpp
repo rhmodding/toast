@@ -597,12 +597,13 @@ void App::UpdatePopups() {
                 sessionManager.SessionChanged();
 
                 ImGui::CloseCurrentPopup();
-            } ImGui::SetItemDefaultFocus();
+            }
 
             ImGui::SameLine();
 
             if (ImGui::Button("Cancel"))
                 ImGui::CloseCurrentPopup();
+            ImGui::SetItemDefaultFocus();
 
             ImGui::EndPopup();
         }
