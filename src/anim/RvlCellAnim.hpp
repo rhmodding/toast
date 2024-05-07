@@ -5,11 +5,17 @@
 #include <cstdint>
 
 namespace RvlCellAnim {
+    union Unknown32 {
+        uint32_t u32;
+        uint16_t u16[2];
+        uint8_t u8[4];
+    };
+
     struct ArrangementPart {
         uint16_t regionX, regionY;
         uint16_t regionW, regionH;
 
-        uint32_t unknown;
+        Unknown32 unknown;
 
         int16_t positionX, positionY;
 
@@ -37,7 +43,7 @@ namespace RvlCellAnim {
 
         uint8_t opacity;
 
-        uint32_t unknown;
+        Unknown32 unknown;
     };
 
     struct Animation {

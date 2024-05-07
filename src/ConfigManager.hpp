@@ -27,11 +27,14 @@ public:
 
         std::string lastFileDialogPath{ "." };
 
+        bool showUnknownValues{ false };
+
         bool operator==(const Config& other) {
             return
                 this->darkTheme == other.darkTheme &&
                 this->imageEditorPath == other.imageEditorPath &&
-                this->lastFileDialogPath == other.lastFileDialogPath;
+                this->lastFileDialogPath == other.lastFileDialogPath &&
+                this->showUnknownValues == other.showUnknownValues;
         }
     } config;
 
@@ -58,6 +61,8 @@ public:
         this->config.imageEditorPath = data["imageEditorPath"];
         
         this->config.lastFileDialogPath = data["lastFileDialogPath"];
+
+        this->config.showUnknownValues = data["showUnknownValues"];
     }
 
     void SaveConfig() {
@@ -74,6 +79,7 @@ public:
 
         data["imageEditorPath"] = this->config.imageEditorPath;
         data["lastFileDialogPath"] = this->config.lastFileDialogPath;
+        data["showUnknownValues"] = this->config.showUnknownValues;
 
         file << std::setw(4) << data << std::endl; // Pretty print JSON with indentation
         file.close();

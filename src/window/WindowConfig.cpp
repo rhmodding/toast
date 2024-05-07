@@ -69,6 +69,10 @@ void WindowConfig::Update() {
             switch (selected) {
                 // TODO: implement other categories
 
+                case Category_General: {
+                    ImGui::Checkbox("Show unknown fields/values", &this->selfConfig.showUnknownValues);
+                } break;
+
                 case Category_Theming: {
                     int currentTheme = this->selfConfig.darkTheme ? 0 : 1;
 

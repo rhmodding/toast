@@ -155,7 +155,7 @@ namespace RvlCellAnim {
 
                 arrangementPart.opacity = arrangementPartRaw->opacity;
 
-                arrangementPart.unknown = BYTESWAP_32(arrangementPartRaw->unknown_1);
+                arrangementPart.unknown.u32 = BYTESWAP_32(arrangementPartRaw->unknown_1);
 
                 arrangement.parts[j] = arrangementPart;
             }
@@ -196,7 +196,7 @@ namespace RvlCellAnim {
 
                 key.opacity = keyRaw->opacity;
 
-                key.unknown = BYTESWAP_32(keyRaw->unknown);
+                key.unknown.u32 = BYTESWAP_32(keyRaw->unknown);
 
                 animation.keys[j] = key;
             }
@@ -256,7 +256,7 @@ namespace RvlCellAnim {
 
                 arrangementPartRaw->opacity = part.opacity;
 
-                arrangementPartRaw->unknown_1 = BYTESWAP_32(part.unknown);
+                arrangementPartRaw->unknown_1 = BYTESWAP_32(part.unknown.u32);
                 arrangementPartRaw->unknown_2 = 0x00;
 
                 Common::writeBigEndianFloat(part.scaleX, arrangementPartRaw->scaleX);
@@ -309,7 +309,7 @@ namespace RvlCellAnim {
                 Common::writeBigEndianFloat(key.scaleY, animationKeyRaw->scaleY);
                 Common::writeBigEndianFloat(key.angle, animationKeyRaw->angle);
 
-                animationKeyRaw->unknown = BYTESWAP_32(key.unknown);
+                animationKeyRaw->unknown = BYTESWAP_32(key.unknown.u32);
             }
         }
     
