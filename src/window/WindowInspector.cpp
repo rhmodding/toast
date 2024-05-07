@@ -282,29 +282,31 @@ void WindowInspector::Level_Arrangement() {
 
         if (partPtr) {
             ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
+            {
+                int positionValues[2] = {
+                    partPtr->positionX - (this->realPosition ? 0 : 512),
+                    partPtr->positionY - (this->realPosition ? 0 : 512)
+                };
+                if (ImGui::DragInt2("Position XY##World", positionValues, 1.f)) {
+                    changed |= true;
 
-            int positionValues[2] = {
-                partPtr->positionX - (this->realPosition ? 0 : 512),
-                partPtr->positionY - (this->realPosition ? 0 : 512)
-            };
-            if (ImGui::DragInt2("Position XY", positionValues, 1.f)) {
-                changed |= true;
+                    partPtr->positionX = static_cast<int16_t>(
+                        positionValues[0] + (this->realPosition ? 0 : 512)
+                    );
+                    partPtr->positionY = static_cast<int16_t>(
+                        positionValues[1] + (this->realPosition ? 0 : 512)
+                    );
+                }
 
-                partPtr->positionX = static_cast<int16_t>(
-                    positionValues[0] + (this->realPosition ? 0 : 512)
-                );
-                partPtr->positionY = static_cast<int16_t>(
-                    positionValues[1] + (this->realPosition ? 0 : 512)
-                );
+                float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
+                if (ImGui::DragFloat2("Scale XY##World", scaleValues, 0.01f)) {
+                    changed |= true;
+
+                    partPtr->scaleX = scaleValues[0];
+                    partPtr->scaleY = scaleValues[1];
+                }
             }
 
-            float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
-            if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
-                changed |= true;
-
-                partPtr->scaleX = scaleValues[0];
-                partPtr->scaleY = scaleValues[1];
-            }
             changed |= ImGui::SliderFloat("Angle Z", &partPtr->angle, -360.f, 360.f, "%.1f deg");
 
             changed |= ImGui::Checkbox("Flip X", &partPtr->flipX);
@@ -313,6 +315,31 @@ void WindowInspector::Level_Arrangement() {
             ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
 
             changed |= ImGui::InputScalar("Opacity", ImGuiDataType_U8, &partPtr->opacity, &uint8_one, nullptr, "%u");
+
+            ImGui::SeparatorText((char*)ICON_FA_BORDER_TOP_LEFT " Region");
+            {
+                int positionValues[2] = {
+                    partPtr->regionX,
+                    partPtr->regionY
+                };
+                if (ImGui::DragInt2("Position XY##Region", positionValues, 1.f)) {
+                    changed |= true;
+
+                    partPtr->regionX = static_cast<uint16_t>(positionValues[0]);
+                    partPtr->regionY = static_cast<uint16_t>(positionValues[1]);
+                }
+
+                int sizeValues[2] = {
+                    partPtr->regionW,
+                    partPtr->regionH
+                };
+                if (ImGui::DragInt2("Size WH##Region", sizeValues, 1.f)) {
+                    changed |= true;
+
+                    partPtr->regionW = static_cast<uint16_t>(sizeValues[0]);
+                    partPtr->regionH = static_cast<uint16_t>(sizeValues[1]);
+                }
+            }
 
             if (ConfigManager::getInstance().config.showUnknownValues) {
                 ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
