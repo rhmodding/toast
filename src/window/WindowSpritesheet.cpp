@@ -18,6 +18,8 @@
 
 #include <ImGuiFileDialog.h>
 
+#include <filesystem>
+
 void WindowSpritesheet::Update() {
     GET_SESSION_MANAGER;
 
@@ -72,49 +74,31 @@ void WindowSpritesheet::Update() {
 
             if (ImGui::MenuItem("Edit in editing tool...", nullptr, false, imageEditorDefined)) {
                 GET_SESSION_MANAGER;
+                GET_CONFIG_MANAGER;
 
-                glBindTexture(GL_TEXTURE_2D, sessionManager.getCurrentSession()->getCellanimSheet()->texture);
+                if (sessionManager.getCurrentSession()->getCellanimSheet()->ExportToFile(configManager.config.textureEditPath.c_str())) {
+                    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+                    ImGui::OpenPopup("###DialogWaitForModifiedPNG");
+                    ImGui::PopID();
 
-                // Allocate buffer to hold texture data
-                unsigned char* data = new unsigned char[
-                    sessionManager.getCurrentSession()->getCellanimSheet()->width *
-                    sessionManager.getCurrentSession()->getCellanimSheet()->height *
-                    4
-                ]; // 4 bytes per pixel (RGBA)
+                    std::string& imageEditorPath = ConfigManager::getInstance().config.imageEditorPath;
+                    // Some apps like Photoshop complain about relative paths
+                    std::string imagePath = std::filesystem::absolute(configManager.config.textureEditPath.c_str()).string();
 
-                // Read texture data into buffer
-                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                    std::stringstream commandStream;
+                    commandStream << "cmd.exe /c \"\"" << imageEditorPath << "\" \"" << imagePath << "\"\"";
 
-                // Write buffer data to PNG file
-                stbi_write_png(
-                    "./tmp_editTexture.png",
-                    sessionManager.getCurrentSession()->getCellanimSheet()->width,
-                    sessionManager.getCurrentSession()->getCellanimSheet()->height,
-                    4,
-                    data,
-                    0
-                );
-    
-                // Clean up
-                delete[] data;
+                    std::string command = commandStream.str();
+                    std::cout << "" << command << std::endl;
 
-                ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                ImGui::OpenPopup("###DialogWaitForModifiedPNG");
-                ImGui::PopID();
-
-                std::stringstream fmtStream;
-                fmtStream << "\"" << ConfigManager::getInstance().config.imageEditorPath << "\" ";
-                fmtStream << "./tmp_editTexture.png";
-
-                // Launch program
-                {
-                    std::string command = fmtStream.str();
                     std::thread t([command]() {
-                        int returnCode = std::system(command.c_str());
-                        if (returnCode == -1)
-                            std::cerr << "[WindowSpritesheet::Update] Failed to execute image editor.\n";
+                        std::system(command.c_str());
                     });
                     t.detach();
+                } else {
+                    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+                    ImGui::OpenPopup("###DialogPNGExportFailed");
+                    ImGui::PopID();
                 }
             }
             if (ImGui::MenuItem("Replace with PNG file...", nullptr, false)) {

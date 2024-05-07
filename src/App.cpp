@@ -568,6 +568,25 @@ void App::UpdatePopups() {
         ImGui::PopStyleVar();
     }
 
+    // ###DialogPNGExportFailed
+    {
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+        if (ImGui::BeginPopupModal("There was an error exporting the texture.###DialogPNGExportFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::TextUnformatted("The texture could not be written to the PNG file.\nPlease check the path set in the config.");
+
+            ImGui::Dummy({0, 5});
+
+            if (ImGui::Button("Alright", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+            ImGui::SetItemDefaultFocus();
+
+            ImGui::EndPopup();
+        }
+        ImGui::PopStyleVar();
+    }
+
     // ###ConfirmFreeModifiedSession
     {
         GET_SESSION_MANAGER;
