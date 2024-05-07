@@ -140,10 +140,10 @@ void WindowInspector::Level_Key() {
     {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
-        ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex);
+        ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex+1);
 
         ImGui::PushFont(appState.fontLarge);
-        ImGui::TextWrapped("Key no. %u", globalAnimatable->getCurrentKeyIndex());
+        ImGui::TextWrapped("Key no. %u", globalAnimatable->getCurrentKeyIndex()+1);
         ImGui::PopFont();
 
         ImGui::PopStyleVar();
@@ -226,13 +226,18 @@ void WindowInspector::Level_Arrangement() {
             ImGui::PopFont();
 
             ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-            ImGui::InputScalar(
+            
+            uint16_t arrangementNumber = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
+            if (ImGui::InputScalar(
                 "##ArrangementInput",
                 ImGuiDataType_U16,
-                &globalAnimatable->getCurrentKey()->arrangementIndex,
+                &arrangementNumber,
                 nullptr, nullptr,
                 "%u"
-            );
+            )) {
+                uint16_t newIndex = std::clamp<uint16_t>(arrangementNumber, 1, static_cast<uint16_t>(globalAnimatable->cellanim->arrangements.size())) - 1;
+                globalAnimatable->getCurrentKey()->arrangementIndex = newIndex;
+            }
 
             const float buttonSize = ImGui::GetFrameHeight();
             const float xInnerSpacing = ImGui::GetStyle().ItemInnerSpacing.x;
