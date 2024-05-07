@@ -10,6 +10,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "stb/stb_image_write.h"
+
 #include "imgui.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -95,6 +97,35 @@ namespace Common {
 
         void FreeTexture() {
             glDeleteTextures(1, &this->texture);
+        }
+
+        bool ExportToFile(const char* filename) {
+            if (!this->texture)
+                return false;
+
+            glBindTexture(GL_TEXTURE_2D, this->texture);
+
+            unsigned char* data = new unsigned char[
+                this->width *
+                this->height *
+                4
+            ]; // 4 bytes per pixel (RGBA)
+
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+            // Write buffer data to PNG file
+            int write = stbi_write_png(
+                filename,
+                this->width,
+                this->height,
+                4,
+                data,
+                0
+            );
+
+            delete[] data;
+
+            return write > 0;
         }
     };
 }
