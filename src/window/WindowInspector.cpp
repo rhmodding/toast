@@ -253,7 +253,7 @@ void WindowInspector::Level_Arrangement() {
             }
             ImGui::SameLine(0.f, xInnerSpacing);
             if (ImGui::Button("+##ArrangementInputAdd", ImVec2(buttonSize, buttonSize))) {
-                if (globalAnimatable->getCurrentKey()->arrangementIndex < 65535) {
+                if (globalAnimatable->getCurrentKey()->arrangementIndex < globalAnimatable->cellanim->arrangements.size()) {
                     globalAnimatable->getCurrentKey()->arrangementIndex++;
 
                     RvlCellAnim::Arrangement* arrangementPtr =
