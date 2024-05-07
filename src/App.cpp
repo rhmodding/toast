@@ -436,7 +436,8 @@ void App::UpdatePopups() {
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 
     // ###SessionOpenErr
-    // This doesn't need the override ID since it's launched on the same level.
+    // ###SessionOutErr
+    // These don't need the override ID since they're launched on the same level.
     {
         SessionManager::SessionError errorCode = SessionManager::getInstance().lastSessionError;
 
