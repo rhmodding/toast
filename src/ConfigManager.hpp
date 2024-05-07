@@ -58,8 +58,6 @@ public:
         this->config.imageEditorPath = data["imageEditorPath"];
         
         this->config.lastFileDialogPath = data["lastFileDialogPath"];
-
-        std::cout << this->config.imageEditorPath << "\n";
     }
 
     void SaveConfig() {
