@@ -612,18 +612,18 @@ void App::UpdatePopups() {
             ImGui::Separator();
             ImGui::Dummy({ 0, 5 });
 
+            if (ImGui::Button("Cancel"))
+                ImGui::CloseCurrentPopup();
+            ImGui::SetItemDefaultFocus();
+
+            ImGui::SameLine();
+
             if (ImGui::Button("Close without saving")) {
                 sessionManager.FreeSessionIndex(sessionManager.sessionClosing);
                 sessionManager.SessionChanged();
 
                 ImGui::CloseCurrentPopup();
             }
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("Cancel"))
-                ImGui::CloseCurrentPopup();
-            ImGui::SetItemDefaultFocus();
 
             ImGui::EndPopup();
         }
