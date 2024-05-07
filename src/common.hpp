@@ -123,6 +123,9 @@ namespace Common {
                 0
             );
 
+            if (!write)
+                std::cerr << "[Common::Image::ExportToFile] Failed to write PNG to path: " << filename << '\n';
+
             delete[] data;
 
             return write > 0;

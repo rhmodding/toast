@@ -42,8 +42,10 @@ namespace Common {
         int imageHeight{ 0 };
 
         unsigned char* imagePtr = stbi_load(filename, &imageWidth, &imageHeight, nullptr, 4);
-        if (imagePtr == nullptr)
+        if (imagePtr == nullptr) {
+            std::cerr << "[Common::LoadTextureFromFile] Failed to load image from path: " << filename << '\n';
             return false;
+        }
 
         // Create a OpenGL texture identifier
         GLuint imageTexture;
