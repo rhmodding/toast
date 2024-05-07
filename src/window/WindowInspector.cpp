@@ -45,6 +45,8 @@ void WindowInspector::Level_Animation() {
     GET_ANIMATABLE;
     GET_SESSION_MANAGER;
 
+    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
+
     DrawPreview(appState, globalAnimatable);
 
     ImGui::SameLine();
@@ -97,6 +99,8 @@ void WindowInspector::Level_Animation() {
         ImGui::Dummy({ 0, 5 });
 
         if (ImGui::Button("OK", ImVec2(120, 0))) {
+            changed |= true;
+
             query->second = newMacroName;
             ImGui::CloseCurrentPopup();
         } ImGui::SetItemDefaultFocus();
@@ -115,6 +119,8 @@ void WindowInspector::Level_Key() {
     GET_APP_STATE;
     GET_ANIMATABLE;
     GET_SESSION_MANAGER;
+
+    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
     DrawPreview(appState, globalAnimatable);
 
@@ -145,10 +151,12 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((char*)ICON_FA_KEY " Properties");
 
-    ImGui::InputScalar("Arrangement Index", ImGuiDataType_U16, &animKey->arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+    changed |= ImGui::InputScalar("Arrangement Index", ImGuiDataType_U16, &animKey->arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
     uint16_t holdFrames = animKey->holdFrames;
     if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+        changed |= true;
+
         if (holdFrames <= 1)
             animKey->holdFrames = 1;
         else
@@ -159,19 +167,23 @@ void WindowInspector::Level_Key() {
 
     float scaleValues[2] = { animKey->scaleX, animKey->scaleY };
     if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
+        changed |= true;
+
         animKey->scaleX = scaleValues[0];
         animKey->scaleY = scaleValues[1];
     }
-    ImGui::SliderFloat("Angle Z", &animKey->angle, -360.f, 360.f, "%.1f deg");
+    changed |= ImGui::SliderFloat("Angle Z", &animKey->angle, -360.f, 360.f, "%.1f deg");
 
     ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
 
-    ImGui::InputScalar("Opacity", ImGuiDataType_U8, &animKey->opacity, &uint8_one, nullptr, "%u");
+    changed |= ImGui::InputScalar("Opacity", ImGuiDataType_U8, &animKey->opacity, &uint8_one, nullptr, "%u");
 }
 
 void WindowInspector::Level_Arrangement() {
     GET_APP_STATE;
     GET_ANIMATABLE;
+
+    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
@@ -248,6 +260,8 @@ void WindowInspector::Level_Arrangement() {
                 partPtr->positionY - (this->realPosition ? 0 : 512)
             };
             if (ImGui::DragInt2("Position XY", positionValues, 1.f)) {
+                changed |= true;
+
                 partPtr->positionX = static_cast<int16_t>(
                     positionValues[0] + (this->realPosition ? 0 : 512)
                 );
@@ -258,17 +272,19 @@ void WindowInspector::Level_Arrangement() {
 
             float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
             if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
+                changed |= true;
+
                 partPtr->scaleX = scaleValues[0];
                 partPtr->scaleY = scaleValues[1];
             }
-            ImGui::SliderFloat("Angle Z", &partPtr->angle, -360.f, 360.f, "%.1f deg");
+            changed |= ImGui::SliderFloat("Angle Z", &partPtr->angle, -360.f, 360.f, "%.1f deg");
 
-            ImGui::Checkbox("Flip X", &partPtr->flipX);
-            ImGui::Checkbox("Flip Y", &partPtr->flipY);
+            changed |= ImGui::Checkbox("Flip X", &partPtr->flipX);
+            changed |= ImGui::Checkbox("Flip Y", &partPtr->flipY);
 
             ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
 
-            ImGui::InputScalar("Opacity", ImGuiDataType_U8, &partPtr->opacity, &uint8_one, nullptr, "%u");
+            changed |= ImGui::InputScalar("Opacity", ImGuiDataType_U8, &partPtr->opacity, &uint8_one, nullptr, "%u");
         } else {
             ImGui::Text("No part selected.");
         }
@@ -304,6 +320,8 @@ void WindowInspector::Level_Arrangement() {
             ImGui::SameLine();
             ImGui::SetCursorPosX(basePositionX - firstButtonWidth - ImGui::GetStyle().ItemSpacing.x);
             if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
+                changed |= true;
+
                 uint16_t nSwap = n + 1;
                 if (nSwap >= 0 && nSwap < arrangementPtr->parts.size()) {
                     std::swap(arrangementPtr->parts.at(n), arrangementPtr->parts.at(nSwap));
@@ -313,6 +331,8 @@ void WindowInspector::Level_Arrangement() {
             ImGui::SameLine();
             ImGui::SetCursorPosX(basePositionX);
             if (ImGui::SmallButton((char*) ICON_FA_ARROW_DOWN "")) {
+                changed |= true;
+
                 uint16_t nSwap = n - 1;
                 if (nSwap >= 0 && nSwap < arrangementPtr->parts.size()) {
                     std::swap(arrangementPtr->parts.at(n), arrangementPtr->parts.at(nSwap));

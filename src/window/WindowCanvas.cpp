@@ -5,6 +5,8 @@
 
 #include <math.h>
 
+#include "../SessionManager.hpp"
+
 bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
     double x = point.x, y = point.y;
     bool inside = false;
@@ -167,6 +169,8 @@ void WindowCanvas::Menubar() {
 }
 
 void WindowCanvas::Update() {
+    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
     ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_MenuBar);
     ImGui::PopStyleVar();
@@ -268,6 +272,8 @@ void WindowCanvas::Update() {
             );
         }
         else {
+            changed |= true;
+
             arrangementPtr->parts.at(appState.selectedPart).positionX = static_cast<int16_t>(dragPartOffset.x);
             arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
         }

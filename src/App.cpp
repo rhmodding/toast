@@ -364,7 +364,10 @@ void App::Menubar() {
                     ImGui::BeginTabItem(
                         sessionManager.sessionList.at(n).mainPath.c_str(),
                         &sessionOpen,
-                        ImGuiTabItemFlags_None
+                        ImGuiTabItemFlags_None | (
+                            sessionManager.sessionList.at(n).modified ?
+                            ImGuiTabItemFlags_UnsavedDocument : 0
+                        )
                     )
                 ) {
                     if (sessionManager.currentSession != n) {
@@ -407,8 +410,17 @@ void App::Menubar() {
                 }
 
                 if (!sessionOpen && sessionManager.sessionList.at(n).open) {
-                    sessionManager.FreeSessionIndex(n);
-                    sessionManager.SessionChanged();
+                    sessionManager.sessionClosing = n;
+
+                    if (sessionManager.sessionList.at(n).modified) {
+                        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+                        ImGui::OpenPopup("###ConfirmFreeModifiedSession");
+                        ImGui::PopID();
+                    }
+                    else {
+                        sessionManager.FreeSessionIndex(n);
+                        sessionManager.SessionChanged();
+                    }
                 }
 
                 ImGui::PopID();
@@ -423,6 +435,7 @@ void App::Menubar() {
 void App::UpdatePopups() {
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 
+    // ###SessionOpenErr
     // This doesn't need the override ID since it's launched on the same level.
     {
         SessionManager::SessionError errorCode = SessionManager::getInstance().lastSessionError;
@@ -511,11 +524,10 @@ void App::UpdatePopups() {
         ImGui::PopStyleVar();
     }
 
-
     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
 
+    // ###DialogWaitForModifiedPNG
     {
-        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
@@ -533,6 +545,8 @@ void App::UpdatePopups() {
                 newImage->LoadFromFile("./tmp_editTexture.png");
 
                 if (newImage->texture) {
+                    SessionManager::getInstance().getCurrentSessionModified() |= true;
+
                     sessionManager.getCurrentSession()->getCellanimSheet()->FreeTexture();
                     delete sessionManager.getCurrentSession()->getCellanimSheet();
                     sessionManager.getCurrentSession()->getCellanimSheet() = newImage;
@@ -546,6 +560,48 @@ void App::UpdatePopups() {
             ImGui::SameLine();
 
             if (ImGui::Button("Nevermind", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
+        }
+        ImGui::PopStyleVar();
+    }
+
+    // ###ConfirmFreeModifiedSession
+    {
+        GET_SESSION_MANAGER;
+
+        std::string popupTitle =
+            sessionManager.sessionClosing < sessionManager.sessionList.size() ?
+            sessionManager.sessionList.at(sessionManager.sessionClosing).mainPath :
+            "Confirm";
+
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+        if (ImGui::BeginPopupModal((
+            popupTitle +
+            "###ConfirmFreeModifiedSession"
+        ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            // -50 to account for window padding
+            ImGui::Dummy({ ImGui::CalcTextSize(popupTitle.c_str()).x - 40, 0 });
+
+            ImGui::Text("Are you sure you want to close this session?\nYour changes will be lost.");
+
+            ImGui::Dummy({ 0, 15 });
+            ImGui::Separator();
+            ImGui::Dummy({ 0, 5 });
+
+            if (ImGui::Button("Close without saving")) {
+                sessionManager.FreeSessionIndex(sessionManager.sessionClosing);
+                sessionManager.SessionChanged();
+
+                ImGui::CloseCurrentPopup();
+            } ImGui::SetItemDefaultFocus();
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel"))
                 ImGui::CloseCurrentPopup();
 
             ImGui::EndPopup();

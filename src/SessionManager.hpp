@@ -46,16 +46,25 @@ public:
         std::unordered_map<uint16_t, std::string>* getAnimationNames() {
             return this->animationNames.at(this->cellIndex);
         }
+
+        bool modified{ false };
     };
     std::deque<Session> sessionList;
 
     int32_t currentSession{ -1 };
+
+    // Current session being closed. Used for closing while modified warning.
+    int32_t sessionClosing{ -1 };
 
     Session* getCurrentSession() {
         if (this->currentSession >= 0)
             return &this->sessionList.at(this->currentSession);
         
         return nullptr;
+    }
+
+    bool& getCurrentSessionModified() {
+        return this->getCurrentSession()->modified;
     }
 
     void SessionChanged();
