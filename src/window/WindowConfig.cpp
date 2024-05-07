@@ -117,6 +117,7 @@ void WindowConfig::Update() {
 
                 case Category_Paths: {
                     CPPSTRING_InputText("Image editor path", &this->selfConfig.imageEditorPath);
+                    CPPSTRING_InputText("Texture edit path", &this->selfConfig.textureEditPath);
                 } break;
                 
                 default:

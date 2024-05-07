@@ -25,6 +25,8 @@ public:
 
         std::string imageEditorPath{ "" };
 
+        std::string textureEditPath{ "./toastEditTexture.temp.png" };
+
         std::string lastFileDialogPath{ "." };
 
         bool showUnknownValues{ false };
@@ -33,6 +35,7 @@ public:
             return
                 this->darkTheme == other.darkTheme &&
                 this->imageEditorPath == other.imageEditorPath &&
+                this->textureEditPath == other.textureEditPath &&
                 this->lastFileDialogPath == other.lastFileDialogPath &&
                 this->showUnknownValues == other.showUnknownValues;
         }
@@ -59,7 +62,7 @@ public:
         this->config.darkTheme = data["theme"] != "light";
 
         this->config.imageEditorPath = data["imageEditorPath"];
-        
+        this->config.textureEditPath = data["textureEditPath"];
         this->config.lastFileDialogPath = data["lastFileDialogPath"];
 
         this->config.showUnknownValues = data["showUnknownValues"];
@@ -78,7 +81,9 @@ public:
         data["theme"] = this->config.darkTheme ? "dark" : "light";
 
         data["imageEditorPath"] = this->config.imageEditorPath;
+        data["textureEditPath"] = this->config.textureEditPath;
         data["lastFileDialogPath"] = this->config.lastFileDialogPath;
+
         data["showUnknownValues"] = this->config.showUnknownValues;
 
         file << std::setw(4) << data << std::endl; // Pretty print JSON with indentation
