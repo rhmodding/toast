@@ -34,7 +34,7 @@ public:
         int lastWindowWidth{ 1500 };
         int lastWindowHeight{ 780 };
 
-        bool operator==(const Config& other) {
+        bool operator==(const Config& other) const {
             return
                 this->darkTheme == other.darkTheme &&
                 this->imageEditorPath == other.imageEditorPath &&
