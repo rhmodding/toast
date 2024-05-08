@@ -5,6 +5,7 @@
 
 #include <string>
 
+#undef NDEBUG
 #include <assert.h>
 
 #include "../common.hpp"

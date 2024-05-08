@@ -1,5 +1,6 @@
 #include "Animatable.hpp"
 
+#undef NDEBUG
 #include <assert.h>
 
 #include "../AppState.hpp"

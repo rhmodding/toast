@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cstring>
 
+#undef NDEBUG
 #include <assert.h>
 
 #include <GLFW/glfw3.h>
