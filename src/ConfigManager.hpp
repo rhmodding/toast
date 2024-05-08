@@ -31,13 +31,18 @@ public:
 
         bool showUnknownValues{ false };
 
+        int lastWindowWidth{ 1500 };
+        int lastWindowHeight{ 780 };
+
         bool operator==(const Config& other) {
             return
                 this->darkTheme == other.darkTheme &&
                 this->imageEditorPath == other.imageEditorPath &&
                 this->textureEditPath == other.textureEditPath &&
                 this->lastFileDialogPath == other.lastFileDialogPath &&
-                this->showUnknownValues == other.showUnknownValues;
+                this->showUnknownValues == other.showUnknownValues &&
+                this->lastWindowWidth == other.lastWindowWidth &&
+                this->lastWindowHeight == other.lastWindowHeight;
         }
     } config;
 
@@ -66,6 +71,9 @@ public:
         this->config.lastFileDialogPath = data["lastFileDialogPath"];
 
         this->config.showUnknownValues = data["showUnknownValues"];
+
+        this->config.lastWindowWidth = data["lastWindowWidth"];
+        this->config.lastWindowHeight = data["lastWindowHeight"];
     }
 
     void SaveConfig() {
@@ -85,6 +93,9 @@ public:
         data["lastFileDialogPath"] = this->config.lastFileDialogPath;
 
         data["showUnknownValues"] = this->config.showUnknownValues;
+
+        data["lastWindowWidth"] = this->config.lastWindowWidth;
+        data["lastWindowHeight"] = this->config.lastWindowHeight;
 
         file << std::setw(4) << data << std::endl; // Pretty print JSON with indentation
         file.close();

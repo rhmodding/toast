@@ -125,12 +125,29 @@ App::App() {
         // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
     #endif
 
-    this->window = glfwCreateWindow(1280, 720, WINDOW_TITLE, nullptr, nullptr);
+    // Config
+    GET_CONFIG_MANAGER;
+    configManager.LoadConfig();
+
+    this->window = glfwCreateWindow(
+        configManager.config.lastWindowWidth,
+        configManager.config.lastWindowHeight,
+        WINDOW_TITLE,
+        nullptr, nullptr
+    );
     assert(this->window);
 
     gAppPtr = this;
     glfwSetWindowCloseCallback(this->window, [](GLFWwindow* window) {
-        std::cout << "Window close callback\n";
+        int windowWidth, windowHeight;
+        glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+        GET_CONFIG_MANAGER;
+
+        configManager.config.lastWindowWidth = windowWidth;
+        configManager.config.lastWindowHeight = windowHeight;
+
+        configManager.SaveConfig();
 
         extern App* gAppPtr;
         gAppPtr->quit = 0xFF;
@@ -138,9 +155,6 @@ App::App() {
 
     glfwMakeContextCurrent(this->window);
     glfwSwapInterval(1); // Enable vsync
-
-    // Config
-    ConfigManager::getInstance().LoadConfig();
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
