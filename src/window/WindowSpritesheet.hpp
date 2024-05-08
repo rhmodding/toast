@@ -25,6 +25,8 @@ public:
     bool drawBounding{ true };
 
 private:
+
+    void RunEditor();
 };
 
 #endif // WINDOWSPRITESHEET_HPP

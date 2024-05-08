@@ -20,6 +20,26 @@
 
 #include <filesystem>
 
+void WindowSpritesheet::RunEditor() {
+    GET_CONFIG_MANAGER;
+
+    // Some apps like Photoshop complain about relative paths
+    std::string imagePath = std::filesystem::absolute(configManager.config.textureEditPath.c_str()).string();
+
+    std::stringstream commandStream;
+    commandStream <<
+        "cmd.exe /c \"\"" <<
+        configManager.config.imageEditorPath <<
+        "\" \"" << imagePath << "\"\"";
+
+    std::string command = commandStream.str();
+    std::cout << "[WindowSpritesheet::RunEditor] Running command: " << command << std::endl;
+
+    std::thread t([command]() {
+        std::system(command.c_str());
+    }); t.detach();
+}
+
 void WindowSpritesheet::Update() {
     GET_SESSION_MANAGER;
 
@@ -81,20 +101,7 @@ void WindowSpritesheet::Update() {
                     ImGui::OpenPopup("###DialogWaitForModifiedPNG");
                     ImGui::PopID();
 
-                    std::string& imageEditorPath = ConfigManager::getInstance().config.imageEditorPath;
-                    // Some apps like Photoshop complain about relative paths
-                    std::string imagePath = std::filesystem::absolute(configManager.config.textureEditPath.c_str()).string();
-
-                    std::stringstream commandStream;
-                    commandStream << "cmd.exe /c \"\"" << imageEditorPath << "\" \"" << imagePath << "\"\"";
-
-                    std::string command = commandStream.str();
-                    std::cout << "" << command << std::endl;
-
-                    std::thread t([command]() {
-                        std::system(command.c_str());
-                    });
-                    t.detach();
+                    this->RunEditor();
                 } else {
                     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
                     ImGui::OpenPopup("###DialogPNGExportFailed");
