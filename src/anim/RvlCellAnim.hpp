@@ -14,20 +14,20 @@ namespace RvlCellAnim {
     };
 
     struct ArrangementPart {
-        uint16_t regionX, regionY;
-        uint16_t regionW, regionH;
+        uint16_t regionX{ 0 }, regionY{ 0 };
+        uint16_t regionW{ 0 }, regionH{ 0 };
 
         Unknown32 unknown;
 
-        int16_t positionX, positionY;
+        int16_t positionX{ 512 }, positionY{ 512 };
 
-        float scaleX, scaleY;
+        float scaleX{ 1.f }, scaleY{ 1.f };
 
-        float angle;
+        float angle{ 0.f };
 
-        bool flipX, flipY;
+        bool flipX{ false }, flipY{ false };
 
-        uint8_t opacity;
+        uint8_t opacity{ 0xFFu };
     };
 
     struct Arrangement {
