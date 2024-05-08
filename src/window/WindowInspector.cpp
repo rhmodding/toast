@@ -154,7 +154,18 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((char*)ICON_FA_KEY " Properties");
 
-    changed |= ImGui::InputScalar("Arrangement Index", ImGuiDataType_U16, &animKey->arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+    uint16_t arrangementIndex = animKey->arrangementIndex;
+    if (ImGui::InputScalar("Arrangement Index", ImGuiDataType_U16, &arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+        changed |= true;
+
+        animKey->arrangementIndex = std::clamp<uint16_t>(
+            arrangementIndex,
+            0,
+            static_cast<uint16_t>(
+                globalAnimatable->cellanim->arrangements.size() - 1
+            )
+        );
+    }
 
     uint16_t holdFrames = animKey->holdFrames;
     if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -258,7 +269,7 @@ void WindowInspector::Level_Arrangement() {
             }
             ImGui::SameLine(0.f, xInnerSpacing);
             if (ImGui::Button("+##ArrangementInputAdd", ImVec2(buttonSize, buttonSize))) {
-                if (globalAnimatable->getCurrentKey()->arrangementIndex < globalAnimatable->cellanim->arrangements.size()) {
+                if ((globalAnimatable->getCurrentKey()->arrangementIndex + 1) < globalAnimatable->cellanim->arrangements.size()) {
                     globalAnimatable->getCurrentKey()->arrangementIndex++;
 
                     RvlCellAnim::Arrangement* arrangementPtr =
