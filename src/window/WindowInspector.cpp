@@ -387,6 +387,48 @@ void WindowInspector::Level_Arrangement() {
             if (ImGui::Selectable(buffer, appState.selectedPart == n))
                 appState.selectedPart = n;
 
+            bool deletePart{ false };
+            if (ImGui::BeginPopupContextItem()) {
+                ImGui::TextUnformatted(buffer);
+                ImGui::Separator();
+
+                if (ImGui::Selectable("Insert new part above")) {
+                    RvlCellAnim::ArrangementPart newPart;
+
+                    auto it = arrangementPtr->parts.begin() + n + 1;
+                    arrangementPtr->parts.insert(it, newPart);
+
+                    appState.selectedPart = n + 1;
+                }
+                if (ImGui::Selectable("Insert new part below")) {
+                    RvlCellAnim::ArrangementPart newPart;
+
+                    auto it = arrangementPtr->parts.begin() + n;
+                    arrangementPtr->parts.insert(it, newPart);
+
+                    appState.selectedPart = n;
+                };
+
+                ImGui::Separator();
+                if (ImGui::Selectable("Delete part", false, ImGuiSelectableFlags_DontClosePopups))
+                    ImGui::OpenPopup("###DeletePartConfirm");
+
+                if (ImGui::BeginPopup("Are you sure?###DeletePartConfirm")) {
+                    ImGui::Text("Are you sure you want to\ndelete this part?", n);
+                    ImGui::Separator();
+                    if (ImGui::Selectable("Do it"))
+                        deletePart = true;
+                    ImGui::Selectable("Nevermind");
+
+                    ImGui::EndPopup();
+                }
+
+                if (deletePart)
+                    ImGui::CloseCurrentPopup();
+
+                ImGui::EndPopup();
+            }
+
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6, ImGui::GetStyle().ItemSpacing.y });
 
             float firstButtonWidth = ImGui::CalcTextSize((char*) ICON_FA_ARROW_DOWN "").x + (ImGui::GetStyle().FramePadding.x * 2);
@@ -418,7 +460,24 @@ void WindowInspector::Level_Arrangement() {
             ImGui::PopStyleVar();
 
             ImGui::PopID();
+
+            if (deletePart) {
+                auto it = arrangementPtr->parts.begin() + n;
+                arrangementPtr->parts.erase(it);
+
+                appState.selectedPart = std::clamp<int32_t>(
+                    appState.selectedPart,
+                    -1,
+                    static_cast<int32_t>(arrangementPtr->parts.size() - 1)
+                );
+            }
         }
+    
+        if (
+            (arrangementPtr->parts.size() == 0) &&
+            ImGui::Selectable("Click here to create a new part.")
+        )
+            arrangementPtr->parts.push_back(RvlCellAnim::ArrangementPart());
     }
     ImGui::EndChild();
 }
