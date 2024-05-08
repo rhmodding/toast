@@ -4,6 +4,8 @@
 #include <vector>
 #include <optional>
 
+#include <cstdint>
+
 namespace Yaz0 {
     std::optional<std::vector<char>> decompress(const char* compressedData, const size_t dataSize);
 
