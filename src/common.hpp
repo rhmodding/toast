@@ -113,6 +113,8 @@ namespace Common {
 
             glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
+            glBindTexture(GL_TEXTURE_2D, 0);
+
             // Write buffer data to PNG file
             int write = stbi_write_png(
                 filename,
