@@ -11,6 +11,8 @@
 
 #include "common.hpp"
 
+#include <filesystem>
+
 GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
     GLuint imageTexture;
     
@@ -240,6 +242,9 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
     newSession.animationNames.push_back(animationNames);
     newSession.cellanims.push_back(cellanim);
     newSession.cellanimSheets.push_back(image);
+
+    std::filesystem::path filePath(paths[0]);
+    newSession.cellNames.push_back(filePath.filename().string());
 
     this->sessionList.push_back(newSession);
 
