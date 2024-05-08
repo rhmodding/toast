@@ -109,20 +109,32 @@ target_include_directories(toast PRIVATE
 
 # Link directories
 IF (APPLE) # macOS
-    target_link_directories(toast PRIVATE
-        /usr/local/Cellar/glfw/3.3.8/lib
+    target_include_directories(toast PRIVATE
+        libs/glfw3-apple/include
     )
-ELSE() # Generic
     target_link_directories(toast PRIVATE
-        libs/glfw/lib-vc2010-64
+        libs/glfw3-win64/lib-universal
     )
+ELSEIF (WIN32) # Windows
+    target_include_directories(toast PRIVATE
+        libs/glfw3-win64/include
+    )
+    IF (MSVC)
+        target_link_directories(toast PRIVATE
+            libs/glfw3-win64/lib-vc2022
+        )
+    ELSE()
+        target_link_directories(toast PRIVATE
+            libs/glfw3-win64/lib-mingw-w64
+        )
+    ENDIF()
 ENDIF()
 
 # Link libraries
 IF (WIN32) # Windows
     target_link_libraries(toast PRIVATE
-        opengl32.lib
-        glfw3.lib
+        glfw3
+        opengl32
     )
 ELSEIF(APPLE) # macOS
     target_link_libraries(toast PRIVATE
@@ -138,6 +150,8 @@ ELSE() # Generic
         glfw
     )
 ENDIF()
+
+target_link_libraries(toast PRIVATE -static)
 
 # Link directory for Linux
 IF (UNIX AND NOT APPLE) # Linux
