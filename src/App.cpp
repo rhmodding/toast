@@ -557,7 +557,7 @@ void App::UpdatePopups() {
                 GET_SESSION_MANAGER;
 
                 Common::Image* newImage = new Common::Image();
-                newImage->LoadFromFile("./tmp_editTexture.png");
+                newImage->LoadFromFile(ConfigManager::getInstance().config.textureEditPath.c_str());
 
                 if (newImage->texture) {
                     SessionManager::getInstance().getCurrentSessionModified() |= true;
