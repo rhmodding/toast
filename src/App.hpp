@@ -49,7 +49,7 @@ public:
 private:
     void SetupFonts();
 
-    void BeginMainWindow(ImGuiIO& io) {
+    void BeginMainWindow() {
         ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode;
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
@@ -75,7 +75,7 @@ private:
         ImGui::PopStyleVar(3);
 
         // Submit the Dockspace
-        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
             ImGuiID dockspaceId = ImGui::GetID("mainDockspace");
             ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), dockspaceFlags);
 

@@ -859,7 +859,7 @@ void App::Update() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    this->BeginMainWindow(io);
+    this->BeginMainWindow();
     this->Menubar();
 
     this->HandleShortcuts();
