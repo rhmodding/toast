@@ -113,7 +113,7 @@ IF (APPLE) # macOS
         libs/glfw3-apple/include
     )
     target_link_directories(toast PRIVATE
-        libs/glfw3-win64/lib-universal
+        libs/glfw3-apple/lib-universal
     )
 ELSEIF (WIN32) # Windows
     target_include_directories(toast PRIVATE
@@ -135,23 +135,25 @@ IF (WIN32) # Windows
     target_link_libraries(toast PRIVATE
         glfw3
         opengl32
+
+        -static
     )
 ELSEIF(APPLE) # macOS
     target_link_libraries(toast PRIVATE
+        glfw3
         "-framework OpenGL"
         "-framework Cocoa"
         "-framework IOKit"
         "-framework CoreFoundation"
-        glfw
     )
 ELSE() # Generic
     target_link_libraries(toast PRIVATE
         GL
         glfw
+
+        -static
     )
 ENDIF()
-
-target_link_libraries(toast PRIVATE -static)
 
 # Link directory for Linux
 IF (UNIX AND NOT APPLE) # Linux
