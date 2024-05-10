@@ -365,6 +365,8 @@ int32_t SessionManager::ExportSessionArc(Session* session, const char* outPath) 
         return -1;
     }
 
+    session->modified = false;
+
     return 0;
 }
 
