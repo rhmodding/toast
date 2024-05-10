@@ -188,7 +188,10 @@ App::App() {
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
 
-    AppState::getInstance().UpdateTheme();
+    GET_APP_STATE;
+
+    appState.UpdateTheme();
+    appState.UpdateUpdateRate();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
