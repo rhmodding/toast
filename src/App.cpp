@@ -204,7 +204,9 @@ App::App() {
     this->windowInspector = new WindowInspector;
     this->windowTimeline = new WindowTimeline;
     this->windowSpritesheet = new WindowSpritesheet;
+
     this->windowConfig = new WindowConfig;
+    this->windowAbout = new WindowAbout;
 }
 
 void App::Stop() {
@@ -225,6 +227,7 @@ void App::Stop() {
     Common::deleteIfNotNullptr(this->windowTimeline);
     Common::deleteIfNotNullptr(this->windowSpritesheet);
     Common::deleteIfNotNullptr(this->windowConfig);
+    Common::deleteIfNotNullptr(this->windowAbout);
 }
 
 void App::SetupFonts() {
