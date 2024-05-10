@@ -67,18 +67,32 @@ public:
         json data = json::parse(file);
         file.close();
 
-        this->config.darkTheme = data["theme"] != "light";
+        this->config.darkTheme = data.value("theme", "dark") != "light";
+        
+        this->config.imageEditorPath = data.value(
+            "imageEditorPath", this->config.imageEditorPath
+        );
+        this->config.textureEditPath = data.value(
+            "textureEditPath", this->config.textureEditPath
+        );
+        this->config.lastFileDialogPath = data.value(
+            "lastFileDialogPath", this->config.lastFileDialogPath
+        );
 
-        this->config.imageEditorPath = data["imageEditorPath"];
-        this->config.textureEditPath = data["textureEditPath"];
-        this->config.lastFileDialogPath = data["lastFileDialogPath"];
+        this->config.showUnknownValues = data.value(
+            "showUnknownValues", this->config.showUnknownValues
+        );
 
-        this->config.showUnknownValues = data["showUnknownValues"];
+        this->config.lastWindowHeight = data.value(
+            "lastWindowHeight", this->config.lastWindowHeight
+        );
+        this->config.lastWindowWidth = data.value(
+            "lastWindowWidth", this->config.lastWindowWidth
+        );
 
-        this->config.lastWindowHeight = data["lastWindowHeight"];
-        this->config.lastWindowWidth = data["lastWindowWidth"];
-
-        this->config.updateRate = data["updateRate"];
+        this->config.updateRate = data.value(
+            "updateRate", this->config.updateRate
+        );
     }
 
     void SaveConfig() {
