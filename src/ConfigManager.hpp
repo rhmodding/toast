@@ -34,7 +34,7 @@ public:
         int lastWindowWidth{ 1500 };
         int lastWindowHeight{ 780 };
 
-        float updateRate{ 120 };
+        uint32_t updateRate{ 120 };
 
         bool operator==(const Config& other) const {
             return
