@@ -97,6 +97,35 @@ void A_LaunchSaveAsArcDialog() {
 
 App* gAppPtr{ nullptr };
 
+void App::AttemptExit() {
+    GET_SESSION_MANAGER;
+
+    for (uint32_t i = 0; i < sessionManager.sessionList.size(); i++) {
+        if (sessionManager.sessionList.at(i).modified) {
+            sessionManager.sessionClosing = i;
+
+            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+            ImGui::OpenPopup("###ConfirmFreeModifiedSession");
+            ImGui::PopID();
+
+            // Cancel close
+            return;
+        }
+    }
+
+    int windowWidth, windowHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+    GET_CONFIG_MANAGER;
+
+    configManager.config.lastWindowWidth = windowWidth;
+    configManager.config.lastWindowHeight = windowHeight;
+
+    configManager.SaveConfig();
+
+    this->quit = 0xFFu;
+}
+
 App::App() {
     glfwSetErrorCallback([](int error_code, const char* description) {
         std::cerr << "GLFW Error (" << error_code << "): " << description << '\n';
@@ -139,18 +168,8 @@ App::App() {
 
     gAppPtr = this;
     glfwSetWindowCloseCallback(this->window, [](GLFWwindow* window) {
-        int windowWidth, windowHeight;
-        glfwGetWindowSize(window, &windowWidth, &windowHeight);
-
-        GET_CONFIG_MANAGER;
-
-        configManager.config.lastWindowWidth = windowWidth;
-        configManager.config.lastWindowHeight = windowHeight;
-
-        configManager.SaveConfig();
-
         extern App* gAppPtr;
-        gAppPtr->quit = 0xFF;
+        gAppPtr->AttemptExit();
     });
 
     glfwMakeContextCurrent(this->window);
@@ -277,7 +296,7 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", SCS_EXIT, nullptr))
-                this->quit = 0xFF;
+                this->AttemptExit();
 
             ImGui::EndMenu();
         }

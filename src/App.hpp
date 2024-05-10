@@ -32,6 +32,8 @@ class App {
 public:
     void Update();
 
+    void AttemptExit();
+
     void Stop();
 
     // Setup
