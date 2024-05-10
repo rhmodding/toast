@@ -101,8 +101,6 @@ void WindowConfig::Update() {
             ImGui::Dummy({ 0, 5 });
 
             switch (selected) {
-                // TODO: implement other categories
-
                 case Category_General: {
                     ImGui::Checkbox("Show unknown fields/values", &this->selfConfig.showUnknownValues);
                 } break;
