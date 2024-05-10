@@ -35,6 +35,22 @@ namespace Common {
         bytes[2] = static_cast<uint8_t>(intValue >> 8);
         bytes[3] = static_cast<uint8_t>(intValue);
     }
+    
+    std::string randomString(const uint32_t length) {
+        static const char characters[] =
+            "0123456789"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz";
+
+        std::string string;
+        string.resize(length);
+
+        for (uint32_t i = 0; i < length; i++)
+            string.at(i) =
+                characters[rand() % (sizeof(characters) - 1)];
+        
+        return string;
+    }
 
     bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, int* height)  {
         // Load from file

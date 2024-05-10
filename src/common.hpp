@@ -71,6 +71,8 @@ namespace Common {
             ptr = nullptr;
     }
 
+    std::string randomString(const uint32_t length);
+
     void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
 
     float EaseInOut(float t);
