@@ -1,5 +1,5 @@
 #ifndef CONSOLESPLASH_HPP
-#define CONSOLESLASH_HPP
+#define CONSOLESPLASH_HPP
 
 const char* consoleSplash =
 "                                                 " "\n"
