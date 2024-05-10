@@ -26,8 +26,10 @@ public:
 
     bool darkTheme{ true };
     ImVec4 windowClearColor{ Common::RGBAtoImVec4(24, 24, 24, 255) };
-
     void UpdateTheme();
+
+    double updateRate{ 1000 / 60.0 };
+    void UpdateUpdateRate(); // huh
 
     struct PlayerState {
         bool loopEnabled{ false };

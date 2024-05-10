@@ -851,6 +851,8 @@ void App::HandleShortcuts() {
 }
 
 void App::Update() {
+    GET_APP_STATE;
+
     // Update rate
     {
         static std::chrono::system_clock::time_point a{ std::chrono::system_clock::now() };
@@ -859,17 +861,16 @@ void App::Update() {
         a = std::chrono::system_clock::now();
         std::chrono::duration<double, std::milli> workTime = a - b;
 
-        if (workTime.count() < (1000 / 60.0)) {
-            std::chrono::duration<double, std::milli> delta_ms((1000 / 60.0) - workTime.count());
-            auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
+        if (workTime.count() < appState.updateRate) {
+            std::chrono::duration<double, std::milli> deltaMs(appState.updateRate - workTime.count());
+            auto deltaMsDuration = std::chrono::duration_cast<std::chrono::milliseconds>(deltaMs);
+            std::this_thread::sleep_for(std::chrono::milliseconds(deltaMsDuration.count()));
         }
 
         b = std::chrono::system_clock::now();
         std::chrono::duration<double, std::milli> sleep_time = b - a;
     }
 
-    GET_APP_STATE;
     static ImGuiIO& io{ ImGui::GetIO() };
 
     glfwPollEvents();

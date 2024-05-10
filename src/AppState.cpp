@@ -15,6 +15,10 @@ void AppState::UpdateTheme() {
     }
 }
 
+void AppState::UpdateUpdateRate() {
+    this->updateRate = 1000. / ConfigManager::getInstance().config.updateRate;
+}
+
 void AppState::PlayerState::updateSetFrameCount() {
     GET_ANIMATABLE;
 
