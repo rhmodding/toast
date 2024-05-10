@@ -21,7 +21,6 @@ class AppState : public Singleton<AppState> {
 
 public:
     bool enableDemoWindow{ false };
-    bool showAboutWindow{ false };
 
     bool darkTheme{ true };
     ImVec4 windowClearColor{ Common::RGBAtoImVec4(24, 24, 24, 255) };

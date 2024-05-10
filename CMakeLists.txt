@@ -34,6 +34,7 @@ set(SOURCES
     src/window/WindowSpritesheet.cpp
 
     src/window/WindowConfig.cpp
+    src/window/WindowAbout.cpp
 
     src/common.cpp
 
@@ -76,6 +77,7 @@ set(HEADERS
     src/window/WindowSpritesheet.hpp
 
     src/window/WindowConfig.hpp
+    src/window/WindowAbout.hpp
 
     src/AppState.hpp
 

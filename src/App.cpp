@@ -260,8 +260,8 @@ void App::Menubar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
             if (ImGui::MenuItem((char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
-                appState.showAboutWindow = true;
-                ImGui::SetWindowFocus("About " WINDOW_TITLE);
+                this->windowAbout->open = true;
+                ImGui::SetWindowFocus("About");
             }
 
             ImGui::Separator();
@@ -863,6 +863,8 @@ void App::Update() {
 
     if (this->windowConfig->open)
         this->windowConfig->Update();
+    if (this->windowAbout->open)
+        this->windowAbout->Update();
 
     this->UpdateFileDialogs();
 
