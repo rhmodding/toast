@@ -10,6 +10,8 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
+#include <chrono>
+
 // Stores instance of AppState in local appState.
 #define GET_APP_STATE AppState& appState = AppState::getInstance()
 
@@ -55,7 +57,7 @@ public:
 
         void Update();
     private:
-        double previous{ 0.f };
+        std::chrono::steady_clock::time_point previous;
         float timeLeft{ 0.f };
     } playerState;
 

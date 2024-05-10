@@ -45,7 +45,7 @@ void AppState::PlayerState::updateCurrentFrame() {
 
 void AppState::PlayerState::ResetTimer() {
     this->timeLeft = 1 / (float)frameRate;
-    this->previous = glfwGetTime();
+    this->previous = std::chrono::steady_clock::now();
 }
 
 void AppState::PlayerState::ToggleAnimating(bool animating) {
@@ -90,15 +90,16 @@ void AppState::PlayerState::Update() {
     GET_ANIMATABLE;
 
     if (this->playing && globalAnimatable) {
-        double now = glfwGetTime();
-        float delta = static_cast<float>(now - this->previous);
+        auto now = std::chrono::steady_clock::now();
+        auto duration = now - this->previous;
+        float delta = std::chrono::duration_cast<std::chrono::duration<float>>(duration).count();
         this->previous = now;
 
-        this->timeLeft -= delta;
-        if (timeLeft <= 0.f) {
-            this->timeLeft = 1 / (float)frameRate;
-
+        while (delta >= this->timeLeft) {
             globalAnimatable->Update();
+            delta -= this->timeLeft;
+
+            this->timeLeft = 1 / (float)frameRate;
 
             if (!globalAnimatable->isAnimating() && this->loopEnabled) {
                 globalAnimatable->setAnimation(globalAnimatable->getCurrentAnimationIndex());
@@ -106,7 +107,6 @@ void AppState::PlayerState::Update() {
             }
 
             this->playing = globalAnimatable->isAnimating();
-
             this->currentFrame = globalAnimatable->getCurrentKeyIndex();
             this->holdFramesLeft = globalAnimatable->getHoldFramesLeft();
 
@@ -118,5 +118,7 @@ void AppState::PlayerState::Update() {
             if (appState.selectedPart >= arrangementPtr->parts.size())
                 appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
         }
+
+        this->timeLeft -= delta;
     }
 }
