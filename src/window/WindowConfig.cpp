@@ -103,6 +103,12 @@ void WindowConfig::Update() {
             switch (selected) {
                 case Category_General: {
                     ImGui::Checkbox("Show unknown fields/values", &this->selfConfig.showUnknownValues);
+
+                    ImGui::Separator();
+
+                    uint32_t updateRate = this->selfConfig.updateRate;
+                    if (ImGui::DragScalar("Update rate", ImGuiDataType_U32, &updateRate, .5f, nullptr, nullptr, "%u ups"))
+                        this->selfConfig.updateRate = std::clamp<uint32_t>(updateRate, 1, UINT32_MAX);
                 } break;
 
                 case Category_Theming: {
@@ -138,6 +144,7 @@ void WindowConfig::Update() {
                 configManager.SaveConfig();
 
                 AppState::getInstance().UpdateTheme();
+                AppState::getInstance().UpdateUpdateRate();
             }
             ImGui::EndDisabled();
             ImGui::EndGroup();
