@@ -221,7 +221,14 @@ void WindowTimeline::Update() {
                             appState.playerState.updateCurrentFrame();
                         }
 
-                        bool deleteKey{ false };
+                        // Probably don't need to use a enum for this
+                        enum DeleteKeyMode: uint16_t {
+                            DeleteKeyMode_None,
+                            DeleteKeyMode_Current,
+                            DeleteKeyMode_ToRight,
+                            DeleteKeyMode_ToLeft
+                        } deleteKeyMode{ DeleteKeyMode_None };
+                        
                         if (ImGui::BeginPopupContextItem()) {
                             ImGui::Text((char*)ICON_FA_KEY "  Options for key no. %u", i+1);
                             ImGui::Text(
@@ -286,17 +293,49 @@ void WindowTimeline::Update() {
                                 ImGui::OpenPopup("###DeleteKeyConfirm");
                             ImGui::EndDisabled();
 
+                            ImGui::Separator();
+
+                            ImGui::BeginDisabled(i == 0);
+                            if (ImGui::Selectable("Delete key(s) to left", false, ImGuiSelectableFlags_DontClosePopups))
+                                ImGui::OpenPopup("###DeleteKeysLConfirm");
+                            ImGui::EndDisabled();
+
+                            ImGui::BeginDisabled(i == appState.playerState.frameCount - 1);
+                            if (ImGui::Selectable("Delete key(s) to right", false, ImGuiSelectableFlags_DontClosePopups))
+                                ImGui::OpenPopup("###DeleteKeysRConfirm");
+                            ImGui::EndDisabled();
+
                             if (ImGui::BeginPopup("Are you sure?###DeleteKeyConfirm")) {
                                 ImGui::TextUnformatted("Are you sure you want to\ndelete this key?");
                                 ImGui::Separator();
                                 if (ImGui::Selectable("Do it"))
-                                    deleteKey = true;
+                                    deleteKeyMode = DeleteKeyMode_Current;
                                 ImGui::Selectable("Nevermind");
 
                                 ImGui::EndPopup();
                             }
 
-                            if (deleteKey)
+                            if (ImGui::BeginPopup("Are you sure?###DeleteKeysLConfirm")) {
+                                ImGui::TextUnformatted("Are you sure you want to\ndelete the keys to the left?");
+                                ImGui::Separator();
+                                if (ImGui::Selectable("Do it"))
+                                    deleteKeyMode = DeleteKeyMode_ToLeft;
+                                ImGui::Selectable("Nevermind");
+
+                                ImGui::EndPopup();
+                            }
+
+                            if (ImGui::BeginPopup("Are you sure?###DeleteKeysRConfirm")) {
+                                ImGui::TextUnformatted("Are you sure you want to\ndelete the keys to the right?");
+                                ImGui::Separator();
+                                if (ImGui::Selectable("Do it"))
+                                    deleteKeyMode = DeleteKeyMode_ToRight;
+                                ImGui::Selectable("Nevermind");
+
+                                ImGui::EndPopup();
+                            }
+
+                            if (deleteKeyMode)
                                 ImGui::CloseCurrentPopup();
 
                             ImGui::EndPopup();
@@ -338,11 +377,26 @@ void WindowTimeline::Update() {
 
                         ImGui::PopID();
 
-                        if (deleteKey) {
+                        if (deleteKeyMode) {
                             changed |= true;
 
-                            auto it = globalAnimatable->getCurrentAnimation()->keys.begin() + i;
-                            globalAnimatable->getCurrentAnimation()->keys.erase(it);
+                            std::vector<RvlCellAnim::AnimationKey>& keys = globalAnimatable->getCurrentAnimation()->keys;
+
+                            switch (deleteKeyMode) {
+                                case DeleteKeyMode_Current: {
+                                    keys.erase(keys.begin() + i);
+                                } break;
+
+                                case DeleteKeyMode_ToLeft: {
+                                    keys.erase(keys.begin(), keys.begin() + i);
+                                } break;
+                                case DeleteKeyMode_ToRight: {
+                                    keys.erase(keys.begin() + i + 1, keys.end());
+                                } break;
+                                
+                                default:
+                                    break;
+                            }
 
                             appState.playerState.currentFrame = std::clamp<uint16_t>(
                                 appState.playerState.currentFrame,
