@@ -228,7 +228,7 @@ void WindowTimeline::Update() {
                             DeleteKeyMode_ToRight,
                             DeleteKeyMode_ToLeft
                         } deleteKeyMode{ DeleteKeyMode_None };
-                        
+
                         if (ImGui::BeginPopupContextItem()) {
                             ImGui::Text((char*)ICON_FA_KEY "  Options for key no. %u", i+1);
                             ImGui::Text(
@@ -245,6 +245,103 @@ void WindowTimeline::Update() {
                             ImGui::Separator();
 
                             GET_IMGUI_IO;
+
+                            // Key splitting
+                            {
+                                bool splitPossible{ false };
+                                RvlCellAnim::Arrangement* arrangementA{ nullptr };
+                                RvlCellAnim::Arrangement* arrangementB{ nullptr };
+
+                                if (i+1 < appState.playerState.frameCount) {
+                                    arrangementA = &globalAnimatable->cellanim->arrangements.at(
+                                        globalAnimatable->getCurrentAnimation()->keys.at(i).arrangementIndex
+                                    );
+                                    arrangementB = &globalAnimatable->cellanim->arrangements.at(
+                                        globalAnimatable->getCurrentAnimation()->keys.at(i+1).arrangementIndex
+                                    );
+
+                                    splitPossible = arrangementA->parts.size() == arrangementB->parts.size();
+                                }
+
+                                ImGui::BeginDisabled(!splitPossible);
+                                if (ImGui::Selectable("Split key (interp, new arrange)")) {
+                                    RvlCellAnim::AnimationKey newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                                    RvlCellAnim::Arrangement newArrangement = *arrangementA;
+
+                                    for (uint16_t j = 0; j < newArrangement.parts.size(); j++) {
+                                        newArrangement.parts.at(j).angle = (
+                                            arrangementA->parts.at(j).angle +
+                                            arrangementB->parts.at(j).angle
+                                        ) / 2.f;
+
+                                        newArrangement.parts.at(j).positionX = static_cast<int32_t>((
+                                            arrangementA->parts.at(j).positionX +
+                                            arrangementB->parts.at(j).positionX
+                                        ) / 2);
+                                        newArrangement.parts.at(j).positionY = static_cast<int32_t>((
+                                            arrangementA->parts.at(j).positionY +
+                                            arrangementB->parts.at(j).positionY
+                                        ) / 2);
+
+                                        newArrangement.parts.at(j).scaleX = (
+                                            arrangementA->parts.at(j).scaleX +
+                                            arrangementB->parts.at(j).scaleX
+                                        ) / 2.f;
+                                        newArrangement.parts.at(j).scaleY = (
+                                            arrangementA->parts.at(j).scaleY +
+                                            arrangementB->parts.at(j).scaleY
+                                        ) / 2.f;
+
+                                        newArrangement.parts.at(j).opacity = static_cast<uint16_t>((
+                                            arrangementA->parts.at(j).opacity +
+                                            arrangementB->parts.at(j).opacity
+                                        ) / 2.f);
+                                    }
+                                
+                                    globalAnimatable->cellanim->arrangements.push_back(newArrangement);
+
+                                    {
+                                        newKey.arrangementIndex = globalAnimatable->cellanim->arrangements.size() - 1;
+
+                                        newKey.angle = (
+                                            globalAnimatable->getCurrentAnimation()->keys.at(i).angle +
+                                            globalAnimatable->getCurrentAnimation()->keys.at(i+1).angle
+                                        ) / 2.f;
+
+                                        newKey.scaleX = (
+                                            globalAnimatable->getCurrentAnimation()->keys.at(i).scaleX +
+                                            globalAnimatable->getCurrentAnimation()->keys.at(i+1).scaleX
+                                        ) / 2.f;
+                                        newKey.scaleY = (
+                                            globalAnimatable->getCurrentAnimation()->keys.at(i).scaleY +
+                                            globalAnimatable->getCurrentAnimation()->keys.at(i+1).scaleY
+                                        ) / 2.f;
+
+                                        newKey.opacity = static_cast<uint16_t>((
+                                            globalAnimatable->getCurrentAnimation()->keys.at(i).opacity +
+                                            globalAnimatable->getCurrentAnimation()->keys.at(i+1).opacity
+                                        ) / 2);
+
+                                        newKey.holdFrames /= 2;
+                                        if (newKey.holdFrames < 1)
+                                            newKey.holdFrames = 1;
+                                    }
+
+                                    globalAnimatable->getCurrentAnimation()->keys.insert(
+                                        globalAnimatable->getCurrentAnimation()->keys.begin() + i + 1,
+                                        newKey
+                                    );
+
+                                    globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames -= newKey.holdFrames;
+
+                                    appState.playerState.currentFrame++;
+                                    appState.playerState.updateCurrentFrame();
+                                    appState.playerState.updateSetFrameCount();
+                                }
+                                ImGui::EndDisabled();
+                            }
+
+                            ImGui::Separator();
 
                             ImGui::BeginDisabled(i == (appState.playerState.frameCount - 1));
                             if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
