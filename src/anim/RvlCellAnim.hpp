@@ -35,15 +35,15 @@ namespace RvlCellAnim {
     };
 
     struct AnimationKey {
-        uint16_t arrangementIndex;
+        uint16_t arrangementIndex{ 0 };
 
-        uint16_t holdFrames;
+        uint16_t holdFrames{ 1 };
 
-        float scaleX, scaleY;
+        float scaleX{ 1.f }, scaleY{ 1.f };
 
-        float angle;
+        float angle{ 0.f };
 
-        uint8_t opacity;
+        uint8_t opacity{ 0xFFu };
 
         Unknown32 unknown;
     };
