@@ -23,9 +23,7 @@ void AppState::PlayerState::updateSetFrameCount() {
     GET_ANIMATABLE;
 
     this->frameCount = static_cast<uint16_t>(
-        globalAnimatable->cellanim->animations.at(
-            globalAnimatable->getCurrentAnimationIndex()
-        ).keys.size()
+        globalAnimatable->getCurrentAnimation()->keys.size()
     );
 }
 
