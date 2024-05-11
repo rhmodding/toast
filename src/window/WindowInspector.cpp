@@ -425,7 +425,7 @@ void WindowInspector::Level_Arrangement() {
                     ImGui::OpenPopup("###DeletePartConfirm");
 
                 if (ImGui::BeginPopup("Are you sure?###DeletePartConfirm")) {
-                    ImGui::Text("Are you sure you want to\ndelete this part?", n);
+                    ImGui::TextUnformatted("Are you sure you want to\ndelete this part?");
                     ImGui::Separator();
                     if (ImGui::Selectable("Do it"))
                         deletePart = true;
