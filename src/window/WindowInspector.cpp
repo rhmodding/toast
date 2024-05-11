@@ -152,7 +152,7 @@ void WindowInspector::Level_Key() {
 
     RvlCellAnim::AnimationKey* animKey = globalAnimatable->getCurrentKey();
 
-    ImGui::SeparatorText((char*)ICON_FA_KEY " Properties");
+    ImGui::SeparatorText((char*)ICON_FA_IMAGE " Arrangement");
 
     uint16_t arrangementIndex = animKey->arrangementIndex;
     if (ImGui::InputScalar("Arrangement Index", ImGuiDataType_U16, &arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -166,6 +166,15 @@ void WindowInspector::Level_Key() {
             )
         );
     }
+
+    if (ImGui::Button("Duplicate Arrangement & Switch")) {
+        globalAnimatable->cellanim->arrangements.push_back(
+            globalAnimatable->cellanim->arrangements.at(animKey->arrangementIndex)
+        );
+        animKey->arrangementIndex = globalAnimatable->cellanim->arrangements.size() - 1;
+    }
+
+    ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
 
     uint16_t holdFrames = animKey->holdFrames;
     if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
