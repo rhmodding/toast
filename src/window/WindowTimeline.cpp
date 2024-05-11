@@ -9,9 +9,13 @@
 
 #include "../font/FontAwesome.h"
 
+#include "../SessionManager.hpp"
+
 void WindowTimeline::Update() {
     GET_APP_STATE;
     GET_ANIMATABLE;
+
+    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
     ImGui::Begin("Timeline");
@@ -217,8 +221,90 @@ void WindowTimeline::Update() {
                             appState.playerState.updateCurrentFrame();
                         }
 
+                        bool deleteKey{ false };
+                        if (ImGui::BeginPopupContextItem()) {
+                            ImGui::Text((char*)ICON_FA_KEY "  Options for key no. %u", i+1);
+                            ImGui::Text(
+                                "Hold "
+
+                                #if defined(__APPLE__) // Can't believe I have to do this
+                                "[Option]"
+                                #else
+                                "[Alt]"
+                                #endif
+
+                                " for variations.");
+
+                            ImGui::Separator();
+
+                            GET_IMGUI_IO;
+
+                            ImGui::BeginDisabled(i == (appState.playerState.frameCount - 1));
+                            if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
+                                changed |= true;
+
+                                std::swap(
+                                    globalAnimatable->getCurrentAnimation()->keys.at(i),
+                                    globalAnimatable->getCurrentAnimation()->keys.at(i + 1)
+                                );
+
+                                if (io.KeyAlt)
+                                    std::swap(
+                                        globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames,
+                                        globalAnimatable->getCurrentAnimation()->keys.at(i + 1).holdFrames
+                                    );
+
+                                appState.playerState.currentFrame++;
+                                appState.playerState.updateCurrentFrame();
+                            } 
+                            ImGui::EndDisabled();
+
+                            ImGui::BeginDisabled(i == 0);
+                            if (ImGui::Selectable(!io.KeyAlt ? "Move back" : "Move back (without hold frames)")) {
+                                changed |= true;
+
+                                std::swap(
+                                    globalAnimatable->getCurrentAnimation()->keys.at(i),
+                                    globalAnimatable->getCurrentAnimation()->keys.at(i - 1)
+                                );
+
+                                if (io.KeyAlt)
+                                    std::swap(
+                                        globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames,
+                                        globalAnimatable->getCurrentAnimation()->keys.at(i - 1).holdFrames
+                                    );
+
+                                appState.playerState.currentFrame--;
+                                appState.playerState.updateCurrentFrame();
+                            }
+                            ImGui::EndDisabled();
+
+                            ImGui::Separator();
+
+                            ImGui::BeginDisabled(appState.playerState.frameCount == 1);
+                            if (ImGui::Selectable("Delete key", false, ImGuiSelectableFlags_DontClosePopups))
+                                ImGui::OpenPopup("###DeleteKeyConfirm");
+                            ImGui::EndDisabled();
+
+                            if (ImGui::BeginPopup("Are you sure?###DeleteKeyConfirm")) {
+                                ImGui::TextUnformatted("Are you sure you want to\ndelete this key?");
+                                ImGui::Separator();
+                                if (ImGui::Selectable("Do it"))
+                                    deleteKey = true;
+                                ImGui::Selectable("Nevermind");
+
+                                ImGui::EndPopup();
+                            }
+
+                            if (deleteKey)
+                                ImGui::CloseCurrentPopup();
+
+                            ImGui::EndPopup();
+                        }
+
                         if (ImGui::BeginItemTooltip()) {
                             ImGui::Text((char*)ICON_FA_KEY "  Key no. %u", i+1);
+                            ImGui::TextUnformatted("Right-click for options");
 
                             ImGui::Separator();
 
@@ -251,6 +337,21 @@ void WindowTimeline::Update() {
                         ImGui::SameLine();
 
                         ImGui::PopID();
+
+                        if (deleteKey) {
+                            changed |= true;
+
+                            auto it = globalAnimatable->getCurrentAnimation()->keys.begin() + i;
+                            globalAnimatable->getCurrentAnimation()->keys.erase(it);
+
+                            appState.playerState.currentFrame = std::clamp<uint16_t>(
+                                appState.playerState.currentFrame,
+                                0,
+                                static_cast<uint16_t>(globalAnimatable->getCurrentAnimation()->keys.size() - 1)
+                            );
+                            appState.playerState.updateSetFrameCount();
+                            appState.playerState.updateCurrentFrame();
+                        }
                     }
 
                     ImGui::PopStyleVar(3);
