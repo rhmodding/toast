@@ -41,7 +41,7 @@ public:
             return this->cellanims.at(this->cellIndex);
         }
         Common::Image*& getCellanimSheet() {
-            return this->cellanimSheets.at(this->cellIndex);
+            return this->cellanimSheets.at(this->getCellanim()->sheetIndex);
         }
         std::unordered_map<uint16_t, std::string>* getAnimationNames() {
             return this->animationNames.at(this->cellIndex);

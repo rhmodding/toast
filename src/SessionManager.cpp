@@ -53,7 +53,7 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
 
     std::vector<std::unordered_map<uint16_t, std::string>*> animationNames(brcadFiles.size());
     std::vector<RvlCellAnim::RvlCellAnimObject*> cellanims(brcadFiles.size());
-    std::vector<Common::Image*> cellanimSheets(brcadFiles.size());
+    std::vector<Common::Image*> cellanimSheets(tplObject.textures.size());
 
     // animationNames
     for (uint16_t i = 0; i < brcadFiles.size(); i++) {
@@ -102,11 +102,11 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
         cellanims.at(i) = new RvlCellAnim::RvlCellAnimObject(brcadFiles.at(i)->data.data(), brcadFiles.at(i)->data.size());
 
     // cellanimSheets
-    for (uint16_t i = 0; i < brcadFiles.size(); i++)
+    for (uint16_t i = 0; i < tplObject.textures.size(); i++)
         cellanimSheets.at(i) = new Common::Image(
-            tplObject.textures.at(cellanims.at(i)->sheetIndex).width,
-            tplObject.textures.at(cellanims.at(i)->sheetIndex).height,
-            TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(cellanims.at(i)->sheetIndex))
+            tplObject.textures.at(i).width,
+            tplObject.textures.at(i).height,
+            TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(i))
         );
 
     newSession.open = true;
