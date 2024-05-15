@@ -361,7 +361,7 @@ void WindowCanvas::Update() {
         this->DrawCanvasText();
 
         // Set tooltip
-        if (hoveringOverSelected && !draggingCanvas)
+        if (hoveringOverSelected && ImGui::IsWindowHovered() && !draggingCanvas)
             ImGui::SetTooltip(
                 "Part no. %u\nYou can drag this part to change it's position.",
                 appState.selectedPart + 1
@@ -397,10 +397,7 @@ void WindowCanvas::Update() {
             bounding[0]
         };
 
-        hoveringOverSelected = (
-            isPointInPolygon(io.MousePos, polygon, 5) &&
-            ImGui::IsWindowHovered()
-        );
+        hoveringOverSelected = isPointInPolygon(io.MousePos, polygon, 5);
 
         delete[] bounding;
     }
