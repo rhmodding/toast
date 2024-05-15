@@ -99,6 +99,9 @@ namespace Common {
     float EaseInOut(float t) {
         return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
     }
+    float EaseIn(float t) {
+        return static_cast<float>(std::pow(t, 2));
+    }
     float EaseOut(float t) {
         return 1 - (1 - t) * (1 - t);
     }

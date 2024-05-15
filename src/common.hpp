@@ -76,6 +76,7 @@ namespace Common {
     void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
 
     float EaseInOut(float t);
+    float EaseIn(float t);
     float EaseOut(float t);
 
     constexpr ImVec4 RGBAtoImVec4(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
