@@ -7,6 +7,8 @@
 
 #include "../SessionManager.hpp"
 
+#include "../ConfigManager.hpp"
+
 bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
     double x = point.x, y = point.y;
     bool inside = false;
@@ -238,7 +240,11 @@ void WindowCanvas::Update() {
     const float mousePanThreshold = -1.0f;
     bool draggingCanvas = interactionActive && (
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
+        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
+
+        ConfigManager::getInstance().config.canvasLMBPanEnabled ?
+            ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold) :
+            0
     );
 
     static bool lastDraggingCanvas{ draggingCanvas };

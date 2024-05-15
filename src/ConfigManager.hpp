@@ -34,6 +34,8 @@ public:
         int lastWindowWidth{ 1500 };
         int lastWindowHeight{ 780 };
 
+        bool canvasLMBPanEnabled{ true };
+
         uint32_t updateRate{ 120 };
 
         bool operator==(const Config& other) const {
@@ -45,6 +47,7 @@ public:
                 this->showUnknownValues == other.showUnknownValues &&
                 this->lastWindowWidth == other.lastWindowWidth &&
                 this->lastWindowHeight == other.lastWindowHeight &&
+                this->canvasLMBPanEnabled == other.canvasLMBPanEnabled &&
                 this->updateRate == other.updateRate;
         }
     } config;
@@ -90,6 +93,10 @@ public:
             "lastWindowWidth", this->config.lastWindowWidth
         );
 
+        this->config.canvasLMBPanEnabled = data.value(
+            "canvasLMBPanEnabled", this->config.canvasLMBPanEnabled
+        );
+
         this->config.updateRate = data.value(
             "updateRate", this->config.updateRate
         );
@@ -115,6 +122,8 @@ public:
 
         data["lastWindowHeight"] = this->config.lastWindowHeight;
         data["lastWindowWidth"] = this->config.lastWindowWidth;
+        
+        data["canvasLMBPanEnabled"] = this->config.canvasLMBPanEnabled;
 
         data["updateRate"] = this->config.updateRate;
 

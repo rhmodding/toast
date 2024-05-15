@@ -106,6 +106,10 @@ void WindowConfig::Update() {
 
                     ImGui::Separator();
 
+                    ImGui::Checkbox("Enable panning canvas with LMB", &this->selfConfig.canvasLMBPanEnabled);
+
+                    ImGui::Separator();
+
                     uint32_t updateRate = this->selfConfig.updateRate;
                     if (ImGui::DragScalar("Update rate", ImGuiDataType_U32, &updateRate, .5f, nullptr, nullptr, "%u ups"))
                         this->selfConfig.updateRate = std::clamp<uint32_t>(updateRate, 1, UINT32_MAX);
