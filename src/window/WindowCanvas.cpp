@@ -252,15 +252,120 @@ void WindowCanvas::Update() {
     RvlCellAnim::Arrangement* arrangementPtr =
         &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
-    // Update animatable position and scale
-    // We need to do this before any calculations since
-    // WindowInspector can mutate the position and scale of
-    // the globalAnimatable.
     {
         globalAnimatable->offset = origin;
 
         globalAnimatable->scaleX = this->canvasZoom + 1;
         globalAnimatable->scaleY = this->canvasZoom + 1;
+    }
+
+    // All drawing operations
+    {
+        drawList->PushClipRect(this->canvasTopLeft, canvasBottomRight, true);
+        {
+            // Draw grid
+            if ((this->gridType != GridType_None) && this->enableGridLines) {
+                float GRID_STEP = 64.0f * (this->canvasZoom + 1);
+
+                for (float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP); x < this->canvasSize.x; x += GRID_STEP)
+                    drawList->AddLine(
+                        ImVec2(this->canvasTopLeft.x + x, this->canvasTopLeft.y),
+                        ImVec2(this->canvasTopLeft.x + x, canvasBottomRight.y),
+                        IM_COL32(200, 200, 200, 40)
+                    );
+                
+                for (float y = fmodf(this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP); y < this->canvasSize.y; y += GRID_STEP)
+                    drawList->AddLine(
+                        ImVec2(this->canvasTopLeft.x, this->canvasTopLeft.y + y),
+                        ImVec2(canvasBottomRight.x, this->canvasTopLeft.y + y),
+                        IM_COL32(200, 200, 200, 40)
+                    );
+            }
+        
+            // Draw animatable
+            globalAnimatable->Draw(drawList, allowOpacity);
+
+            // Draw selected part bounds
+            if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
+                ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
+                drawList->AddQuad(
+                    bounding[0], bounding[1], bounding[2], bounding[3],
+
+                    // Yellow color if hovering
+                    !hoveringOverSelected ? IM_COL32(
+                        partBoundingDrawColor.x * 255,
+                        partBoundingDrawColor.y * 255,
+                        partBoundingDrawColor.z * 255,
+                        partBoundingDrawColor.w * 255
+                    ) : IM_COL32(255, 255, 0, 255)
+                );
+                delete[] bounding;
+            }
+
+            // Draw all part bounds if enabled
+            if (this->drawAllBounding)
+                for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
+                    if (appState.focusOnSelectedPart && appState.selectedPart == i)
+                        continue; // Skip over part if bounds are already drawn
+
+                    uint32_t color = IM_COL32(
+                        partBoundingDrawColor.x * 255,
+                        partBoundingDrawColor.y * 255,
+                        partBoundingDrawColor.z * 255,
+                        partBoundingDrawColor.w * 255
+                    );
+
+                    ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
+                    drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], color);
+                    delete[] bounding;
+                }
+        
+            // Draw safe area if enabled
+            if (this->visualizeSafeArea) {
+                ImVec2 boxTopLeft = {
+                    origin.x - ((feverSafeAreaSize.x * (this->canvasZoom + 1)) / 2),
+                    origin.y - ((feverSafeAreaSize.y * (this->canvasZoom + 1)) / 2)
+                };
+
+                ImVec2 boxBottomRight = {
+                    boxTopLeft.x + (feverSafeAreaSize.x * (this->canvasZoom + 1)),
+                    boxTopLeft.y + (feverSafeAreaSize.y * (this->canvasZoom + 1))
+                };
+
+                uint32_t color = IM_COL32(0, 0, 0, this->safeAreaAlpha);
+
+                drawList->AddRectFilled( // Top Box
+                    canvasTopLeft,
+                    { canvasBottomRight.x, boxTopLeft.y },
+                    color
+                );
+                drawList->AddRectFilled( // Left Box
+                    { canvasTopLeft.x, boxTopLeft.y },
+                    { boxTopLeft.x, boxBottomRight.y },
+                    color
+                );
+                drawList->AddRectFilled( // Right Box
+                    { boxBottomRight.x, boxTopLeft.y },
+                    { canvasBottomRight.x, boxBottomRight.y },
+                    color
+                );
+                drawList->AddRectFilled( // Bottom Box
+                    { canvasTopLeft.x, boxBottomRight.y },
+                    canvasBottomRight,
+                    color
+                );
+            }
+        }
+        drawList->PopClipRect();
+
+        this->DrawCanvasText();
+
+        // Set tooltip
+        if (hoveringOverSelected && !draggingCanvas)
+            ImGui::SetTooltip(
+                "Part no. %u\nYou can drag this part to change it's position.",
+                appState.selectedPart + 1
+            );
     }
 
     // Selected part start / stop dragging
@@ -292,7 +397,10 @@ void WindowCanvas::Update() {
             bounding[0]
         };
 
-        hoveringOverSelected = isPointInPolygon(io.MousePos, polygon, 5);
+        hoveringOverSelected = (
+            isPointInPolygon(io.MousePos, polygon, 5) &&
+            ImGui::IsWindowHovered()
+        );
 
         delete[] bounding;
     }
@@ -332,113 +440,6 @@ void WindowCanvas::Update() {
                 this->canvasZoom = maxZoom;
         }
     }
-
-    drawList->PushClipRect(this->canvasTopLeft, canvasBottomRight, true);
-    // Start drawing
-    {
-        // Draw grid
-        if ((this->gridType != GridType_None) && this->enableGridLines) {
-            float GRID_STEP = 64.0f * (this->canvasZoom + 1);
-
-            for (float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP); x < this->canvasSize.x; x += GRID_STEP)
-                drawList->AddLine(
-                    ImVec2(this->canvasTopLeft.x + x, this->canvasTopLeft.y),
-                    ImVec2(this->canvasTopLeft.x + x, canvasBottomRight.y),
-                    IM_COL32(200, 200, 200, 40)
-                );
-            
-            for (float y = fmodf(this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP); y < this->canvasSize.y; y += GRID_STEP)
-                drawList->AddLine(
-                    ImVec2(this->canvasTopLeft.x, this->canvasTopLeft.y + y),
-                    ImVec2(canvasBottomRight.x, this->canvasTopLeft.y + y),
-                    IM_COL32(200, 200, 200, 40)
-                );
-        }
-    
-        // Draw animatable
-        globalAnimatable->Draw(drawList, allowOpacity);
-
-        // Draw selected part bounds
-        if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
-            ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
-            drawList->AddQuad(
-                bounding[0], bounding[1], bounding[2], bounding[3],
-
-                // Yellow color if hovering
-                !hoveringOverSelected ? IM_COL32(
-                    partBoundingDrawColor.x * 255,
-                    partBoundingDrawColor.y * 255,
-                    partBoundingDrawColor.z * 255,
-                    partBoundingDrawColor.w * 255
-                ) : IM_COL32(255, 255, 0, 255)
-            );
-            delete[] bounding;
-        }
-
-        // Draw all part bounds if enabled
-        if (this->drawAllBounding)
-            for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
-                if (appState.focusOnSelectedPart && appState.selectedPart == i)
-                    continue; // Skip over part if bounds are already drawn
-
-                uint32_t color = IM_COL32(
-                    partBoundingDrawColor.x * 255,
-                    partBoundingDrawColor.y * 255,
-                    partBoundingDrawColor.z * 255,
-                    partBoundingDrawColor.w * 255
-                );
-
-                ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
-                drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], color);
-                delete[] bounding;
-            }
-    
-        // Draw safe area if enabled
-        if (this->visualizeSafeArea) {
-            ImVec2 boxTopLeft = {
-                origin.x - ((feverSafeAreaSize.x * (this->canvasZoom + 1)) / 2),
-                origin.y - ((feverSafeAreaSize.y * (this->canvasZoom + 1)) / 2)
-            };
-
-            ImVec2 boxBottomRight = {
-                boxTopLeft.x + (feverSafeAreaSize.x * (this->canvasZoom + 1)),
-                boxTopLeft.y + (feverSafeAreaSize.y * (this->canvasZoom + 1))
-            };
-
-            uint32_t color = IM_COL32(0, 0, 0, this->safeAreaAlpha);
-
-            drawList->AddRectFilled( // Top Box
-                canvasTopLeft,
-                { canvasBottomRight.x, boxTopLeft.y },
-                color
-            );
-            drawList->AddRectFilled( // Left Box
-                { canvasTopLeft.x, boxTopLeft.y },
-                { boxTopLeft.x, boxBottomRight.y },
-                color
-            );
-            drawList->AddRectFilled( // Right Box
-                { boxBottomRight.x, boxTopLeft.y },
-                { canvasBottomRight.x, boxBottomRight.y },
-                color
-            );
-            drawList->AddRectFilled( // Bottom Box
-                { canvasTopLeft.x, boxBottomRight.y },
-                canvasBottomRight,
-                color
-            );
-        }
-    }
-    drawList->PopClipRect();
-
-    this->DrawCanvasText();
-
-    // Set tooltip
-    if (hoveringOverSelected && !draggingCanvas)
-        ImGui::SetTooltip(
-            "Part no. %u\nYou can drag this part to change it's position.",
-            appState.selectedPart + 1
-        );
 
     ImGui::End();
 }
