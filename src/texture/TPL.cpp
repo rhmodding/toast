@@ -257,4 +257,67 @@ namespace TPL {
 
         return tpl;
     }
+
+    GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
+        GLuint imageTexture;
+        
+        glGenTextures(1, &imageTexture);
+        glBindTexture(GL_TEXTURE_2D, imageTexture);
+
+        GLint minFilter;
+        GLint magFilter;
+
+        switch (tplTexture.magFilter) {
+            case TPL::TPL_TEX_FILTER_NEAR:
+                magFilter = GL_NEAREST;
+                break;
+            case TPL::TPL_TEX_FILTER_LINEAR:
+                magFilter = GL_LINEAR;
+                break;
+            default:
+                magFilter = GL_LINEAR;
+                break;
+        }
+
+        switch (tplTexture.minFilter) {
+            case TPL::TPL_TEX_FILTER_NEAR:
+                minFilter = GL_NEAREST;
+                break;
+            case TPL::TPL_TEX_FILTER_LINEAR:
+                minFilter = GL_LINEAR;
+                break;
+            case TPL::TPL_TEX_FILTER_NEAR_MIP_NEAR:
+                minFilter = GL_NEAREST_MIPMAP_NEAREST;
+                break;
+            case TPL::TPL_TEX_FILTER_LIN_MIP_NEAR:
+                minFilter = GL_LINEAR_MIPMAP_NEAREST;
+                break;
+            case TPL::TPL_TEX_FILTER_NEAR_MIP_LIN:
+                minFilter = GL_NEAREST_MIPMAP_LINEAR;
+                break;
+            case TPL::TPL_TEX_FILTER_LIN_MIP_LIN:
+                minFilter = GL_LINEAR_MIPMAP_LINEAR;
+                break;
+            default:
+                minFilter = GL_LINEAR;
+                break;
+        }
+
+        glTexParameteri(
+            GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+            tplTexture.wrapS == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
+        );
+        glTexParameteri(
+            GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+            tplTexture.wrapT == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
+        );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tplTexture.width, tplTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
+        
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        return imageTexture;
+    }
 }

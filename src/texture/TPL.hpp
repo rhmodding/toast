@@ -6,6 +6,8 @@
 #include <vector>
 #include <optional>
 
+#include <GL/gl.h>
+
 namespace TPL {
     enum TPLWrapMode {
         TPL_WRAP_MODE_CLAMP,
@@ -87,6 +89,8 @@ namespace TPL {
     };
 
     std::optional<TPLObject> readTPLFile(const std::string& filePath);
+
+    GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture);
 }
 
 #endif // TPL_HPP
