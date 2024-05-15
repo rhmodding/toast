@@ -298,12 +298,14 @@ void WindowCanvas::Update() {
                     bounding[0], bounding[1], bounding[2], bounding[3],
 
                     // Yellow color if hovering
-                    !hoveringOverSelected ? IM_COL32(
-                        partBoundingDrawColor.x * 255,
-                        partBoundingDrawColor.y * 255,
-                        partBoundingDrawColor.z * 255,
-                        partBoundingDrawColor.w * 255
-                    ) : IM_COL32(255, 255, 0, 255)
+                    hoveringOverSelected && ImGui::IsWindowHovered() ?
+                        IM_COL32(255, 255, 0, 255) :
+                        IM_COL32(
+                            partBoundingDrawColor.x * 255,
+                            partBoundingDrawColor.y * 255,
+                            partBoundingDrawColor.z * 255,
+                            partBoundingDrawColor.w * 255
+                        )
                 );
                 delete[] bounding;
             }
