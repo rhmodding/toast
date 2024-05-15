@@ -83,7 +83,7 @@ void WindowHybridList::Update() {
 
                 fmtStream << std::to_string(n+1) << ". " << animName;
 
-                if (ImGui::Selectable(fmtStream.str().c_str(), appState.selectedAnimation == n)) {
+                if (ImGui::Selectable(fmtStream.str().c_str(), appState.selectedAnimation == n, ImGuiSelectableFlags_SelectOnNav)) {
                     appState.selectedAnimation = n;
 
                     globalAnimatable->setAnimation(appState.selectedAnimation);
@@ -107,7 +107,7 @@ void WindowHybridList::Update() {
                 RvlCellAnim::Arrangement* arrangementPtr =
                     &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
-                if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n)) {
+                if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n, ImGuiSelectableFlags_SelectOnNav)) {
                     appState.controlKey.arrangementIndex = n;
 
                     arrangementPtr =
