@@ -100,7 +100,10 @@ namespace Common {
         return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
     }
     float EaseIn(float t) {
-        return static_cast<float>(std::pow(t, 2));
+        if (t == 0.f)
+            return 0.f; // Avoid division by 0 exception
+        
+        return t * t;
     }
     float EaseOut(float t) {
         return 1 - (1 - t) * (1 - t);
