@@ -70,6 +70,7 @@ public:
     ImFont* fontIcon;
 
     bool arrangementMode{ false };
+    // This key object is meant for the arrangement mode to control the state of the key.
     RvlCellAnim::AnimationKey controlKey{ 0, 1, 1.f, 1.f, 0.f, 255 };
 
     uint16_t selectedAnimation{ 0 };
