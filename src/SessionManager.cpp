@@ -370,7 +370,10 @@ void SessionManager::SessionChanged() {
         globalAnimatable->setAnimation(0);
         appState.playerState.updateSetFrameCount();
 
-        appState.selectedAnimation = 0;
-        appState.selectedPart = -1;
+        appState.selectedPart = std::clamp<int32_t>(
+            appState.selectedPart,
+            -1,
+            globalAnimatable->getCurrentArrangement()->parts.size() - 1
+        );
     }
 }

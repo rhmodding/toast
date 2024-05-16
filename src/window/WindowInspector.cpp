@@ -523,7 +523,11 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Arrangement_Im;
 
                 appState.focusOnSelectedPart = true;
-                appState.selectedPart = -1;
+                appState.selectedPart = std::clamp<int32_t>(
+                    appState.selectedPart,
+                    -1,
+                    globalAnimatable->getCurrentArrangement()->parts.size() - 1
+                );
             }
             if (ImGui::MenuItem("Arrangement (Outside Anim)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
                 inspectorLevel = InspectorLevel_Arrangement;
@@ -532,7 +536,11 @@ void WindowInspector::Update() {
                 appState.focusOnSelectedPart = true;
 
                 appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
-                appState.selectedPart = -1;
+                appState.selectedPart = std::clamp<int32_t>(
+                    appState.selectedPart,
+                    -1,
+                    globalAnimatable->getCurrentArrangement()->parts.size() - 1
+                );
 
                 appState.playerState.ToggleAnimating(false);
                 globalAnimatable->SubmitAnimationKeyPtr(&appState.controlKey);
