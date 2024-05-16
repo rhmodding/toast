@@ -92,8 +92,7 @@ void WindowHybridList::Update() {
                     appState.playerState.updateSetFrameCount();
                     appState.playerState.updateCurrentFrame();
 
-                    RvlCellAnim::Arrangement* arrangementPtr =
-                        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+                    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
                         appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
@@ -104,14 +103,13 @@ void WindowHybridList::Update() {
                 char buffer[32];
                 sprintf(buffer, "Arrangement no. %d", n+1);
 
-                RvlCellAnim::Arrangement* arrangementPtr =
-                    &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+                RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
                 if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n, ImGuiSelectableFlags_SelectOnNav)) {
                     appState.controlKey.arrangementIndex = n;
 
-                    arrangementPtr =
-                        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+                    // Update arrangementPtr
+                    arrangementPtr = globalAnimatable->getCurrentArrangement();
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
                         appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);

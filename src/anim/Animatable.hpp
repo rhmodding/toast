@@ -50,6 +50,8 @@ public:
     RvlCellAnim::AnimationKey* getCurrentKey() const;
     RvlCellAnim::Animation* getCurrentAnimation() const;
 
+    RvlCellAnim::Arrangement* getCurrentArrangement() const;
+
     void SubmitAnimationKeyPtr(RvlCellAnim::AnimationKey* key);
 
     void Update();

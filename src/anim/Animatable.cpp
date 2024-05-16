@@ -79,6 +79,10 @@ RvlCellAnim::Animation* Animatable::getCurrentAnimation() const {
     return this->currentAnimation;    
 }
 
+RvlCellAnim::Arrangement* Animatable::getCurrentArrangement() const {
+    return &this->cellanim->arrangements.at(this->getCurrentKey()->arrangementIndex);
+}
+
 int16_t Animatable::getHoldFramesLeft() const {
     return this->holdKey;
 }

@@ -269,8 +269,7 @@ void WindowInspector::Level_Arrangement() {
                 if (globalAnimatable->getCurrentKey()->arrangementIndex > 0){
                     globalAnimatable->getCurrentKey()->arrangementIndex--;
 
-                    RvlCellAnim::Arrangement* arrangementPtr =
-                        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+                    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
                         appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
@@ -281,8 +280,7 @@ void WindowInspector::Level_Arrangement() {
                 if ((globalAnimatable->getCurrentKey()->arrangementIndex + 1) < globalAnimatable->cellanim->arrangements.size()) {
                     globalAnimatable->getCurrentKey()->arrangementIndex++;
 
-                    RvlCellAnim::Arrangement* arrangementPtr =
-                        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+                    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
                     if (appState.selectedPart >= arrangementPtr->parts.size())
                         appState.selectedPart = static_cast<int32_t>(arrangementPtr->parts.size() - 1);
@@ -295,8 +293,7 @@ void WindowInspector::Level_Arrangement() {
         }
         ImGui::EndChild();
 
-        RvlCellAnim::Arrangement* arrangementPtr =
-            &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+        RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
         RvlCellAnim::ArrangementPart* partPtr = appState.selectedPart >= 0 ? &arrangementPtr->parts.at(appState.selectedPart) : nullptr;
 

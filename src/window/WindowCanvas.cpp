@@ -255,8 +255,7 @@ void WindowCanvas::Update() {
     GET_ANIMATABLE;
     GET_APP_STATE;
 
-    RvlCellAnim::Arrangement* arrangementPtr =
-        &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
     {
         globalAnimatable->offset = origin;

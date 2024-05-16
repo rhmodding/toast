@@ -182,8 +182,7 @@ void WindowSpritesheet::Update() {
     if (this->drawBounding) {
         GET_ANIMATABLE;
 
-        RvlCellAnim::Arrangement* arrangementPtr =
-            &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+        RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
         for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
             if (appState.focusOnSelectedPart && i != appState.selectedPart)
