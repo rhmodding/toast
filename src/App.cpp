@@ -835,6 +835,8 @@ void App::UpdateFileDialogs() {
                 sessionManager.getCurrentSession()->getCellanimSheet() = newImage;
                 
                 sessionManager.SessionChanged();
+
+                sessionManager.getCurrentSessionModified() |= true;
             }
         }
 
