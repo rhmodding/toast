@@ -343,6 +343,37 @@ void WindowTimeline::Update() {
 
                             ImGui::Separator();
 
+                            if (ImGui::Selectable(!io.KeyAlt ? "Push key after" : "Duplicate key after")) {
+                                RvlCellAnim::AnimationKey newKey;
+                                if (io.KeyAlt)
+                                    newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+
+                                globalAnimatable->getCurrentAnimation()->keys.insert(
+                                    globalAnimatable->getCurrentAnimation()->keys.begin() + i + 1,
+                                    newKey
+                                );
+
+                                appState.playerState.currentFrame++;
+                                appState.playerState.updateCurrentFrame();
+                                appState.playerState.updateSetFrameCount();
+                            }
+
+                            if (ImGui::Selectable(!io.KeyAlt ? "Push key before" : "Duplicate key before")) {
+                                RvlCellAnim::AnimationKey newKey;
+                                if (io.KeyAlt)
+                                    newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+
+                                globalAnimatable->getCurrentAnimation()->keys.insert(
+                                    globalAnimatable->getCurrentAnimation()->keys.begin() + i,
+                                    newKey
+                                );
+
+                                appState.playerState.updateCurrentFrame();
+                                appState.playerState.updateSetFrameCount();
+                            }
+
+                            ImGui::Separator();
+
                             ImGui::BeginDisabled(i == (appState.playerState.frameCount - 1));
                             if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
                                 changed |= true;
