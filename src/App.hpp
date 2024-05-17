@@ -102,6 +102,14 @@ private:
     WindowAbout* windowAbout;
 
     GLFWwindow* window{ nullptr };
+
+    // Flags
+
+    // Launch dialog ###AttemptExitWhileUnsavedChanges
+    bool dialog_warnExitWithUnsavedChanges{ false };
+    // Exit even if there are unsaved changes.
+    bool exitWithUnsavedChanges{ false };
+
 }; // class App
 
 #endif // APP_HPP

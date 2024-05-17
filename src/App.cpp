@@ -169,18 +169,15 @@ App* gAppPtr{ nullptr };
 void App::AttemptExit() {
     GET_SESSION_MANAGER;
 
-    for (uint32_t i = 0; i < sessionManager.sessionList.size(); i++) {
-        if (sessionManager.sessionList.at(i).modified) {
-            sessionManager.sessionClosing = i;
+    if (!this->exitWithUnsavedChanges)
+        for (uint32_t i = 0; i < sessionManager.sessionList.size(); i++) {
+            if (sessionManager.sessionList.at(i).modified) {
+                this->dialog_warnExitWithUnsavedChanges = true;
 
-            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-            ImGui::OpenPopup("###ConfirmFreeModifiedSession");
-            ImGui::PopID();
-
-            // Cancel close
-            return;
+                // Cancel close
+                return;
+            }
         }
-    }
 
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
@@ -982,6 +979,14 @@ void App::Update() {
         this->windowConfig->Update();
     if (this->windowAbout->open)
         this->windowAbout->Update();
+
+    if (this->dialog_warnExitWithUnsavedChanges) {
+        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+        ImGui::OpenPopup("###AttemptExitWhileUnsavedChanges");
+        ImGui::PopID();
+
+        this->dialog_warnExitWithUnsavedChanges = false;
+    }
 
     this->UpdatePopups();
 
