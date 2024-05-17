@@ -14,6 +14,8 @@ set(SOURCES
 
     ext/ImGuiFileDialog/ImGuiFileDialog.cpp
 
+    ext/tinyfiledialogs/tinyfiledialogs.cpp
+
     src/main.cpp
     src/App.cpp
 
@@ -55,6 +57,8 @@ set(HEADERS
     ext/imgui/backends/imgui_impl_opengl3_loader.h
 
     ext/ImGuiFileDialog/ImGuiFileDialog.h
+
+    ext/tinyfiledialogs/tinyfiledialogs.h
 
     src/App.hpp
 
@@ -106,6 +110,8 @@ target_include_directories(toast PRIVATE
     ext/imgui/
     ext/imgui/backends
     ext/ImGuiFileDialog
+    ext/tinyfiledialogs
+
     libs/glfw/include
 )
 
@@ -137,6 +143,9 @@ IF (WIN32) # Windows
     target_link_libraries(toast PRIVATE
         glfw3
         opengl32
+
+        comdlg32
+        ole32
 
         -static
     )
