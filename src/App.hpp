@@ -44,7 +44,7 @@ public:
         return this->window;
     }
 
-    uint8_t quit{ 0 };
+    bool stopMainLoop{ false };
 
 private:
     void SetupFonts();

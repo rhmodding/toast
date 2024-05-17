@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 
     extern App* gAppPtr;
 
-    while (!gAppPtr->quit)
+    while (!gAppPtr->stopMainLoop)
         gAppPtr->Update();
 
     gAppPtr->Stop();

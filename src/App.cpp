@@ -192,7 +192,7 @@ void App::AttemptExit() {
 
     configManager.SaveConfig();
 
-    this->quit = 0xFFu;
+    this->stopMainLoop = true;
 }
 
 App::App() {
