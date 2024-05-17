@@ -300,7 +300,7 @@ App::App() {
     this->windowAbout = new WindowAbout;
 }
 
-void App::Stop() {
+App::~App() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

@@ -23,8 +23,6 @@ int main(int argc, char** argv) {
     while (!gAppPtr->stopMainLoop)
         gAppPtr->Update();
 
-    gAppPtr->Stop();
-
     delete gAppPtr;
 
     return 0;

@@ -34,10 +34,10 @@ public:
 
     void AttemptExit();
 
-    void Stop();
-
-    // Setup
+    // Constructor
     App();
+    // Destructor
+    ~App();
 
     GLFWwindow* getWindow() {
         assert(this->window);
