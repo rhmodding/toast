@@ -20,6 +20,7 @@
 
 #include <tinyfiledialogs.h>
 
+#define SHEET_ZOOM_TIME .3f // seconds
 
 void WindowSpritesheet::RunEditor() {
     GET_CONFIG_MANAGER;
@@ -140,12 +141,37 @@ void WindowSpritesheet::Update() {
             ImGui::EndMenu();
         }
 
+        const char* text = "Double-click to zoom";
+
+        ImGui::SetCursorPosX(
+            ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(text).x -
+            ImGui::GetStyle().FramePadding.x
+        );
+        ImGui::Text(text);
+
         ImGui::EndMenuBar();
     }
 
     ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
     ImVec2 canvasSize = ImGui::GetContentRegionAvail();
     ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+
+    const float mousePanThreshold = -1.0f;
+    bool draggingCanvas = ImGui::IsItemActive() && (
+        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
+    );
+
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered()) {
+        this->sheetZoomTriggered = true;
+        this->sheetZoomTimer = static_cast<float>(glfwGetTime());
+    }
+
+    if (this->sheetZoomTriggered && (static_cast<float>(glfwGetTime()) - this->sheetZoomTimer > SHEET_ZOOM_TIME)) {
+        this->sheetZoomEnabled = !this->sheetZoomEnabled;
+        this->sheetZoomTriggered = false;
+    }
 
     uint32_t backgroundColor{ 0 };
     switch (this->gridType) {
@@ -185,6 +211,25 @@ void WindowSpritesheet::Update() {
 
     float scale;
     Common::fitRectangle(imageRect, canvasSize, scale);
+
+    if (this->sheetZoomTriggered) {
+        float rel = (glfwGetTime() - this->sheetZoomTimer) / SHEET_ZOOM_TIME;
+        float rScale = (this->sheetZoomEnabled ? Common::EaseIn : Common::EaseOut)(
+            this->sheetZoomEnabled ?
+                1.f - rel :
+                rel
+        ) + 1.f;
+
+        scale *= rScale;
+        imageRect.x *= rScale;
+        imageRect.y *= rScale;
+    } else {
+        float rScale = this->sheetZoomEnabled ? 2.f : 1.f;
+
+        scale *= rScale;
+        imageRect.x *= rScale;
+        imageRect.y *= rScale;
+    }
 
     ImVec2 imagePosition = ImVec2(
         ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * 0.5f,
