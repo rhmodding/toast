@@ -10,6 +10,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include <array>
+
 #define CANVAS_ORIGIN 512
 
 void Animatable::setAnimation(uint16_t animIndex) {
@@ -119,8 +121,7 @@ ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
     return { x + origin.x, y + origin.y };
 }
 
-// IMPORTANT: delete[] after usage!
-ImVec2* Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
+std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
     assert(this->cellanim);
 
     RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
@@ -154,7 +155,7 @@ ImVec2* Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t pa
         topLeftOffset.y + (part.regionH * part.scaleY)
     };
 
-    ImVec2* transformedQuad = new ImVec2[4];
+    std::array<ImVec2, 4> transformedQuad;
 
     transformedQuad[0] = topLeftOffset;
     transformedQuad[1] = { bottomRightOffset.x, topLeftOffset.y };

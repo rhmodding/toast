@@ -65,8 +65,7 @@ public:
 
     ImVec2 getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
 
-    // IMPORTANT: delete[] after usage!
-    ImVec2* getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
+    std::array<ImVec2, 4> getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
 };
 
 #endif // ANIMATABLE_HPP

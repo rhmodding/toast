@@ -292,7 +292,7 @@ void WindowCanvas::Update() {
 
             // Draw selected part bounds
             if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
-                ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
+                auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
                 drawList->AddQuad(
                     bounding[0], bounding[1], bounding[2], bounding[3],
 
@@ -306,7 +306,6 @@ void WindowCanvas::Update() {
                             partBoundingDrawColor.w * 255
                         )
                 );
-                delete[] bounding;
             }
 
             // Draw all part bounds if enabled
@@ -322,9 +321,8 @@ void WindowCanvas::Update() {
                         partBoundingDrawColor.w * 255
                     );
 
-                    ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
+                    auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
                     drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], color);
-                    delete[] bounding;
                 }
         
             // Draw safe area if enabled
@@ -394,7 +392,7 @@ void WindowCanvas::Update() {
 
     // Determine if hovering over selected part
     if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
-        ImVec2* bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
+        auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
 
         ImVec2 polygon[5] = {
             bounding[0],
@@ -405,8 +403,6 @@ void WindowCanvas::Update() {
         };
 
         hoveringOverSelected = isPointInPolygon(io.MousePos, polygon, 5);
-
-        delete[] bounding;
     }
 
     // Dragging canvas / selected part
