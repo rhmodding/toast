@@ -74,8 +74,11 @@ void A_LD_CreateArcSession() {
     GET_SESSION_MANAGER;
 
     int32_t result = sessionManager.PushSessionFromArc(openFileDialog);
-    if (result < 0)
+    if (result < 0) {
+        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
         ImGui::OpenPopup("###SessionOpenErr");
+        ImGui::PopID();
+    }
     else {
         sessionManager.currentSession = result;
         sessionManager.SessionChanged();
@@ -556,9 +559,10 @@ void App::Menubar() {
 void App::UpdatePopups() {
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 
+    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+
     // ###SessionOpenErr
     // ###SessionOutErr
-    // These don't need the override ID since they're launched on the same level.
     {
         SessionManager::SessionError errorCode = SessionManager::getInstance().lastSessionError;
 
@@ -645,8 +649,6 @@ void App::UpdatePopups() {
         
         ImGui::PopStyleVar();
     }
-
-    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
 
     // ###DialogWaitForModifiedPNG
     {
