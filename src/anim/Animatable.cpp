@@ -51,8 +51,10 @@ void Animatable::Update() {
         return;
 
     if (this->holdKey < 1) {
-        // shut up compiler !!
-        if ((uint16_t)(this->currentKeyIndex + 1) >= (uint16_t)this->currentAnimation->keys.size()) {
+        if (
+            static_cast<uint32_t>(this->currentKeyIndex + 1) >=
+            static_cast<uint32_t>(this->currentAnimation->keys.size())
+        ) {
             this->animating = false;
             return;
         }
