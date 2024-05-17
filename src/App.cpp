@@ -5,6 +5,8 @@
 
 #include <chrono>
 
+#include <thread>
+
 #include <iostream>
 #include <vector>
 
@@ -18,9 +20,9 @@
 
 #include "SessionManager.hpp"
 
-#include <ImGuiFileDialog.h>
-
 #include "ConfigManager.hpp"
+
+#include <tinyfiledialogs.h>
 
 #if defined(__APPLE__)
     #define SCS_EXIT "Cmd+Q"
@@ -56,22 +58,96 @@
 
 #pragma region Actions
 
-void A_LaunchOpenArcDialog() {
-    IGFD::FileDialogConfig dialogConfig;
-    dialogConfig.path = ConfigManager::getInstance().config.lastFileDialogPath;
-    dialogConfig.countSelectionMax = 1;
-    dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+void A_LD_CreateArcSession() {
+    const char* filterPatterns[] = { "*.szs" };
+    char* openFileDialog = tinyfd_openFileDialog(
+        "Select a cellanim file",
+        nullptr,
+        ARRAY_LENGTH(filterPatterns), filterPatterns,
+        "Compressed Arc File (.szs)",
+        false
+    );
 
-    ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodArc", "Choose an Cellanim Arc file", ".szs", dialogConfig);
+    if (!openFileDialog)
+        return;
+
+    GET_SESSION_MANAGER;
+
+    int32_t result = sessionManager.PushSessionFromArc(openFileDialog);
+    if (result < 0)
+        ImGui::OpenPopup("###SessionOpenErr");
+    else {
+        sessionManager.currentSession = result;
+        sessionManager.SessionChanged();
+    }
 }
 
-void A_LaunchOpenTraditionalDialog() {
-    IGFD::FileDialogConfig dialogConfig;
-    dialogConfig.path = ConfigManager::getInstance().config.lastFileDialogPath;
-    dialogConfig.countSelectionMax = 1;
-    dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+void A_LD_CreateTraditionalSession() {
+    const char* filterPatterns[] = { "*.brcad", "*.png", "*.h" };
+    char* brcadDialog = tinyfd_openFileDialog(
+        "Select the BRCAD file",
+        nullptr,
+        1, filterPatterns + 0,
+        "Binary Revolution CellAnim Data file (.brcad)",
+        false
+    );
 
-    ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodTraditional-1", "Choose the BRCAD file", ".brcad", dialogConfig);
+    if (!brcadDialog)
+        return;
+
+    char* pathList[3]{ brcadDialog, nullptr, nullptr };
+
+    char* imageDialog = tinyfd_openFileDialog(
+        "Select the image file",
+        nullptr,
+        1, filterPatterns + 1,
+        "Image file (.png)",
+        false
+    );
+
+    if (!imageDialog)
+        return;
+
+    char* headerDialog = tinyfd_openFileDialog(
+        "Select the header file",
+        nullptr,
+        1, filterPatterns + 2,
+        "Header file (.h)",
+        false
+    );
+
+    if (!headerDialog)
+        return;
+
+    GET_SESSION_MANAGER;
+
+    int32_t result = sessionManager.PushSessionTraditional((const char **)pathList);
+    if (result < 0)
+        ImGui::OpenPopup("###SessionOpenErr");
+    else {
+        sessionManager.currentSession = result;
+        sessionManager.SessionChanged();
+    }
+}
+
+void A_LD_SaveCurrentSessionAsArc() {
+    const char* filterPatterns[] = { "*.szs" };
+    char* saveFileDialog = tinyfd_saveFileDialog(
+        "Select a file to save to",
+        nullptr,
+        ARRAY_LENGTH(filterPatterns), filterPatterns,
+        "Compressed Arc File (.szs)"
+    );
+
+    if (saveFileDialog) {
+        GET_SESSION_MANAGER;
+
+        int32_t result = sessionManager.ExportSessionArc(
+            sessionManager.getCurrentSession(), saveFileDialog
+        );
+        if (result < 0)
+            ImGui::OpenPopup("###SessionOutErr");
+    }
 }
 
 void A_SaveCurrentSessionArc() {
@@ -84,15 +160,6 @@ void A_SaveCurrentSessionArc() {
 
     if (result < 0)
         ImGui::OpenPopup("###SessionOutErr");
-}
-
-void A_LaunchSaveAsArcDialog() {
-    IGFD::FileDialogConfig dialogConfig;
-    dialogConfig.path = ConfigManager::getInstance().config.lastFileDialogPath;
-    dialogConfig.countSelectionMax = 1;
-    dialogConfig.flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_ConfirmOverwrite;
-
-    ImGuiFileDialog::Instance()->OpenDialog("DialogExportSessionMethodArc", "Select a file to save to", ".szs", dialogConfig);
 }
 
 #pragma endregion
@@ -320,7 +387,7 @@ void App::Menubar() {
                 (char*)ICON_FA_FILE_EXPORT " Save as (arc)...", SCS_LAUNCH_SAVE_AS_ARC_DIALOG, false,
                 !!sessionManager.getCurrentSession()
             ))
-                A_LaunchSaveAsArcDialog();
+                A_LD_SaveCurrentSessionAsArc();
 
             ImGui::Separator();
 
@@ -330,14 +397,14 @@ void App::Menubar() {
                 SCS_LAUNCH_OPEN_ARC_DIALOG,
                 nullptr
             ))
-                A_LaunchOpenArcDialog();
+                A_LD_CreateArcSession();
 
             if (ImGui::MenuItem(
                 (char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
                 SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG,
                 nullptr
             ))
-                A_LaunchOpenTraditionalDialog();
+                A_LD_CreateTraditionalSession();
 
             ImGui::EndMenu();
         }
@@ -674,6 +741,7 @@ void App::UpdatePopups() {
     ImGui::PopID();
 }
 
+/*
 void App::UpdateFileDialogs() {
     if (ImGuiFileDialog::Instance()->Display("DialogExportSessionMethodArc")) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
@@ -843,16 +911,17 @@ void App::UpdateFileDialogs() {
         ImGuiFileDialog::Instance()->Close();
     }
 }
+*/
 
 void App::HandleShortcuts() {
     if (SC_LAUNCH_OPEN_ARC_DIALOG)
-        A_LaunchOpenArcDialog();
+        A_LD_CreateArcSession();
     if (SC_LAUNCH_OPEN_TRADITIONAL_DIALOG)
-        A_LaunchOpenTraditionalDialog();
+        A_LD_CreateTraditionalSession();
     if (SC_SAVE_CURRENT_SESSION_ARC)
         A_SaveCurrentSessionArc();
     if (SC_LAUNCH_SAVE_AS_ARC_DIALOG)
-        A_LaunchSaveAsArcDialog();
+        A_LD_SaveCurrentSessionAsArc();
 }
 
 void App::Update() {
@@ -913,8 +982,6 @@ void App::Update() {
         this->windowConfig->Update();
     if (this->windowAbout->open)
         this->windowAbout->Update();
-
-    this->UpdateFileDialogs();
 
     this->UpdatePopups();
 

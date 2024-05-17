@@ -12,8 +12,6 @@ set(SOURCES
     ext/imgui/backends/imgui_impl_glfw.cpp
     ext/imgui/backends/imgui_impl_opengl3.cpp
 
-    ext/ImGuiFileDialog/ImGuiFileDialog.cpp
-
     ext/tinyfiledialogs/tinyfiledialogs.c
 
     src/main.cpp
@@ -55,8 +53,6 @@ set(HEADERS
     ext/imgui/backends/imgui_impl_glfw.h
     ext/imgui/backends/imgui_impl_opengl3.h
     ext/imgui/backends/imgui_impl_opengl3_loader.h
-
-    ext/ImGuiFileDialog/ImGuiFileDialog.h
 
     ext/tinyfiledialogs/tinyfiledialogs.h
 
@@ -109,7 +105,6 @@ ENDIF()
 target_include_directories(toast PRIVATE
     ext/imgui/
     ext/imgui/backends
-    ext/ImGuiFileDialog
     ext/tinyfiledialogs
 
     libs/glfw/include

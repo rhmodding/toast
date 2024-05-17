@@ -27,8 +27,6 @@ public:
 
         std::string textureEditPath{ "./toastEditTexture.temp.png" };
 
-        std::string lastFileDialogPath{ "." };
-
         bool showUnknownValues{ false };
 
         int lastWindowWidth{ 1500 };
@@ -43,7 +41,6 @@ public:
                 this->darkTheme == other.darkTheme &&
                 this->imageEditorPath == other.imageEditorPath &&
                 this->textureEditPath == other.textureEditPath &&
-                this->lastFileDialogPath == other.lastFileDialogPath &&
                 this->showUnknownValues == other.showUnknownValues &&
                 this->lastWindowWidth == other.lastWindowWidth &&
                 this->lastWindowHeight == other.lastWindowHeight &&
@@ -77,9 +74,6 @@ public:
         );
         this->config.textureEditPath = data.value(
             "textureEditPath", this->config.textureEditPath
-        );
-        this->config.lastFileDialogPath = data.value(
-            "lastFileDialogPath", this->config.lastFileDialogPath
         );
 
         this->config.showUnknownValues = data.value(
@@ -116,7 +110,6 @@ public:
 
         data["imageEditorPath"] = this->config.imageEditorPath;
         data["textureEditPath"] = this->config.textureEditPath;
-        data["lastFileDialogPath"] = this->config.lastFileDialogPath;
 
         data["showUnknownValues"] = this->config.showUnknownValues;
 

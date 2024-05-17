@@ -14,11 +14,12 @@
 #include <sstream>
 #include <future>
 
+#include <filesystem>
+
 #include "../ConfigManager.hpp"
 
-#include <ImGuiFileDialog.h>
+#include <tinyfiledialogs.h>
 
-#include <filesystem>
 
 void WindowSpritesheet::RunEditor() {
     GET_CONFIG_MANAGER;
@@ -109,12 +110,31 @@ void WindowSpritesheet::Update() {
                 }
             }
             if (ImGui::MenuItem("Replace with PNG file...", nullptr, false)) {
-                IGFD::FileDialogConfig dialogConfig;
-                dialogConfig.path = ConfigManager::getInstance().config.lastFileDialogPath;
-                dialogConfig.countSelectionMax = 1;
-                dialogConfig.flags = ImGuiFileDialogFlags_Modal;
+                const char* filterPatterns[] = { "*.png" };
+                char* openFileDialog = tinyfd_openFileDialog(
+                    "Select a replacement image file",
+                    nullptr,
+                    ARRAY_LENGTH(filterPatterns), filterPatterns,
+                    "Image file (.png)",
+                    false
+                );
 
-                ImGuiFileDialog::Instance()->OpenDialog("DialogReplaceCurrentTexturePNG", "Choose the replacement texture PNG", ".png", dialogConfig);
+                if (openFileDialog) {
+                    GET_SESSION_MANAGER;
+
+                    Common::Image* newImage = new Common::Image();
+                    newImage->LoadFromFile(openFileDialog);
+
+                    if (newImage->texture) {
+                        sessionManager.getCurrentSession()->getCellanimSheet()->FreeTexture();
+                        delete sessionManager.getCurrentSession()->getCellanimSheet();
+                        sessionManager.getCurrentSession()->getCellanimSheet() = newImage;
+                        
+                        sessionManager.SessionChanged();
+
+                        sessionManager.getCurrentSessionModified() |= true;
+                    }
+                }
             }
 
             ImGui::EndMenu();
