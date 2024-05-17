@@ -34,7 +34,7 @@ void AppState::PlayerState::updateCurrentFrame() {
     if (this->currentFrame >= this->frameCount)
         this->currentFrame = this->frameCount - 1;
 
-    globalAnimatable->setAnimationKey(this->currentFrame);
+    globalAnimatable->setAnimationKeyFromIndex(this->currentFrame);
 
     RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
@@ -102,12 +102,12 @@ void AppState::PlayerState::Update() {
 
             this->timeLeft = 1 / (float)frameRate;
 
-            if (!globalAnimatable->isAnimating() && this->loopEnabled) {
-                globalAnimatable->setAnimation(globalAnimatable->getCurrentAnimationIndex());
+            if (!globalAnimatable->getAnimating() && this->loopEnabled) {
+                globalAnimatable->setAnimationFromIndex(globalAnimatable->getCurrentAnimationIndex());
                 globalAnimatable->setAnimating(true);
             }
 
-            this->playing = globalAnimatable->isAnimating();
+            this->playing = globalAnimatable->getAnimating();
             this->currentFrame = globalAnimatable->getCurrentKeyIndex();
             this->holdFramesLeft = globalAnimatable->getHoldFramesLeft();
 

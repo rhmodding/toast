@@ -14,7 +14,7 @@
 
 #define CANVAS_ORIGIN 512
 
-void Animatable::setAnimation(uint16_t animIndex) {
+void Animatable::setAnimationFromIndex(uint16_t animIndex) {
     assert(this->cellanim);
 
     assert(this->cellanim->animations.size() >= animIndex);
@@ -28,7 +28,7 @@ void Animatable::setAnimation(uint16_t animIndex) {
     this->holdKey = this->currentKey->holdFrames;
 }
 
-void Animatable::setAnimationKey(uint16_t keyIndex) {
+void Animatable::setAnimationKeyFromIndex(uint16_t keyIndex) {
     assert(this->cellanim);
     assert(this->currentAnimation);
 
@@ -42,7 +42,7 @@ void Animatable::setAnimationKey(uint16_t keyIndex) {
 void Animatable::setAnimating(bool animating) {
     this->animating = animating;
 }
-bool Animatable::isAnimating() const {
+bool Animatable::getAnimating() const {
     return this->animating;
 }
 
@@ -234,7 +234,7 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
     return false;
 }
 
-void Animatable::SubmitAnimationKeyPtr(RvlCellAnim::AnimationKey* key) {
+void Animatable::setAnimationKeyFromPtr(RvlCellAnim::AnimationKey* key) {
     assert(this->cellanim);
     assert(key);
 
@@ -372,6 +372,7 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
     }
 }
 
+/*
 void Animatable::DrawOrigins(ImDrawList* drawList, float radius, uint32_t color) {
     assert(this->cellanim);
     assert(this->currentAnimation);
@@ -403,3 +404,4 @@ void Animatable::DrawOrigins(ImDrawList* drawList, float radius, uint32_t color)
         drawList->AddCircleFilled(center, radius, color);
     }
 }
+*/

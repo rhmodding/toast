@@ -36,11 +36,13 @@ public:
 
     ~Animatable() {};
 
-    void setAnimation(uint16_t animIndex);
-    void setAnimationKey(uint16_t keyIndex);
+    void setAnimationFromIndex(uint16_t animIndex);
+    void setAnimationKeyFromIndex(uint16_t keyIndex);
+
+    void setAnimationKeyFromPtr(RvlCellAnim::AnimationKey* key);
 
     void setAnimating(bool animating);
-    bool isAnimating() const;
+    bool getAnimating() const;
 
     uint16_t getCurrentAnimationIndex() const;
     uint16_t getCurrentKeyIndex() const;
@@ -49,22 +51,16 @@ public:
 
     RvlCellAnim::AnimationKey* getCurrentKey() const;
     RvlCellAnim::Animation* getCurrentAnimation() const;
-
     RvlCellAnim::Arrangement* getCurrentArrangement() const;
-
-    void SubmitAnimationKeyPtr(RvlCellAnim::AnimationKey* key);
 
     void Update();
 
     void Draw(ImDrawList* drawList, bool allowOpacity = true);
 
-    void DrawOrigins(ImDrawList* drawList, float radius, uint32_t color);
-
     // Does the Animatable actually draw anything at all to the screen?
     bool getDoesDraw(bool allowOpacity = true) const;
 
     ImVec2 getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
-
     std::array<ImVec2, 4> getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
 };
 

@@ -375,7 +375,7 @@ void SessionManager::SessionChanged() {
             );
 
             appState.playerState.ToggleAnimating(false);
-            globalAnimatable->SubmitAnimationKeyPtr(&appState.controlKey);
+            globalAnimatable->setAnimationKeyFromPtr(&appState.controlKey);
         } else {
             appState.selectedAnimation = std::clamp<uint16_t>(
                 appState.selectedAnimation,
@@ -383,7 +383,7 @@ void SessionManager::SessionChanged() {
                 globalAnimatable->cellanim->animations.size() - 1
             );
 
-            globalAnimatable->setAnimation(appState.selectedAnimation);
+            globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
         }
         appState.playerState.updateSetFrameCount();
 

@@ -86,7 +86,7 @@ void WindowHybridList::Update() {
                 if (ImGui::Selectable(fmtStream.str().c_str(), appState.selectedAnimation == n, ImGuiSelectableFlags_SelectOnNav)) {
                     appState.selectedAnimation = n;
 
-                    globalAnimatable->setAnimation(appState.selectedAnimation);
+                    globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
 
                     appState.playerState.currentFrame = 0;
                     appState.playerState.updateSetFrameCount();

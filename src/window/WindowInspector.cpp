@@ -401,7 +401,7 @@ void WindowInspector::Level_Arrangement() {
             sprintf(buffer, "Part no. %u", n+1);
 
             ImGui::SetNextItemAllowOverlap();
-            if (ImGui::Selectable(buffer, appState.selectedPart == n))
+            if (ImGui::Selectable(buffer, appState.selectedPart == n, ImGuiSelectableFlags_SelectOnNav))
                 appState.selectedPart = n;
 
             bool deletePart{ false };
@@ -543,7 +543,7 @@ void WindowInspector::Update() {
                 );
 
                 appState.playerState.ToggleAnimating(false);
-                globalAnimatable->SubmitAnimationKeyPtr(&appState.controlKey);
+                globalAnimatable->setAnimationKeyFromPtr(&appState.controlKey);
             }
 
             ImGui::EndMenu();
@@ -571,7 +571,7 @@ void WindowInspector::Update() {
     }
         
     if (lastWasArrangement)
-        globalAnimatable->setAnimation(appState.selectedAnimation);
+        globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
 
     lastInspectorLevel = inspectorLevel;
 
