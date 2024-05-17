@@ -244,16 +244,22 @@ void Animatable::setAnimationKeyFromPtr(RvlCellAnim::AnimationKey* key) {
     this->currentKey = key;
 }
 
-void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
-    assert(this->cellanim);
-    assert(this->currentAnimation);
+void Animatable::DrawKey(
+    RvlCellAnim::AnimationKey* key,
+    ImDrawList* drawList,
 
-    if (!this->visible)
-        return;
+    int32_t partIndex,
+    uint32_t colorMod,
+    bool allowOpacity
+) {
+    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
 
-    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
+    for (uint16_t i = 0; i < arrangement->parts.size(); i++) {
+        if (partIndex != -1 && partIndex != i)
+            continue;
 
-    for (auto part : arrangement->parts) {
+        const RvlCellAnim::ArrangementPart& part = arrangement->parts.at(i);
+
         if ((part.opacity == 0) && allowOpacity)
             continue; // Part not visible; don't bother drawing it.
 
@@ -358,11 +364,23 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
             { uvTopLeft.x, uvBottomRight.y }
         };
 
+        uint8_t modAlpha = colorMod & 0xFF;
+        uint8_t baseAlpha =
+            allowOpacity ? (
+                (part.opacity * this->currentKey->opacity) / 255
+            ) : 255;
+
         drawList->AddImageQuad(
             (void*)(intptr_t)this->texture->texture,
             transformedQuad[0], transformedQuad[1], transformedQuad[2], transformedQuad[3],
             uvs[0], uvs[1], uvs[2], uvs[3],
-            IM_COL32(255, 255, 255, allowOpacity ? ( (part.opacity * this->currentKey->opacity) / 255 ) : 255)
+            IM_COL32(
+                (colorMod >> 24) & 0xFF,
+                (colorMod >> 16) & 0xFF,
+                (colorMod >>  8) & 0xFF,
+                
+                (baseAlpha * modAlpha) / 255
+            )
         );
 
         /* // Draw bounding box
@@ -371,6 +389,57 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
             IM_COL32(255, 255, 255, 255)
         );
         */
+    }
+}
+
+void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
+    assert(this->cellanim);
+    assert(this->currentAnimation);
+
+    if (!this->visible)
+        return;
+
+    this->DrawKey(this->currentKey, drawList);
+}
+
+void Animatable::DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_t frontCount, uint8_t opacity) {
+    assert(this->cellanim);
+    assert(this->currentAnimation);
+
+    if (!this->visible)
+        return;
+
+    uint16_t i;
+
+    if (backCount) {
+        i = this->currentKeyIndex;
+        while (true) {
+            i--;
+
+            if (
+                (i < 0) ||
+                (i >= this->currentAnimation->keys.size()) ||
+                (i < (this->currentKeyIndex - backCount))
+            )
+                break;
+
+            this->DrawKey(&this->currentAnimation->keys.at(i), drawList, -1, IM_COL32(255, 64, 64, opacity));
+        }
+    }
+
+    if (frontCount) {
+        i = this->currentKeyIndex;
+        while (true) {
+            i++;
+
+            if (
+                (i >= this->currentAnimation->keys.size()) ||
+                (i > (this->currentKeyIndex + frontCount))
+            )
+                break;
+
+            this->DrawKey(&this->currentAnimation->keys.at(i), drawList, -1, IM_COL32(64, 255, 64, opacity));
+        }
     }
 }
 

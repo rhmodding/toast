@@ -21,6 +21,15 @@ private:
     uint16_t currentAnimationIndex{ 0 };
     uint16_t currentKeyIndex{ 0 };
 
+    void DrawKey(
+        RvlCellAnim::AnimationKey* key,
+        ImDrawList* drawList,
+
+        int32_t partIndex = -1,
+        uint32_t colorMod = 0xFFFFFFFFu,
+        bool allowOpacity = true
+    );
+
 public:
     RvlCellAnim::RvlCellAnimObject* cellanim{ nullptr };
     Common::Image* texture{ nullptr };
@@ -56,6 +65,8 @@ public:
     void Update();
 
     void Draw(ImDrawList* drawList, bool allowOpacity = true);
+
+    void DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_t frontCount, uint8_t opacity);
 
     // Does the Animatable actually draw anything at all to the screen?
     bool getDoesDraw(bool allowOpacity = true) const;
