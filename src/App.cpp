@@ -735,180 +735,38 @@ void App::UpdatePopups() {
         ImGui::PopStyleVar();
     }
 
+    // ###AttemptExitWhileUnsavedChanges
+    {
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+        if (ImGui::BeginPopupModal("Exit with unsaved changes###AttemptExitWhileUnsavedChanges", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::TextUnformatted("There are still unsaved changes in one or more sessions.\nAre you sure you want to close the app?");
+
+            ImGui::Dummy({ 0, 15 });
+            ImGui::Separator();
+            ImGui::Dummy({ 0, 5 });
+
+            if (ImGui::Button("Cancel"))
+                ImGui::CloseCurrentPopup();
+            ImGui::SetItemDefaultFocus();
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Exit without saving")) {
+                ImGui::CloseCurrentPopup();
+
+                this->exitWithUnsavedChanges = true;
+                this->AttemptExit();
+            }
+
+            ImGui::EndPopup();
+        }
+        ImGui::PopStyleVar();
+    }
+
     ImGui::PopID();
 }
-
-/*
-void App::UpdateFileDialogs() {
-    if (ImGuiFileDialog::Instance()->Display("DialogExportSessionMethodArc")) {
-        if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
-            ConfigManager::getInstance().SaveConfig();
-
-            GET_SESSION_MANAGER;
-
-            int32_t result = sessionManager.ExportSessionArc(
-                sessionManager.getCurrentSession(), filePathName.c_str()
-            );
-
-            if (result < 0)
-                ImGui::OpenPopup("###SessionOutErr");
-        }
-
-        ImGuiFileDialog::Instance()->Close();
-    }
-
-#pragma region Push Session Dialogs
-
-    if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodArc")) {
-        if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
-            ConfigManager::getInstance().SaveConfig();
-
-            GET_SESSION_MANAGER;
-
-            int32_t result = sessionManager.PushSessionFromArc(filePathName.c_str());
-
-            if (result < 0)
-                ImGui::OpenPopup("###SessionOpenErr");
-            else {
-                sessionManager.currentSession = result;
-                sessionManager.SessionChanged();
-            }
-        }
-
-        ImGuiFileDialog::Instance()->Close();
-    }
-
-    static char* traditionalPushPaths[3]{ nullptr };
-
-    if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodTraditional-1")) {
-        bool openNext{ false };
-        IGFD::FileDialogConfig dialogConfig;
-
-        if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
-            ConfigManager::getInstance().SaveConfig();
-
-            traditionalPushPaths[0] = new char[filePathName.length() + 1];
-            strcpy(traditionalPushPaths[0], filePathName.c_str());
-
-            dialogConfig.path = filePath;
-            dialogConfig.countSelectionMax = 1;
-            dialogConfig.flags = ImGuiFileDialogFlags_Modal;
-            openNext = true;
-        } else {
-            Common::deleteIfNotNullptr(traditionalPushPaths[0]);
-            Common::deleteIfNotNullptr(traditionalPushPaths[1]);
-            Common::deleteIfNotNullptr(traditionalPushPaths[2]);
-        }
-
-        ImGuiFileDialog::Instance()->Close();
-
-        if (openNext)
-            ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodTraditional-2", "Choose the image file", ".png", dialogConfig);
-    }
-
-    if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodTraditional-2")) {
-        bool openNext{ false };
-        IGFD::FileDialogConfig dialogConfig;
-
-        if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
-            ConfigManager::getInstance().SaveConfig();
-
-            traditionalPushPaths[1] = new char[filePathName.length() + 1];
-            strcpy(traditionalPushPaths[1], filePathName.c_str());
-
-            dialogConfig.path = filePath;
-            dialogConfig.countSelectionMax = 1;
-            dialogConfig.flags = ImGuiFileDialogFlags_Modal;
-
-            openNext = true;
-        } else {
-            Common::deleteIfNotNullptr(traditionalPushPaths[0]);
-            Common::deleteIfNotNullptr(traditionalPushPaths[1]);
-            Common::deleteIfNotNullptr(traditionalPushPaths[2]);
-        }
-
-        ImGuiFileDialog::Instance()->Close();
-
-        if (openNext)
-            ImGuiFileDialog::Instance()->OpenDialog("DialogPushSessionMethodTraditional-3", "Choose the header file", ".h", dialogConfig);
-    }
-
-    if (ImGuiFileDialog::Instance()->Display("DialogPushSessionMethodTraditional-3")) {
-        if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
-            ConfigManager::getInstance().SaveConfig();
-
-            traditionalPushPaths[2] = new char[filePathName.length() + 1];
-            strcpy(traditionalPushPaths[2], filePathName.c_str());
-
-            GET_SESSION_MANAGER;
-
-            int32_t result = sessionManager.PushSessionTraditional((const char**)traditionalPushPaths);
-
-            if (result < 0)
-                ImGui::OpenPopup("###SessionOpenErr");
-            else {
-                sessionManager.currentSession = result;
-                sessionManager.SessionChanged();
-            }
-        }
-
-        Common::deleteIfNotNullptr(traditionalPushPaths[0]);
-        Common::deleteIfNotNullptr(traditionalPushPaths[1]);
-        Common::deleteIfNotNullptr(traditionalPushPaths[2]);
-
-        ImGuiFileDialog::Instance()->Close();
-    }
-
-#pragma endregion
-
-    if (ImGuiFileDialog::Instance()->Display("DialogReplaceCurrentTexturePNG")) {
-        if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            ConfigManager::getInstance().config.lastFileDialogPath = filePath;
-            ConfigManager::getInstance().SaveConfig();
-
-            GET_SESSION_MANAGER;
-
-            Common::Image* newImage = new Common::Image();
-            newImage->LoadFromFile(filePathName.c_str());
-
-            if (newImage->texture) {
-                sessionManager.getCurrentSession()->getCellanimSheet()->FreeTexture();
-                delete sessionManager.getCurrentSession()->getCellanimSheet();
-                sessionManager.getCurrentSession()->getCellanimSheet() = newImage;
-                
-                sessionManager.SessionChanged();
-
-                sessionManager.getCurrentSessionModified() |= true;
-            }
-        }
-
-        ImGuiFileDialog::Instance()->Close();
-    }
-}
-*/
 
 void App::HandleShortcuts() {
     if (SC_LAUNCH_OPEN_ARC_DIALOG)
