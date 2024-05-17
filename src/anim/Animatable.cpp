@@ -126,7 +126,15 @@ ImVec2* Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t pa
     RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
     RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
 
-    uint16_t sourceRect[4] = { part.regionX, part.regionY, part.regionW, part.regionH };
+    float dataDiffScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
+    float dataDiffScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
+
+    uint16_t sourceRect[4] = {
+        static_cast<uint16_t>(part.regionX * dataDiffScaleX),
+        static_cast<uint16_t>(part.regionY * dataDiffScaleY),
+        static_cast<uint16_t>(part.regionW * dataDiffScaleX),
+        static_cast<uint16_t>(part.regionH * dataDiffScaleY)
+    };
 
     // float totalScaleX = this->currentKey->scaleX * this->scaleX;
     // float totalScaleY = this->currentKey->scaleY * this->scaleY;
@@ -246,7 +254,15 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
         if ((part.opacity == 0) && allowOpacity)
             continue; // Part not visible; don't bother drawing it.
 
-        uint16_t sourceRect[4] = { part.regionX, part.regionY, part.regionW, part.regionH };
+        float dataDiffScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
+        float dataDiffScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
+
+        uint16_t sourceRect[4] = {
+            static_cast<uint16_t>(part.regionX * dataDiffScaleX),
+            static_cast<uint16_t>(part.regionY * dataDiffScaleY),
+            static_cast<uint16_t>(part.regionW * dataDiffScaleX),
+            static_cast<uint16_t>(part.regionH * dataDiffScaleY)
+        };
 
         // float totalScaleX = this->currentKey->scaleX * this->scaleX;
         // float totalScaleY = this->currentKey->scaleY * this->scaleY;
