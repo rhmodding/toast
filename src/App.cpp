@@ -83,7 +83,10 @@ void A_LD_CreateArcSession() {
 }
 
 void A_LD_CreateTraditionalSession() {
+    char* pathList[3];
+
     const char* filterPatterns[] = { "*.brcad", "*.png", "*.h" };
+
     char* brcadDialog = tinyfd_openFileDialog(
         "Select the BRCAD file",
         nullptr,
@@ -91,11 +94,11 @@ void A_LD_CreateTraditionalSession() {
         "Binary Revolution CellAnim Data file (.brcad)",
         false
     );
-
     if (!brcadDialog)
         return;
 
-    char* pathList[3]{ brcadDialog, nullptr, nullptr };
+    pathList[0] = new char[strlen(brcadDialog) + 1];
+    strcpy(pathList[0], brcadDialog);
 
     char* imageDialog = tinyfd_openFileDialog(
         "Select the image file",
@@ -104,9 +107,11 @@ void A_LD_CreateTraditionalSession() {
         "Image file (.png)",
         false
     );
-
     if (!imageDialog)
         return;
+
+    pathList[1] = new char[strlen(imageDialog) + 1];
+    strcpy(pathList[1], imageDialog);
 
     char* headerDialog = tinyfd_openFileDialog(
         "Select the header file",
@@ -115,15 +120,20 @@ void A_LD_CreateTraditionalSession() {
         "Header file (.h)",
         false
     );
-
     if (!headerDialog)
         return;
+
+    pathList[2] = new char[strlen(headerDialog) + 1];
+    strcpy(pathList[2], headerDialog);
 
     GET_SESSION_MANAGER;
 
     int32_t result = sessionManager.PushSessionTraditional((const char **)pathList);
-    if (result < 0)
+    if (result < 0) {
+        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
         ImGui::OpenPopup("###SessionOpenErr");
+        ImGui::PopID();
+    }
     else {
         sessionManager.currentSession = result;
         sessionManager.SessionChanged();
@@ -145,8 +155,11 @@ void A_LD_SaveCurrentSessionAsArc() {
         int32_t result = sessionManager.ExportSessionArc(
             sessionManager.getCurrentSession(), saveFileDialog
         );
-        if (result < 0)
+        if (result < 0) {
+            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
             ImGui::OpenPopup("###SessionOutErr");
+            ImGui::PopID();
+        }    
     }
 }
 
@@ -158,8 +171,11 @@ void A_SaveCurrentSessionArc() {
         sessionManager.getCurrentSession()->mainPath.c_str()
     );
 
-    if (result < 0)
+    if (result < 0) {
+        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
         ImGui::OpenPopup("###SessionOutErr");
+        ImGui::PopID();
+    }
 }
 
 #pragma endregion
