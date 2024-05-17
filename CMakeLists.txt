@@ -14,7 +14,7 @@ set(SOURCES
 
     ext/ImGuiFileDialog/ImGuiFileDialog.cpp
 
-    ext/tinyfiledialogs/tinyfiledialogs.cpp
+    ext/tinyfiledialogs/tinyfiledialogs.c
 
     src/main.cpp
     src/App.cpp
