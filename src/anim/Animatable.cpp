@@ -364,7 +364,7 @@ void Animatable::DrawKey(
             { uvTopLeft.x, uvBottomRight.y }
         };
 
-        uint8_t modAlpha = colorMod & 0xFF;
+        uint8_t modAlpha = (colorMod >> 24) & 0xFF;
         uint8_t baseAlpha =
             allowOpacity ? (
                 (part.opacity * this->currentKey->opacity) / 255
@@ -375,11 +375,11 @@ void Animatable::DrawKey(
             transformedQuad[0], transformedQuad[1], transformedQuad[2], transformedQuad[3],
             uvs[0], uvs[1], uvs[2], uvs[3],
             IM_COL32(
-                (colorMod >> 24) & 0xFF,
-                (colorMod >> 16) & 0xFF,
+                (colorMod >>  0) & 0xFF,
                 (colorMod >>  8) & 0xFF,
+                (colorMod >> 16) & 0xFF,
                 
-                (baseAlpha * modAlpha) / 255
+                static_cast<uint8_t>((static_cast<uint16_t>(baseAlpha) * modAlpha) / 255)
             )
         );
 
