@@ -192,7 +192,7 @@ void WindowTimeline::Update() {
                                                         ImGuiTableFlags_ScrollX
         )) {
             ImGui::TableNextRow();
-            {
+            { // Keys
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Dummy(ImVec2(5, 0));
                 ImGui::SameLine();
@@ -541,7 +541,7 @@ void WindowTimeline::Update() {
             }
 
             ImGui::TableNextRow();
-            {
+            { // Hold Frames
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Dummy(ImVec2(5, 0));
                 ImGui::SameLine();
@@ -587,6 +587,54 @@ void WindowTimeline::Update() {
                 }
             }
         
+            if (appState.onionSkinState.enabled) {
+                ImGui::TableNextRow();
+                { // Onion Skin
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Dummy(ImVec2(5, 0));
+                    ImGui::SameLine();
+                    ImGui::TextUnformatted("Onion Skin");
+                    ImGui::TableSetColumnIndex(1);
+
+                    {
+                        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
+                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
+                        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+
+                        for (uint16_t i = 0; i < appState.playerState.frameCount; i++) {
+                            ImGui::PushID(i);
+
+                            char buffer[18];
+                            sprintf(buffer, "%u##OnionSkinButton", i+1);
+
+                            ImGui::BeginDisabled();
+                            if (
+                                i >= appState.playerState.currentFrame - appState.onionSkinState.backCount &&
+                                i <= appState.playerState.currentFrame + appState.onionSkinState.frontCount &&
+                                i != appState.playerState.currentFrame
+                            )
+                                ImGui::Button(buffer, buttonDimensions);
+                            else
+                                ImGui::Dummy(buttonDimensions);
+                            ImGui::EndDisabled();
+
+                            // Hold frame dummy
+                            uint16_t holdFrames = globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames;
+                            if (holdFrames > 1) {
+                                ImGui::SameLine();
+                                ImGui::Dummy(ImVec2(static_cast<float>(10 * holdFrames), buttonDimensions.y));
+                            }
+
+                            ImGui::SameLine();
+
+                            ImGui::PopID();
+                        }
+
+                        ImGui::PopStyleVar(3);
+                    }
+                }
+            }
+
             ImGui::EndTable();
         }
 
