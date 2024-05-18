@@ -81,6 +81,16 @@ public:
     
     Animatable* globalAnimatable{ nullptr };
 
+    struct OnionSkinState {
+        bool enabled{ true };
+
+        uint16_t backCount{ 3 };
+        uint16_t frontCount{ 2 };
+        uint8_t opacity{ 50 };
+
+        bool drawUnder{ false };
+    } onionSkinState;
+
 private:
     AppState() {} // Private constructor to prevent instantiation
 };
