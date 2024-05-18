@@ -288,7 +288,30 @@ void WindowCanvas::Update() {
             }
         
             // Draw animatable
-            globalAnimatable->Draw(drawList, allowOpacity);
+            {
+                bool drawOnionSkin = appState.onionSkinState.enabled;
+                bool drawUnder = appState.onionSkinState.drawUnder;
+
+                if (drawOnionSkin && drawUnder) {
+                    globalAnimatable->DrawOnionSkin(
+                        drawList,
+                        appState.onionSkinState.backCount,
+                        appState.onionSkinState.frontCount,
+                        appState.onionSkinState.opacity
+                    );
+                }
+
+                globalAnimatable->Draw(drawList, allowOpacity);
+
+                if (drawOnionSkin && !drawUnder) {
+                    globalAnimatable->DrawOnionSkin(
+                        drawList,
+                        appState.onionSkinState.backCount,
+                        appState.onionSkinState.frontCount,
+                        appState.onionSkinState.opacity
+                    );
+                }
+            }
 
             // Draw selected part bounds
             if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
