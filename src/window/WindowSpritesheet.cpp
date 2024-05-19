@@ -141,13 +141,16 @@ void WindowSpritesheet::Update() {
             ImGui::EndMenu();
         }
 
-        const char* text = "Double-click to zoom";
+        {
+            char textBuffer[32];
+            sprintf(textBuffer, "Double-click to %s", this->sheetZoomEnabled ? "un-zoom" : "zoom");
 
-        ImGui::SetCursorPosX(
-            ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(text).x -
-            ImGui::GetStyle().FramePadding.x
-        );
-        ImGui::Text(text);
+            ImGui::SetCursorPosX(
+                ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(textBuffer).x -
+                ImGui::GetStyle().FramePadding.x
+            );
+            ImGui::TextUnformatted(textBuffer);
+        }
 
         ImGui::EndMenuBar();
     }
