@@ -21,8 +21,7 @@ void WindowTimeline::Update() {
     ImGui::Begin("Timeline");
     ImGui::PopStyleVar();
 
-    if (appState.arrangementMode)
-        ImGui::BeginDisabled();
+    ImGui::BeginDisabled(appState.arrangementMode);
 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
 
@@ -221,10 +220,11 @@ void WindowTimeline::Update() {
                             appState.playerState.updateCurrentFrame();
                         }
 
-                        // Probably don't need to use a enum for this
                         enum DeleteKeyMode: uint16_t {
                             DeleteKeyMode_None,
+
                             DeleteKeyMode_Current,
+                            
                             DeleteKeyMode_ToRight,
                             DeleteKeyMode_ToLeft
                         } deleteKeyMode{ DeleteKeyMode_None };
@@ -240,7 +240,8 @@ void WindowTimeline::Update() {
                                 "[Alt]"
                                 #endif
 
-                                " for variations.");
+                                " for variations."
+                            );
 
                             ImGui::Separator();
 
@@ -433,43 +434,46 @@ void WindowTimeline::Update() {
                                 ImGui::OpenPopup("###DeleteKeysRConfirm");
                             ImGui::EndDisabled();
 
-                            if (ImGui::BeginPopup("Are you sure?###DeleteKeyConfirm")) {
-                                ImGui::TextUnformatted("Are you sure you want to\ndelete this key?");
-                                ImGui::Separator();
-                                if (ImGui::Selectable("Do it"))
-                                    deleteKeyMode = DeleteKeyMode_Current;
-                                ImGui::Selectable("Nevermind");
+                            // Sub-popups
+                            {
+                                if (ImGui::BeginPopup("Are you sure?###DeleteKeyConfirm")) {
+                                    ImGui::TextUnformatted("Are you sure you want to\ndelete this key?");
+                                    ImGui::Separator();
+                                    if (ImGui::Selectable("Do it"))
+                                        deleteKeyMode = DeleteKeyMode_Current;
+                                    ImGui::Selectable("Nevermind");
 
-                                ImGui::EndPopup();
-                            }
+                                    ImGui::EndPopup();
+                                }
 
-                            if (ImGui::BeginPopup("Are you sure?###DeleteKeysLConfirm")) {
-                                ImGui::TextUnformatted("Are you sure you want to\ndelete the keys to the left?");
-                                ImGui::Separator();
-                                if (ImGui::Selectable("Do it"))
-                                    deleteKeyMode = DeleteKeyMode_ToLeft;
-                                ImGui::Selectable("Nevermind");
+                                if (ImGui::BeginPopup("Are you sure?###DeleteKeysLConfirm")) {
+                                    ImGui::TextUnformatted("Are you sure you want to\ndelete the keys to the left?");
+                                    ImGui::Separator();
+                                    if (ImGui::Selectable("Do it"))
+                                        deleteKeyMode = DeleteKeyMode_ToLeft;
+                                    ImGui::Selectable("Nevermind");
 
-                                ImGui::EndPopup();
-                            }
+                                    ImGui::EndPopup();
+                                }
 
-                            if (ImGui::BeginPopup("Are you sure?###DeleteKeysRConfirm")) {
-                                ImGui::TextUnformatted("Are you sure you want to\ndelete the keys to the right?");
-                                ImGui::Separator();
-                                if (ImGui::Selectable("Do it"))
-                                    deleteKeyMode = DeleteKeyMode_ToRight;
-                                ImGui::Selectable("Nevermind");
+                                if (ImGui::BeginPopup("Are you sure?###DeleteKeysRConfirm")) {
+                                    ImGui::TextUnformatted("Are you sure you want to\ndelete the keys to the right?");
+                                    ImGui::Separator();
+                                    if (ImGui::Selectable("Do it"))
+                                        deleteKeyMode = DeleteKeyMode_ToRight;
+                                    ImGui::Selectable("Nevermind");
 
-                                ImGui::EndPopup();
-                            }
-
-                            if (deleteKeyMode)
-                                ImGui::CloseCurrentPopup();
+                                    ImGui::EndPopup();
+                                }
+                            
+                                if (deleteKeyMode)
+                                    ImGui::CloseCurrentPopup();
+                            }          
 
                             ImGui::EndPopup();
                         }
 
-                        if (ImGui::BeginItemTooltip()) {
+                        if (!appState.arrangementMode && ImGui::BeginItemTooltip()) {
                             ImGui::Text((char*)ICON_FA_KEY "  Key no. %u", i+1);
                             ImGui::TextUnformatted("Right-click for options");
 
@@ -511,16 +515,16 @@ void WindowTimeline::Update() {
                             std::vector<RvlCellAnim::AnimationKey>& keys = globalAnimatable->getCurrentAnimation()->keys;
 
                             switch (deleteKeyMode) {
-                                case DeleteKeyMode_Current: {
+                                case DeleteKeyMode_Current:
                                     keys.erase(keys.begin() + i);
-                                } break;
+                                    break;
 
-                                case DeleteKeyMode_ToLeft: {
+                                case DeleteKeyMode_ToLeft:
                                     keys.erase(keys.begin(), keys.begin() + i);
-                                } break;
-                                case DeleteKeyMode_ToRight: {
+                                    break;
+                                case DeleteKeyMode_ToRight:
                                     keys.erase(keys.begin() + i + 1, keys.end());
-                                } break;
+                                    break;
                                 
                                 default:
                                     break;
@@ -567,7 +571,7 @@ void WindowTimeline::Update() {
                                 appState.playerState.currentFrame == i ?
                                     ((holdFrames - appState.playerState.holdFramesLeft) / (float)holdFrames) :
                                 appState.playerState.currentFrame > i ?
-                                    1.0f : 0.0f,
+                                    1.f : 0.f,
                                 0.5f
                             ));
 
@@ -648,8 +652,7 @@ void WindowTimeline::Update() {
     }
     ImGui::EndChild();
 
-    if (appState.arrangementMode)
-        ImGui::EndDisabled();
+    ImGui::EndDisabled(); // arrangementMode
 
     ImGui::End();
 }
