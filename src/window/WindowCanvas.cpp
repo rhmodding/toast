@@ -146,16 +146,9 @@ void WindowCanvas::Menubar() {
                 
                 ImGui::SeparatorText("Options");
 
-                bool pushDisable{ false };
-                if (!this->visualizeSafeArea) {
-                    pushDisable = true;
-                    ImGui::BeginDisabled(true);
-                }
-
+                ImGui::BeginDisabled(!this->visualizeSafeArea);
                 ImGui::DragScalar("Alpha", ImGuiDataType_U8, &this->safeAreaAlpha);
-
-                if (pushDisable)
-                    ImGui::EndDisabled();
+                ImGui::EndDisabled();
 
                 ImGui::EndMenu();
             }
