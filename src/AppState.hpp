@@ -82,7 +82,7 @@ public:
     Animatable* globalAnimatable{ nullptr };
 
     struct OnionSkinState {
-        bool enabled{ true };
+        bool enabled{ false };
 
         uint16_t backCount{ 3 };
         uint16_t frontCount{ 2 };
