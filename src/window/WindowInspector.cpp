@@ -228,6 +228,9 @@ void WindowInspector::Level_Arrangement() {
 
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
+    static RvlCellAnim::ArrangementPart copyPart;
+    static bool allowPastePart{ false };
+
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
     ImGui::BeginChild("ArrangementOverview", { 0, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY);
@@ -425,6 +428,73 @@ void WindowInspector::Level_Arrangement() {
 
                     appState.selectedPart = n;
                 };
+
+                ImGui::Separator();
+
+                if (ImGui::BeginMenu("Paste part..", allowPastePart)) {
+                    if (ImGui::MenuItem("..above")) {
+                        auto it = arrangementPtr->parts.begin() + n + 1;
+                        arrangementPtr->parts.insert(it, copyPart);
+
+                        appState.selectedPart = n + 1;
+                    }
+                    if (ImGui::MenuItem("..below")) {
+                        auto it = arrangementPtr->parts.begin() + n;
+                        arrangementPtr->parts.insert(it, copyPart);
+
+                        appState.selectedPart = n;
+                    }
+
+                    ImGui::Separator();
+
+                    if (ImGui::MenuItem("..here (replace)")) {
+                        arrangementPtr->parts.at(n) = copyPart;
+
+                        appState.selectedPart = n;
+                    }
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Paste part (special)..", allowPastePart)) {
+                    if (ImGui::MenuItem("..transform")) {
+                        arrangementPtr->parts.at(n).positionX = copyPart.positionX;
+                        arrangementPtr->parts.at(n).positionY = copyPart.positionY;
+
+                        arrangementPtr->parts.at(n).scaleX = copyPart.scaleX;
+                        arrangementPtr->parts.at(n).scaleY = copyPart.scaleY;
+
+                        arrangementPtr->parts.at(n).angle = copyPart.angle;
+
+                        arrangementPtr->parts.at(n).flipX = copyPart.flipX;
+                        arrangementPtr->parts.at(n).flipY = copyPart.flipY;
+
+                        appState.selectedPart = n;
+                    }
+
+                    if (ImGui::MenuItem("..opacity")) {
+                        arrangementPtr->parts.at(n).opacity = copyPart.opacity;
+
+                        appState.selectedPart = n;
+                    }
+
+                    if (ImGui::MenuItem("..region")) {
+                        arrangementPtr->parts.at(n).regionX = copyPart.regionX;
+                        arrangementPtr->parts.at(n).regionY = copyPart.regionY;
+
+                        arrangementPtr->parts.at(n).regionW = copyPart.regionW;
+                        arrangementPtr->parts.at(n).regionH = copyPart.regionH;
+
+                        appState.selectedPart = n;
+                    }
+
+                    ImGui::EndMenu();
+                }
+
+                ImGui::Separator();
+                if (ImGui::Selectable("Copy part")) {
+                    copyPart = arrangementPtr->parts.at(n);
+                    allowPastePart = true;
+                }
 
                 ImGui::Separator();
                 if (ImGui::Selectable("Delete part", false, ImGuiSelectableFlags_DontClosePopups))
