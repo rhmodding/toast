@@ -32,8 +32,6 @@ private:
 
     float userSheetZoom{ 1.f };
 
-    bool sheetZoomOut{ true };
-
     void RunEditor();
 };
 
