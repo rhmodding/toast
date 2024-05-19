@@ -110,13 +110,13 @@ void WindowSpritesheet::Update() {
                     ImGui::PopID();
                 }
             }
-            if (ImGui::MenuItem("Replace with PNG file...", nullptr, false)) {
-                const char* filterPatterns[] = { "*.png" };
+            if (ImGui::MenuItem("Replace with new image...", nullptr, false)) {
+                const char* filterPatterns[] = { "*.png", "*.tga", ".psd", "*.bmp", "*.gif" };
                 char* openFileDialog = tinyfd_openFileDialog(
                     "Select a replacement image file",
                     nullptr,
                     ARRAY_LENGTH(filterPatterns), filterPatterns,
-                    "Image file (.png)",
+                    "Image file (.png, .tga, .psd, .bmp, .gif)",
                     false
                 );
 
