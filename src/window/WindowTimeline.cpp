@@ -37,136 +37,134 @@ void WindowTimeline::Update() {
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(15, 0));
 
         if (ImGui::BeginTable("TimelineToolbarTable", 2, ImGuiTableFlags_BordersInnerV)) {
-            for (uint16_t row = 0; row < 1; row++) {
-                ImGui::TableNextRow();
-                for (uint16_t column = 0; column < 2; column++) {
-                    ImGui::TableSetColumnIndex(column);
+            ImGui::TableNextRow();
+            for (uint16_t column = 0; column < 2; column++) {
+                ImGui::TableSetColumnIndex(column);
 
-                    switch (column) {
-                        case 0: {
-                            char playPauseButtonLabel[24] = { '\0' };
-                            const char* playPauseIcon = appState.playerState.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
+                switch (column) {
+                    case 0: {
+                        char playPauseButtonLabel[24] = { '\0' };
+                        const char* playPauseIcon = appState.playerState.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
 
-                            sprintf(playPauseButtonLabel, "%s##playPauseButton", playPauseIcon);
+                        sprintf(playPauseButtonLabel, "%s##playPauseButton", playPauseIcon);
 
-                            if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
-                                if (
-                                    (appState.playerState.currentFrame == appState.playerState.frameCount - 1) &&
-                                    (appState.playerState.holdFramesLeft == 0)
-                                ) {
-                                    appState.playerState.currentFrame = 0;
-                                    appState.playerState.updateCurrentFrame();
-                                }
-
-                                appState.playerState.ResetTimer();
-                                appState.playerState.ToggleAnimating(!appState.playerState.playing);
-                            } 
-                            ImGui::SameLine();
-
-                            ImGui::Dummy(ImVec2(2, 0));
-                            ImGui::SameLine();
-
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", ImVec2(32-6, 32-6))) {
+                        if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
+                            if (
+                                (appState.playerState.currentFrame == appState.playerState.frameCount - 1) &&
+                                (appState.playerState.holdFramesLeft == 0)
+                            ) {
                                 appState.playerState.currentFrame = 0;
-                                appState.playerState.updateCurrentFrame();
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Go to first key");
-
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", ImVec2(32-6, 32-6))) {
-                                if (appState.playerState.currentFrame >= 1) {
-                                    appState.playerState.currentFrame--;
-                                    appState.playerState.updateCurrentFrame();
-                                }
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Step back a key");
-                            
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", ImVec2(32-6, 32-6))) {
-                                appState.playerState.playing = false;
-                                appState.playerState.currentFrame = 0;
-                                appState.playerState.updateCurrentFrame();
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Stop playback and go to first key");
-
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", ImVec2(32-6, 32-6))) {
-                                if (appState.playerState.currentFrame < appState.playerState.frameCount - 1) {
-                                    appState.playerState.currentFrame++;
-                                    appState.playerState.updateCurrentFrame();
-                                }
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Step forward a key");
-                            
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                            if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", ImVec2(32-6, 32-6))) {
-                                appState.playerState.currentFrame =
-                                    appState.playerState.frameCount -
-                                    (appState.playerState.frameCount > 0 ? 1 : 0);
-
-                                appState.playerState.updateCurrentFrame();
-                            } ImGui::SameLine();
-
-                            ImGui::SetItemTooltip("Go to last key");
-
-                            ImGui::Dummy(ImVec2(2, 0));
-                            ImGui::SameLine();
-
-                            {
-                                bool popColor{ false }; // Use local boolean since state can be mutated by button
-                                if (appState.playerState.loopEnabled) {
-                                    popColor = true;
-                                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                                }
-
-                                if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT, ImVec2(32, 32)))
-                                    appState.playerState.loopEnabled = !appState.playerState.loopEnabled;
-
-                                ImGui::SetItemTooltip("Toggle looping");
-
-                                if (popColor)
-                                    ImGui::PopStyleColor();
-                            }
-                        } break;
-
-                        case 1: {
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
-
-                            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                            if (ImGui::InputScalar("Frame", ImGuiDataType_U16, &appState.playerState.currentFrame, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
                                 appState.playerState.updateCurrentFrame();
                             }
 
-                            ImGui::SameLine();
+                            appState.playerState.ResetTimer();
+                            appState.playerState.ToggleAnimating(!appState.playerState.playing);
+                        } 
+                        ImGui::SameLine();
 
-                            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-                            ImGui::InputScalar("Hold Frames Left", ImGuiDataType_U16, &appState.playerState.holdFramesLeft, nullptr, nullptr, "%u", ImGuiInputTextFlags_ReadOnly);
-                            ImGui::PopItemFlag();
+                        ImGui::Dummy(ImVec2(2, 0));
+                        ImGui::SameLine();
 
-                            ImGui::SameLine();
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                        if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", ImVec2(32-6, 32-6))) {
+                            appState.playerState.currentFrame = 0;
+                            appState.playerState.updateCurrentFrame();
+                        } ImGui::SameLine();
 
-                            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                            ImGui::InputScalar("FPS", ImGuiDataType_U16, &appState.playerState.frameRate, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-                        } break;
+                        ImGui::SetItemTooltip("Go to first key");
 
-                        case 2: {
-                            /*
-                            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                        if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", ImVec2(32-6, 32-6))) {
+                            if (appState.playerState.currentFrame >= 1) {
+                                appState.playerState.currentFrame--;
+                                appState.playerState.updateCurrentFrame();
+                            }
+                        } ImGui::SameLine();
 
-                            ImGui::Checkbox("Auto-scroll timeline", &autoScrollTimeline);
-                            */
-                        } break;
+                        ImGui::SetItemTooltip("Step back a key");
+                        
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                        if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", ImVec2(32-6, 32-6))) {
+                            appState.playerState.playing = false;
+                            appState.playerState.currentFrame = 0;
+                            appState.playerState.updateCurrentFrame();
+                        } ImGui::SameLine();
 
-                        default: {
+                        ImGui::SetItemTooltip("Stop playback and go to first key");
 
-                        } break;
-                    }
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                        if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", ImVec2(32-6, 32-6))) {
+                            if (appState.playerState.currentFrame < appState.playerState.frameCount - 1) {
+                                appState.playerState.currentFrame++;
+                                appState.playerState.updateCurrentFrame();
+                            }
+                        } ImGui::SameLine();
+
+                        ImGui::SetItemTooltip("Step forward a key");
+                        
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                        if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", ImVec2(32-6, 32-6))) {
+                            appState.playerState.currentFrame =
+                                appState.playerState.frameCount -
+                                (appState.playerState.frameCount > 0 ? 1 : 0);
+
+                            appState.playerState.updateCurrentFrame();
+                        } ImGui::SameLine();
+
+                        ImGui::SetItemTooltip("Go to last key");
+
+                        ImGui::Dummy(ImVec2(2, 0));
+                        ImGui::SameLine();
+
+                        {
+                            bool popColor{ false }; // Use local boolean since state can be mutated by button
+                            if (appState.playerState.loopEnabled) {
+                                popColor = true;
+                                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+                            }
+
+                            if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT, ImVec2(32, 32)))
+                                appState.playerState.loopEnabled = !appState.playerState.loopEnabled;
+
+                            ImGui::SetItemTooltip("Toggle looping");
+
+                            if (popColor)
+                                ImGui::PopStyleColor();
+                        }
+                    } break;
+
+                    case 1: {
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
+
+                        ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
+                        if (ImGui::InputScalar("Frame", ImGuiDataType_U16, &appState.playerState.currentFrame, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                            appState.playerState.updateCurrentFrame();
+                        }
+
+                        ImGui::SameLine();
+
+                        ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
+                        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+                        ImGui::InputScalar("Hold Frames Left", ImGuiDataType_U16, &appState.playerState.holdFramesLeft, nullptr, nullptr, "%u", ImGuiInputTextFlags_ReadOnly);
+                        ImGui::PopItemFlag();
+
+                        ImGui::SameLine();
+
+                        ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
+                        ImGui::InputScalar("FPS", ImGuiDataType_U16, &appState.playerState.frameRate, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+                    } break;
+
+                    case 2: {
+                        /*
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
+
+                        ImGui::Checkbox("Auto-scroll timeline", &autoScrollTimeline);
+                        */
+                    } break;
+
+                    default: {
+
+                    } break;
                 }
             }
 
