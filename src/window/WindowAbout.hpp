@@ -3,11 +3,18 @@
 
 #include "BaseWindow.hpp"
 
+#include "../common.hpp"
+
 class WindowAbout : public BaseWindow {
 public:
+    WindowAbout();
+
     void Update() override;
 
     bool open{ false };
+
+private:
+    Common::Image image;
 };
 
 #endif // WINDOWABOUT_HPP
