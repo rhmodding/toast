@@ -87,10 +87,10 @@ namespace Common {
     bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, int* height);
 
     struct Image {
-        int width;
-        int height;
+        int width{ 0 };
+        int height{ 0 };
 
-        GLuint texture;
+        GLuint texture{ 0 };
 
         Image() = default;
         Image(uint16_t width, uint16_t height, GLuint texture) : width(width), height(height), texture(texture) {}
