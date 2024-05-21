@@ -36,9 +36,9 @@ void WindowTimeline::Update() {
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(15, 0));
 
-        if (ImGui::BeginTable("TimelineToolbarTable", 2, ImGuiTableFlags_BordersInnerV)) {
+        if (ImGui::BeginTable("TimelineToolbarTable", 3, ImGuiTableFlags_BordersInnerV)) {
             ImGui::TableNextRow();
-            for (uint16_t column = 0; column < 2; column++) {
+            for (uint16_t column = 0; column < 3; column++) {
                 ImGui::TableSetColumnIndex(column);
 
                 switch (column) {
@@ -155,11 +155,39 @@ void WindowTimeline::Update() {
                     } break;
 
                     case 2: {
-                        /*
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                        if (ImGui::Button((char*)ICON_FA_EYE " Onion Skin ..", ImVec2(0, 32-6)))
+                            ImGui::OpenPopup("###OnionSkinOptions");
 
-                        ImGui::Checkbox("Auto-scroll timeline", &autoScrollTimeline);
-                        */
+                        if (ImGui::BeginPopup("###OnionSkinOptions")) {
+                            ImGui::Checkbox("Enabled", &appState.onionSkinState.enabled);
+
+                            ImGui::Separator();
+
+                            static const uint16_t u16_one = 1;
+
+                            static const uint8_t  u8_min  = 0;
+                            static const uint8_t  u8_max  = 0xFFu;
+
+                            ImGui::InputScalar("Back count", ImGuiDataType_U16, &appState.onionSkinState.backCount, &u16_one);
+                            ImGui::InputScalar("Front count", ImGuiDataType_U16, &appState.onionSkinState.frontCount, &u16_one);
+
+                            ImGui::Separator();
+
+                            ImGui::DragScalar(
+                                "Opacity",
+                                ImGuiDataType_U8, &appState.onionSkinState.opacity,
+                                1.f, &u8_min, &u8_max,
+                                "%u/255",
+                                ImGuiSliderFlags_AlwaysClamp
+                            );
+
+                            ImGui::Separator();
+
+                            ImGui::Checkbox("Draw behind", &appState.onionSkinState.drawUnder);
+
+                            ImGui::EndPopup();
+                        }
                     } break;
 
                     default: {
