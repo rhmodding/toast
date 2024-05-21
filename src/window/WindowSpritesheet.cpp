@@ -5,10 +5,6 @@
 #include <iostream>
 #include "../SessionManager.hpp"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
-#include "../stb/stb_image_write.h"
-
 #include <cstdlib> // for std::system
 
 #include <sstream>
