@@ -18,10 +18,9 @@
 
 #include <zlib-ng.h>
 
-constexpr const size_t ChunksPerGroup = 8;
-constexpr const size_t MaximumMatchLength = 0xFF + 0x12;
-constexpr const size_t WindowSize = 0x1000;
-constexpr const uint32_t ZlibMinMatch = 3;
+#define CHUNKS_PER_GROUP 8
+#define MAX_MATCH_LENGTH 0xFF + 0x12
+#define ZLIB_MIN_MATCH 3
 
 // The Yaz0 compression algorithm originates from
 // https://github.com/zeldamods/syaz0
@@ -60,9 +59,9 @@ namespace Yaz0 {
         // Compression
         {
             struct CompressionData {
-                size_t pendingChunks{ 0 };
+                uint32_t pendingChunks{ 0 };
                 std::bitset<8> groupHeader;
-                std::size_t groupHeaderOffset{ sizeof(Yaz0Header) }; // Skip header
+                uint32_t groupHeaderOffset{ sizeof(Yaz0Header) }; // Skip header
 
                 std::vector<char>& buffer;
 
@@ -72,20 +71,20 @@ namespace Yaz0 {
             result.push_back(0xFFu);
 
             {
-                std::array<uint_least8_t, 8> dummy{};
-                size_t dummy_size = dummy.size();
+                std::array<uint8_t, 8> dummy{};
+                size_t dummySize = dummy.size();
+                
                 const int zlibRun = zng_compress2(
-                    dummy.data(), &dummy_size, (const uint8_t*)data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
+                    dummy.data(), &dummySize, (const uint8_t*)data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
                     [](void* data, uint32_t dist, uint32_t lc) {
-                        CompressionData* compressionData = reinterpret_cast<CompressionData*>(data);
+                        auto* compressionData = reinterpret_cast<CompressionData*>(data);
 
                         if (dist == 0) {
-                            // Literal.
-                            compressionData->groupHeader.set(static_cast<uint8_t>(7 - compressionData->pendingChunks));
+                            compressionData->groupHeader.set(7 - compressionData->pendingChunks);
                             compressionData->buffer.push_back(static_cast<char>(lc));
                         } else {
                             uint32_t distance = dist - 1;
-                            uint32_t length = lc + ZlibMinMatch;
+                            uint32_t length = lc + ZLIB_MIN_MATCH;
 
                             if (length < 18) {
                                 compressionData->buffer.push_back(static_cast<char>(
@@ -93,16 +92,16 @@ namespace Yaz0 {
                                 ));
                                 compressionData->buffer.push_back(static_cast<char>(distance));
                             } else {
-                                // If the match is longer than 18 bytes, 3 bytes are needed to write the match.
-                                const size_t actual_length = std::min<size_t>(MaximumMatchLength, length);
+                                // If the match is longer than 18 bytes, 3 bytes are needed to write the match
+                                const uint32_t actualLength = std::min<uint32_t>(MAX_MATCH_LENGTH, length);
+
                                 compressionData->buffer.push_back(static_cast<char>(distance >> 8));
                                 compressionData->buffer.push_back(static_cast<char>(distance));
-                                compressionData->buffer.push_back(static_cast<char>(actual_length - 0x12));
+                                compressionData->buffer.push_back(static_cast<char>(actualLength - 0x12));
                             }
                         }
 
-                        ++compressionData->pendingChunks;
-                        if (compressionData->pendingChunks == ChunksPerGroup) {
+                        if (++compressionData->pendingChunks == CHUNKS_PER_GROUP) {
                             // Write group header
                             compressionData->buffer[compressionData->groupHeaderOffset] =
                                 static_cast<char>(compressionData->groupHeader.to_ulong());
@@ -111,13 +110,15 @@ namespace Yaz0 {
                             compressionData->pendingChunks = 0;
                             compressionData->groupHeader.reset();
                             compressionData->groupHeaderOffset = compressionData->buffer.size();
+
                             compressionData->buffer.push_back(0xFFu);
                         }
                     },
-                    &compressionData);
+                    &compressionData
+                );
 
                 if (zlibRun != Z_OK) {
-                    std::cerr << "[Yaz0::compress] zng_compress failed with code " << std::to_string(zlibRun) << ".\n";
+                    std::cerr << "[Yaz0::compress] zng_compress failed with code " << zlibRun << ".\n";
                     return std::nullopt; // return nothing (std::optional)
                 }
 
