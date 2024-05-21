@@ -153,10 +153,10 @@ void WindowAbout::Update() {
 
             ImVec2 position(
                 textPosition.x + addX +
-                ((cosf((ImGui::GetTime() + (distance * 2)) * 7) * 6) * graphResult),
+                ((cosf((ImGui::GetTime() + (distance * 2)) * 7) * 4) * graphResult),
 
                 textPosition.y +
-                ((sinf((ImGui::GetTime() + (distance * 2)) * 7) * 6) * graphResult)
+                ((sinf((ImGui::GetTime() + (distance * 2)) * 7) * 4) * graphResult)
             );
 
             drawList->AddText(
