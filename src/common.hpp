@@ -11,11 +11,10 @@
 
 #include <GLFW/glfw3.h>
 
-#include "stb/stb_image_write.h"
-
 #include "imgui.h"
 
-#define STB_IMAGE_IMPLEMENTATION
+
+//#include "stb/stb_image_write.h"
 
 #ifdef _MSC_VER
     #define BYTESWAP_64 _byteswap_uint64
@@ -108,39 +107,7 @@ namespace Common {
             glDeleteTextures(1, &this->texture);
         }
 
-        bool ExportToFile(const char* filename) {
-            if (!this->texture)
-                return false;
-
-            glBindTexture(GL_TEXTURE_2D, this->texture);
-
-            unsigned char* data = new unsigned char[
-                this->width *
-                this->height *
-                4
-            ]; // 4 bytes per pixel (RGBA)
-
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            // Write buffer data to PNG file
-            int write = stbi_write_png(
-                filename,
-                this->width,
-                this->height,
-                4,
-                data,
-                0
-            );
-
-            if (!write)
-                std::cerr << "[Common::Image::ExportToFile] Failed to write PNG to path: " << filename << '\n';
-
-            delete[] data;
-
-            return write > 0;
-        }
+        bool ExportToFile(const char* filename);
     };
 }
 

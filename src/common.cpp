@@ -3,6 +3,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb/stb_image_write.h"
+
 namespace Common {
     constexpr uint32_t magicToUint32(const char* magic, bool bigEndian) {
         uint32_t result = 0;
@@ -142,5 +145,39 @@ namespace Common {
     }
     float EaseOut(float t) {
         return 1 - (1 - t) * (1 - t);
+    }
+
+    bool Image::ExportToFile(const char* filename) {
+        if (!this->texture)
+            return false;
+
+        glBindTexture(GL_TEXTURE_2D, this->texture);
+
+        unsigned char* data = new unsigned char[
+            this->width *
+            this->height *
+            4
+        ]; // 4 bytes per pixel (RGBA)
+
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // Write buffer data to PNG file
+        int write = stbi_write_png(
+            filename,
+            this->width,
+            this->height,
+            4,
+            data,
+            0
+        );
+
+        if (!write)
+            std::cerr << "[Common::Image::ExportToFile] Failed to write PNG to path: " << filename << '\n';
+
+        delete[] data;
+
+        return write > 0;
     }
 }
