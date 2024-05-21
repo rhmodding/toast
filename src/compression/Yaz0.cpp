@@ -1,3 +1,12 @@
+/*
+    * This file contains functions derived from syaz0 by zeldamods,
+    * which is licensed under the GPL 2.0 license.
+    * 
+    * Original source: https://github.com/zeldamods/syaz0
+    * 
+    * For more details about the GPL 2.0 license, see the LICENSE file.
+*/
+
 #include "Yaz0.hpp"
 
 #include "../common.hpp"
@@ -21,9 +30,6 @@
 #define CHUNKS_PER_GROUP 8
 #define MAX_MATCH_LENGTH 0xFF + 0x12
 #define ZLIB_MIN_MATCH 3
-
-// The Yaz0 compression algorithm originates from
-// https://github.com/zeldamods/syaz0
 
 #pragma pack(push, 1) // Pack struct members tightly without padding
 
