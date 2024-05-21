@@ -85,6 +85,7 @@ namespace Common {
 
     // Simple helper function to load an image into a OpenGL texture with common settings
     bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, int* height);
+    bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* width, int* height);
 
     struct Image {
         int width{ 0 };
@@ -97,6 +98,10 @@ namespace Common {
 
         bool LoadFromFile(const char* filename) {
             return LoadTextureFromFile(filename, &this->texture, &this->width, &this->height);
+        }
+
+        bool LoadFromMem(const unsigned char* buffer, const uint32_t size) {
+            return LoadTextureFromMem(buffer, size, &this->texture, &this->width, &this->height);
         }
 
         void FreeTexture() {

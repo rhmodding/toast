@@ -1,5 +1,6 @@
 #include "common.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
 namespace Common {
@@ -60,6 +61,40 @@ namespace Common {
         unsigned char* imagePtr = stbi_load(filename, &imageWidth, &imageHeight, nullptr, 4);
         if (imagePtr == nullptr) {
             std::cerr << "[Common::LoadTextureFromFile] Failed to load image from path: " << filename << '\n';
+            return false;
+        }
+
+        // Create a OpenGL texture identifier
+        GLuint imageTexture;
+        glGenTextures(1, &imageTexture);
+        glBindTexture(GL_TEXTURE_2D, imageTexture);
+
+        // Setup filtering parameters for display
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // Upload pixels into texture
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagePtr);
+        stbi_image_free(imagePtr);
+
+        *texturePtr = imageTexture;
+
+        if (width != nullptr)
+            *width = imageWidth;
+        if (height != nullptr)
+            *height = imageHeight;
+
+        return true;
+    }
+
+    bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* width, int* height) {
+        // Load from memory
+        int imageWidth{ 0 };
+        int imageHeight{ 0 };
+
+        unsigned char* imagePtr = stbi_load_from_memory(buffer, size, &imageWidth, &imageHeight, nullptr, 4);
+        if (imagePtr == nullptr) {
+            std::cerr << "[Common::LoadTextureFromFile] Failed to load image from memory location " << buffer << '\n';
             return false;
         }
 
