@@ -67,6 +67,7 @@ public:
 
     ImFont* fontNormal;
     ImFont* fontLarge;
+    ImFont* fontGiant;
     ImFont* fontIcon;
 
     bool arrangementMode{ false };
