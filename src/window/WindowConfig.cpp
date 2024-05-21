@@ -57,6 +57,12 @@ bool CPPSTRING_InputText(const char* label, std::string* str, ImGuiInputTextFlag
 }
 
 void WindowConfig::Update() {
+    ImGui::SetNextWindowPos(
+        ImGui::GetMainViewport()->GetCenter(),
+        ImGuiCond_Appearing,
+        ImVec2(0.5f, 0.5f)
+    );
+
     ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Config", &this->open, ImGuiWindowFlags_MenuBar)) {
         if (ImGui::BeginMenuBar()) {
