@@ -24,6 +24,11 @@
 
 #include <tinyfiledialogs.h>
 
+//#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
+
+#include "_binary/images/toastIcon.png.h"
+
 #if defined(__APPLE__)
     #define SCS_EXIT "Cmd+Q"
     #define SCST_CTRL "Cmd"
@@ -260,6 +265,13 @@ App::App() {
     glfwMakeContextCurrent(this->window);
     glfwSwapInterval(1); // Enable vsync
 
+    // Icon
+    GLFWimage windowIcon;
+    windowIcon.pixels = stbi_load_from_memory(toastIcon_png, toastIcon_png_size, &windowIcon.width, &windowIcon.height, nullptr, 4);
+
+    glfwSetWindowIcon(window, 1, &windowIcon); 
+    stbi_image_free(windowIcon.pixels);
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
 
@@ -361,6 +373,12 @@ void App::SetupFonts() {
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         appState.fontLarge = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.0f, &fontConfig);
+    }
+
+    {
+        ImFontConfig fontConfig;
+        fontConfig.FontDataOwnedByAtlas = false;
+        appState.fontGiant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.0f, &fontConfig);
     }
 }
 
