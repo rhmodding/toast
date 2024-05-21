@@ -65,28 +65,6 @@ WindowAbout::WindowAbout() {
     this->image.LoadFromMem(toastIcon_title_png, toastIcon_title_png_size);
 }
 
-inline float spinGraph(float t) {
-    float period = 4.f;
-    float holdTime = 1.f;
-
-    float easeDuration = (period - 2 * holdTime) / 2.0;
-
-    float holdEnd = easeDuration + holdTime;
-    float downStart = holdEnd + easeDuration;
-
-    // Reduce T to a single period using modulo operation
-    float modT = fmodf(t, period);
-
-    if (modT < easeDuration)
-        return 1 / (1 + std::exp(-10 * ((modT / easeDuration) - 0.5f)));
-    else if (modT < downStart)
-        return 1 / (1 + std::exp(-10 * ((1.f - (modT - holdEnd) / easeDuration) - 0.5f)));
-    else if (modT < holdEnd)
-        return 1.f;
-    
-    return 0.f;
-}
-
 void WindowAbout::Update() {
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(),
@@ -139,40 +117,9 @@ void WindowAbout::Update() {
 
     ImGui::PushFont(appState.fontGiant);
 
-    {
-        float addX{ 0.f };
-
-        const char* p = mainStrings[0];
-        float distance{ 0 };
-        while (*p) {
-            char buffer[2];
-            buffer[0] = *p;
-            buffer[1] = '\0';
-
-            float graphResult = spinGraph(ImGui::GetTime() - (distance * .25f));
-
-            ImVec2 position(
-                textPosition.x + addX +
-                ((cosf((ImGui::GetTime() + (distance * 2)) * 7) * 4) * graphResult),
-
-                textPosition.y +
-                ((sinf((ImGui::GetTime() + (distance * 2)) * 7) * 4) * graphResult)
-            );
-
-            drawList->AddText(
-                position,
-                IM_COL32_WHITE,
-                buffer
-            );
-
-            addX += ImGui::CalcTextSize(buffer).x;
-        
-            ++p;
-            ++distance;
-        }
-    }
-
+    drawList->AddText(textPosition, IM_COL32_WHITE, mainStrings[0]);
     textPosition.y += ImGui::GetTextLineHeight() + 5.f;
+
     ImGui::PopFont();
 
     drawList->AddText(textPosition, IM_COL32_WHITE, mainStrings[1]);
