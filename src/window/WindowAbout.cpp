@@ -38,27 +38,33 @@ struct CreditsLine {
 } creditStrings[] = {
     { CreditsLine::CLC_Separator },
 
-    { CreditsLine::CLC_DrawString, "Testing" },
+    { CreditsLine::CLC_DrawString, (char*)ICON_FA_WRENCH "  Testing" },
     { CreditsLine::CLC_EmptyLine },
 
-    { CreditsLine::CLC_DrawString, "NAME               " },
-    { CreditsLine::CLC_DrawString, "NAME               " },
-    { CreditsLine::CLC_DrawString, "NAME               " },
+    { CreditsLine::CLC_DrawString, "Placeholder" },
+    { CreditsLine::CLC_DrawString, "Placeholder Placeholder" },
+    { CreditsLine::CLC_DrawString, "Placeholder" },
+    { CreditsLine::CLC_DrawString, "Placeholder Placeholder" },
 
     { CreditsLine::CLC_NextRow },
 
-    { CreditsLine::CLC_DrawString, "Open-source software used / referenced" },
+    { CreditsLine::CLC_DrawString, (char*)ICON_FA_FILE_CODE "  Open-source software used / referenced" },
     { CreditsLine::CLC_EmptyLine },
 
-    { CreditsLine::CLC_DrawString, "patataofcourse/flour" },
-    { CreditsLine::CLC_DrawString, "rhmodding/bread" },
-    { CreditsLine::CLC_DrawString, "KillzXGaming/Switch-Toolbox" },
+    { CreditsLine::CLC_DrawString, "Dear ImGui (ocornut/imgui) [MIT]" },
+    { CreditsLine::CLC_DrawString, "GLFW [Zlib]" },
+    { CreditsLine::CLC_DrawString, "tinyfiledialogs [Zlib]" },
+    { CreditsLine::CLC_DrawString, "json (nlohmann/json) [MIT]" },
+    { CreditsLine::CLC_DrawString, "zlib-ng [Zlib]" },
+    { CreditsLine::CLC_DrawString, "syaz0 (zeldamods/syaz0) [GPL-2.0]" },
 
     { CreditsLine::CLC_NextColumn },
 
-    { CreditsLine::CLC_DrawString, "Yaz0 implementation" },
+    { CreditsLine::CLC_DrawString, (char*)ICON_FA_STAR "  Special thanks" },
     { CreditsLine::CLC_EmptyLine },
-    { CreditsLine::CLC_DrawString, "zeldamods/syaz0" },
+    { CreditsLine::CLC_DrawString, "github:chrislo27" },
+    { CreditsLine::CLC_DrawString, "github:patataofcourse" },
+    { CreditsLine::CLC_DrawString, "github:TheAlternateDoctor" },
 };
 
 WindowAbout::WindowAbout() {
@@ -71,7 +77,7 @@ void WindowAbout::Update() {
         ImGuiCond_Appearing,
         ImVec2(0.5f, 0.5f)
     );
-    ImGui::SetNextWindowSize({ 820, 420 });
+    ImGui::SetNextWindowSize({ 820, 520 });
 
     ImGui::Begin("About", &this->open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking);
 
