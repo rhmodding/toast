@@ -30,12 +30,15 @@ jobs:
           - os: windows-latest
             c_compiler: gcc
             cpp_compiler: g++
+            build_type: Release
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
+            build_type: Release
           - os: macos-13
             c_compiler: gcc
             cpp_compiler: g++
+            build_type: Release
         exclude:
           - os: windows-latest
             c_compiler: gcc
