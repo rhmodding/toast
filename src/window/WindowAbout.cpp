@@ -117,12 +117,12 @@ void WindowAbout::Update() {
 
     ImGui::PushFont(appState.fontGiant);
 
-    drawList->AddText(textPosition, IM_COL32_WHITE, mainStrings[0]);
+    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), mainStrings[0]);
     textPosition.y += ImGui::GetTextLineHeight() + 5.f;
 
     ImGui::PopFont();
 
-    drawList->AddText(textPosition, IM_COL32_WHITE, mainStrings[1]);
+    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), mainStrings[1]);
 
     if (ImGui::Button(mainStrings[2], { 30.f, 30.f })) {
         std::stringstream cmdStream;
@@ -194,7 +194,7 @@ void WindowAbout::Update() {
         if (creditStrings[i].command == CreditsLine::CLC_DrawString)
             drawList->AddText(
                 ImVec2(textPosition.x + additiveLineX, textPosition.y + additiveLineHeight),
-                IM_COL32_WHITE, creditStrings[i].string
+                ImGui::GetColorU32(ImGuiCol_Text), creditStrings[i].string
             );
 
         additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;
