@@ -12,18 +12,12 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-// Main code
 int main(int argc, char** argv) {
     std::cout << consoleSplash << "\n\n";
 
-    new App;
-
-    extern App* gAppPtr;
-
-    while (!gAppPtr->stopMainLoop)
-        gAppPtr->Update();
-
-    delete gAppPtr;
-
-    return 0;
+    {
+        App app;
+        while (!app.stopMainLoop)
+            app.Update();
+    }
 }
