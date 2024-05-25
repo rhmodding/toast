@@ -6,21 +6,16 @@
 
 #define IMGFMT TPL::TPLImageFormat
 
-#define RGBA32_PIXEL_SIZE 4
+void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, uint32_t offset = 0) {
+    uint8_t rU, gU, bU;
+    
+    rU = (pixel & 0xF100) >> 11;
+    gU = (pixel & 0x7E0) >> 5;
+    bU = (pixel & 0x1F);
 
-void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, int offset = 0) {
-    uint8_t r, g, b;
-    r = (pixel & 0xF100) >> 11;
-    g = (pixel & 0x7E0) >> 5;
-    b = (pixel & 0x1F);
-
-    r = (r << (8 - 5)) | (r >> (10 - 8));
-    g = (g << (8 - 6)) | (g >> (12 - 8));
-    b = (b << (8 - 5)) | (b >> (10 - 8));
-
-    dest[offset] = r;
-    dest[offset + 1] = g;
-    dest[offset + 2] = b;
+    dest[offset] = (rU << (8 - 5)) | (rU >> (10 - 8));
+    dest[offset + 1] = (gU << (8 - 6)) | (gU >> (12 - 8));
+    dest[offset + 2] = (bU << (8 - 5)) | (bU >> (10 - 8));
     dest[offset + 3] = 0xFFu;
 }
 
@@ -31,117 +26,113 @@ void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, int offset = 0) {
 #pragma region Ixx
 
 void IMPLEMENTATION_FROM_I4(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    size_t readOffset = 0;
+    uint32_t readOffset{ 0 };
 
-    int numBlocksX = srcWidth / 8; // 8 byte block width
-    int numBlocksY = srcHeight / 8;
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 8); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
 
-    for (int yBlock = 0; yBlock < numBlocksY; yBlock++) {
-        for (int xBlock = 0; xBlock < numBlocksX; xBlock++) {
-
-            for (int pY = 0; pY < 8; pY++) {
-                for (int pX = 0; pX < 8; pX += 2) {
-                    // Ensure the pixel we're checking is within bounds of the image.
+            for (uint8_t pY = 0; pY < 8; pY++) {
+                for (uint8_t pX = 0; pX < 8; pX += 2) {
                     if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 8 + pY >= srcHeight))
                         continue;
 
-                    char byte = data[readOffset];
+                    const uint8_t intensityA = ((data[readOffset] & 0xF0) >> 4) * 0x11;
+                    const uint8_t intensityB = (data[readOffset] & 0x0F) * 0x11;
+
                     readOffset++;
 
-                    char t = (byte & 0xF0) >> 4;
-                    char t2 = byte & 0x0F;
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 8) + pY) + (xBlock * 8) + pX);
 
-                    int destIndex = 4 * (srcWidth * ((yBlock * 8) + pY) + (xBlock * 8) + pX);
+                    result[destIndex + 0] = intensityA;
+                    result[destIndex + 1] = intensityA;
+                    result[destIndex + 2] = intensityA;
+                    result[destIndex + 3] = 0xFFu;
 
-                    result[destIndex + 0] = t * 0x11;
-                    result[destIndex + 1] = t * 0x11;
-                    result[destIndex + 2] = t * 0x11;
-                    result[destIndex + 3] = t * 0x11;
-
-                    result[destIndex + 4] = t2 * 0x11;
-                    result[destIndex + 5] = t2 * 0x11;
-                    result[destIndex + 6] = t2 * 0x11;
-                    result[destIndex + 7] = t2 * 0x11;
+                    result[destIndex + 4] = intensityB;
+                    result[destIndex + 5] = intensityB;
+                    result[destIndex + 6] = intensityB;
+                    result[destIndex + 7] = 0xFFu;
                 }
             }
-
         }
     }
 }
 
 void IMPLEMENTATION_FROM_I8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    for (int y = 0; y < srcHeight; ++y) {
-        for (int x = 0; x < srcWidth; ++x) {
-            // Index of the current pixel in the I8 texture
-            int i8Index = y * srcWidth + x;
+    uint32_t readOffset{ 0 };
 
-            // Index of the current pixel in the RGBA32 texture
-            int rgba32Index = (y * srcWidth + x) * RGBA32_PIXEL_SIZE;
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
 
-            // Extract the 8-bit intensity value from the I8 texture
-            char intensity8Bits = data[i8Index];
+            for (uint8_t pY = 0; pY < 4; pY++) {
+                for (uint8_t pX = 0; pX < 8; pX++) {
+                    if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
+                        continue;
 
-            // Set the RGBA32 values
-            result[rgba32Index] = intensity8Bits;           // Red
-            result[rgba32Index + 1] = intensity8Bits;       // Green
-            result[rgba32Index + 2] = intensity8Bits;       // Blue
-            result[rgba32Index + 3] = 0xFFu;                // Alpha (fully opaque)
+                    const uint8_t intensity = data[readOffset++];
+
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 8) + pX);
+
+                    result[destIndex + 0] = intensity;
+                    result[destIndex + 1] = intensity;
+                    result[destIndex + 2] = intensity;
+                    result[destIndex + 3] = 0xFFu;
+                }
+            }
         }
     }
 }
 
 void IMPLEMENTATION_FROM_IA4(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    size_t readOffset = 0;
+    uint32_t readOffset{ 0 };
 
-    int numBlocksX = srcWidth / 8;
-    int numBlocksY = srcHeight / 4;
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
 
-    for (int yBlock = 0; yBlock < numBlocksY; yBlock++) {
-        for (int xBlock = 0; xBlock < numBlocksX; xBlock++) {
-
-            for (int pY = 0; pY < 4; pY++) {
-                for (int pX = 0; pX < 8; pX++) {
-                    // Ensure the pixel we're checking is within bounds of the image.
+            for (uint8_t pY = 0; pY < 4; pY++) {
+                for (uint8_t pX = 0; pX < 8; pX++) {
                     if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
                         continue;
 
-                    char byte = data[readOffset];
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 8) + pX);
+
+                    const uint8_t alpha = ((data[readOffset] & 0xF0) >> 4) * 0x11;
+                    const uint8_t intensity = (data[readOffset] & 0x0F) * 0x11;
+
                     readOffset++;
 
-                    char alpha = (byte & 0xF0) >> 4;
-                    char luminosity = byte & 0x0F;
-
-                    int destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 8) + pX);
-
-                    result[destIndex + 0] = luminosity * 0x11;
-                    result[destIndex + 1] = luminosity * 0x11;
-                    result[destIndex + 2] = luminosity * 0x11;
-                    result[destIndex + 3] = alpha * 0x11;
+                    result[destIndex + 0] = intensity;
+                    result[destIndex + 1] = intensity;
+                    result[destIndex + 2] = intensity;
+                    result[destIndex + 3] = alpha;
                 }
             }
-
         }
     }
 }
 
 void IMPLEMENTATION_FROM_IA8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    for (int y = 0; y < srcHeight; ++y) {
-        for (int x = 0; x < srcWidth; ++x) {
-            // Index of the current pixel in the IA8 texture
-            int ia8Index = y * srcWidth + x;
+    uint32_t readOffset{ 0 };
+    
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
 
-            // Index of the current pixel in the RGBA32 texture
-            int rgba32Index = (y * srcWidth + x) * RGBA32_PIXEL_SIZE;
+            for (uint8_t pY = 0; pY < 4; pY++) {
+                for (uint8_t pX = 0; pX < 4; pX++) {
+                    if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
+                        continue;
 
-            // Extract the 8-bit intensity and 8-bit alpha values from the IA8 texture
-            char intensity8Bits = data[ia8Index];
-            char alpha8Bits = data[ia8Index + 1];
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
 
-            // Set the RGBA32 values
-            result[rgba32Index] = intensity8Bits;           // Red
-            result[rgba32Index + 1] = intensity8Bits;       // Green
-            result[rgba32Index + 2] = intensity8Bits;       // Blue
-            result[rgba32Index + 3] = alpha8Bits;           // Alpha
+                    const uint8_t alpha = data[readOffset++];
+                    const uint8_t intensity = data[readOffset++];
+
+                    result[destIndex + 0] = intensity;
+                    result[destIndex + 1] = intensity;
+                    result[destIndex + 2] = intensity;
+                    result[destIndex + 3] = alpha;
+                }
+            }
         }
     }
 }
@@ -151,70 +142,63 @@ void IMPLEMENTATION_FROM_IA8(std::vector<char>& result, uint16_t srcWidth, uint1
 #pragma region RGBxxx
 
 void IMPLEMENTATION_FROM_RGB565(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    for (int y = 0; y < srcHeight; ++y) {
-        for (int x = 0; x < srcWidth; ++x) {
-            // Index of the current pixel in the RGB565 texture
-            int rgb565Index = (y * srcWidth + x) * sizeof(short);
+    uint32_t readOffset{ 0 };
 
-            // Index of the current pixel in the RGBA32 texture
-            int rgba32Index = (y * srcWidth + x) * RGBA32_PIXEL_SIZE;
+    for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
+        for (uint16_t xx = 0; xx < srcWidth; xx += 4) {
 
-            // Extract the RGB565 values
-            short rgb565Value;
-            memcpy(&rgb565Value, &data[rgb565Index], sizeof(short));
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 4; x++) {
+                    if (xx + x >= srcWidth || yy + y >= srcHeight)
+                        continue;
 
-            // Convert RGB565 to RGBA32
-            char red8Bits = (rgb565Value & 0xF800) >> 8;
-            char green8Bits = (rgb565Value & 0x07E0) >> 3;
-            char blue8Bits = (rgb565Value & 0x001F) << 3;
+                    const uint32_t writeOffset = ((srcWidth * (yy + y)) + xx + x) * 4;
 
-            // Set the RGBA32 values
-            result[rgba32Index] = red8Bits;       // Red
-            result[rgba32Index + 1] = green8Bits; // Green
-            result[rgba32Index + 2] = blue8Bits;  // Blue
-            result[rgba32Index + 3] = 0xFFu;        // Alpha (fully opaque)
+                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data.data() + readOffset));
+                    readOffset += sizeof(uint16_t);
+
+                    result[writeOffset + 0] = ((sourcePixel >> 11) & 0x1f) << 3;
+                    result[writeOffset + 1] = ((sourcePixel >>  5) & 0x3f) << 2;
+                    result[writeOffset + 2] = ((sourcePixel >>  0) & 0x1f) << 3;
+                    result[writeOffset + 3] = 0xFFu;
+                }
+            }
         }
     }
 }
 
 void IMPLEMENTATION_FROM_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    size_t readOffset = 0;
+    uint32_t readOffset{ 0 };
 
-    for (int yy = 0; yy < srcHeight; yy += 4) {
-        for (int xx = 0; xx < srcWidth; xx += 4) {              
-            for (int y = 0; y < 4; y++) {
-                for (int x = 0; x < 4; x++) {
+    for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
+        for (uint16_t xx = 0; xx < srcWidth; xx += 4) {  
+
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 4; x++) {
                     if (xx + x >= srcWidth || yy + y >= srcHeight)
                         continue;
 
-                    int destPixel = (srcWidth * (yy + y)) + xx + x;
-                    size_t writeOffset = destPixel * 4;
+                    const uint32_t writeOffset = ((srcWidth * (yy + y)) + xx + x) * 4;
 
                     const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data.data() + readOffset));
                     readOffset += sizeof(uint16_t);
 
-                    uint8_t r, g, b, a;
-
                     if ((sourcePixel & 0x8000) != 0) { // RGB555
-                        r = (((sourcePixel >> 10) & 0x1f) << 3) | (((sourcePixel >> 10) & 0x1f) >> 2);
-                        g = (((sourcePixel >> 5) & 0x1f) << 3) | (((sourcePixel >> 5) & 0x1f) >> 2);
-                        b = (((sourcePixel) & 0x1f) << 3) | (((sourcePixel) & 0x1f) >> 2);
+                        result[writeOffset + 0] = (((sourcePixel >> 10) & 0x1f) << 3) | (((sourcePixel >> 10) & 0x1f) >> 2);
+                        result[writeOffset + 1] = (((sourcePixel >> 5) & 0x1f) << 3) | (((sourcePixel >> 5) & 0x1f) >> 2);
+                        result[writeOffset + 2] = (((sourcePixel) & 0x1f) << 3) | (((sourcePixel) & 0x1f) >> 2);
 
-                        a = 0xFFu;
+                        result[writeOffset + 3] = 0xFFu;
                     }
                     else { // RGBA4443
-                        a = (((sourcePixel >> 12) & 0x7) << 5) | (((sourcePixel >> 12) & 0x7) << 2) |
+                        result[writeOffset + 3] =
+                            (((sourcePixel >> 12) & 0x7) << 5) | (((sourcePixel >> 12) & 0x7) << 2) |
                             (((sourcePixel >> 12) & 0x7) >> 1);
 
-                        r = (((sourcePixel >> 8) & 0xf) << 4) | ((sourcePixel >> 8) & 0xf);
-                        g = (((sourcePixel >> 4) & 0xf) << 4) | ((sourcePixel >> 4) & 0xf);
-                        b = (((sourcePixel) & 0xf) << 4) | ((sourcePixel) & 0xf);
+                        result[writeOffset + 0] = (((sourcePixel >> 8) & 0xf) << 4) | ((sourcePixel >> 8) & 0xf);
+                        result[writeOffset + 1] = (((sourcePixel >> 4) & 0xf) << 4) | ((sourcePixel >> 4) & 0xf);
+                        result[writeOffset + 2] = (((sourcePixel) & 0xf) << 4) | ((sourcePixel) & 0xf);
                     }
-
-                    result[writeOffset + 0] = r;
-                    result[writeOffset + 1] = g;
-                    result[writeOffset + 2] = b;
-                    result[writeOffset + 3] = a;
                 }
             }
         }
@@ -222,42 +206,32 @@ void IMPLEMENTATION_FROM_RGB5A3(std::vector<char>& result, uint16_t srcWidth, ui
 }
 
 void IMPLEMENTATION_FROM_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    size_t readOffset = 0;
+    uint32_t readOffset{ 0 };
 
-    int numBlocksW = srcWidth / 4;
-    int numBlocksH = srcHeight / 4;
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
 
-    for (int yBlock = 0; yBlock < numBlocksH; yBlock++) {
-        for (int xBlock = 0; xBlock < numBlocksW; xBlock++) {
-
-            // 1st subblock
-            for (int pY = 0; pY < 4; pY++) {
-                for (int pX = 0; pX < 4; pX++) {
+            for (uint8_t pY = 0; pY < 4; pY++) {
+                for (uint8_t pX = 0; pX < 4; pX++) {
                     if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
                         continue;
 
-                    int destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
-                    result[destIndex + 3] = data[readOffset + 0]; // alpha
-                    result[destIndex + 0] = data[readOffset + 1]; // red
-
-                    readOffset += 2;
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
+                    result[destIndex + 3] = data[readOffset++]; // alpha
+                    result[destIndex + 0] = data[readOffset++]; // red
                 }
             }
 
-            // 2nd subblock
-            for (int pY = 0; pY < 4; pY++) {
-                for (int pX = 0; pX < 4; pX++) {
+            for (uint8_t pY = 0; pY < 4; pY++) {
+                for (uint8_t pX = 0; pX < 4; pX++) {
                     if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
                         continue;
 
-                    int destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
-                    result[destIndex + 1] = data[readOffset + 0]; // green
-                    result[destIndex + 2] = data[readOffset + 1]; // blue
-
-                    readOffset += 2;
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
+                    result[destIndex + 1] = data[readOffset++]; // green
+                    result[destIndex + 2] = data[readOffset++]; // blue
                 }
             }
-
         }
     }
 }
@@ -385,7 +359,7 @@ void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint
 //////////////////////////////////////////////////////////////////
 
 bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat type, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    result.resize(srcWidth * srcHeight * RGBA32_PIXEL_SIZE);
+    result.resize(srcWidth * srcHeight * 4);
 
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4: 
