@@ -210,26 +210,33 @@ void IMPLEMENTATION_FROM_RGBA32(std::vector<char>& result, uint16_t srcWidth, ui
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
+            // The block data is split down into two subblocks:
+            //    Subblock A: Alpha and Red channel
+            //    Subblock B: Green and Blue channel
 
-            for (uint8_t pY = 0; pY < 4; pY++) {
-                for (uint8_t pX = 0; pX < 4; pX++) {
-                    if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
+            // Subblock A
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 4; x++) {
+                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
-                    result[destIndex + 3] = data[readOffset++]; // alpha
-                    result[destIndex + 0] = data[readOffset++]; // red
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 4) + x);
+
+                    result[destIndex + 3] = data[readOffset++]; // Alpha channel
+                    result[destIndex + 0] = data[readOffset++]; // Red channel
                 }
             }
 
-            for (uint8_t pY = 0; pY < 4; pY++) {
-                for (uint8_t pX = 0; pX < 4; pX++) {
-                    if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
+            // Subblock B
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 4; x++) {
+                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
-                    result[destIndex + 1] = data[readOffset++]; // green
-                    result[destIndex + 2] = data[readOffset++]; // blue
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 4) + x);
+
+                    result[destIndex + 1] = data[readOffset++]; // Green channel
+                    result[destIndex + 2] = data[readOffset++]; // Blue channel
                 }
             }
         }
@@ -238,13 +245,13 @@ void IMPLEMENTATION_FROM_RGBA32(std::vector<char>& result, uint16_t srcWidth, ui
 
 #pragma endregion
 
-#pragma region CMPR // Open this if you love Pain
+#pragma region CMPR
 
 void IMPLEMENTATION_FROM_CMPR(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    size_t readOffset = 0;
+    uint32_t readOffset{ 0 };
 
-    for (int y = 0; y < srcHeight; y += 4) {
-        for (int x = 0; x < srcWidth; x += 4) {
+    for (uint16_t y = 0; y < srcHeight; y += 4) {
+        for (uint16_t x = 0; x < srcWidth; x += 4) {
             const uint16_t color1 = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data.data() + readOffset));
             readOffset += sizeof(uint16_t);
 
@@ -282,11 +289,11 @@ void IMPLEMENTATION_FROM_CMPR(std::vector<char>& result, uint16_t srcWidth, uint
                 table[3][3] = 0x00u;
             }
 
-            for (int iy = 0; iy < 4; ++iy) {
-                for (int ix = 0; ix < 4; ++ix) {
+            for (uint8_t iy = 0; iy < 4; ++iy) {
+                for (uint8_t ix = 0; ix < 4; ++ix) {
                     if (((x + ix) < srcWidth) && ((y + iy) < srcHeight)) {
-                        int di = 4 * ((y + iy) * srcWidth + x + ix);
-                        int si = bits & 0x3;
+                        uint32_t di = 4 * ((y + iy) * srcWidth + x + ix);
+                        uint32_t si = bits & 0x3;
 
                         result[di + 0] = table[si][0];
                         result[di + 1] = table[si][1];
@@ -355,39 +362,37 @@ void IMPLEMENTATION_TO_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint
 }
 
 void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
-    size_t writeOffset = 0;
+    uint32_t writeOffset = 0;
 
-    int numBlocksW = srcWidth / 4;
-    int numBlocksH = srcHeight / 4;
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
+            // The block data is split down into two subblocks:
+            //    Subblock A: Alpha and Red channel
+            //    Subblock B: Green and Blue channel
 
-    for (int yBlock = 0; yBlock < numBlocksH; yBlock++) {
-        for (int xBlock = 0; xBlock < numBlocksW; xBlock++) {
-            
-            // 1st subblock
-            for (int pY = 0; pY < 4; pY++) {
-                for (int pX = 0; pX < 4; pX++) {
-                    if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
+            // Subblock A
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 4; x++) {
+                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    int fromIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
-                    result[writeOffset + 0] = data[fromIndex + 3]; // alpha
-                    result[writeOffset + 1] = data[fromIndex + 0]; // red
+                    const uint32_t readOffset = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 4) + x);
 
-                    writeOffset += 2;
+                    result[writeOffset++] = data[readOffset + 3]; // Alpha channel
+                    result[writeOffset++] = data[readOffset + 0]; // Red channel
                 }
             }
 
-            // 2nd subblock
-            for (int pY = 0; pY < 4; pY++) {
-                for (int pX = 0; pX < 4; pX++) {
-                    if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
+            // Subblock B
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 4; x++) {
+                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    int fromIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
-                    result[writeOffset + 0] = data[fromIndex + 1]; // green
-                    result[writeOffset + 1] = data[fromIndex + 2]; // blue
+                    const uint32_t readOffset = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 4) + x);
 
-                    writeOffset += 2;
+                    result[writeOffset++] = data[readOffset + 1]; // Green channel
+                    result[writeOffset++] = data[readOffset + 2]; // Blue channel
                 }
             }
 
