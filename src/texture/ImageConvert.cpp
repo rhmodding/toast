@@ -311,6 +311,49 @@ void IMPLEMENTATION_FROM_CMPR(std::vector<char>& result, uint16_t srcWidth, uint
 
 #pragma region RGBxxx
 
+void IMPLEMENTATION_TO_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+    uint32_t writeOffset{ 0 };
+
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {  
+
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 4; x++) {
+                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
+                        continue;
+
+                    const uint8_t* readPixel = reinterpret_cast<const uint8_t*>(
+                        data.data()) +
+                        (((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x)) * 4
+                    );
+
+                    // A pixel is 16-bit but we write it in two 8-bit segments.
+                    uint8_t* pixel = reinterpret_cast<uint8_t*>(&result[writeOffset]);
+                    writeOffset += sizeof(uint16_t);
+
+                    if (readPixel[3] == 255) { // Opaque, write RGB555 pixel
+                        // Bits: 
+                        // 1    RRRRRGGGGG BBBBB
+                        // ^    ^    ^     ^
+                        // Type Red  Green Blue
+
+                        *(pixel + 0) = 0x0080 | ((readPixel[0] & 0xF8) >> 1) | (readPixel[1] >> 6);
+                        *(pixel + 1) = ((readPixel[1] & 0x38) << 2) | (readPixel[2] >> 3);
+                    } else { // Transparent, write RGBA4443
+                        // Bits: 
+                        // 0    AAA   RRRRGGGG  BBBB
+                        // ^    ^     ^   ^     ^
+                        // Type Alpha Red Green Blue
+
+                        *(pixel + 0) = ((readPixel[3] >> 1) & 0x70) | ((readPixel[0] & 0xF0) >> 4);                                                        
+                        *(pixel + 1) = (readPixel[1] & 0xF0) | ((readPixel[2] & 0xF0) >> 4);	
+                    }
+                }
+            }
+        }
+    }
+}
+
 void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     size_t writeOffset = 0;
 
@@ -405,6 +448,10 @@ bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat
 
 bool ImageConvert::fromRGBA32(std::vector<char>& result, const TPL::TPLImageFormat type, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
     switch (type) {
+        case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
+            IMPLEMENTATION_TO_RGB5A3(result, srcWidth, srcHeight, data);
+            break;
+
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
             IMPLEMENTATION_TO_RGBA32(result, srcWidth, srcHeight, data);
             break;
