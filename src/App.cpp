@@ -165,7 +165,11 @@ void A_LD_SaveCurrentSessionAsSzs() {
             ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
             ImGui::OpenPopup("###SessionOutErr");
             ImGui::PopID();
-        }    
+        }
+        else {
+            sessionManager.getCurrentSession()->mainPath = saveFileDialog;
+            sessionManager.getCurrentSession()->traditionalMethod = false;
+        }
     }
 }
 
