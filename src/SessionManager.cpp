@@ -14,10 +14,10 @@
 
 #include <filesystem>
 
-int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
+int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;
 
-    auto archiveResult = U8::readYaz0U8Archive(arcPath);
+    auto archiveResult = U8::readYaz0U8Archive(filePath);
     if (!archiveResult.has_value()) {
         this->lastSessionError = SessionOpenError_FailOpenArchive;
         return -1;
@@ -52,12 +52,13 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
         return -1;
     }
 
-    std::vector<std::unordered_map<uint16_t, std::string>*> animationNames(brcadFiles.size());
-    std::vector<RvlCellAnim::RvlCellAnimObject*> cellanims(brcadFiles.size());
-    std::vector<Common::Image*> cellanimSheets(tplObject.textures.size());
+    newSession.animationNames.resize(brcadFiles.size());
+    newSession.cellanims.resize(brcadFiles.size());
+    newSession.cellanimSheets.resize(tplObject.textures.size());
 
     // animationNames
     for (uint16_t i = 0; i < brcadFiles.size(); i++) {
+        // Find header file
         const U8::File* headerFile{ nullptr };
         std::string targetHeaderName =
             "rcad_" +
@@ -74,6 +75,7 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
         if (!headerFile)
             continue;
 
+        // Process defines
         std::istringstream stringStream(std::string(headerFile->data.begin(), headerFile->data.end()));
         std::string line;
 
@@ -90,10 +92,10 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
                     key = key.substr(0, commentPos);
                 }
 
-                if (!animationNames.at(i))
-                    animationNames.at(i) = new std::unordered_map<uint16_t, std::string>;
+                if (!newSession.animationNames.at(i))
+                    newSession.animationNames.at(i) = new std::unordered_map<uint16_t, std::string>;
 
-                animationNames.at(i)->insert({ value, key });
+                newSession.animationNames.at(i)->insert({ value, key });
             }
         }
     }
@@ -111,20 +113,16 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
 
     // cellanimSheets
     for (uint16_t i = 0; i < tplObject.textures.size(); i++) {
-        cellanimSheets.at(i) = new Common::Image(
+        newSession.cellanimSheets.at(i) = new Common::Image(
             tplObject.textures.at(i).width,
             tplObject.textures.at(i).height,
             TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(i))
         );
-        cellanimSheets.at(i)->tplOutFormat = tplObject.textures.at(i).format;
+        newSession.cellanimSheets.at(i)->tplOutFormat = tplObject.textures.at(i).format;
     }
 
     newSession.open = true;
-    newSession.mainPath = arcPath;
-    
-    newSession.animationNames = animationNames;
-    newSession.cellanims = cellanims;
-    newSession.cellanimSheets = cellanimSheets;
+    newSession.mainPath = filePath;
 
     for (auto brcad : brcadFiles)
         newSession.cellNames.push_back(brcad->name);
@@ -153,35 +151,40 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
         return -1;
     }
 
+    // animationNames
+
     std::unordered_map<uint16_t, std::string>* animationNames =
-        new std::unordered_map<uint16_t, std::string>;
-    
-    std::ifstream headerFile(paths[2]);
-    if (!headerFile.is_open()) {
-        this->lastSessionError = SessionOpenError_FailOpenHFile;
-        return -1;
-    }
+        new std::unordered_map<uint16_t, std::string>;    
+    {
+        std::ifstream headerFile(paths[2]);
+        if (!headerFile.is_open()) {
+            this->lastSessionError = SessionOpenError_FailOpenHFile;
+            return -1;
+        }
 
-    std::string line;
-    while (std::getline(headerFile, line)) {
-        if (line.compare(0, 7, "#define") == 0) {
-            std::istringstream lineStream(line);
-            std::string define, key;
-            uint16_t value;
+        std::string line;
+        while (std::getline(headerFile, line)) {
+            if (line.compare(0, 7, "#define") == 0) {
+                std::istringstream lineStream(line);
+                std::string define, key;
+                uint16_t value;
 
-            lineStream >> define >> key >> value;
+                lineStream >> define >> key >> value;
 
-            size_t commentPos = key.find("//");
-            if (commentPos != std::string::npos) {
-                key = key.substr(0, commentPos);
+                size_t commentPos = key.find("//");
+                if (commentPos != std::string::npos) {
+                    key = key.substr(0, commentPos);
+                }
+
+                animationNames->insert({ value, key });
             }
-
-            animationNames->insert({ value, key });
         }
     }
 
     newSession.open = true;
     newSession.mainPath = paths[0];
+
+    newSession.traditionalMethod = true;
 
     newSession.pngPath = new std::string(paths[1]);
     newSession.headerPath = new std::string(paths[2]);
@@ -200,7 +203,7 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
     return static_cast<int32_t>(this->sessionList.size() - 1);
 }
 
-int32_t SessionManager::ExportSessionArc(Session* session, const char* outPath) {
+int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char* outPath) {
     U8::U8ArchiveObject archive;
 
     U8::Directory directory(".");

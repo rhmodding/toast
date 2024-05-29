@@ -84,12 +84,12 @@ public:
         SessionOutError_FailTPLTextureExport = -11,
     } lastSessionError{ SessionOpenError_None };
 
-    // Push session from Arc file (SZS).
-    int32_t PushSessionFromArc(const char* arcPath);
+    // Push session from a Yaz0-compressed Arc file (SZS).
+    int32_t PushSessionFromCompressedArc(const char* arcPath);
     // Push session from BRCAD, PNG, and H file respectively
     int32_t PushSessionTraditional(const char* paths[3]);
 
-    int32_t ExportSessionArc(Session* session, const char* outPath);
+    int32_t ExportSessionCompressedArc(Session* session, const char* outPath);
 
     void ClearSessionPtr(Session* session);
     void FreeSessionIndex(int32_t index);

@@ -78,6 +78,7 @@ void A_LD_CreateArcSession() {
     GET_SESSION_MANAGER;
 
     int32_t result = sessionManager.PushSessionFromArc(openFileDialog);
+    int32_t result = sessionManager.PushSessionFromCompressedArc(openFileDialog);
     if (result < 0) {
         ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
         ImGui::OpenPopup("###SessionOpenErr");
@@ -160,6 +161,7 @@ void A_LD_SaveCurrentSessionAsArc() {
         GET_SESSION_MANAGER;
 
         int32_t result = sessionManager.ExportSessionArc(
+        int32_t result = sessionManager.ExportSessionCompressedArc(
             sessionManager.getCurrentSession(), saveFileDialog
         );
         if (result < 0) {
@@ -173,7 +175,7 @@ void A_LD_SaveCurrentSessionAsArc() {
 void A_SaveCurrentSessionArc() {
     GET_SESSION_MANAGER;
 
-    int32_t result = sessionManager.ExportSessionArc(
+    int32_t result = sessionManager.ExportSessionCompressedArc(
         sessionManager.getCurrentSession(),
         sessionManager.getCurrentSession()->mainPath.c_str()
     );
