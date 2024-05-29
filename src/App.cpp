@@ -148,6 +148,11 @@ void A_LD_CreateTraditionalSession() {
 }
 
 void A_LD_SaveCurrentSessionAsSzs() {
+    GET_SESSION_MANAGER;
+
+    if (!sessionManager.getCurrentSession())
+        return;
+
     const char* filterPatterns[] = { "*.szs" };
     char* saveFileDialog = tinyfd_saveFileDialog(
         "Select a file to save to",
@@ -157,7 +162,6 @@ void A_LD_SaveCurrentSessionAsSzs() {
     );
 
     if (saveFileDialog) {
-        GET_SESSION_MANAGER;
         int32_t result = sessionManager.ExportSessionCompressedArc(
             sessionManager.getCurrentSession(), saveFileDialog
         );
@@ -175,6 +179,12 @@ void A_LD_SaveCurrentSessionAsSzs() {
 
 void A_SaveCurrentSessionSzs() {
     GET_SESSION_MANAGER;
+
+    if (
+        !sessionManager.getCurrentSession() ||
+        sessionManager.getCurrentSession()->traditionalMethod
+    )
+        return;
 
     int32_t result = sessionManager.ExportSessionCompressedArc(
         sessionManager.getCurrentSession(),
