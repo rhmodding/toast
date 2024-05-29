@@ -204,6 +204,8 @@ namespace RvlCellAnim {
 
             this->animations[i] = animation;
         }
+    
+        this->ok = true;
     }
 
     std::vector<char> RvlCellAnimObject::Reserialize() {

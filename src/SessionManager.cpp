@@ -99,8 +99,15 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
     }
 
     // cellanims
-    for (uint16_t i = 0; i < brcadFiles.size(); i++)
-        cellanims.at(i) = new RvlCellAnim::RvlCellAnimObject(brcadFiles.at(i)->data.data(), brcadFiles.at(i)->data.size());
+    for (uint16_t i = 0; i < brcadFiles.size(); i++) {
+        newSession.cellanims.at(i) = new RvlCellAnim::RvlCellAnimObject(
+            brcadFiles.at(i)->data.data(), brcadFiles.at(i)->data.size()
+        );
+        if (!newSession.cellanims.at(i)->ok) {
+            this->lastSessionError = SessionOpenError_FailOpenBXCAD;
+            return -1;
+        }
+    }
 
     // cellanimSheets
     for (uint16_t i = 0; i < tplObject.textures.size(); i++) {
@@ -133,7 +140,7 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
     Session newSession;
 
     RvlCellAnim::RvlCellAnimObject* cellanim = RvlCellAnim::ObjectFromFile(paths[0]);
-    if (!cellanim) {
+    if (!cellanim || !cellanim->ok) {
         this->lastSessionError = SessionOpenError_FailOpenBXCAD;
         return -1;
     }

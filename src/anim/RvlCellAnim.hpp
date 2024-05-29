@@ -54,6 +54,8 @@ namespace RvlCellAnim {
     
     class RvlCellAnimObject {
     public:
+        bool ok{ false };
+
         uint16_t sheetIndex;
 
         uint16_t textureW, textureH;
