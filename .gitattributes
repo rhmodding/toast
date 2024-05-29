@@ -1,4 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
-libs/** -linguist-detectable
+libs/glfw3-win64/include/GLFW/* -linguist-detectable
+libs/glfw3-apple/include/GLFW/* -linguist-detectable
+
+src/stb/* -linguist-detectable
