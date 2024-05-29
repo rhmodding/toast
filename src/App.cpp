@@ -618,7 +618,7 @@ void App::UpdatePopups() {
                     errorMessage = "The maximum amount of sessions are already open.";
                     break;
                 default:
-                    errorMessage = "An unknown error has occurred.";
+                    errorMessage = "An unknown error has occurred (" + std::to_string(errorCode) + ").";
                     break;
             }
 
@@ -652,7 +652,7 @@ void App::UpdatePopups() {
                     errorMessage = "There was an error exporting a texture.";
                     break;
                 default:
-                    errorMessage = "An unknown error has occurred.";
+                    errorMessage = "An unknown error has occurred (" + std::to_string(errorCode) + ").";
                     break;
             }
 
