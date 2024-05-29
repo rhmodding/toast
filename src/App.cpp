@@ -38,8 +38,8 @@
     #define SCT_CTRL ImGui::GetIO().KeyCtrl
 #endif
 
-#define SCS_LAUNCH_OPEN_ARC_DIALOG SCST_CTRL "+O"
-#define SC_LAUNCH_OPEN_ARC_DIALOG \
+#define SCS_LAUNCH_OPEN_SZS_DIALOG SCST_CTRL "+O"
+#define SC_LAUNCH_OPEN_SZS_DIALOG \
             SCT_CTRL && \
             ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_O))
 
@@ -49,20 +49,20 @@
             ImGui::GetIO().KeyShift && \
             ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_O))
 
-#define SCS_SAVE_CURRENT_SESSION_ARC SCST_CTRL "+S"
-#define SC_SAVE_CURRENT_SESSION_ARC \
+#define SCS_SAVE_CURRENT_SESSION_SZS SCST_CTRL "+S"
+#define SC_SAVE_CURRENT_SESSION_SZS \
             SCT_CTRL && \
             ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_S))
 
-#define SCS_LAUNCH_SAVE_AS_ARC_DIALOG SCST_CTRL "+Shift+S"
-#define SC_LAUNCH_SAVE_AS_ARC_DIALOG \
+#define SCS_LAUNCH_SAVE_AS_SZS_DIALOG SCST_CTRL "+Shift+S"
+#define SC_LAUNCH_SAVE_AS_SZS_DIALOG \
             SCT_CTRL && \
             ImGui::GetIO().KeyShift && \
             ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_S))
 
 #pragma region Actions
 
-void A_LD_CreateArcSession() {
+void A_LD_CreateCompressedArcSession() {
     const char* filterPatterns[] = { "*.szs" };
     char* openFileDialog = tinyfd_openFileDialog(
         "Select a cellanim file",
@@ -77,7 +77,6 @@ void A_LD_CreateArcSession() {
 
     GET_SESSION_MANAGER;
 
-    int32_t result = sessionManager.PushSessionFromArc(openFileDialog);
     int32_t result = sessionManager.PushSessionFromCompressedArc(openFileDialog);
     if (result < 0) {
         ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
@@ -148,7 +147,7 @@ void A_LD_CreateTraditionalSession() {
     }
 }
 
-void A_LD_SaveCurrentSessionAsArc() {
+void A_LD_SaveCurrentSessionAsSzs() {
     const char* filterPatterns[] = { "*.szs" };
     char* saveFileDialog = tinyfd_saveFileDialog(
         "Select a file to save to",
@@ -159,8 +158,6 @@ void A_LD_SaveCurrentSessionAsArc() {
 
     if (saveFileDialog) {
         GET_SESSION_MANAGER;
-
-        int32_t result = sessionManager.ExportSessionArc(
         int32_t result = sessionManager.ExportSessionCompressedArc(
             sessionManager.getCurrentSession(), saveFileDialog
         );
@@ -172,7 +169,7 @@ void A_LD_SaveCurrentSessionAsArc() {
     }
 }
 
-void A_SaveCurrentSessionArc() {
+void A_SaveCurrentSessionSzs() {
     GET_SESSION_MANAGER;
 
     int32_t result = sessionManager.ExportSessionCompressedArc(
@@ -412,27 +409,27 @@ void App::Menubar() {
             GET_SESSION_MANAGER;
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_EXPORT " Save (arc)", SCS_SAVE_CURRENT_SESSION_ARC, false,
+                (char*)ICON_FA_FILE_EXPORT " Save (szs)", SCS_SAVE_CURRENT_SESSION_SZS, false,
                     !!sessionManager.getCurrentSession() &&
                     !sessionManager.getCurrentSession()->traditionalMethod
             ))
-                A_SaveCurrentSessionArc();
+                A_SaveCurrentSessionSzs();
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_EXPORT " Save as (arc)...", SCS_LAUNCH_SAVE_AS_ARC_DIALOG, false,
+                (char*)ICON_FA_FILE_EXPORT " Save as (szs)...", SCS_LAUNCH_SAVE_AS_SZS_DIALOG, false,
                 !!sessionManager.getCurrentSession()
             ))
-                A_LD_SaveCurrentSessionAsArc();
+                A_LD_SaveCurrentSessionAsSzs();
 
             ImGui::Separator();
 
             // TODO: add Apple shortcut
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_IMPORT " Open (arc)...",
-                SCS_LAUNCH_OPEN_ARC_DIALOG,
+                (char*)ICON_FA_FILE_IMPORT " Open (szs)...",
+                SCS_LAUNCH_OPEN_SZS_DIALOG,
                 nullptr
             ))
-                A_LD_CreateArcSession();
+                A_LD_CreateCompressedArcSession();
 
             if (ImGui::MenuItem(
                 (char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
@@ -809,14 +806,14 @@ void App::UpdatePopups() {
 }
 
 void App::HandleShortcuts() {
-    if (SC_LAUNCH_OPEN_ARC_DIALOG)
-        A_LD_CreateArcSession();
+    if (SC_LAUNCH_OPEN_SZS_DIALOG)
+        A_LD_CreateCompressedArcSession();
     if (SC_LAUNCH_OPEN_TRADITIONAL_DIALOG)
         A_LD_CreateTraditionalSession();
-    if (SC_SAVE_CURRENT_SESSION_ARC)
-        A_SaveCurrentSessionArc();
-    if (SC_LAUNCH_SAVE_AS_ARC_DIALOG)
-        A_LD_SaveCurrentSessionAsArc();
+    if (SC_SAVE_CURRENT_SESSION_SZS)
+        A_SaveCurrentSessionSzs();
+    if (SC_LAUNCH_SAVE_AS_SZS_DIALOG)
+        A_LD_SaveCurrentSessionAsSzs();
 }
 
 void App::Update() {
