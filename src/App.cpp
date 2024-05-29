@@ -14,7 +14,6 @@
 #include <sstream>
 
 #include "archive/U8.hpp"
-#include "texture/TPL.hpp"
 
 #include "imgui_internal.h"
 

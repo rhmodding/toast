@@ -1,8 +1,9 @@
 #include "SessionManager.hpp"
 
 #include "archive/U8.hpp"
-
 #include "compression/Yaz0.hpp"
+
+#include "texture/TPL.hpp"
 
 #include <sstream>
 #include <fstream>

@@ -1,7 +1,7 @@
 #ifndef IMAGECONVERT_HPP
 #define IMAGECONVERT_HPP
 
-#include "./TPL.hpp"
+#include "TPL.hpp"
 
 #include <vector>
 

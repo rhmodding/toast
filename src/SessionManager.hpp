@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include "anim/RvlCellAnim.hpp"
-#include "texture/TPL.hpp"
 
 #include "common.hpp"
 
