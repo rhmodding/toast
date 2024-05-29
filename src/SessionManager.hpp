@@ -81,6 +81,7 @@ public:
 
         SessionOutError_FailOpenFile = -9,
         SessionOutError_ZlibError = -10,
+        SessionOutError_FailTPLTextureExport = -11,
     } lastSessionError{ SessionOpenError_None };
 
     // Push session from Arc file (SZS).

@@ -58,6 +58,31 @@ struct TPLHeader {
 };
 
 namespace TPL {
+    const char* getImageFormatName(TPLImageFormat format) {
+        const char* strings[TPL_IMAGE_FORMAT_COUNT] = {
+            "I4",      // TPL_IMAGE_FORMAT_I4
+            "I8",      // TPL_IMAGE_FORMAT_I8
+            "IA4",     // TPL_IMAGE_FORMAT_IA4
+            "IA8",     // TPL_IMAGE_FORMAT_IA8
+            "RGB565",  // TPL_IMAGE_FORMAT_RGB565
+            "RGB5A3",  // TPL_IMAGE_FORMAT_RGB5A3
+            "RGBA32",  // TPL_IMAGE_FORMAT_RGBA32
+            nullptr,   // Index 7 (unused)
+            "C4",      // TPL_IMAGE_FORMAT_C4 (0x08)
+            "C8",      // TPL_IMAGE_FORMAT_C8
+            "C14X2",   // TPL_IMAGE_FORMAT_C14X2
+            nullptr,   // Index 11 (unused)
+            nullptr,   // Index 12 (unused)
+            nullptr,   // Index 13 (unused)
+            "CMPR"     // TPL_IMAGE_FORMAT_CMPR (0x0E)
+        };
+
+        if (format >= TPL_IMAGE_FORMAT_COUNT)
+            return "Unknown format";
+            
+        return strings[format];
+    }
+
     TPLObject::TPLObject(const char* tplData, const size_t dataSize) {
         const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
 
@@ -93,6 +118,8 @@ namespace TPL {
                 textureData.height = BYTESWAP_16(header.height);
 
                 TPLImageFormat format = static_cast<TPLImageFormat>(BYTESWAP_32(header.format));
+
+                textureData.format = format;
 
                 textureData.mipMap = header.minLOD == header.maxLOD ? 0 : 1;
 
@@ -165,14 +192,12 @@ namespace TPL {
                 reinterpret_cast<char*>(header) - result.data()
             ));
 
-            TPLImageFormat format = TPL_IMAGE_FORMAT_RGBA32; // TODO: add options for different format
-
             // TODO: implement support for CLUT header writing
 
             header->width = BYTESWAP_16(this->textures.at(i).width);
             header->height = BYTESWAP_16(this->textures.at(i).height);
 
-            header->format = BYTESWAP_32(TPL_IMAGE_FORMAT_RGBA32);
+            header->format = BYTESWAP_32(this->textures.at(i).format);
 
             // header->dataOffset gets set in the image data writing portion.
 

@@ -25,23 +25,6 @@ namespace TPL {
         TPL_TEX_FILTER_LIN_MIP_LIN
     };
 
-    struct TPLTexture {
-        uint8_t valid; // Did the texture have a valid offset?
-
-        uint16_t width;
-        uint16_t height;
-
-        std::vector<char> data;
-
-        TPLWrapMode wrapS;
-        TPLWrapMode wrapT;
-
-        TPL::TPLTexFilter minFilter;
-        TPL::TPLTexFilter magFilter;
-
-        uint8_t mipMap;
-    };
-
     enum TPLImageFormat : uint32_t {
         // Gray
         TPL_IMAGE_FORMAT_I4,
@@ -74,7 +57,30 @@ namespace TPL {
         TPL_IMAGE_FORMAT_C14X2,
 
         // Color + optional Alpha (compressed)
-        TPL_IMAGE_FORMAT_CMPR = 0x0E
+        TPL_IMAGE_FORMAT_CMPR = 0x0E,
+
+        TPL_IMAGE_FORMAT_COUNT
+    };
+
+    const char* getImageFormatName(TPLImageFormat format);
+
+    struct TPLTexture {
+        uint8_t valid; // Did the texture have a valid offset?
+
+        uint16_t width;
+        uint16_t height;
+
+        std::vector<char> data;
+
+        TPLWrapMode wrapS;
+        TPLWrapMode wrapT;
+
+        TPLTexFilter minFilter;
+        TPLTexFilter magFilter;
+
+        uint8_t mipMap;
+
+        TPLImageFormat format; // This is used when re-serializing the TPL.
     };
 
     class TPLObject {

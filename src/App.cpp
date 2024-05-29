@@ -648,6 +648,9 @@ void App::UpdatePopups() {
                 case SessionManager::SessionOutError_ZlibError:
                     errorMessage = "Zlib raised an error while compressing the file.";
                     break;
+                case SessionManager::SessionOutError_FailTPLTextureExport:
+                    errorMessage = "There was an error exporting a texture.";
+                    break;
                 default:
                     errorMessage = "An unknown error has occurred.";
                     break;

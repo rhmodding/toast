@@ -103,12 +103,14 @@ int32_t SessionManager::PushSessionFromArc(const char* arcPath) {
         cellanims.at(i) = new RvlCellAnim::RvlCellAnimObject(brcadFiles.at(i)->data.data(), brcadFiles.at(i)->data.size());
 
     // cellanimSheets
-    for (uint16_t i = 0; i < tplObject.textures.size(); i++)
+    for (uint16_t i = 0; i < tplObject.textures.size(); i++) {
         cellanimSheets.at(i) = new Common::Image(
             tplObject.textures.at(i).width,
             tplObject.textures.at(i).height,
             TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(i))
         );
+        cellanimSheets.at(i)->tplOutFormat = tplObject.textures.at(i).format;
+    }
 
     newSession.open = true;
     newSession.mainPath = arcPath;
@@ -237,41 +239,14 @@ int32_t SessionManager::ExportSessionArc(Session* session, const char* outPath) 
         TPL::TPLObject tplObject;
 
         for (uint32_t i = 0; i < session->cellanimSheets.size(); i++) {
-            glBindTexture(GL_TEXTURE_2D, session->cellanimSheets.at(i)->texture);
+            auto tplTexture = session->cellanimSheets.at(i)->ExportToTPLTexture();
 
-            TPL::TPLTexture tplTexture;
-            tplTexture.data.resize(
-                session->cellanimSheets.at(i)->width *
-                session->cellanimSheets.at(i)->height *
-                4
-            );
+            if (!tplTexture.has_value()) {
+                this->lastSessionError = SessionOutError_FailTPLTextureExport;
+                return -1;
+            }
 
-            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
-
-            tplTexture.width = session->cellanimSheets.at(i)->width;
-            tplTexture.height = session->cellanimSheets.at(i)->height;
-
-            GLint wrapModeS, wrapModeT;
-            glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapModeS);
-            glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapModeT);
-
-            tplTexture.wrapS = wrapModeS == GL_REPEAT ?
-                TPL::TPL_WRAP_MODE_REPEAT :
-                TPL::TPL_WRAP_MODE_CLAMP;
-            tplTexture.wrapT = wrapModeT == GL_REPEAT ?
-                TPL::TPL_WRAP_MODE_REPEAT :
-                TPL::TPL_WRAP_MODE_CLAMP;
-
-            tplTexture.minFilter = TPL::TPL_TEX_FILTER_LINEAR;
-            tplTexture.magFilter = TPL::TPL_TEX_FILTER_LINEAR;
-
-            tplTexture.mipMap = 1;
-
-            tplTexture.valid = 0xFFu;
-
-            tplObject.textures.push_back(tplTexture);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
+            tplObject.textures.push_back(tplTexture.value());
         }
         
         file.data = tplObject.Reserialize();

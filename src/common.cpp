@@ -147,8 +147,59 @@ namespace Common {
         return 1 - (1 - t) * (1 - t);
     }
 
+    std::optional<TPL::TPLTexture> Image::ExportToTPLTexture() {
+        if (!(
+            this->width != 0 &&
+            this->height != 0 &&
+            this->texture
+        ))
+            return std::nullopt; // return nothing (std::optional)
+
+        glBindTexture(GL_TEXTURE_2D, this->texture);
+
+        TPL::TPLTexture tplTexture;
+        tplTexture.data.resize(
+            this->width *
+            this->height *
+            4
+        );
+
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
+
+        tplTexture.width = this->width;
+        tplTexture.height = this->height;
+
+        GLint wrapModeS, wrapModeT;
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapModeS);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapModeT);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        tplTexture.wrapS = wrapModeS == GL_REPEAT ?
+            TPL::TPL_WRAP_MODE_REPEAT :
+            TPL::TPL_WRAP_MODE_CLAMP;
+        tplTexture.wrapT = wrapModeT == GL_REPEAT ?
+            TPL::TPL_WRAP_MODE_REPEAT :
+            TPL::TPL_WRAP_MODE_CLAMP;
+
+        tplTexture.minFilter = TPL::TPL_TEX_FILTER_LINEAR;
+        tplTexture.magFilter = TPL::TPL_TEX_FILTER_LINEAR;
+
+        tplTexture.mipMap = 1;
+
+        tplTexture.format = this->tplOutFormat;
+
+        tplTexture.valid = 0xFFu;
+
+        return tplTexture;
+    }
+
     bool Image::ExportToFile(const char* filename) {
-        if (!this->texture)
+        if (!(
+            this->width != 0 &&
+            this->height != 0 &&
+            this->texture
+        ))
             return false;
 
         glBindTexture(GL_TEXTURE_2D, this->texture);

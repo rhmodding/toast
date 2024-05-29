@@ -137,6 +137,16 @@ void WindowSpritesheet::Update() {
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Format")) {
+            ImGui::Text("Current format: %s", TPL::getImageFormatName(sessionManager.getCurrentSession()->getCellanimSheet()->tplOutFormat));
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Re-encode..");
+
+            ImGui::EndMenu();
+        }
+
         {
             char textBuffer[32];
             sprintf(textBuffer, "Double-click to %s", this->sheetZoomEnabled ? "un-zoom" : "zoom");

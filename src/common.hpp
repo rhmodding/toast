@@ -13,6 +13,9 @@
 
 #include "imgui.h"
 
+#include <optional>
+
+#include "texture/TPL.hpp"
 
 //#include "stb/stb_image_write.h"
 
@@ -92,6 +95,9 @@ namespace Common {
 
         GLuint texture{ 0 };
 
+        // Used when converting to a TPL texture.
+        TPL::TPLImageFormat tplOutFormat{ TPL::TPL_IMAGE_FORMAT_RGBA32 };
+
         Image() = default;
         Image(uint16_t width, uint16_t height, GLuint texture) : width(width), height(height), texture(texture) {}
 
@@ -106,6 +112,8 @@ namespace Common {
         void FreeTexture() {
             glDeleteTextures(1, &this->texture);
         }
+
+        std::optional<TPL::TPLTexture> ExportToTPLTexture();
 
         bool ExportToFile(const char* filename);
     };
