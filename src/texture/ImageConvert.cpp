@@ -245,6 +245,34 @@ void IMPLEMENTATION_FROM_RGBA32(std::vector<char>& result, uint16_t srcWidth, ui
 
 #pragma endregion
 
+#pragma region Cx
+
+void IMPLEMENTATION_FROM_C8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data, uint32_t* colorPalette) {
+    uint32_t readOffset{ 0 };
+
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
+
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 8; x++) {
+                    if ((xBlock * 8 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
+                        continue;
+
+                    const uint32_t color = colorPalette[*(reinterpret_cast<const uint8_t*>(data.data()) + readOffset++)];
+                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 8) + x);
+
+                    result[destIndex + 0] = (color >> 24) & 0xFFu;
+                    result[destIndex + 1] = (color >> 16) & 0xFFu;
+                    result[destIndex + 2] = (color >>  8) & 0xFFu;
+                    result[destIndex + 3] = color & 0xFFu;
+                }
+            }
+        }
+    }
+}
+
+#pragma endregion
+
 #pragma region CMPR
 
 void IMPLEMENTATION_FROM_CMPR(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
@@ -406,7 +434,7 @@ void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint
 
 //////////////////////////////////////////////////////////////////
 
-bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat type, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat type, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data, uint32_t* colorPalette) {
     result.resize(srcWidth * srcHeight * 4);
 
     switch (type) {
@@ -436,6 +464,15 @@ bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
             IMPLEMENTATION_FROM_RGBA32(result, srcWidth, srcHeight, data);
+            break;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_C8:
+            if (!colorPalette) {
+                std::cerr << "[ImageConvert::toRGBA32] Couldn't convert C8 format: no color palette passed.\n";
+                return false;
+            }
+            
+            IMPLEMENTATION_FROM_C8(result, srcWidth, srcHeight, data, colorPalette);
             break;
 
         // TODO: Palette-based formats

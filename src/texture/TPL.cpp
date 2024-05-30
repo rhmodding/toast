@@ -15,7 +15,12 @@ struct TPLClutHeader {
 
     uint8_t pad8;
 
-    uint32_t format;
+    enum TPLClutFormat : uint32_t {
+        TPL_CLUT_FORMAT_IA8, // Gray + Alpha
+        TPL_CLUT_FORMAT_RGB565, // Color
+        TPL_CLUT_FORMAT_RGB5A3 // Color + Alpha
+    } format;
+    
     uint32_t dataOffset;
 };
 
@@ -91,60 +96,115 @@ namespace TPL {
             return;
         }
 
-        size_t readOffset = BYTESWAP_32(palette->descriptorsOffset);
-
         uint32_t descriptorCount = BYTESWAP_32(palette->descriptorCount);
         for (uint16_t i = 0; i < descriptorCount; i++) {
-            TPLDescriptor descriptor;
-            Common::ReadAtOffset(tplData, readOffset, dataSize, descriptor);
-
-            size_t savedOffset = readOffset;
+            const TPLDescriptor* descriptor = reinterpret_cast<const TPLDescriptor*>(
+                tplData + BYTESWAP_32(palette->descriptorsOffset) +
+                (sizeof(TPLDescriptor) * i)
+            );
 
             TPLTexture textureData;
 
-            if (descriptor.textureHeaderOffset != 0) {
-                readOffset = BYTESWAP_32(descriptor.textureHeaderOffset);
+            if (descriptor->textureHeaderOffset != 0) {
+                const TPLHeader* header = reinterpret_cast<const TPLHeader*>(tplData + BYTESWAP_32(descriptor->textureHeaderOffset));
 
-                TPLHeader header;
-                Common::ReadAtOffset(tplData, readOffset, dataSize, header);
+                uint32_t* colorPalette{ nullptr };
+                if (descriptor->CLUTHeaderOffset != 0) {
+                    const TPLClutHeader* clutHeader = reinterpret_cast<const TPLClutHeader*>(tplData + BYTESWAP_32(descriptor->CLUTHeaderOffset));
 
-                readOffset = BYTESWAP_32(descriptor.CLUTHeaderOffset);
+                    colorPalette = new uint32_t[BYTESWAP_16(clutHeader->numEntries)];
 
-                TPLClutHeader clutHeader;
-                Common::ReadAtOffset(tplData, readOffset, dataSize, clutHeader);
+                    // TODO: this should probably be moved to ImageConvert
+
+                    const uint8_t* data = reinterpret_cast<const uint8_t*>(tplData + BYTESWAP_32(clutHeader->dataOffset));
+                    switch (BYTESWAP_32(clutHeader->format)) {
+                        case TPLClutHeader::TPL_CLUT_FORMAT_IA8: {
+                            for (uint16_t i = 0; i < BYTESWAP_16(clutHeader->numEntries); i++) {
+                                const uint8_t alpha = data[(i * 2) + 0];
+                                const uint8_t intensity = data[(i * 2) + 1];
+
+                                colorPalette[i] =
+                                    (uint32_t(intensity) << 24) |
+                                    (uint32_t(intensity) << 16) |
+                                    (uint32_t(intensity) << 8) |
+                                    uint32_t(alpha);
+                            }
+                        } break;
+                        case TPLClutHeader::TPL_CLUT_FORMAT_RGB565: {
+                            for (uint16_t i = 0; i < BYTESWAP_16(clutHeader->numEntries); i++) {
+                                const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + (i * 2)));
+
+                                colorPalette[i] =
+                                    (uint32_t(((sourcePixel >> 11) & 0x1f) << 3) << 24) |
+                                    (uint32_t(((sourcePixel >>  5) & 0x3f) << 2) << 16) |
+                                    (uint32_t(((sourcePixel >>  0) & 0x1f) << 3) << 8) |
+                                    0xFFu;
+                            }
+                        } break;
+                        case TPLClutHeader::TPL_CLUT_FORMAT_RGB5A3: {
+                            for (uint16_t i = 0; i < BYTESWAP_16(clutHeader->numEntries); i++) {
+                                const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + (i * 2)));
+
+                                uint8_t r, g, b, a;
+
+                                if ((sourcePixel & 0x8000) != 0) { // RGB555
+                                    r = (((sourcePixel >> 10) & 0x1f) << 3) | (((sourcePixel >> 10) & 0x1f) >> 2);
+                                    g = (((sourcePixel >> 5) & 0x1f) << 3) | (((sourcePixel >> 5) & 0x1f) >> 2);
+                                    b = (((sourcePixel) & 0x1f) << 3) | (((sourcePixel) & 0x1f) >> 2);
+
+                                    a = 0xFFu;
+                                }
+                                else { // RGBA4443
+                                    a =
+                                        (((sourcePixel >> 12) & 0x7) << 5) | (((sourcePixel >> 12) & 0x7) << 2) |
+                                        (((sourcePixel >> 12) & 0x7) >> 1);
+
+                                    r = (((sourcePixel >> 8) & 0xf) << 4) | ((sourcePixel >> 8) & 0xf);
+                                    g = (((sourcePixel >> 4) & 0xf) << 4) | ((sourcePixel >> 4) & 0xf);
+                                    b = (((sourcePixel) & 0xf) << 4) | ((sourcePixel) & 0xf);
+                                }
+
+                                colorPalette[i] =
+                                    (uint32_t(r) << 24) |
+                                    (uint32_t(g) << 16) |
+                                    (uint32_t(b) << 8) |
+                                    uint32_t(a);
+                            }
+                        } break;
+                        
+                        default:
+                            std::cerr <<
+                                "[TPLObject::TPLObject] Invalid CLUT header: invalid color palette format! Expected 0 to 2, got " <<
+                                BYTESWAP_32(clutHeader->format) << '\n';
+                            break;
+                    }
+                }
 
                 // Start handling
-                textureData.width = BYTESWAP_16(header.width);
-                textureData.height = BYTESWAP_16(header.height);
+                textureData.width = BYTESWAP_16(header->width);
+                textureData.height = BYTESWAP_16(header->height);
 
-                TPLImageFormat format = static_cast<TPLImageFormat>(BYTESWAP_32(header.format));
+                TPLImageFormat format = static_cast<TPLImageFormat>(BYTESWAP_32(header->format));
 
                 textureData.format = format;
 
-                textureData.mipMap = header.minLOD == header.maxLOD ? 0 : 1;
+                textureData.mipMap = header->minLOD == header->maxLOD ? 0 : 1;
 
-                textureData.wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(header.wrapS));
-                textureData.wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(header.wrapT));
+                textureData.wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(header->wrapS));
+                textureData.wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(header->wrapT));
 
-                textureData.minFilter = static_cast<TPLTexFilter>(BYTESWAP_32(header.minFilter));
-                textureData.magFilter = static_cast<TPLTexFilter>(BYTESWAP_32(header.magFilter));
+                textureData.minFilter = static_cast<TPLTexFilter>(BYTESWAP_32(header->minFilter));
+                textureData.magFilter = static_cast<TPLTexFilter>(BYTESWAP_32(header->magFilter));
 
-                // Read texture data
-                std::vector<char> data;
 
-                readOffset = BYTESWAP_32(header.dataOffset);
+                uint32_t imageSize = ImageConvert::getImageByteSize(format, textureData.width, textureData.height);
+                const char* imageData = tplData + BYTESWAP_32(header->dataOffset);
 
-                size_t imageSize = ImageConvert::getImageByteSize(format, textureData.width, textureData.height);
-                data.resize(imageSize);
+                std::vector<char> data(imageData, imageData + imageSize);
+                ImageConvert::toRGBA32(textureData.data, format, textureData.width, textureData.height, data, colorPalette);
 
-                for (size_t j = 0; j < imageSize; j++) {
-                    char c;
-                    Common::ReadAtOffset(tplData, readOffset, dataSize, c);
-
-                    data[j] = c;
-                }
-
-                ImageConvert::toRGBA32(textureData.data, format, textureData.width, textureData.height, data);
+                if (colorPalette)
+                    delete[] colorPalette;
 
                 textureData.valid = 0xFFu;
             }
@@ -152,8 +212,6 @@ namespace TPL {
                 textureData.valid = 0x00;
 
             this->textures.push_back(textureData);
-
-            readOffset = savedOffset;
         }
     }
 
