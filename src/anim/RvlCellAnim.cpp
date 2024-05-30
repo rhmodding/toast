@@ -19,7 +19,7 @@ struct RvlCellAnimHeader {
     // Could be a format revision timestamp? (2010/03/12)
     uint32_t magic;
 
-    // Unknown value. Usually 0x04000400 [67109888]
+    // Unknown value
     uint32_t unknown_0;
 
     // Sheet index. The sheet will be located in cellanim.tpl under "cellanim_{sheetIndex}"
@@ -116,6 +116,8 @@ namespace RvlCellAnim {
 
         this->textureW = BYTESWAP_16(header->sheetW);
         this->textureH = BYTESWAP_16(header->sheetH);
+
+        this->unknown.u32 = BYTESWAP_32(header->unknown_0);
 
         size_t readOffset = sizeof(RvlCellAnimHeader);
 

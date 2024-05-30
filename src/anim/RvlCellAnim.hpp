@@ -60,6 +60,8 @@ namespace RvlCellAnim {
 
         uint16_t textureW, textureH;
 
+        Unknown32 unknown;
+
         std::vector<Arrangement> arrangements;
         std::vector<Animation> animations;
 
