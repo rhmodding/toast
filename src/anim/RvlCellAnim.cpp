@@ -119,7 +119,7 @@ namespace RvlCellAnim {
 
         this->unknown.u32 = BYTESWAP_32(header->unknown_0);
 
-        size_t readOffset = sizeof(RvlCellAnimHeader);
+        uint32_t readOffset{ sizeof(RvlCellAnimHeader) };
 
         // Arrangements
         uint16_t arrangementCount = BYTESWAP_16(header->arrangementCount);
