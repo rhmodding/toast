@@ -264,6 +264,8 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
         directory.AddFile(file);
     }
 
+    directory.SortAlphabetically();
+    
     archive.structure.AddDirectory(directory);
 
     auto archiveRaw = archive.Reserialize();

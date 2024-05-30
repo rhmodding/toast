@@ -10,6 +10,8 @@
 #include <optional>
 #include <cstdint>
 
+#include <algorithm>
+
 #include "../compression/Yaz0.hpp"
 #include <stack>
 
@@ -67,6 +69,16 @@ namespace U8 {
     void Directory::AddDirectory(Directory& directory) {
         directory.parent = this;
         subdirectories.push_back(directory);
+    }
+
+    void Directory::SortAlphabetically() {
+        std::sort(this->files.begin(), this->files.end(), [](const File& a, const File& b) {
+            return a.name < b.name;
+        });
+
+        std::sort(this->subdirectories.begin(), this->subdirectories.end(), [](const Directory& a, const Directory& b) {
+            return a.name < b.name;
+        });
     }
 
     Directory* Directory::GetParent() const {

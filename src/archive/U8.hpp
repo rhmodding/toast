@@ -32,6 +32,8 @@ namespace U8 {
         void AddFile(File& file);
         void AddDirectory(Directory& directory);
 
+        void SortAlphabetically();
+
         Directory(const std::string& n);
 
         Directory(const std::string& n, Directory* parentDir);
