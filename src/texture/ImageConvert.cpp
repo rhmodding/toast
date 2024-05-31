@@ -4,6 +4,8 @@
 
 #include "../common.hpp"
 
+#include <unordered_map>
+
 #define IMGFMT TPL::TPLImageFormat
 
 void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, uint32_t offset = 0) {
@@ -357,10 +359,9 @@ void IMPLEMENTATION_TO_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    const uint8_t* readPixel = reinterpret_cast<const uint8_t*>(
-                        data.data()) +
-                        (((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x)) * 4
-                    );
+                    const uint8_t* readPixel =
+                        reinterpret_cast<const uint8_t*>(data.data()) +
+                        (((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x)) * 4);
 
                     // A pixel is 16-bit but we write it in two 8-bit segments.
                     uint8_t* pixel = reinterpret_cast<uint8_t*>(&result[writeOffset]);
@@ -430,40 +431,124 @@ void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint
 
 #pragma endregion
 
+#pragma region Cx
+
+void IMPLEMENTATION_TO_C8(std::vector<char>& result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+                       // Color  // Index
+    std::unordered_map<uint32_t, uint8_t> indexMap;
+
+    uint32_t writeOffset{ 0 };
+
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
+
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 8; x++) {
+                    if ((xBlock * 8 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
+                        continue;
+
+                    const uint32_t readPixel = 
+                        *reinterpret_cast<const uint32_t*>(
+                            data.data() +
+                            (4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 8) + x))
+                        );
+
+                    uint8_t* pixel = reinterpret_cast<uint8_t*>(&result[writeOffset++]);
+
+                    if (indexMap.find(readPixel) != indexMap.end()) {
+                        *pixel = indexMap[readPixel];
+                    } else {
+                        indexMap[readPixel] = colors.size();
+                        *pixel = colors.size();
+
+                        colors.push_back(readPixel);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void IMPLEMENTATION_TO_C14X2(std::vector<char>& result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+                       // Color  // Index (byteswapped)
+    std::unordered_map<uint32_t, uint16_t> indexMap;
+    
+    uint32_t writeOffset{ 0 };
+
+    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {  
+
+            for (uint8_t y = 0; y < 4; y++) {
+                for (uint8_t x = 0; x < 4; x++) {
+                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
+                        continue;
+
+                    const uint32_t readPixel = 
+                        *reinterpret_cast<const uint32_t*>(
+                            data.data() +
+                            (((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x)) * 4)
+                        );
+
+                    uint16_t* pixel = reinterpret_cast<uint16_t*>(&result[writeOffset]);
+                    writeOffset += sizeof(uint16_t);
+
+                    if (indexMap.find(readPixel) != indexMap.end()) {
+                        *pixel = indexMap[readPixel]; // Already byteswapped
+                    } else {
+                        indexMap[readPixel] = BYTESWAP_16(colors.size());
+                        *pixel = indexMap[readPixel];
+
+                        colors.push_back(readPixel);
+                    }
+                }
+            }
+        }
+    }
+} 
+
+#pragma endregion
+
 #pragma endregion
 
 //////////////////////////////////////////////////////////////////
 
-bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat type, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data, uint32_t* colorPalette) {
-    result.resize(srcWidth * srcHeight * 4);
+bool ImageConvert::toRGBA32(
+    std::vector<char>& buffer,
+    const TPL::TPLImageFormat type,
+    const uint16_t srcWidth,
+    const uint16_t srcHeight,
+    const std::vector<char>& data,
+    uint32_t* colorPalette
+) {
+    buffer.resize(srcWidth * srcHeight * 4);
 
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4: 
-            IMPLEMENTATION_FROM_I4(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_I4(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_I8:
-            IMPLEMENTATION_FROM_I8(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_I8(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_IA4:
-            IMPLEMENTATION_FROM_IA4(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_IA4(buffer, srcWidth, srcHeight, data);
             break;
         
         case IMGFMT::TPL_IMAGE_FORMAT_IA8:
-            IMPLEMENTATION_FROM_IA8(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_IA8(buffer, srcWidth, srcHeight, data);
             break;
         
         case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
-            IMPLEMENTATION_FROM_RGB565(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGB565(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            IMPLEMENTATION_FROM_RGB5A3(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGB5A3(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            IMPLEMENTATION_FROM_RGBA32(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGBA32(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_C8:
@@ -472,13 +557,13 @@ bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat
                 return false;
             }
             
-            IMPLEMENTATION_FROM_C8(result, srcWidth, srcHeight, data, colorPalette);
+            IMPLEMENTATION_FROM_C8(buffer, srcWidth, srcHeight, data, colorPalette);
             break;
 
         // TODO: Palette-based formats
 
         case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
-            IMPLEMENTATION_FROM_CMPR(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_CMPR(buffer, srcWidth, srcHeight, data);
             break;
 
         default:
@@ -488,14 +573,28 @@ bool ImageConvert::toRGBA32(std::vector<char>& result, const TPL::TPLImageFormat
     return true;
 }
 
-bool ImageConvert::fromRGBA32(std::vector<char>& result, const TPL::TPLImageFormat type, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+bool ImageConvert::fromRGBA32(
+    std::vector<char>& buffer,
+    const TPL::TPLImageFormat type,
+    const uint16_t srcWidth,
+    const uint16_t srcHeight,
+    const std::vector<char>& data,
+    std::vector<uint32_t>* colorPalette
+) {
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            IMPLEMENTATION_TO_RGB5A3(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_TO_RGB5A3(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            IMPLEMENTATION_TO_RGBA32(result, srcWidth, srcHeight, data);
+            IMPLEMENTATION_TO_RGBA32(buffer, srcWidth, srcHeight, data);
+            break;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_C8:
+            IMPLEMENTATION_TO_C8(buffer, *colorPalette, srcWidth, srcHeight, data);
+            break;
+        case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
+            IMPLEMENTATION_TO_C14X2(buffer, *colorPalette, srcWidth, srcHeight, data);
             break;
         
         default:
@@ -505,7 +604,7 @@ bool ImageConvert::fromRGBA32(std::vector<char>& result, const TPL::TPLImageForm
     return true;
 }
 
-uint32_t ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, uint16_t width, uint16_t height) {
+uint32_t ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const uint16_t width, const uint16_t height) {
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4:
             return width * height / 2;
