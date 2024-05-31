@@ -15,11 +15,7 @@ struct TPLClutHeader {
 
     uint8_t pad8;
 
-    enum TPLClutFormat : uint32_t {
-        TPL_CLUT_FORMAT_IA8, // Gray + Alpha
-        TPL_CLUT_FORMAT_RGB565, // Color
-        TPL_CLUT_FORMAT_RGB5A3 // Color + Alpha
-    } format;
+    TPL::TPLClutFormat format;
     
     uint32_t dataOffset;
 };
@@ -118,7 +114,7 @@ namespace TPL {
 
                     const uint8_t* data = reinterpret_cast<const uint8_t*>(tplData + BYTESWAP_32(clutHeader->dataOffset));
                     switch (BYTESWAP_32(clutHeader->format)) {
-                        case TPLClutHeader::TPL_CLUT_FORMAT_IA8: {
+                        case TPL_CLUT_FORMAT_IA8: {
                             for (uint16_t i = 0; i < BYTESWAP_16(clutHeader->numEntries); i++) {
                                 const uint8_t alpha = data[(i * 2) + 0];
                                 const uint8_t intensity = data[(i * 2) + 1];
@@ -130,7 +126,7 @@ namespace TPL {
                                     uint32_t(alpha);
                             }
                         } break;
-                        case TPLClutHeader::TPL_CLUT_FORMAT_RGB565: {
+                        case TPL_CLUT_FORMAT_RGB565: {
                             for (uint16_t i = 0; i < BYTESWAP_16(clutHeader->numEntries); i++) {
                                 const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + (i * 2)));
 
@@ -141,7 +137,7 @@ namespace TPL {
                                     0xFFu;
                             }
                         } break;
-                        case TPLClutHeader::TPL_CLUT_FORMAT_RGB5A3: {
+                        case TPL_CLUT_FORMAT_RGB5A3: {
                             for (uint16_t i = 0; i < BYTESWAP_16(clutHeader->numEntries); i++) {
                                 const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + (i * 2)));
 

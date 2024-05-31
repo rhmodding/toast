@@ -62,6 +62,12 @@ namespace TPL {
         TPL_IMAGE_FORMAT_COUNT
     };
 
+    enum TPLClutFormat : uint32_t {
+        TPL_CLUT_FORMAT_IA8, // Gray + Alpha
+        TPL_CLUT_FORMAT_RGB565, // Color
+        TPL_CLUT_FORMAT_RGB5A3 // Color + Alpha
+    };
+
     const char* getImageFormatName(TPLImageFormat format);
 
     struct TPLTexture {
