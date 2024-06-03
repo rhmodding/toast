@@ -119,6 +119,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
             TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(i))
         );
         newSession.cellanimSheets.at(i)->tplOutFormat = tplObject.textures.at(i).format;
+        newSession.cellanimSheets.at(i)->tplColorPalette = tplObject.textures.at(i).palette;
     }
 
     newSession.open = true;
