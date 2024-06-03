@@ -189,6 +189,8 @@ namespace Common {
 
         tplTexture.format = this->tplOutFormat;
 
+        tplTexture.palette = this->tplColorPalette;
+
         tplTexture.valid = 0xFFu;
 
         return tplTexture;

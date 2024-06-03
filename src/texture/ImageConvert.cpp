@@ -436,6 +436,8 @@ void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint
 void IMPLEMENTATION_TO_C8(std::vector<char>& result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
                        // Color  // Index
     std::unordered_map<uint32_t, uint8_t> indexMap;
+    for (uint32_t i = 0; i < colors.size(); i++)
+        indexMap[colors.at(i)] = static_cast<uint8_t>(i);
 
     uint32_t writeOffset{ 0 };
 
@@ -447,21 +449,16 @@ void IMPLEMENTATION_TO_C8(std::vector<char>& result, std::vector<uint32_t>& colo
                     if ((xBlock * 8 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    const uint32_t readPixel = 
-                        *reinterpret_cast<const uint32_t*>(
-                            data.data() +
-                            (4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 8) + x))
-                        );
+                    const uint32_t readPixel = *(
+                        reinterpret_cast<const uint32_t*>(data.data()) +
+                        (srcWidth * ((yBlock * 4) + y) + (xBlock * 8) + x)
+                    );
 
                     uint8_t* pixel = reinterpret_cast<uint8_t*>(&result[writeOffset++]);
 
+                    // TODO: fix colors not being found
                     if (indexMap.find(readPixel) != indexMap.end()) {
                         *pixel = indexMap[readPixel];
-                    } else {
-                        indexMap[readPixel] = colors.size();
-                        *pixel = colors.size();
-
-                        colors.push_back(readPixel);
                     }
                 }
             }
@@ -472,7 +469,9 @@ void IMPLEMENTATION_TO_C8(std::vector<char>& result, std::vector<uint32_t>& colo
 void IMPLEMENTATION_TO_C14X2(std::vector<char>& result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
                        // Color  // Index (byteswapped)
     std::unordered_map<uint32_t, uint16_t> indexMap;
-    
+    for (uint32_t i = 0; i < colors.size(); i++)
+        indexMap[colors.at(i)] = BYTESWAP_16(static_cast<uint16_t>(i));
+
     uint32_t writeOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
@@ -483,22 +482,16 @@ void IMPLEMENTATION_TO_C14X2(std::vector<char>& result, std::vector<uint32_t>& c
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    const uint32_t readPixel = 
-                        *reinterpret_cast<const uint32_t*>(
-                            data.data() +
-                            (((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x)) * 4)
-                        );
+                    const uint32_t readPixel = *(
+                        reinterpret_cast<const uint32_t*>(data.data()) +
+                        ((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x))
+                    );
 
                     uint16_t* pixel = reinterpret_cast<uint16_t*>(&result[writeOffset]);
                     writeOffset += sizeof(uint16_t);
 
                     if (indexMap.find(readPixel) != indexMap.end()) {
-                        *pixel = indexMap[readPixel]; // Already byteswapped
-                    } else {
-                        indexMap[readPixel] = BYTESWAP_16(colors.size());
                         *pixel = indexMap[readPixel];
-
-                        colors.push_back(readPixel);
                     }
                 }
             }
@@ -591,9 +584,19 @@ bool ImageConvert::fromRGBA32(
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_C8:
+            if (!colorPalette) {
+                std::cerr << "[ImageConvert::fromRGBA32] Couldn't convert to C8 format: no color palette passed.\n";
+                return false;
+            }
+
             IMPLEMENTATION_TO_C8(buffer, *colorPalette, srcWidth, srcHeight, data);
             break;
         case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
+            if (!colorPalette) {
+                std::cerr << "[ImageConvert::fromRGBA32] Couldn't convert to C14X2 format: no color palette passed.\n";
+                return false;
+            }
+
             IMPLEMENTATION_TO_C14X2(buffer, *colorPalette, srcWidth, srcHeight, data);
             break;
         
@@ -643,3 +646,41 @@ uint32_t ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const ui
     return 0;
 }
 
+uint32_t ImageConvert::getImageByteSize(const TPL::TPLTexture& texture) {
+    switch (texture.format) {
+        case IMGFMT::TPL_IMAGE_FORMAT_I4:
+            return texture.width * texture.height / 2;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_I8:
+            return texture.width * texture.height;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_IA4:
+            return texture.width * texture.height;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_IA8:
+            return texture.width * texture.height * 2;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_C4:
+            return texture.width * texture.height / 2;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_C8:
+            return texture.width * texture.height;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
+            return texture.width * texture.height * 2;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
+            return texture.width * texture.height * 2;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
+            return texture.width * texture.height * 2;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
+            return texture.width * texture.height * 4;
+
+        case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
+            return texture.width * texture.height / 2;
+    }
+
+    return 0;
+}

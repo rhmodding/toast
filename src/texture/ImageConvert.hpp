@@ -24,6 +24,7 @@ namespace ImageConvert {
     );
 
     uint32_t getImageByteSize(const TPL::TPLImageFormat type, const uint16_t width, const uint16_t height);
+    uint32_t getImageByteSize(const TPL::TPLTexture& texture);
 }
 
 #endif // IMAGECONVERT_HPP

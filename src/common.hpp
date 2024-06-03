@@ -97,6 +97,10 @@ namespace Common {
 
         // Used when converting to a TPL texture.
         TPL::TPLImageFormat tplOutFormat{ TPL::TPL_IMAGE_FORMAT_RGBA32 };
+        // Used when converting to a TPL texture.
+        std::vector<uint32_t> tplColorPalette;
+
+        // TODO: find a better solution for this ^
 
         Image() = default;
         Image(uint16_t width, uint16_t height, GLuint texture) : width(width), height(height), texture(texture) {}
