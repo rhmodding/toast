@@ -46,7 +46,7 @@ public:
         return this->window;
     }
 
-private:
+private: // Methods
     void SetupFonts();
 
     void BeginMainWindow() {
@@ -91,7 +91,7 @@ private:
 
     void HandleShortcuts();
 
-    // Windows
+private: // Windows
     WindowCanvas* windowCanvas;
     WindowHybridList* windowHybridList;
     WindowInspector* windowInspector;
