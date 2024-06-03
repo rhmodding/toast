@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 
     {
         App app;
-        while (!app.stopMainLoop)
+        while (!app.shouldStopRunning())
             app.Update();
     }
 }

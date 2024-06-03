@@ -34,6 +34,8 @@ public:
 
     void AttemptExit();
 
+    bool shouldStopRunning() const { return this->stopMainLoop; }
+
     // Constructor
     App();
     // Destructor
@@ -43,8 +45,6 @@ public:
         assert(this->window);
         return this->window;
     }
-
-    bool stopMainLoop{ false };
 
 private:
     void SetupFonts();
@@ -103,7 +103,8 @@ private:
 
     GLFWwindow* window{ nullptr };
 
-    // Flags
+private: // Flags
+    bool stopMainLoop{ false };
 
     // Launch dialog ###AttemptExitWhileUnsavedChanges
     bool dialog_warnExitWithUnsavedChanges{ false };
