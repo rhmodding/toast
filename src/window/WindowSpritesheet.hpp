@@ -32,6 +32,8 @@ private:
 
     float userSheetZoom{ 1.f };
 
+    ImVec2 sheetZoomedOffset{ 0.f, 0.f };
+
     void RunEditor();
 };
 

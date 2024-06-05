@@ -165,23 +165,6 @@ void WindowSpritesheet::Update() {
     ImVec2 canvasSize = ImGui::GetContentRegionAvail();
     ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
 
-    const float mousePanThreshold = -1.0f;
-    bool draggingCanvas = ImGui::IsItemActive() && (
-        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
-    );
-
-    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered()) {
-        this->sheetZoomTriggered = true;
-        this->sheetZoomTimer = static_cast<float>(glfwGetTime());
-    }
-
-    if (this->sheetZoomTriggered && (static_cast<float>(glfwGetTime()) - this->sheetZoomTimer > SHEET_ZOOM_TIME)) {
-        this->sheetZoomEnabled = !this->sheetZoomEnabled;
-        this->sheetZoomTriggered = false;
-    }
-
     uint32_t backgroundColor{ 0 };
     switch (this->gridType) {
         case GridType_None:
@@ -213,6 +196,41 @@ void WindowSpritesheet::Update() {
 
     drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor);
 
+    // This catches interactions
+    ImGui::InvisibleButton("CanvasInteractions", canvasSize,
+        ImGuiButtonFlags_MouseButtonLeft |
+        ImGuiButtonFlags_MouseButtonRight |
+        ImGuiButtonFlags_MouseButtonMiddle
+    );
+
+    const bool interactionHovered = ImGui::IsItemHovered();
+    const bool interactionActive = ImGui::IsItemActive(); // Held
+
+    // Inital sheet zoom
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && interactionHovered) {
+        this->sheetZoomTriggered = true;
+        this->sheetZoomTimer = static_cast<float>(glfwGetTime());
+    }
+
+    if (
+        this->sheetZoomTriggered &&
+        (
+            static_cast<float>(glfwGetTime()) -
+            this->sheetZoomTimer
+        ) > SHEET_ZOOM_TIME
+    ) {
+        this->sheetZoomEnabled = !this->sheetZoomEnabled;
+        this->sheetZoomTriggered = false;
+    }
+
+    // Dragging
+    const float mousePanThreshold = -1.0f;
+    bool draggingCanvas = this->sheetZoomEnabled && interactionActive && (
+        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
+    );
+
     ImVec2 imageRect = ImVec2(
         static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->width),
         static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->height)
@@ -220,6 +238,18 @@ void WindowSpritesheet::Update() {
 
     float scale;
     Common::fitRectangle(imageRect, canvasSize, scale);
+
+    ImVec2 canvasOffset;
+
+    if (draggingCanvas) {
+        GET_IMGUI_IO;
+
+        this->sheetZoomedOffset.x += io.MouseDelta.x;
+        this->sheetZoomedOffset.y += io.MouseDelta.y;
+
+        this->sheetZoomedOffset.x = std::clamp<float>(this->sheetZoomedOffset.x, -(imageRect.x / 2), imageRect.x / 2);
+        this->sheetZoomedOffset.y = std::clamp<float>(this->sheetZoomedOffset.y, -(imageRect.y / 2), imageRect.y / 2);
+    }
 
     if (this->sheetZoomTriggered) {
         float rel = (glfwGetTime() - this->sheetZoomTimer) / SHEET_ZOOM_TIME;
@@ -232,17 +262,23 @@ void WindowSpritesheet::Update() {
         scale *= rScale;
         imageRect.x *= rScale;
         imageRect.y *= rScale;
+
+        canvasOffset.x = this->sheetZoomedOffset.x * (rScale - 1.f);
+        canvasOffset.y = this->sheetZoomedOffset.y * (rScale - 1.f);
     } else {
         float rScale = this->sheetZoomEnabled ? 2.f : 1.f;
 
         scale *= rScale;
         imageRect.x *= rScale;
         imageRect.y *= rScale;
+
+        canvasOffset.x = this->sheetZoomEnabled ? this->sheetZoomedOffset.x : 0.f;
+        canvasOffset.y = this->sheetZoomEnabled ? this->sheetZoomedOffset.y : 0.f;
     }
 
     ImVec2 imagePosition = ImVec2(
-        ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * 0.5f,
-        ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - imageRect.y) * 0.5f
+        (canvasTopLeft.x + (canvasSize.x - imageRect.x) * 0.5f) + canvasOffset.x,
+        (canvasTopLeft.y + (canvasSize.y - imageRect.y) * 0.5f) + canvasOffset.y
     );
 
     drawList->AddImage(
