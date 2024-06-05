@@ -17,31 +17,31 @@
 int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;
 
-    auto archiveResult = U8::readYaz0U8Archive(filePath);
-    if (!archiveResult.has_value()) {
+    auto TMParchiveResult = U8::readYaz0U8Archive(filePath);
+    if (!TMParchiveResult.has_value()) {
         this->lastSessionError = SessionOpenError_FailOpenArchive;
         return -1;
     }
 
-    U8::U8ArchiveObject* archiveObject = &archiveResult.value();
+    U8::U8ArchiveObject archiveObject = std::move(*TMParchiveResult);
 
-    if (archiveObject->structure.subdirectories.size() < 1) {
+    if (archiveObject.structure.subdirectories.size() < 1) {
         this->lastSessionError = SessionOpenError_RootDirNotFound;
         return -1;
     }
 
-    auto tplSearch = U8::findFile("./cellanim.tpl", archiveObject->structure);
-    if (!tplSearch.has_value()) {
+    auto TMPtplSearch = U8::findFile("./cellanim.tpl", archiveObject.structure);
+    if (!TMPtplSearch.has_value()) {
         this->lastSessionError = SessionOpenError_FailFindTPL;
         return -1;
     }
 
-    U8::File* tplFile = &tplSearch.value();
+    U8::File tplFile = std::move(*TMPtplSearch);
     TPL::TPLObject tplObject =
-        TPL::TPLObject(tplFile->data.data(), tplFile->data.size());
+        TPL::TPLObject(tplFile.data.data(), tplFile.data.size());
 
     std::vector<const U8::File*> brcadFiles;
-    for (const auto& file : archiveObject->structure.subdirectories.at(0).files) {
+    for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
         if (file.name.size() >= 6 && file.name.substr(file.name.size() - 6) == ".brcad") {
             brcadFiles.push_back(&file);
         }
@@ -65,7 +65,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
             brcadFiles.at(i)->name.substr(0, brcadFiles.at(i)->name.size() - 6) +
             "_labels.h";
 
-        for (const auto& file : archiveObject->structure.subdirectories.at(0).files) {
+        for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
             if (file.name == targetHeaderName) {
                 headerFile = &file;
                 continue;
@@ -128,7 +128,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     for (auto brcad : brcadFiles)
         newSession.cellNames.push_back(brcad->name);
 
-    this->sessionList.push_back(newSession);
+    this->sessionList.push_back(std::move(newSession));
 
     this->lastSessionError = SessionOpenError_None;
 
@@ -140,6 +140,8 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
 
     RvlCellAnim::RvlCellAnimObject* cellanim = RvlCellAnim::ObjectFromFile(paths[0]);
     if (!cellanim || !cellanim->ok) {
+        Common::deleteIfNotNullptr(cellanim, false);
+
         this->lastSessionError = SessionOpenError_FailOpenBXCAD;
         return -1;
     }
@@ -148,12 +150,14 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
     image->LoadFromFile(paths[1]);
 
     if (!image->texture) {
+        Common::deleteIfNotNullptr(cellanim, false);
+        delete image;
+
         this->lastSessionError = SessionOpenError_FailOpenPNG;
         return -1;
     }
 
     // animationNames
-
     std::unordered_map<uint16_t, std::string>* animationNames =
         new std::unordered_map<uint16_t, std::string>;    
     {
@@ -197,7 +201,7 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
     std::filesystem::path filePath(paths[0]);
     newSession.cellNames.push_back(filePath.filename().string());
 
-    this->sessionList.push_back(newSession);
+    this->sessionList.push_back(std::move(newSession));
 
     this->lastSessionError = SessionOpenError_None;
 
@@ -207,67 +211,69 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
 int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char* outPath) {
     U8::U8ArchiveObject archive;
 
-    U8::Directory directory(".");
-    
-    // BRCAD files
-    for (uint16_t i = 0; i < session->cellanims.size(); i++) {
-        U8::File file(session->cellNames.at(i));
-
-        file.data = session->cellanims.at(i)->Reserialize();
-
-        directory.AddFile(file);
-    }
-
-    // H files
-    for (uint16_t i = 0; i < session->animationNames.size(); i++) {
-        std::stringstream stream;
-
-        auto map = session->animationNames.at(i);
-        for (auto it = map->begin(); it != map->end(); ++it) {
-            stream << "#define " << it->second << " " << std::to_string(it->first);
-            
-            if (std::next(it) != map->end())
-                stream << "\n";
-        }
-    
-        U8::File file(
-            "rcad_" +
-            session->cellNames.at(i).substr(0, session->cellNames.at(i).size() - 6) +
-            "_labels.h"
-        );
-
-        char c;
-        while (stream.get(c))
-            file.data.push_back(c);
-
-        directory.AddFile(file);
-    }
-
-    // TPL file
-    {
-        U8::File file("cellanim.tpl");
-
-        TPL::TPLObject tplObject;
-
-        for (uint32_t i = 0; i < session->cellanimSheets.size(); i++) {
-            auto tplTexture = session->cellanimSheets.at(i)->ExportToTPLTexture();
-
-            if (!tplTexture.has_value()) {
-                this->lastSessionError = SessionOutError_FailTPLTextureExport;
-                return -1;
-            }
-
-            tplObject.textures.push_back(tplTexture.value());
-        }
+    { // Serialize all sub-data
+        U8::Directory directory(".");
         
-        file.data = tplObject.Reserialize();
+        // BRCAD files
+        for (uint16_t i = 0; i < session->cellanims.size(); i++) {
+            U8::File file(session->cellNames.at(i));
 
-        directory.AddFile(file);
+            file.data = session->cellanims.at(i)->Reserialize();
+
+            directory.AddFile(file);
+        }
+
+        // H files
+        for (uint16_t i = 0; i < session->animationNames.size(); i++) {
+            std::stringstream stream;
+
+            auto map = session->animationNames.at(i);
+            for (auto it = map->begin(); it != map->end(); ++it) {
+                stream << "#define " << it->second << " " << std::to_string(it->first);
+                
+                if (std::next(it) != map->end())
+                    stream << "\n";
+            }
+        
+            U8::File file(
+                "rcad_" +
+                session->cellNames.at(i).substr(0, session->cellNames.at(i).size() - 6) +
+                "_labels.h"
+            );
+
+            char c;
+            while (stream.get(c))
+                file.data.push_back(c);
+
+            directory.AddFile(file);
+        }
+
+        // TPL file
+        {
+            U8::File file("cellanim.tpl");
+
+            TPL::TPLObject tplObject;
+
+            for (uint32_t i = 0; i < session->cellanimSheets.size(); i++) {
+                auto tplTexture = session->cellanimSheets.at(i)->ExportToTPLTexture();
+
+                if (!tplTexture.has_value()) {
+                    this->lastSessionError = SessionOutError_FailTPLTextureExport;
+                    return -1;
+                }
+
+                tplObject.textures.push_back(std::move(*tplTexture));
+            }
+            
+            file.data = tplObject.Reserialize();
+
+            directory.AddFile(file);
+        }
+
+        directory.SortAlphabetically();
+
+        archive.structure.AddDirectory(directory);
     }
-
-    directory.SortAlphabetically();
-    
-    archive.structure.AddDirectory(directory);
 
     auto archiveRaw = archive.Reserialize();
     auto compressedArchive = Yaz0::compress(archiveRaw.data(), archiveRaw.size());
@@ -281,8 +287,8 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
 
     if (file.is_open()) {
         file.write(
-            reinterpret_cast<const char*>(compressedArchive.value().data()),
-            compressedArchive.value().size()
+            reinterpret_cast<const char*>((*compressedArchive).data()),
+            (*compressedArchive).size()
         );
         
         file.close();
