@@ -123,7 +123,7 @@ void WindowTimeline::Update() {
                                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
                             }
 
-                            if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT, ImVec2(32, 32)))
+                            if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", ImVec2(32, 32)))
                                 appState.playerState.loopEnabled = !appState.playerState.loopEnabled;
 
                             ImGui::SetItemTooltip("Toggle looping");
