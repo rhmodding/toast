@@ -165,6 +165,12 @@ void WindowInspector::Level_Key() {
                 globalAnimatable->cellanim->arrangements.size() - 1
             )
         );
+
+        appState.selectedPart = std::clamp<int32_t>(
+            appState.selectedPart,
+            -1,
+            static_cast<int32_t>(globalAnimatable->getCurrentArrangement()->parts.size() - 1)
+        );
     }
 
     if (ImGui::Button("Duplicate Arrangement & Switch")) {
@@ -260,6 +266,12 @@ void WindowInspector::Level_Arrangement() {
             )) {
                 uint16_t newIndex = std::clamp<uint16_t>(arrangementNumber, 1, static_cast<uint16_t>(globalAnimatable->cellanim->arrangements.size())) - 1;
                 globalAnimatable->getCurrentKey()->arrangementIndex = newIndex;
+
+                appState.selectedPart = std::clamp<int32_t>(
+                    appState.selectedPart,
+                    -1,
+                    static_cast<int32_t>(globalAnimatable->getCurrentArrangement()->parts.size() - 1)
+                );
             }
 
             const float buttonSize = ImGui::GetFrameHeight();
