@@ -365,19 +365,19 @@ void WindowInspector::Level_Arrangement() {
                 ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
 
                 if (ImGui::CollapsingHeader("..as Uint32", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A", ImGuiDataType_U32, &partPtr->unknown.u32, &uint32_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" A##Unk_Uint32", ImGuiDataType_U32, &partPtr->unknown.u32, &uint32_one, nullptr, "%u");
                 }
                 ImGui::Separator();
                 if (ImGui::CollapsingHeader("..as Uint16", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A", ImGuiDataType_U16, &partPtr->unknown.u16[0], &uint16_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" B", ImGuiDataType_U16, &partPtr->unknown.u16[1], &uint16_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" A##Unk_Uint16", ImGuiDataType_U16, &partPtr->unknown.u16[0], &uint16_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" B##Unk_Uint16", ImGuiDataType_U16, &partPtr->unknown.u16[1], &uint16_one, nullptr, "%u");
                 }
                 ImGui::Separator();
                 if (ImGui::CollapsingHeader("..as Uint8 (byte)", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A", ImGuiDataType_U8, &partPtr->unknown.u8[0], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" B", ImGuiDataType_U8, &partPtr->unknown.u8[1], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" C", ImGuiDataType_U8, &partPtr->unknown.u8[2], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" D", ImGuiDataType_U8, &partPtr->unknown.u8[3], &uint8_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" A##Unk_Uint8", ImGuiDataType_U8, &partPtr->unknown.u8[0], &uint8_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" B##Unk_Uint8", ImGuiDataType_U8, &partPtr->unknown.u8[1], &uint8_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" C##Unk_Uint8", ImGuiDataType_U8, &partPtr->unknown.u8[2], &uint8_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" D##Unk_Uint8", ImGuiDataType_U8, &partPtr->unknown.u8[3], &uint8_one, nullptr, "%u");
                 }
             }
         } else {
