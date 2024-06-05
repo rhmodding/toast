@@ -154,17 +154,18 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((char*)ICON_FA_IMAGE " Arrangement");
 
-    uint16_t arrangementIndex = animKey->arrangementIndex;
-    if (ImGui::InputScalar("Arrangement Index", ImGuiDataType_U16, &arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+    uint16_t arrangementIndex = animKey->arrangementIndex + 1;
+    if (ImGui::InputScalar("Arrangement No.", ImGuiDataType_U16, &arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
         changed |= true;
 
-        animKey->arrangementIndex = std::clamp<uint16_t>(
-            arrangementIndex,
+
+        animKey->arrangementIndex = arrangementIndex > 0 ? std::clamp<uint16_t>(
+            arrangementIndex - 1,
             0,
             static_cast<uint16_t>(
                 globalAnimatable->cellanim->arrangements.size() - 1
             )
-        );
+        ) : 0;
 
         appState.selectedPart = std::clamp<int32_t>(
             appState.selectedPart,
