@@ -9,6 +9,8 @@
 
 #include "../ConfigManager.hpp"
 
+#include "../command/CommandModifyArrangementPart.hpp"
+
 const uint8_t uint8_one = 1;
 const uint16_t uint16_one = 1;
 const uint32_t uint32_one = 1;
@@ -314,63 +316,173 @@ void WindowInspector::Level_Arrangement() {
         RvlCellAnim::ArrangementPart* partPtr = appState.selectedPart >= 0 ? &arrangementPtr->parts.at(appState.selectedPart) : nullptr;
 
         if (partPtr) {
+            auto newPart = *partPtr;
+            auto originalPart = *partPtr; // TODO: find a better solution
+
             ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
             {
-                int positionValues[2] = {
-                    partPtr->positionX - (this->realPosition ? 0 : 512),
-                    partPtr->positionY - (this->realPosition ? 0 : 512)
-                };
-                if (ImGui::DragInt2("Position XY##World", positionValues, 1.f)) {
-                    changed |= true;
+                // Position XY
+                {
+                    static int oldPosition[2]{ 0, 0 }; // Does not apply realPosition offset
+                    int positionValues[2] = {
+                        newPart.positionX - (this->realPosition ? 0 : 512),
+                        newPart.positionY - (this->realPosition ? 0 : 512)
+                    };
+                    if (ImGui::DragInt2("Position XY##World", positionValues, 1.f)) {
+                        partPtr->positionX = static_cast<int16_t>(
+                            positionValues[0] + (this->realPosition ? 0 : 512)
+                        );
+                        partPtr->positionY = static_cast<int16_t>(
+                            positionValues[1] + (this->realPosition ? 0 : 512)
+                        );
+                    }
 
-                    partPtr->positionX = static_cast<int16_t>(
-                        positionValues[0] + (this->realPosition ? 0 : 512)
-                    );
-                    partPtr->positionY = static_cast<int16_t>(
-                        positionValues[1] + (this->realPosition ? 0 : 512)
-                    );
+                    if (ImGui::IsItemActivated()) {
+                        oldPosition[0] = originalPart.positionX;
+                        oldPosition[1] = originalPart.positionY;
+                    }
+
+                    if (ImGui::IsItemDeactivated()) {
+                        changed |= true;
+
+                        originalPart.positionX = static_cast<int16_t>(
+                            oldPosition[0] - (this->realPosition ? 0 : 512)
+                        );
+                        originalPart.positionY = static_cast<int16_t>(
+                            oldPosition[1] - (this->realPosition ? 0 : 512)
+                        );
+
+                        newPart.positionX = static_cast<int16_t>(positionValues[0]);
+                        newPart.positionY = static_cast<int16_t>(positionValues[1]);
+                    }
                 }
 
-                float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
-                if (ImGui::DragFloat2("Scale XY##World", scaleValues, 0.01f)) {
-                    changed |= true;
+                // Scale XY
+                {
+                    static float oldScale[2]{ 0.f, 0.f };
+                    float scaleValues[2] = { newPart.scaleX, newPart.scaleY };
+                    if (ImGui::DragFloat2("Scale XY##World", scaleValues, 0.01f)) {
+                        partPtr->scaleX = scaleValues[0];
+                        partPtr->scaleY = scaleValues[1];
+                    }
 
-                    partPtr->scaleX = scaleValues[0];
-                    partPtr->scaleY = scaleValues[1];
+                    if (ImGui::IsItemActivated()) {
+                        oldScale[0] = originalPart.scaleX;
+                        oldScale[1] = originalPart.scaleY;
+                    }
+
+                    if (ImGui::IsItemDeactivated()) {
+                        changed |= true;
+
+                        originalPart.scaleX = oldScale[0];
+                        originalPart.scaleY = oldScale[1];
+
+                        newPart.scaleX = scaleValues[0];
+                        newPart.scaleY = scaleValues[1];
+                    }
                 }
             }
 
-            changed |= ImGui::SliderFloat("Angle Z", &partPtr->angle, -360.f, 360.f, "%.1f deg");
+            // Angle Z slider
+            {
+                static float oldAngle{ 0.f };
+                float newAngle = partPtr->angle;
+                if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
+                    partPtr->angle = newAngle;
 
-            changed |= ImGui::Checkbox("Flip X", &partPtr->flipX);
-            changed |= ImGui::Checkbox("Flip Y", &partPtr->flipY);
+                if (ImGui::IsItemActivated())
+                    oldAngle = originalPart.angle;
+
+                if (ImGui::IsItemDeactivated()) {
+                    changed |= true;
+
+                    originalPart.angle = oldAngle;
+                    newPart.angle = newAngle;
+                }
+            }
+
+            changed |= ImGui::Checkbox("Flip X", &newPart.flipX);
+            changed |= ImGui::Checkbox("Flip Y", &newPart.flipY);
 
             ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
 
-            changed |= ImGui::InputScalar("Opacity", ImGuiDataType_U8, &partPtr->opacity, &uint8_one, nullptr, "%u");
+            // Opacity slider
+            {
+                static const uint8_t min{ 0 };
+                static const uint8_t max{ 0xFF };
+
+                static uint8_t oldOpacity{ 0 };
+                uint8_t newOpacity = partPtr->opacity;
+                if (ImGui::SliderScalar("Opacity", ImGuiDataType_U8, &newOpacity, &min, &max, "%u"))
+                    partPtr->opacity = newOpacity;
+
+                if (ImGui::IsItemActivated())
+                    oldOpacity = originalPart.opacity;
+
+                if (ImGui::IsItemDeactivated()) {
+                    changed |= true;
+
+                    originalPart.opacity = oldOpacity;
+                    newPart.opacity = newOpacity;
+                }
+            }
 
             ImGui::SeparatorText((char*)ICON_FA_BORDER_TOP_LEFT " Region");
             {
-                int positionValues[2] = {
-                    partPtr->regionX,
-                    partPtr->regionY
-                };
-                if (ImGui::DragInt2("Position XY##Region", positionValues, 1.f)) {
-                    changed |= true;
+                // Position XY
+                {
+                    static int oldPosition[2]{ 0, 0 };
+                    int positionValues[2] = {
+                        partPtr->regionX,
+                        partPtr->regionY
+                    };
+                    if (ImGui::DragInt2("Position XY##Region", positionValues, 1.f)) {
+                        partPtr->regionX = static_cast<uint16_t>(positionValues[0]);
+                        partPtr->regionY = static_cast<uint16_t>(positionValues[1]);
+                    }
 
-                    partPtr->regionX = static_cast<uint16_t>(positionValues[0]);
-                    partPtr->regionY = static_cast<uint16_t>(positionValues[1]);
+                    if (ImGui::IsItemActivated()) {
+                        oldPosition[0] = originalPart.regionX;
+                        oldPosition[1] = originalPart.regionY;
+                    }
+
+                    if (ImGui::IsItemDeactivated()) {
+                        changed |= true;
+
+                        originalPart.regionX = static_cast<uint16_t>(oldPosition[0]);
+                        originalPart.regionY = static_cast<uint16_t>(oldPosition[1]);
+
+                        newPart.regionX = static_cast<uint16_t>(positionValues[0]);
+                        newPart.regionY = static_cast<uint16_t>(positionValues[1]);
+                    }
                 }
 
-                int sizeValues[2] = {
-                    partPtr->regionW,
-                    partPtr->regionH
-                };
-                if (ImGui::DragInt2("Size WH##Region", sizeValues, 1.f)) {
-                    changed |= true;
+                // Size WH
+                {
+                    static int oldSize[2]{ 0, 0 };
+                    int sizeValues[2] = {
+                        newPart.regionW,
+                        newPart.regionH
+                    };
+                    if (ImGui::DragInt2("Size WH##Region", sizeValues, 1.f)) {
+                        partPtr->regionW = static_cast<uint16_t>(sizeValues[0]);
+                        partPtr->regionH = static_cast<uint16_t>(sizeValues[1]);
+                    }
 
-                    partPtr->regionW = static_cast<uint16_t>(sizeValues[0]);
-                    partPtr->regionH = static_cast<uint16_t>(sizeValues[1]);
+                    if (ImGui::IsItemActivated()) {
+                        oldSize[0] = originalPart.regionW;
+                        oldSize[1] = originalPart.regionH;
+                    }
+
+                    if (ImGui::IsItemDeactivated()) {
+                        changed |= true;
+
+                        originalPart.regionW = static_cast<uint16_t>(oldSize[0]);
+                        originalPart.regionH = static_cast<uint16_t>(oldSize[1]);
+
+                        newPart.regionW = static_cast<uint16_t>(sizeValues[0]);
+                        newPart.regionH = static_cast<uint16_t>(sizeValues[1]);
+                    }
                 }
             }
 
@@ -378,20 +490,30 @@ void WindowInspector::Level_Arrangement() {
                 ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
 
                 if (ImGui::CollapsingHeader("..as Uint32", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A##Unk_Uint32", ImGuiDataType_U32, &partPtr->unknown.u32, &uint32_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" A##Unk_Uint32", ImGuiDataType_U32, &newPart.unknown.u32, &uint32_one, nullptr, "%u");
                 }
                 ImGui::Separator();
                 if (ImGui::CollapsingHeader("..as Uint16", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A##Unk_Uint16", ImGuiDataType_U16, &partPtr->unknown.u16[0], &uint16_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" B##Unk_Uint16", ImGuiDataType_U16, &partPtr->unknown.u16[1], &uint16_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" A##Unk_Uint16", ImGuiDataType_U16, &newPart.unknown.u16[0], &uint16_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" B##Unk_Uint16", ImGuiDataType_U16, &newPart.unknown.u16[1], &uint16_one, nullptr, "%u");
                 }
                 ImGui::Separator();
                 if (ImGui::CollapsingHeader("..as Uint8 (byte)", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A##Unk_Uint8", ImGuiDataType_U8, &partPtr->unknown.u8[0], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" B##Unk_Uint8", ImGuiDataType_U8, &partPtr->unknown.u8[1], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" C##Unk_Uint8", ImGuiDataType_U8, &partPtr->unknown.u8[2], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" D##Unk_Uint8", ImGuiDataType_U8, &partPtr->unknown.u8[3], &uint8_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" A##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[0], &uint8_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" B##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[1], &uint8_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" C##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[2], &uint8_one, nullptr, "%u");
+                    changed |= ImGui::InputScalar(" D##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[3], &uint8_one, nullptr, "%u");
                 }
+            }
+
+            if (newPart != originalPart) {
+                *partPtr = originalPart;
+
+                std::shared_ptr<BaseCommand> command = std::make_shared<CommandModifyArrangementPart>(
+                    CommandModifyArrangementPart(newPart)
+                );
+                SessionManager::getInstance()
+                    .getCurrentSession()->executeCommand(command);
             }
         } else {
             ImGui::Text("No part selected.");
