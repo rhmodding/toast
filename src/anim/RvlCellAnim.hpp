@@ -32,6 +32,33 @@ namespace RvlCellAnim {
         bool flipX{ false }, flipY{ false };
 
         uint8_t opacity{ 0xFFu };
+
+        bool operator==(const ArrangementPart& other) const {
+            return
+                this->regionX == other.regionX &&
+                this->regionY == other.regionY &&
+                this->regionW == other.regionW &&
+                this->regionH == other.regionH &&
+                
+                this->unknown == other.unknown &&
+
+                this->positionX == other.positionX &&
+                this->positionY == other.positionY &&
+
+                this->scaleX == other.scaleX &&
+                this->scaleY == other.scaleY &&
+
+                this->angle == other.angle &&
+
+                this->flipX == other.flipX &&
+                this->flipY == other.flipY &&
+
+                this->opacity == other.opacity;
+        }
+
+        bool operator!=(const ArrangementPart& other) const {
+            return !(*this == other);
+        }
     };
 
     struct Arrangement {
