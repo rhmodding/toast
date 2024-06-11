@@ -9,6 +9,8 @@
 
 #include "../ConfigManager.hpp"
 
+#include "../command/CommandModifyArrangementPart.hpp"
+
 bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
     double x = point.x, y = point.y;
     bool inside = false;
@@ -221,8 +223,9 @@ void WindowCanvas::Update() {
         ImGuiButtonFlags_MouseButtonMiddle
     );
 
-    const bool interactionHovered = ImGui::IsItemHovered();
-    const bool interactionActive = ImGui::IsItemActive(); // Held
+    const bool interactionHovered     = ImGui::IsItemHovered();
+    const bool interactionActive      = ImGui::IsItemActive();      // Held
+    const bool interactionDeactivated = ImGui::IsItemDeactivated(); // Un-held
 
     const ImVec2 origin(
         this->canvasTopLeft.x + this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2),
@@ -231,19 +234,26 @@ void WindowCanvas::Update() {
 
     // Dragging
     const float mousePanThreshold = -1.0f;
+    bool dragging = interactionActive && (
+        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold) 
+    );
+
     bool draggingCanvas = interactionActive && (
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
-
-        ConfigManager::getInstance().config.canvasLMBPanEnabled ?
-            ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold) :
-            0
+        (
+            ConfigManager::getInstance().config.canvasLMBPanEnabled && 
+            ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
+        )
     );
 
-    static bool lastDraggingCanvas{ draggingCanvas };
-    static ImVec2 dragPartOffset{ 0, 0 };
+    static bool    draggingPart{ false };
+    static ImVec2  dragPartOffset{ 0, 0 };
+    static int16_t dragPartBeginOffset[2];
     
-    static bool hoveringOverSelected{ false };
+    static bool hoveringOverSelectedPart{ false };
 
     GET_ANIMATABLE;
     GET_APP_STATE;
@@ -313,7 +323,7 @@ void WindowCanvas::Update() {
                     bounding[0], bounding[1], bounding[2], bounding[3],
 
                     // Yellow color if hovering
-                    hoveringOverSelected && ImGui::IsWindowHovered() ?
+                    hoveringOverSelectedPart && ImGui::IsWindowHovered() ?
                         IM_COL32(255, 255, 0, 255) :
                         IM_COL32(
                             partBoundingDrawColor.x * 255,
@@ -382,34 +392,16 @@ void WindowCanvas::Update() {
         this->DrawCanvasText();
 
         // Set tooltip
-        if (hoveringOverSelected && ImGui::IsWindowHovered() && !draggingCanvas)
+        if (hoveringOverSelectedPart && ImGui::IsWindowHovered() && !draggingCanvas)
             ImGui::SetTooltip(
                 "Part no. %u\nYou can drag this part to change it's position.",
                 appState.selectedPart + 1
             );
     }
 
-    // Selected part start / stop dragging
-    if ((lastDraggingCanvas != draggingCanvas) && hoveringOverSelected) {
-        if (draggingCanvas) {
-            dragPartOffset = ImVec2(
-                arrangementPtr->parts.at(appState.selectedPart).positionX,
-                arrangementPtr->parts.at(appState.selectedPart).positionY
-            );
-        }
-        else {
-            changed |= true;
-
-            arrangementPtr->parts.at(appState.selectedPart).positionX = static_cast<int16_t>(dragPartOffset.x);
-            arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
-        }
-    }
-    lastDraggingCanvas = draggingCanvas;
-
-    // Determine if hovering over selected part
+    // set hoveringOverSelectedPart
     if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
         auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
-
         ImVec2 polygon[5] = {
             bounding[0],
             bounding[1],
@@ -418,22 +410,53 @@ void WindowCanvas::Update() {
             bounding[0]
         };
 
-        hoveringOverSelected = isPointInPolygon(io.MousePos, polygon, 5);
+        hoveringOverSelectedPart = isPointInPolygon(io.MousePos, polygon, 5);
     }
 
-    // Dragging canvas / selected part
-    if (draggingCanvas) {
-        if (hoveringOverSelected) {
-            dragPartOffset.x += io.MouseDelta.x / ((canvasZoom) + 1.f);
-            dragPartOffset.y += io.MouseDelta.y / ((canvasZoom) + 1.f);
-        
-            arrangementPtr->parts.at(appState.selectedPart).positionX = static_cast<int16_t>(dragPartOffset.x);
-            arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
-        }
-        else {
-            this->canvasOffset.x += io.MouseDelta.x;
-            this->canvasOffset.y += io.MouseDelta.y;
-        }
+    if (hoveringOverSelectedPart && dragging && !draggingPart) {
+        draggingPart = true;
+
+        dragPartOffset = ImVec2(
+            arrangementPtr->parts.at(appState.selectedPart).positionX,
+            arrangementPtr->parts.at(appState.selectedPart).positionY
+        );
+
+        dragPartBeginOffset[0] = arrangementPtr->parts.at(appState.selectedPart).positionX;
+        dragPartBeginOffset[1] = arrangementPtr->parts.at(appState.selectedPart).positionY;
+    }
+
+    if (draggingPart) {
+        dragPartOffset.x += io.MouseDelta.x / ((canvasZoom) + 1.f) / globalAnimatable->getCurrentKey()->scaleX;
+        dragPartOffset.y += io.MouseDelta.y / ((canvasZoom) + 1.f) / globalAnimatable->getCurrentKey()->scaleY;
+    
+        arrangementPtr->parts.at(appState.selectedPart).positionX = static_cast<int16_t>(dragPartOffset.x);
+        arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
+    }
+
+    if (draggingCanvas && !draggingPart) {
+        this->canvasOffset.x += io.MouseDelta.x;
+        this->canvasOffset.y += io.MouseDelta.y;
+    }
+
+    if (interactionDeactivated && draggingPart) { // Submit command
+        changed |= true;
+
+        GET_SESSION_MANAGER;
+        GET_ANIMATABLE;
+
+        arrangementPtr->parts.at(appState.selectedPart).positionX = dragPartBeginOffset[0];
+        arrangementPtr->parts.at(appState.selectedPart).positionY = dragPartBeginOffset[1];
+
+        RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(appState.selectedPart);
+        newPart.positionX = static_cast<int16_t>(dragPartOffset.x);
+        newPart.positionY = static_cast<int16_t>(dragPartOffset.y);
+
+        std::shared_ptr<BaseCommand> command = std::make_shared<CommandModifyArrangementPart>(
+            CommandModifyArrangementPart(newPart)
+        );
+        sessionManager.getCurrentSession()->executeCommand(command);
+
+        draggingPart = false;
     }
 
     // Canvas zooming
