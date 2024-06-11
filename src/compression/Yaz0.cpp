@@ -39,7 +39,7 @@ struct Yaz0Header {
     // Size of the file before compression in bytes
     uint32_t uncompressedSize;
 
-    // Reserved bytes. reserved[0] in newer Yaz0 files are used for data alignment but
+    // Reserved bytes. reserved[0] in newer Yaz0 files is used for data alignment but
     // Rhythm Heaven Fever doesn't use the newer revision.
     uint32_t reserved[2];
 };
