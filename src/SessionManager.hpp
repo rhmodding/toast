@@ -13,6 +13,12 @@
 #include <string>
 #include <deque>
 
+#include <memory>
+
+#include "command/BaseCommand.hpp"
+
+#define SESSION_MAX_COMMANDS 128
+
 // Stores instance of SessionManager in local sessionManager.
 #define GET_SESSION_MANAGER SessionManager& sessionManager = SessionManager::getInstance()
 
@@ -46,6 +52,48 @@ public:
             return this->animationNames.at(this->cellIndex);
         }
 
+    private:
+        std::deque<std::shared_ptr<BaseCommand>> undoStack;
+        std::deque<std::shared_ptr<BaseCommand>> redoStack;
+
+    public:
+        void executeCommand(std::shared_ptr<BaseCommand> command) {
+            command->Execute();
+            if (undoStack.size() == SESSION_MAX_COMMANDS) {
+                undoStack.pop_front();
+            }
+            undoStack.push_back(command);
+
+            redoStack.clear();
+        }
+
+        void undo() {
+            if (undoStack.empty())
+                return;
+
+            auto command = undoStack.back();
+            undoStack.pop_back();
+
+            command->Rollback();
+
+            redoStack.push_back(command);
+        }
+
+        void redo() {
+            if (redoStack.empty())
+                return;
+
+            auto command = redoStack.back();
+            redoStack.pop_back();
+
+            command->Execute();
+
+            if (undoStack.size() == SESSION_MAX_COMMANDS)
+                undoStack.pop_front();
+            undoStack.push_back(command);
+        }
+
+    public:
         bool modified{ false };
     };
     std::deque<Session> sessionList;
