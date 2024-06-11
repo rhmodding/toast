@@ -11,6 +11,10 @@ namespace RvlCellAnim {
         uint8_t u8[4];
 
         Unknown32() : u32(0) {}
+
+        bool operator==(const Unknown32& other) const {
+            return this->u32 == other.u32;
+        }
     };
 
     struct ArrangementPart {
