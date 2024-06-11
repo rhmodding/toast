@@ -25,7 +25,6 @@ public:
     bool drawBounding{ true };
 
 private:
-
     bool sheetZoomEnabled{ false };
     bool sheetZoomTriggered{ false };
     float sheetZoomTimer{ 0.f };
@@ -34,7 +33,12 @@ private:
 
     ImVec2 sheetZoomedOffset{ 0.f, 0.f };
 
+    bool showPaletteWindow{ false };
+
+private:
     void RunEditor();
+
+    void PaletteWindow();
 };
 
 #endif // WINDOWSPRITESHEET_HPP

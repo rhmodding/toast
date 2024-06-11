@@ -38,6 +38,97 @@ void WindowSpritesheet::RunEditor() {
     }); t.detach();
 }
 
+void WindowSpritesheet::PaletteWindow() {
+    GET_SESSION_MANAGER;
+    auto& colors = sessionManager.getCurrentSession()->getCellanimSheet()->tplColorPalette;
+
+    if (colors.empty())
+        this->showPaletteWindow = false;
+
+    if (!this->showPaletteWindow)
+        return;
+
+    if (ImGui::Begin("Color Palette", &this->showPaletteWindow)) {     
+        GET_WINDOW_DRAWLIST;
+
+        static uint16_t selected{ 0 };
+        selected = std::clamp<uint16_t>(selected, 0, colors.size() - 1);
+
+        // Left
+        {
+            ImGui::BeginChild("ColorList", ImVec2(250, 0), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
+            for (uint16_t i = 0; i < colors.size(); i++) {
+                const uint32_t& color = colors.at(i);
+
+                const uint8_t r = (color >> 24) & 0xFF;
+                const uint8_t g = (color >> 16) & 0xFF;
+                const uint8_t b = (color >>  8) & 0xFF;
+                const uint8_t a = (color >>  0) & 0xFF;
+
+                char buffer[48];
+                sprintf(buffer, "[%03u] - R: %03u G: %03u B: %03u A: %03u", i, r, g, b, a);
+
+                ImGui::PushID(i);
+
+                if (ImGui::Selectable(buffer, selected == i))
+                    selected = i;
+
+                ImGui::SameLine();
+
+                ImVec4 vectorColor(r / 255.f, g / 255.f, b / 255.f, a / 255.f);
+                ImGui::ColorButton("Palette Color", vectorColor, ImGuiColorEditFlags_Uint8, ImVec2(18, 18));
+
+                ImGui::PopID();
+            }
+            ImGui::EndChild();
+        }
+        ImGui::SameLine();
+
+        // Right
+        {
+            ImGui::BeginChild("Properties");
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, -2 });
+
+            ImGui::PushFont(AppState::getInstance().fontLarge);
+            ImGui::TextWrapped("Color %u", selected);
+            ImGui::PopFont();
+
+            ImGui::PopStyleVar();
+
+            ImGui::Dummy({ 0, 5 });
+            ImGui::Separator();
+            ImGui::Dummy({ 0, 5 });
+            
+            uint32_t& selectedColor = colors.at(selected);
+
+            const uint8_t r = (selectedColor >> 24) & 0xFF;
+            const uint8_t g = (selectedColor >> 16) & 0xFF;
+            const uint8_t b = (selectedColor >>  8) & 0xFF;
+            const uint8_t a = (selectedColor >>  0) & 0xFF;
+
+            float values[4] = { r / 255.f, g / 255.f, b / 255.f, a / 255.f };
+            if (ImGui::ColorPicker4(
+                "##ColorPicker",
+                values,
+                ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
+                nullptr
+            ))
+                selectedColor = (
+                    (static_cast<uint8_t>(values[0] * 255.f) << 24) |
+                    (static_cast<uint8_t>(values[1] * 255.f) << 16) |
+                    (static_cast<uint8_t>(values[2] * 255.f) <<  8) |
+                    (static_cast<uint8_t>(values[3] * 255.f) <<  0)
+                );
+                
+
+            ImGui::EndChild();
+        }
+    }
+
+    ImGui::End();
+}
+
 void WindowSpritesheet::Update() {
     GET_SESSION_MANAGER;
 
@@ -137,12 +228,23 @@ void WindowSpritesheet::Update() {
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Format")) {
-            ImGui::Text("Current format: %s", TPL::getImageFormatName(sessionManager.getCurrentSession()->getCellanimSheet()->tplOutFormat));
+        if (ImGui::BeginMenu("Data")) {
+            auto imageFormat = sessionManager.getCurrentSession()->getCellanimSheet()->tplOutFormat;
+
+            ImGui::Text("Image Format: %s", TPL::getImageFormatName(imageFormat));
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Re-encode..");
+            ImGui::MenuItem("Re-encode (change format)..");
+
+            if (ImGui::MenuItem(
+                "Modify color palette..",
+                nullptr, nullptr,
+                imageFormat == TPL::TPL_IMAGE_FORMAT_C4 ||
+                imageFormat == TPL::TPL_IMAGE_FORMAT_C8 ||
+                imageFormat == TPL::TPL_IMAGE_FORMAT_C14X2
+            ))
+                this->showPaletteWindow = true;
 
             ImGui::EndMenu();
         }
@@ -320,4 +422,7 @@ void WindowSpritesheet::Update() {
     }
 
     ImGui::End();
+
+    // Update Palette Window
+    this->PaletteWindow();
 }
