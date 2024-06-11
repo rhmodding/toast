@@ -80,6 +80,8 @@ namespace Common {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagePtr);
         stbi_image_free(imagePtr);
 
+        glBindTexture(GL_TEXTURE_2D, 0);
+
         *texturePtr = imageTexture;
 
         if (width != nullptr)
@@ -113,6 +115,8 @@ namespace Common {
         // Upload pixels into texture
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagePtr);
         stbi_image_free(imagePtr);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         *texturePtr = imageTexture;
 
