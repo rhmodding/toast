@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>
 #include <bitset>
-#include <array>
 
 #include <algorithm>
 
@@ -77,11 +76,11 @@ namespace Yaz0 {
             result.push_back(0xFFu);
 
             {
-                std::array<uint8_t, 8> dummy{};
-                size_t dummySize = dummy.size();
+                uint8_t dummy[8];
+                size_t dummySize = 8;
                 
                 const int zlibRun = zng_compress2(
-                    dummy.data(), &dummySize, (const uint8_t*)data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
+                    dummy, &dummySize, (const uint8_t*)data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
                     [](void* data, uint32_t dist, uint32_t lc) {
                         auto* compressionData = reinterpret_cast<CompressionData*>(data);
 
@@ -115,7 +114,7 @@ namespace Yaz0 {
                             // Reset values
                             compressionData->pendingChunks = 0;
                             compressionData->groupHeader.reset();
-                            compressionData->groupHeaderOffset = compressionData->buffer.size();
+                            compressionData->groupHeaderOffset = static_cast<uint32_t>(compressionData->buffer.size());
 
                             compressionData->buffer.push_back(0xFFu);
                         }
