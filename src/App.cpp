@@ -62,6 +62,15 @@
             ImGui::GetIO().KeyShift && \
             ImGui::IsKeyReleased(ImGuiKey_S)
 
+#define SC_UNDO \
+            SCT_CTRL && \
+            !ImGui::GetIO().KeyShift && \
+            ImGui::IsKeyReleased(ImGuiKey_Z)
+
+#define SC_REDO \
+            SCT_CTRL && \
+            ImGui::GetIO().KeyShift && \
+            ImGui::IsKeyReleased(ImGuiKey_Z)
 
 #pragma region Actions
 
@@ -831,6 +840,15 @@ void App::HandleShortcuts() {
         A_SaveCurrentSessionSzs();
     if (SC_LAUNCH_SAVE_AS_SZS_DIALOG)
         A_LD_SaveCurrentSessionAsSzs();
+
+    GET_SESSION_MANAGER;
+
+    if (sessionManager.getCurrentSession()) {
+        if (SC_UNDO)
+            sessionManager.getCurrentSession()->undo();
+        if (SC_REDO)
+            sessionManager.getCurrentSession()->redo();
+    }
 }
 
 void App::Update() {

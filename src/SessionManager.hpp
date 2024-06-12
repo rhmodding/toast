@@ -90,6 +90,7 @@ public:
 
             if (undoStack.size() == SESSION_MAX_COMMANDS)
                 undoStack.pop_front();
+
             undoStack.push_back(command);
         }
 
