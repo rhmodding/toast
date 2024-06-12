@@ -41,24 +41,27 @@
 #define SCS_LAUNCH_OPEN_SZS_DIALOG SCST_CTRL "+O"
 #define SC_LAUNCH_OPEN_SZS_DIALOG \
             SCT_CTRL && \
-            ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_O))
+            !ImGui::GetIO().KeyShift && \
+            ImGui::IsKeyReleased(ImGuiKey_O)
 
 #define SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG SCST_CTRL "+Shift+O"
 #define SC_LAUNCH_OPEN_TRADITIONAL_DIALOG \
             SCT_CTRL && \
             ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_O))
+            ImGui::IsKeyReleased(ImGuiKey_O)
 
 #define SCS_SAVE_CURRENT_SESSION_SZS SCST_CTRL "+S"
 #define SC_SAVE_CURRENT_SESSION_SZS \
             SCT_CTRL && \
-            ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_S))
+            !ImGui::GetIO().KeyShift && \
+            ImGui::IsKeyReleased(ImGuiKey_S)
 
 #define SCS_LAUNCH_SAVE_AS_SZS_DIALOG SCST_CTRL "+Shift+S"
 #define SC_LAUNCH_SAVE_AS_SZS_DIALOG \
             SCT_CTRL && \
             ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGui::GetKeyIndex(ImGuiKey_S))
+            ImGui::IsKeyReleased(ImGuiKey_S)
+
 
 #pragma region Actions
 
