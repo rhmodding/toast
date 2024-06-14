@@ -714,16 +714,29 @@ void App::UpdatePopups() {
                 newImage->LoadFromFile(ConfigManager::getInstance().config.textureEditPath.c_str());
 
                 if (newImage->texture) {
-                    SessionManager::getInstance().getCurrentSessionModified() |= true;
+                    Common::Image*& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
 
-                    sessionManager.getCurrentSession()->getCellanimSheet()->FreeTexture();
-                    delete sessionManager.getCurrentSession()->getCellanimSheet();
-                    sessionManager.getCurrentSession()->getCellanimSheet() = newImage;
-                    
+                    bool diffSize =
+                        newImage->width  != cellanimSheet->width ||
+                        newImage->height != cellanimSheet->height;
+
+                    cellanimSheet->FreeTexture();
+                    delete cellanimSheet;
+                    cellanimSheet = newImage;
+
+                    ImGui::CloseCurrentPopup();
+
+                    if (diffSize) {
+                        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+                        ImGui::OpenPopup("###DialogModifiedPNGSizeDiff");
+                        ImGui::PopID();
+                    }
+
                     sessionManager.SessionChanged();
+                    sessionManager.getCurrentSessionModified() |= true;
                 }
-
-                ImGui::CloseCurrentPopup();
+                else
+                    ImGui::CloseCurrentPopup();
             } ImGui::SetItemDefaultFocus();
 
             ImGui::SameLine();
@@ -751,6 +764,66 @@ void App::UpdatePopups() {
             ImGui::SetItemDefaultFocus();
 
             ImGui::EndPopup();
+        }
+        ImGui::PopStyleVar();
+    }
+
+    // ###DialogModifiedPNGSizeDiff
+    {
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+        if (ImGui::BeginPopupModal("Texture size mismatch###DialogModifiedPNGSizeDiff", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::TextUnformatted("The new texture's size is different from the existing texture.\nPlease select the wanted behavior:");
+
+            ImGui::Dummy({ 0, 15 });
+            ImGui::Separator();
+            ImGui::Dummy({ 0, 5 });
+
+            ImGui::PopStyleVar();
+
+            if (ImGui::Button("No region scaling")) {
+                SessionManager::Session* currentSession = SessionManager::getInstance().getCurrentSession();
+
+                currentSession->getCellanim()->textureW = currentSession->getCellanimSheet()->width;
+                currentSession->getCellanim()->textureH = currentSession->getCellanimSheet()->height;
+
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+                ImGui::SetTooltip("Select this option for texture extensions.");
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Scaled part regions")) {
+                SessionManager::Session* currentSession = SessionManager::getInstance().getCurrentSession();
+
+                float scaleX =
+                    static_cast<float>(currentSession->getCellanimSheet()->width) /
+                    currentSession->getCellanim()->textureW;
+                float scaleY =
+                    static_cast<float>(currentSession->getCellanimSheet()->height) /
+                    currentSession->getCellanim()->textureH;
+
+                for (auto& arrangement : currentSession->getCellanim()->arrangements)
+                    for (auto& part : arrangement.parts) {
+                        part.regionX *= scaleX;
+                        part.regionW *= scaleX;
+                        part.regionY *= scaleY;
+                        part.regionH *= scaleY;
+                    }
+
+                currentSession->getCellanim()->textureW = currentSession->getCellanimSheet()->width;
+                currentSession->getCellanim()->textureH = currentSession->getCellanimSheet()->height;
+
+                ImGui::CloseCurrentPopup();
+            } ImGui::SetItemDefaultFocus();
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+                ImGui::SetTooltip("Select this option for texture resizes (like HD scales).");
+
+            ImGui::EndPopup();
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 }); // sigh
         }
         ImGui::PopStyleVar();
     }

@@ -214,12 +214,23 @@ void WindowSpritesheet::Update() {
                     newImage->LoadFromFile(openFileDialog);
 
                     if (newImage->texture) {
-                        sessionManager.getCurrentSession()->getCellanimSheet()->FreeTexture();
-                        delete sessionManager.getCurrentSession()->getCellanimSheet();
-                        sessionManager.getCurrentSession()->getCellanimSheet() = newImage;
-                        
-                        sessionManager.SessionChanged();
+                        Common::Image*& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
 
+                        bool diffSize =
+                            newImage->width  != cellanimSheet->width ||
+                            newImage->height != cellanimSheet->height;
+
+                        cellanimSheet->FreeTexture();
+                        delete cellanimSheet;
+                        cellanimSheet = newImage;
+
+                        if (diffSize) {
+                            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+                            ImGui::OpenPopup("###DialogModifiedPNGSizeDiff");
+                            ImGui::PopID();
+                        }
+
+                        sessionManager.SessionChanged();
                         sessionManager.getCurrentSessionModified() |= true;
                     }
                 }
