@@ -13,7 +13,7 @@ namespace U8 {
     public:
         std::string name;
 
-        std::vector<char> data;
+        std::vector<unsigned char> data;
 
         Directory* parent{ nullptr };
 
@@ -30,6 +30,7 @@ namespace U8 {
         Directory* parent{ nullptr };
 
         void AddFile(File& file);
+
         void AddDirectory(Directory& directory);
 
         void SortAlphabetically();
@@ -45,9 +46,9 @@ namespace U8 {
     public:
         Directory structure{ "root" };
 
-        std::vector<char> Reserialize();
+        std::vector<unsigned char> Reserialize();
 
-        U8ArchiveObject(const char* archiveData, const size_t dataSize);
+        U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize);
 
         U8ArchiveObject() {};
     };

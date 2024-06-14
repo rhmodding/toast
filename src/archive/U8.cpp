@@ -85,7 +85,7 @@ namespace U8 {
         return parent;
     }
 
-    U8ArchiveObject::U8ArchiveObject(const char* archiveData, const size_t dataSize) {
+    U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize) {
         const U8ArchiveHeader* header = reinterpret_cast<const U8ArchiveHeader*>(archiveData);
 
         if (header->magic != HEADER_MAGIC) {
@@ -93,85 +93,58 @@ namespace U8 {
             return;
         }
 
-        std::vector<U8ArchiveNode> nodes;
+        const U8ArchiveNode* rootNode = reinterpret_cast<const U8ArchiveNode*>(
+            archiveData + BYTESWAP_32(header->rootNodeOffset)
+        );
 
-        size_t readOffset = BYTESWAP_32(header->rootNodeOffset);
+        uint32_t rootSize = BYTESWAP_32(reinterpret_cast<const U8ArchiveNode*>(
+            archiveData + BYTESWAP_32(header->rootNodeOffset)
+        )->size);
 
-        // Read root node
-        U8ArchiveNode rootNode;
-        Common::ReadAtOffset(archiveData, readOffset, dataSize, rootNode);
-        
-        rootNode.size = BYTESWAP_32(rootNode.size);
-        rootNode.dataOffset = BYTESWAP_32(rootNode.dataOffset);
+        std::vector<std::string> stringList(rootSize);
+        {
+            const unsigned char* stringPool = archiveData + sizeof(U8ArchiveHeader) + (rootSize * sizeof(U8ArchiveNode));
 
-        nodes.push_back(rootNode);
+            for (uint32_t i = 0, offset = 0; i < rootSize; i++) {
+                std::string str(reinterpret_cast<const char*>(stringPool + offset));
+                offset += str.size() + 1;
 
-        // Read rest of nodes
-        for (uint32_t i = 0; i < rootNode.size - 1; i++) {
-            U8ArchiveNode node;
-            Common::ReadAtOffset(archiveData, readOffset, dataSize, node);
-
-            node.size = BYTESWAP_32(node.size);
-            node.dataOffset = BYTESWAP_32(node.dataOffset);
-
-            nodes.push_back(node);
-        }
-
-        // Read string pool
-        std::vector<std::string> stringList;
-        for (uint32_t i = 0; i < rootNode.size; i++) {
-            std::string str;
-
-            char c;
-            while (true) {
-                Common::ReadAtOffset(archiveData, readOffset, dataSize, c);
-
-                if (c == 0x0)
-                    break;
-
-                str.push_back(c);
+                stringList.at(i) = std::move(str);
             }
-
-            stringList.push_back(str);
         }
 
-        // std::unordered_map<size_t, U8ArchiveNode*> parentMap;
-
-        uint16_t dirStack[16];
+        uint16_t dirStack[16]; // 16 layers of depth
         uint16_t dirIndex{ 0 };
         Directory* currentDirectory{ &this->structure };
 
-        // Read nodes, except for first (root directory)
-        for (size_t i = 1; i < nodes.size(); i++) {
-            U8ArchiveNode node = nodes[i];
+        // Read nodes, except for first (root node)
+        for (uint32_t i = 1; i < rootSize; i++) {
+            const U8ArchiveNode* node = reinterpret_cast<const U8ArchiveNode*>(
+                archiveData + sizeof(U8ArchiveHeader) + 
+                (i * sizeof(U8ArchiveNode))
+            );
 
-            if (node.type == 0x00) {
-                File file(stringList[i]);
+            if (node->type == 0x00) {
+                File file(stringList.at(i));
 
-                file.data.resize(node.size);
-
-                readOffset = node.dataOffset;
-                for (uint32_t j = 0; j < node.size; j++) {
-                    char c;
-                    Common::ReadAtOffset(archiveData, readOffset, dataSize, c);
-
-                    file.data[j] = c;
-                }
+                const unsigned char* dataStart = archiveData + BYTESWAP_32(node->dataOffset);
+                file.data = std::vector<unsigned char>(
+                    dataStart,
+                    dataStart + BYTESWAP_32(node->size)
+                );
 
                 currentDirectory->AddFile(file);
             }
-            else if (node.type == 0x01) {
-                Directory directory(stringList[i]);
-
-                // directory.totalNodeCount = node.size;
+            else if (node->type == 0x01) {
+                Directory directory(stringList.at(i));
 
                 currentDirectory->AddDirectory(directory);
 
                 currentDirectory = &currentDirectory->subdirectories.back();
-                dirStack[++dirIndex] = node.size;
+                dirStack[++dirIndex] = BYTESWAP_32(node->size);
             }
-            else { // Bad type, log error and return
-                std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: invalid node type (" << std::to_string(node.type) << ")!\n";
+            else {
+                std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: invalid node type (" << std::to_string(node->type) << ")!\n";
                 return;
             }
 
@@ -184,9 +157,8 @@ namespace U8 {
         return;
     }
 
-    std::vector<char> U8ArchiveObject::Reserialize() {
-        // Allocate header now
-        std::vector<char> result(sizeof(U8ArchiveHeader));
+    std::vector<unsigned char> U8ArchiveObject::Reserialize() {
+        std::vector<unsigned char> result(sizeof(U8ArchiveHeader));
 
         U8ArchiveHeader* header = reinterpret_cast<U8ArchiveHeader*>(result.data());
         header->magic = HEADER_MAGIC;
@@ -332,17 +304,17 @@ namespace U8 {
 
                     // Copy string
                     strcpy(
-                        result.data() +
+                        reinterpret_cast<char*>(result.data() +
                             sizeof(U8ArchiveHeader) +
                             (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-                            stringOffsets.at(i),
-                        
+                            stringOffsets.at(i)
+                        ),
                         reinterpret_cast<Directory*>(entry.ptr)->name.c_str()
                     );
                 } break;
 
                 case 0x00: { // File
-                    std::vector<char>* data = &reinterpret_cast<File*>(entry.ptr)->data;
+                    std::vector<unsigned char>* data = &reinterpret_cast<File*>(entry.ptr)->data;
 
                     node->type = 0x00;
 
@@ -356,11 +328,11 @@ namespace U8 {
 
                     // Copy string
                     strcpy(
-                        result.data() +
+                        reinterpret_cast<char*>(result.data() +
                             sizeof(U8ArchiveHeader) +
                             (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-                            stringOffsets.at(i),
-                        
+                            stringOffsets.at(i)
+                        ),
                         reinterpret_cast<File*>(entry.ptr)->name.c_str()
                     );
 
@@ -394,13 +366,20 @@ namespace U8 {
         file.close();
 
         // yaz0 decompress
-        auto decompressedData = Yaz0::decompress(fileContent.data(), fileSize);
+        auto decompressedData = Yaz0::decompress(
+            reinterpret_cast<unsigned char*>(fileContent.data()),
+            fileSize
+        );
+
         if (!decompressedData.has_value()) {
             std::cerr << "[U8::readYaz0U8Archive] Error decompressing file at path: " << filePath << '\n';
             return std::nullopt;
         }
 
-        U8::U8ArchiveObject archive(decompressedData.value().data(), decompressedData.value().size());
+        U8::U8ArchiveObject archive(
+            (*decompressedData).data(),
+            (*decompressedData).size()
+        );
 
         return archive;
     }
