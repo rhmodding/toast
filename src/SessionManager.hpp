@@ -134,7 +134,7 @@ public:
     } lastSessionError{ SessionOpenError_None };
 
     // Push session from a Yaz0-compressed Arc file (SZS).
-    int32_t PushSessionFromCompressedArc(const char* arcPath);
+    int32_t PushSessionFromCompressedArc(const char* filePath);
     // Push session from BRCAD, PNG, and H file respectively
     int32_t PushSessionTraditional(const char* paths[3]);
 
