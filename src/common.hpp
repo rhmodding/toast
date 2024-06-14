@@ -36,15 +36,6 @@
 
 namespace Common {
     template <typename T>
-    void ReadAtOffset(const char* source, size_t& offset, const size_t sourceSize, T& buffer) {
-        // Read will cause out-of-bounds access
-        assert((offset - 1 + sizeof(T)) < sourceSize);
-
-        std::memcpy(&buffer, source + offset, sizeof(T));
-        offset += sizeof(T);
-    }
-
-    template <typename T>
     T beRightShift(T num, int shift) {
         T numCpy = num;
         
