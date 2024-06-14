@@ -44,8 +44,6 @@ namespace PaletteUtils {
                 }
             } break;
             case TPL::TPL_CLUT_FORMAT_RGB5A3: {
-                printf("Palette run:\n\n");
-
                 for (uint16_t i = 0; i < numEntries; i++) {
                     const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + (i * 2)));
 
@@ -68,16 +66,12 @@ namespace PaletteUtils {
                         b = (((sourcePixel) & 0xf) << 4) | ((sourcePixel) & 0xf);
                     }
 
-                    printf("[%02u] R: %03u G: %03u B: %03u A: %03u\n", i, r, g, b, a);
-
                     buffer[i] =
                         (uint32_t(r) << 24) |
                         (uint32_t(g) << 16) |
                         (uint32_t(b) << 8) |
                         uint32_t(a);
                 }
-
-                printf("\nPalette run end!\n");
             } break;
             
             default:

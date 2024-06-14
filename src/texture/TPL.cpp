@@ -113,8 +113,6 @@ namespace TPL {
                 if (descriptor->CLUTHeaderOffset != 0) {
                     const TPLClutHeader* clutHeader = reinterpret_cast<const TPLClutHeader*>(tplData + BYTESWAP_32(descriptor->CLUTHeaderOffset));
 
-                    std::cout << "Palette vector size b4: " << textureData.palette.size() << '\n';
-
                     PaletteUtils::CLUTtoRGBA32Palette(
                         textureData.palette,
 
@@ -123,8 +121,6 @@ namespace TPL {
 
                         static_cast<TPL::TPLClutFormat>(BYTESWAP_32(clutHeader->format))
                     );
-
-                    std::cout << "Palette vector size after: " << textureData.palette.size() << '\n';
                 }
 
                 // Start handling
@@ -144,8 +140,6 @@ namespace TPL {
 
                 uint32_t imageSize = ImageConvert::getImageByteSize(textureData);
                 const unsigned char* imageData = tplData + BYTESWAP_32(header->dataOffset);
-
-                std::cout << "Texture offset: " << BYTESWAP_32(header->dataOffset) << '\n';
 
                 ImageConvert::toRGBA32(
                     textureData.data,
@@ -254,8 +248,6 @@ namespace TPL {
             }
         }
 
-        printf("Texture descriptors ok\n");
-
         // Palette Descriptors & Data
         for (uint32_t textureIndex = 0, clutIndex = 0; textureIndex < this->textures.size(); textureIndex++) {
             if (paletteTextures.find(textureIndex) == paletteTextures.end()) // No need to write a palette descriptor.
@@ -267,7 +259,6 @@ namespace TPL {
                 (sizeof(TPLDescriptor) * this->textures.size()) +
                 (sizeof(TPLClutHeader) * clutIndex)
             );
-            std::cout << "Writing to address: " << static_cast<void*>(paletteDescriptor) << '\n';
 
             paletteDescriptor->unpacked = 0x00;
 
@@ -293,8 +284,6 @@ namespace TPL {
 
             clutIndex++;
         }
-
-        printf("palette descriptors & data ok\n");
 
         // Texture Headers
         for (uint32_t i = 0; i < this->textures.size(); i++) {
@@ -330,8 +319,6 @@ namespace TPL {
             header->unpacked = 0x00;
         }
 
-        printf("texture headers ok\n");
-
         // Image Data
         {
             uint32_t writeOffset = static_cast<uint32_t>(result.size());
@@ -366,8 +353,6 @@ namespace TPL {
                 writeOffset += imageSize;
             }
         }
-
-        printf("image data ok\n");
 
         return result;
     }
