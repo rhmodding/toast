@@ -103,11 +103,13 @@ namespace U8 {
 
         std::vector<std::string> stringList(rootSize);
         {
-            const unsigned char* stringPool = archiveData + sizeof(U8ArchiveHeader) + (rootSize * sizeof(U8ArchiveNode));
+            const char* stringPool = reinterpret_cast<const char*>(
+                archiveData + sizeof(U8ArchiveHeader) + (rootSize * sizeof(U8ArchiveNode))
+            );
 
             for (uint32_t i = 0, offset = 0; i < rootSize; i++) {
-                std::string str(reinterpret_cast<const char*>(stringPool + offset));
-                offset += str.size() + 1;
+                std::string str(stringPool + offset);
+                offset += str.size() + 1; // Null terminator
 
                 stringList.at(i) = std::move(str);
             }

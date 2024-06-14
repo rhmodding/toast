@@ -90,7 +90,7 @@ namespace TPL {
         return strings[format];
     }
 
-    TPLObject::TPLObject(const char* tplData, const size_t dataSize) {
+    TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
 
         if (palette->versionNumber != TPL_VERSION_NUMBER) {
@@ -143,16 +143,15 @@ namespace TPL {
                 textureData.magFilter = static_cast<TPLTexFilter>(BYTESWAP_32(header->magFilter));
 
                 uint32_t imageSize = ImageConvert::getImageByteSize(textureData);
-                const char* imageData = tplData + BYTESWAP_32(header->dataOffset);
+                const unsigned char* imageData = tplData + BYTESWAP_32(header->dataOffset);
 
                 std::cout << "Texture offset: " << BYTESWAP_32(header->dataOffset) << '\n';
 
-                std::vector<char> data(imageData, imageData + imageSize);
                 ImageConvert::toRGBA32(
                     textureData.data,
                     format,
                     textureData.width, textureData.height,
-                    data,
+                    imageData,
                     textureData.palette.data()
                 );
 
@@ -165,8 +164,8 @@ namespace TPL {
         }
     }
 
-    std::vector<char> TPLObject::Reserialize() {
-        std::vector<char> result;
+    std::vector<unsigned char> TPLObject::Reserialize() {
+        std::vector<unsigned char> result;
 
         // Precompute size required & texture indexes for color palettes
         uint32_t paletteEntriesSize{ 0 };
@@ -277,7 +276,7 @@ namespace TPL {
             // Data
             {
                 paletteDescriptor->dataOffset = BYTESWAP_32(static_cast<uint32_t>(
-                    reinterpret_cast<char*>(paletteWritePtr) - result.data()
+                    paletteWritePtr - result.data()
                 ));
 
                 paletteDescriptor->numEntries = BYTESWAP_16(this->textures.at(textureIndex).palette.size());
@@ -352,12 +351,12 @@ namespace TPL {
 
                 uint32_t imageSize = ImageConvert::getImageByteSize(texture);
 
-                std::vector<char> imageData(imageSize);
+                std::vector<unsigned char> imageData(imageSize);
                 ImageConvert::fromRGBA32(
                     imageData,
                     texture.format,
                     texture.width, texture.height,
-                    texture.data,
+                    texture.data.data(),
                     &texture.palette
                 );
 
@@ -390,7 +389,10 @@ namespace TPL {
 
         file.close();
 
-        TPL::TPLObject tpl(fileContent.data(), fileSize);
+        TPL::TPLObject tpl(
+            reinterpret_cast<unsigned char*>(fileContent.data()),
+            fileSize
+        );
 
         return tpl;
     }

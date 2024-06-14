@@ -7,19 +7,19 @@
 
 namespace ImageConvert {
     bool toRGBA32(
-        std::vector<char>& buffer,
+        std::vector<unsigned char>& buffer,
         const TPL::TPLImageFormat type,
         const uint16_t srcWidth,
         const uint16_t srcHeight,
-        const std::vector<char>& data,
+        const unsigned char* data,
         uint32_t* colorPalette = nullptr
     );
     bool fromRGBA32(
-        std::vector<char>& buffer,
+        std::vector<unsigned char>& buffer,
         const TPL::TPLImageFormat type,
         const uint16_t srcWidth,
         const uint16_t srcHeight,
-        const std::vector<char>& data,
+        const unsigned char* data,
         std::vector<uint32_t>* colorPalette = nullptr
     );
 

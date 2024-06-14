@@ -39,7 +39,7 @@ namespace RvlCellAnim {
                 this->regionY == other.regionY &&
                 this->regionW == other.regionW &&
                 this->regionH == other.regionH &&
-                
+
                 this->unknown == other.unknown &&
 
                 this->positionX == other.positionX &&
@@ -96,9 +96,9 @@ namespace RvlCellAnim {
         std::vector<Arrangement> arrangements;
         std::vector<Animation> animations;
 
-        std::vector<char> Reserialize();
+        std::vector<unsigned char> Reserialize();
 
-        RvlCellAnimObject(const char* RvlCellAnimData, const size_t dataSize);
+        RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize);
     };
 
     RvlCellAnimObject* ObjectFromFile(const char *filename);

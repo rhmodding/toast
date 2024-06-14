@@ -27,7 +27,7 @@ void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, uint32_t offset = 0) {
 
 #pragma region Ixx
 
-void IMPLEMENTATION_FROM_I4(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_I4(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 8); yBlock++) {
@@ -40,7 +40,6 @@ void IMPLEMENTATION_FROM_I4(std::vector<char>& result, uint16_t srcWidth, uint16
 
                     const uint8_t intensityA = ((data[readOffset] & 0xF0) >> 4) * 0x11;
                     const uint8_t intensityB = (data[readOffset] & 0x0F) * 0x11;
-
                     readOffset++;
 
                     const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 8) + pY) + (xBlock * 8) + pX);
@@ -60,7 +59,7 @@ void IMPLEMENTATION_FROM_I4(std::vector<char>& result, uint16_t srcWidth, uint16
     }
 }
 
-void IMPLEMENTATION_FROM_I8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_I8(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
@@ -85,7 +84,7 @@ void IMPLEMENTATION_FROM_I8(std::vector<char>& result, uint16_t srcWidth, uint16
     }
 }
 
-void IMPLEMENTATION_FROM_IA4(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_IA4(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
@@ -113,7 +112,7 @@ void IMPLEMENTATION_FROM_IA4(std::vector<char>& result, uint16_t srcWidth, uint1
     }
 }
 
-void IMPLEMENTATION_FROM_IA8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_IA8(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
     
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
@@ -143,7 +142,7 @@ void IMPLEMENTATION_FROM_IA8(std::vector<char>& result, uint16_t srcWidth, uint1
 
 #pragma region RGBxxx
 
-void IMPLEMENTATION_FROM_RGB565(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_RGB565(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
 
     for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
@@ -156,7 +155,7 @@ void IMPLEMENTATION_FROM_RGB565(std::vector<char>& result, uint16_t srcWidth, ui
 
                     const uint32_t writeOffset = ((srcWidth * (yy + y)) + xx + x) * 4;
 
-                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data.data() + readOffset));
+                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
                     readOffset += sizeof(uint16_t);
 
                     result[writeOffset + 0] = ((sourcePixel >> 11) & 0x1f) << 3;
@@ -169,7 +168,7 @@ void IMPLEMENTATION_FROM_RGB565(std::vector<char>& result, uint16_t srcWidth, ui
     }
 }
 
-void IMPLEMENTATION_FROM_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_RGB5A3(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
 
     for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
@@ -182,7 +181,7 @@ void IMPLEMENTATION_FROM_RGB5A3(std::vector<char>& result, uint16_t srcWidth, ui
 
                     const uint32_t writeOffset = ((srcWidth * (yy + y)) + xx + x) * 4;
 
-                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data.data() + readOffset));
+                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
                     readOffset += sizeof(uint16_t);
 
                     if ((sourcePixel & 0x8000) != 0) { // RGB555
@@ -207,7 +206,7 @@ void IMPLEMENTATION_FROM_RGB5A3(std::vector<char>& result, uint16_t srcWidth, ui
     }
 }
 
-void IMPLEMENTATION_FROM_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_RGBA32(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
@@ -249,7 +248,7 @@ void IMPLEMENTATION_FROM_RGBA32(std::vector<char>& result, uint16_t srcWidth, ui
 
 #pragma region Cx
 
-void IMPLEMENTATION_FROM_C8(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data, uint32_t* colorPalette) {
+void IMPLEMENTATION_FROM_C8(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data, uint32_t* colorPalette) {
     uint32_t readOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
@@ -260,7 +259,7 @@ void IMPLEMENTATION_FROM_C8(std::vector<char>& result, uint16_t srcWidth, uint16
                     if ((xBlock * 8 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    const uint32_t color = colorPalette[*(reinterpret_cast<const uint8_t*>(data.data()) + readOffset++)];
+                    const uint32_t color = colorPalette[data[readOffset++]];
                     const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 8) + x);
 
                     result[destIndex + 0] = (color >> 24) & 0xFFu;
@@ -277,18 +276,18 @@ void IMPLEMENTATION_FROM_C8(std::vector<char>& result, uint16_t srcWidth, uint16
 
 #pragma region CMPR
 
-void IMPLEMENTATION_FROM_CMPR(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_FROM_CMPR(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
 
     for (uint16_t y = 0; y < srcHeight; y += 4) {
         for (uint16_t x = 0; x < srcWidth; x += 4) {
-            const uint16_t color1 = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data.data() + readOffset));
+            const uint16_t color1 = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
             readOffset += sizeof(uint16_t);
 
-            const uint16_t color2 = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data.data() + readOffset));
+            const uint16_t color2 = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
             readOffset += sizeof(uint16_t);
 
-            uint32_t bits = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(data.data() + readOffset));
+            uint32_t bits = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(data + readOffset));
             readOffset += sizeof(uint32_t);
 
             uint8_t table[4][4] = {};
@@ -348,7 +347,7 @@ void IMPLEMENTATION_FROM_CMPR(std::vector<char>& result, uint16_t srcWidth, uint
 
 #pragma region RGBxxx
 
-void IMPLEMENTATION_TO_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_TO_RGB5A3(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t writeOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
@@ -359,8 +358,7 @@ void IMPLEMENTATION_TO_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
-                    const uint8_t* readPixel =
-                        reinterpret_cast<const uint8_t*>(data.data()) +
+                    const uint8_t* readPixel = data +
                         (((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x)) * 4);
 
                     // A pixel is 16-bit but we write it in two 8-bit segments.
@@ -390,7 +388,7 @@ void IMPLEMENTATION_TO_RGB5A3(std::vector<char>& result, uint16_t srcWidth, uint
     }
 }
 
-void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_TO_RGBA32(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t writeOffset = 0;
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
@@ -433,7 +431,7 @@ void IMPLEMENTATION_TO_RGBA32(std::vector<char>& result, uint16_t srcWidth, uint
 
 #pragma region Cx
 
-void IMPLEMENTATION_TO_C8(std::vector<char>& result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_TO_C8(std::vector<unsigned char>& result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
                        // Color  // Index
     std::unordered_map<uint32_t, uint8_t> indexMap;
     for (uint32_t i = 0; i < colors.size(); i++)
@@ -450,7 +448,7 @@ void IMPLEMENTATION_TO_C8(std::vector<char>& result, std::vector<uint32_t>& colo
                         continue;
 
                     const uint32_t readPixel = *(
-                        reinterpret_cast<const uint32_t*>(data.data()) +
+                        reinterpret_cast<const uint32_t*>(data) +
                         (srcWidth * ((yBlock * 4) + y) + (xBlock * 8) + x)
                     );
 
@@ -466,7 +464,7 @@ void IMPLEMENTATION_TO_C8(std::vector<char>& result, std::vector<uint32_t>& colo
     }
 }
 
-void IMPLEMENTATION_TO_C14X2(std::vector<char>& result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const std::vector<char>& data) {
+void IMPLEMENTATION_TO_C14X2(std::vector<unsigned char>& result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
                        // Color  // Index (byteswapped)
     std::unordered_map<uint32_t, uint16_t> indexMap;
     for (uint32_t i = 0; i < colors.size(); i++)
@@ -483,7 +481,7 @@ void IMPLEMENTATION_TO_C14X2(std::vector<char>& result, std::vector<uint32_t>& c
                         continue;
 
                     const uint32_t readPixel = *(
-                        reinterpret_cast<const uint32_t*>(data.data()) +
+                        reinterpret_cast<const uint32_t*>(data) +
                         ((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x))
                     );
 
@@ -506,11 +504,11 @@ void IMPLEMENTATION_TO_C14X2(std::vector<char>& result, std::vector<uint32_t>& c
 //////////////////////////////////////////////////////////////////
 
 bool ImageConvert::toRGBA32(
-    std::vector<char>& buffer,
+    std::vector<unsigned char>& buffer,
     const TPL::TPLImageFormat type,
     const uint16_t srcWidth,
     const uint16_t srcHeight,
-    const std::vector<char>& data,
+    const unsigned char* data,
     uint32_t* colorPalette
 ) {
     buffer.resize(srcWidth * srcHeight * 4);
@@ -567,11 +565,11 @@ bool ImageConvert::toRGBA32(
 }
 
 bool ImageConvert::fromRGBA32(
-    std::vector<char>& buffer,
+    std::vector<unsigned char>& buffer,
     const TPL::TPLImageFormat type,
     const uint16_t srcWidth,
     const uint16_t srcHeight,
-    const std::vector<char>& data,
+    const unsigned char* data,
     std::vector<uint32_t>* colorPalette
 ) {
     switch (type) {

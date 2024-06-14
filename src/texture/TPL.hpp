@@ -76,7 +76,7 @@ namespace TPL {
         uint16_t width;
         uint16_t height;
 
-        std::vector<char> data;
+        std::vector<unsigned char> data;
 
         std::vector<uint32_t> palette; 
 
@@ -95,9 +95,9 @@ namespace TPL {
     public:
         std::vector<TPLTexture> textures;
 
-        std::vector<char> Reserialize();
+        std::vector<unsigned char> Reserialize();
 
-        TPLObject(const char* tplData, const size_t dataSize);
+        TPLObject(const unsigned char* tplData, const size_t dataSize);
 
         TPLObject() {};
     };

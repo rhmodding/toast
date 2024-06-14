@@ -77,7 +77,7 @@ namespace CtrCellAnim {
         std::vector<Arrangement> arrangements;
         std::vector<Animation> animations;
 
-        CtrCellAnimObject(const char* CtrCellAnimData, const size_t dataSize);
+        CtrCellAnimObject(const unsigned char* CtrCellAnimData, const size_t dataSize);
     };
 
     CtrCellAnimObject* ObjectFromFile(const char *filename);

@@ -104,7 +104,7 @@ struct AnimationKeyRaw {
 #pragma pack(pop) // Reset packing alignment to default
 
 namespace RvlCellAnim {
-    RvlCellAnimObject::RvlCellAnimObject(const char* RvlCellAnimData, const size_t dataSize) {
+    RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
         const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
         if (header->magic != HEADER_MAGIC) {
@@ -210,9 +210,9 @@ namespace RvlCellAnim {
         this->ok = true;
     }
 
-    std::vector<char> RvlCellAnimObject::Reserialize() {
+    std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
         // Allocate header now
-        std::vector<char> result(sizeof(RvlCellAnimHeader));
+        std::vector<unsigned char> result(sizeof(RvlCellAnimHeader));
 
         RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
         header->magic = HEADER_MAGIC;
@@ -340,7 +340,9 @@ namespace RvlCellAnim {
 
         file.close();
 
-        RvlCellAnimObject* object = new RvlCellAnimObject(buffer, fileSize);
+        RvlCellAnimObject* object = new RvlCellAnimObject(
+            reinterpret_cast<unsigned char*>(buffer), fileSize
+        );
 
         delete[] buffer;
 
