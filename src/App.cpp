@@ -8,17 +8,13 @@
 #include <thread>
 
 #include <iostream>
-#include <vector>
 
 #include <string>
 #include <sstream>
 
-#include "archive/U8.hpp"
-
 #include "imgui_internal.h"
 
 #include "SessionManager.hpp"
-
 #include "ConfigManager.hpp"
 
 #include <tinyfiledialogs.h>
