@@ -12,7 +12,7 @@
 
 class CommandModifyAnimationKey : public BaseCommand {
 public:
-    // Constructor: Replace part from cellanimIndex, animationIndex and keyIndex by newKey.
+    // Constructor: Replace key from cellanimIndex, animationIndex and keyIndex by newKey.
     CommandModifyAnimationKey(
         uint16_t cellanimIndex, uint32_t animationIndex, uint32_t keyIndex,
         RvlCellAnim::AnimationKey newKey
