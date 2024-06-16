@@ -26,6 +26,8 @@
 //#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#include "command/CommandSwitchCellanim.hpp"
+
 #include "_binary/images/toastIcon.png.h"
 
 #if defined(__APPLE__)
@@ -554,8 +556,15 @@ void App::Menubar() {
 
                             if (ImGui::MenuItem(fmtStream.str().c_str(), nullptr, sessionManager.sessionList.at(n).cellIndex == i)) {
                                 ImGui::CloseCurrentPopup();
-                                sessionManager.sessionList.at(n).cellIndex = i;
-                                sessionManager.SessionChanged();
+
+                                if (sessionManager.sessionList.at(n).cellIndex != i) {
+                                    sessionManager.currentSession = n;
+
+                                    sessionManager.sessionList.at(n).executeCommand(std::make_shared<CommandSwitchCellanim>(
+                                    CommandSwitchCellanim(
+                                        n, i
+                                    )));
+                                }
                             }
                         }
                             
