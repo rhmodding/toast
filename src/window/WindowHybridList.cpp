@@ -40,13 +40,13 @@ ImVec4 adjustBrightness(const ImVec4& color, float factor) {
 void WindowHybridList::Update() {
     GET_APP_STATE;
 
-    static bool lastArrangementMode{appState.arrangementMode };
-    if (lastArrangementMode != appState.arrangementMode) {
+    static bool lastArrangementMode{ appState.getArrangementMode() };
+    if (lastArrangementMode != appState.getArrangementMode()) {
         this->flashTrigger = true;
         this->FlashWindow();
     }
 
-    lastArrangementMode = appState.arrangementMode;
+    lastArrangementMode = appState.getArrangementMode();
 
     if (this->flashWindow && (static_cast<float>(glfwGetTime()) - this->flashTimer > WINDOW_FLASH_TIME))
         ResetFlash();
@@ -62,13 +62,13 @@ void WindowHybridList::Update() {
         );
     }
 
-    ImGui::Begin(appState.arrangementMode ? "Arrangements###HybridList" : "Animations###HybridList", nullptr);
+    ImGui::Begin(appState.getArrangementMode() ? "Arrangements###HybridList" : "Animations###HybridList", nullptr);
 
     ImGui::BeginChild("List", ImVec2(0, 0), ImGuiChildFlags_Border);
     {
         GET_ANIMATABLE;
 
-        if (!appState.arrangementMode)
+        if (!appState.getArrangementMode())
             for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
                 std::stringstream fmtStream;
 

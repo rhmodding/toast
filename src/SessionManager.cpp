@@ -362,7 +362,7 @@ void SessionManager::SessionChanged() {
             this->getCurrentSession()->getCellanimSheet()
         );
 
-        if (appState.arrangementMode) {
+        if (appState.getArrangementMode()) {
             appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
                 appState.controlKey.arrangementIndex,
                 0,

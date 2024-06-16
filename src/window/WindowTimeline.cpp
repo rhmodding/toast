@@ -21,7 +21,7 @@ void WindowTimeline::Update() {
     ImGui::Begin("Timeline");
     ImGui::PopStyleVar();
 
-    ImGui::BeginDisabled(appState.arrangementMode);
+    ImGui::BeginDisabled(appState.getArrangementMode());
 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
 
@@ -499,7 +499,7 @@ void WindowTimeline::Update() {
                             ImGui::EndPopup();
                         }
 
-                        if (!appState.arrangementMode && ImGui::BeginItemTooltip()) {
+                        if (!appState.getArrangementMode() && ImGui::BeginItemTooltip()) {
                             ImGui::Text((char*)ICON_FA_KEY "  Key no. %u", i+1);
                             ImGui::TextUnformatted("Right-click for options");
 

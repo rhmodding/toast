@@ -5,6 +5,8 @@
 
 #include "anim/Animatable.hpp"
 
+#include "SessionManager.hpp"
+
 #include <cstdint>
 
 #include "imgui.h"
@@ -70,7 +72,13 @@ public:
     ImFont* fontGiant;
     ImFont* fontIcon;
 
-    bool arrangementMode{ false };
+    bool getArrangementMode() {
+        if (SessionManager::getInstance().currentSession >= 0)
+            return SessionManager::getInstance().getCurrentSession()->arrangementMode;
+        else
+            return false;
+    }
+
     // This key object is meant for the arrangement mode to control the state of the key.
     RvlCellAnim::AnimationKey controlKey{ 0, 1, 1.f, 1.f, 0.f, 255 };
 

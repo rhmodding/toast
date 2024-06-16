@@ -52,6 +52,8 @@ public:
             return this->animationNames.at(this->cellIndex);
         }
 
+        bool arrangementMode{ false };
+
     private:
         std::deque<std::shared_ptr<BaseCommand>> undoStack;
         std::deque<std::shared_ptr<BaseCommand>> redoStack;
