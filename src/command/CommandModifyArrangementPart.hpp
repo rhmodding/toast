@@ -10,22 +10,21 @@
 
 class CommandModifyArrangementPart : public BaseCommand {
 public:
-    // Constructor: Modify part by cellanimIndex, arrangementIndex and finally partIndex.
+    // Constructor: Replace part from cellanimIndex, arrangementIndex and partIndex by newPart.
     CommandModifyArrangementPart(
-        uint32_t cellanimIndex, uint32_t arrangementIndex, uint32_t partIndex,
+        uint16_t cellanimIndex, uint32_t arrangementIndex, uint32_t partIndex,
         RvlCellAnim::ArrangementPart newPart
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
         newPart(newPart)
     {
         this->oldPart = this->getPart();
-    };
+    }
 
     // Constructor: Modify selected part.
     CommandModifyArrangementPart(
         RvlCellAnim::ArrangementPart newPart
     ) :
-        cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
         newPart(newPart)
     {
         this->cellanimIndex = SessionManager::getInstance().getCurrentSession()->cellIndex;
@@ -33,18 +32,18 @@ public:
         this->partIndex = AppState::getInstance().selectedPart;
 
         this->oldPart = this->getPart();
-    };
+    }
 
     void Execute() override {
         this->getPart() = this->newPart;
-    };
+    }
 
     void Rollback() override {
         this->getPart() = this->oldPart;
-    };
+    }
 
 private:
-    uint32_t cellanimIndex;
+    uint16_t cellanimIndex;
     uint32_t arrangementIndex;
     uint32_t partIndex;
 

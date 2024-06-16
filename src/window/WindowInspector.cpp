@@ -10,6 +10,15 @@
 #include "../ConfigManager.hpp"
 
 #include "../command/CommandModifyArrangementPart.hpp"
+#include "../command/CommandMoveArrangementPart.hpp"
+#include "../command/CommandDeleteArrangementPart.hpp"
+#include "../command/CommandInsertArrangementPart.hpp"
+
+#include "../command/CommandModifyAnimationKey.hpp"
+
+#include "../command/CommandInsertArrangement.hpp"
+
+#include "../command/CommandSetArrangementMode.hpp"
 
 const uint8_t uint8_one = 1;
 const uint16_t uint16_one = 1;
@@ -131,6 +140,9 @@ void WindowInspector::Level_Key() {
 
     ImGui::SameLine();
 
+    RvlCellAnim::AnimationKey newKey = *globalAnimatable->getCurrentKey();
+    RvlCellAnim::AnimationKey originalKey = *globalAnimatable->getCurrentKey();
+
     uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
     auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(animationIndex);
 
@@ -156,59 +168,188 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((char*)ICON_FA_IMAGE " Arrangement");
 
-    uint16_t arrangementIndex = animKey->arrangementIndex + 1;
-    if (ImGui::InputScalar("Arrangement No.", ImGuiDataType_U16, &arrangementIndex, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
-        changed |= true;
+    // Arrangement Input
+    {
+        static uint16_t oldArrangement{ 0 };
+        uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
 
+        ImGui::SetNextItemWidth(ImGui::CalcItemWidth() - (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x) * 2);
+        if (ImGui::InputScalar(
+            "##Arrangement No.",
+            ImGuiDataType_U16,
+            &newArrangement,
+            nullptr, nullptr,
+            "%u"
+        )) {
+            globalAnimatable->getCurrentKey()->arrangementIndex =
+                std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size());
 
-        animKey->arrangementIndex = arrangementIndex > 0 ? std::clamp<uint16_t>(
-            arrangementIndex - 1,
-            0,
-            static_cast<uint16_t>(
-                globalAnimatable->cellanim->arrangements.size() - 1
-            )
-        ) : 0;
+            appState.selectedPart = std::clamp<int32_t>(
+                appState.selectedPart,
+                -1,
+                globalAnimatable->getCurrentArrangement()->parts.size() - 1
+            );
+        }
 
-        appState.selectedPart = std::clamp<int32_t>(
-            appState.selectedPart,
-            -1,
-            static_cast<int32_t>(globalAnimatable->getCurrentArrangement()->parts.size() - 1)
-        );
+        if (ImGui::IsItemActivated())
+            oldArrangement = originalKey.arrangementIndex;
+
+        if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
+            changed = true;
+
+            originalKey.arrangementIndex = oldArrangement;
+            newKey.arrangementIndex =
+                std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size());
+        }
+
+        // Start +- Buttons
+
+        const ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+
+        ImGui::PushButtonRepeat(true);
+
+        ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+        if (
+            ImGui::Button("-##Arrangement No._dec", buttonSize) &&
+            globalAnimatable->getCurrentKey()->arrangementIndex > 0
+        ) {
+            if (!appState.getArrangementMode())
+                newKey.arrangementIndex--;
+            else
+                globalAnimatable->getCurrentKey()->arrangementIndex--;
+
+            appState.selectedPart = std::clamp<int32_t>(
+                appState.selectedPart,
+                -1,
+                globalAnimatable->getCurrentArrangement()->parts.size() - 1
+            );
+        }
+        ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+        if (
+            ImGui::Button("+##Arrangement No._inc", buttonSize) &&
+            (globalAnimatable->getCurrentKey()->arrangementIndex + 1) < globalAnimatable->cellanim->arrangements.size()
+        ) {
+            if (!appState.getArrangementMode())
+                newKey.arrangementIndex++;
+            else
+                globalAnimatable->getCurrentKey()->arrangementIndex++;
+
+            appState.selectedPart = std::clamp<int32_t>(
+                appState.selectedPart,
+                -1,
+                globalAnimatable->getCurrentArrangement()->parts.size() - 1
+            );
+        }
+
+        ImGui::PopButtonRepeat();
+
+        ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+        ImGui::Text("Arrangement No.");
     }
 
     if (ImGui::Button("Duplicate Arrangement & Switch")) {
-        globalAnimatable->cellanim->arrangements.push_back(
-            globalAnimatable->cellanim->arrangements.at(animKey->arrangementIndex)
-        );
-        animKey->arrangementIndex = globalAnimatable->cellanim->arrangements.size() - 1;
+        SessionManager::getInstance().getCurrentSession()->executeCommand(
+        std::make_shared<CommandInsertArrangement>(
+        CommandInsertArrangement(
+            sessionManager.getCurrentSession()->cellIndex,
+            sessionManager.getCurrentSession()->getCellanim()->arrangements.size(),
+            sessionManager.getCurrentSession()->getCellanim()->arrangements.at(animKey->arrangementIndex)
+        )));
+
+        newKey.arrangementIndex = 
+            sessionManager.getCurrentSession()->getCellanim()->arrangements.size() - 1;
     }
 
     ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
 
-    uint16_t holdFrames = animKey->holdFrames;
-    if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
-        changed |= true;
-
-        if (holdFrames <= 1)
-            animKey->holdFrames = 1;
-        else
+    {
+        static uint16_t oldHoldFrames{ 0 };
+        uint16_t holdFrames = animKey->holdFrames;
+        if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            if (holdFrames <= 1)
+                holdFrames = 1;
+            
             animKey->holdFrames = holdFrames;
-    };
+        };
+
+        if (ImGui::IsItemActivated())
+            oldHoldFrames = originalKey.holdFrames;
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            originalKey.holdFrames = oldHoldFrames;
+            newKey.holdFrames = holdFrames;
+        }
+    }
 
     ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
 
-    float scaleValues[2] = { animKey->scaleX, animKey->scaleY };
-    if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
-        changed |= true;
+    // Scale XY
+    {
+        static float oldScale[2]{ 0.f, 0.f };
+        float scaleValues[2] = { animKey->scaleX, animKey->scaleY };
+        if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
+            animKey->scaleX = scaleValues[0];
+            animKey->scaleY = scaleValues[1];
+        }
 
-        animKey->scaleX = scaleValues[0];
-        animKey->scaleY = scaleValues[1];
+        if (ImGui::IsItemActivated()) {
+            oldScale[0] = originalKey.scaleX;
+            oldScale[1] = originalKey.scaleY;
+        }
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            originalKey.scaleX = oldScale[0];
+            originalKey.scaleY = oldScale[1];
+
+            newKey.scaleX = scaleValues[0];
+            newKey.scaleY = scaleValues[1];
+        }
     }
-    changed |= ImGui::SliderFloat("Angle Z", &animKey->angle, -360.f, 360.f, "%.1f deg");
+
+    // Angle Z slider
+    {
+        static float oldAngle{ 0.f };
+        float newAngle = animKey->angle;
+        if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
+            animKey->angle = newAngle;
+
+        if (ImGui::IsItemActivated())
+            oldAngle = originalKey.angle;
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            originalKey.angle = oldAngle;
+            newKey.angle = newAngle;
+        }
+    }
 
     ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
 
-    changed |= ImGui::InputScalar("Opacity", ImGuiDataType_U8, &animKey->opacity, &uint8_one, nullptr, "%u");
+    // Opacity slider
+    {
+        static const uint8_t min{ 0 };
+        static const uint8_t max{ 0xFF };
+
+        static uint8_t oldOpacity{ 0 };
+        uint8_t newOpacity = animKey->opacity;
+        if (ImGui::SliderScalar("Opacity", ImGuiDataType_U8, &newOpacity, &min, &max, "%u"))
+            animKey->opacity = newOpacity;
+
+        if (ImGui::IsItemActivated())
+            oldOpacity = originalKey.opacity;
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            originalKey.opacity = oldOpacity;
+            newKey.opacity = newOpacity;
+        }
+    }
 
     if (ConfigManager::getInstance().config.showUnknownValues) {
         ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
@@ -229,11 +370,25 @@ void WindowInspector::Level_Key() {
             changed |= ImGui::InputScalar(" D", ImGuiDataType_U8, &animKey->unknown.u8[3], &uint8_one, nullptr, "%u");
         }
     }
+
+    if (newKey != originalKey) {
+        *globalAnimatable->getCurrentKey() = originalKey;
+
+        SessionManager::getInstance().getCurrentSession()->executeCommand(
+        std::make_shared<CommandModifyAnimationKey>(
+        CommandModifyAnimationKey(
+            sessionManager.getCurrentSession()->cellIndex,
+            appState.globalAnimatable->getCurrentAnimationIndex(),
+            appState.globalAnimatable->getCurrentKeyIndex(),
+            newKey
+        )));
+    }
 }
 
 void WindowInspector::Level_Arrangement() {
     GET_APP_STATE;
     GET_ANIMATABLE;
+    GET_SESSION_MANAGER;
 
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
@@ -257,55 +412,97 @@ void WindowInspector::Level_Arrangement() {
             ImGui::TextWrapped("Arrangement no.");
             ImGui::PopFont();
 
-            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-            
-            uint16_t arrangementNumber = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
-            if (ImGui::InputScalar(
-                "##ArrangementInput",
-                ImGuiDataType_U16,
-                &arrangementNumber,
-                nullptr, nullptr,
-                "%u"
-            )) {
-                uint16_t newIndex = std::clamp<uint16_t>(arrangementNumber, 1, static_cast<uint16_t>(globalAnimatable->cellanim->arrangements.size())) - 1;
-                globalAnimatable->getCurrentKey()->arrangementIndex = newIndex;
+            // Arrangement Input
+            {
+                auto originalKey = *globalAnimatable->getCurrentKey();
+                auto newKey = *globalAnimatable->getCurrentKey();
 
-                appState.selectedPart = std::clamp<int32_t>(
-                    appState.selectedPart,
-                    -1,
-                    static_cast<int32_t>(globalAnimatable->getCurrentArrangement()->parts.size() - 1)
-                );
-            }
+                static uint16_t oldArrangement{ 0 };
+                uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
 
-            const float buttonSize = ImGui::GetFrameHeight();
-            const float xInnerSpacing = ImGui::GetStyle().ItemInnerSpacing.x;
+                ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
+                if (ImGui::InputScalar(
+                    "##ArrangementInput",
+                    ImGuiDataType_U16,
+                    &newArrangement,
+                    nullptr, nullptr,
+                    "%u"
+                )) {
+                    globalAnimatable->getCurrentKey()->arrangementIndex =
+                        std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size());
 
-            ImGui::PushButtonRepeat(true);
+                    appState.selectedPart = std::clamp<int32_t>(
+                        appState.selectedPart,
+                        -1,
+                        globalAnimatable->getCurrentArrangement()->parts.size() - 1
+                    );
+                }
 
-            ImGui::SameLine(0.f, xInnerSpacing);
-            if (ImGui::Button("-##ArrangementInputSub", ImVec2(buttonSize, buttonSize))) {
-                if (globalAnimatable->getCurrentKey()->arrangementIndex > 0){
-                    globalAnimatable->getCurrentKey()->arrangementIndex--;
+                if (ImGui::IsItemActivated())
+                    oldArrangement = originalKey.arrangementIndex;
 
-                    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
+                if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
+                    changed = true;
 
-                    if (appState.selectedPart >= arrangementPtr->parts.size())
-                        appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
+                    originalKey.arrangementIndex = oldArrangement;
+                    newKey.arrangementIndex =
+                        std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size());
+                }
+
+                // Start +- Buttons
+
+                const ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+
+                ImGui::PushButtonRepeat(true);
+
+                ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+                if (
+                    ImGui::Button("-##ArrangementInput_dec", buttonSize) &&
+                    globalAnimatable->getCurrentKey()->arrangementIndex > 0
+                ) {
+                    if (!appState.getArrangementMode())
+                        newKey.arrangementIndex--;
+                    else
+                        globalAnimatable->getCurrentKey()->arrangementIndex--;
+
+                    appState.selectedPart = std::clamp<int32_t>(
+                        appState.selectedPart,
+                        -1,
+                        globalAnimatable->getCurrentArrangement()->parts.size() - 1
+                    );
+                }
+                ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+                if (
+                    ImGui::Button("+##ArrangementInput_inc", buttonSize) &&
+                    (globalAnimatable->getCurrentKey()->arrangementIndex + 1) < globalAnimatable->cellanim->arrangements.size()
+                ) {
+                    if (!appState.getArrangementMode())
+                        newKey.arrangementIndex++;
+                    else
+                        globalAnimatable->getCurrentKey()->arrangementIndex++;
+
+                    appState.selectedPart = std::clamp<int32_t>(
+                        appState.selectedPart,
+                        -1,
+                        globalAnimatable->getCurrentArrangement()->parts.size() - 1
+                    );
+                }
+
+                ImGui::PopButtonRepeat();
+
+                if (newKey != originalKey) {
+                    *globalAnimatable->getCurrentKey() = originalKey;
+
+                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    std::make_shared<CommandModifyAnimationKey>(
+                    CommandModifyAnimationKey(
+                        sessionManager.getCurrentSession()->cellIndex,
+                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        appState.globalAnimatable->getCurrentKeyIndex(),
+                        newKey
+                    )));
                 }
             }
-            ImGui::SameLine(0.f, xInnerSpacing);
-            if (ImGui::Button("+##ArrangementInputAdd", ImVec2(buttonSize, buttonSize))) {
-                if ((globalAnimatable->getCurrentKey()->arrangementIndex + 1) < globalAnimatable->cellanim->arrangements.size()) {
-                    globalAnimatable->getCurrentKey()->arrangementIndex++;
-
-                    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
-
-                    if (appState.selectedPart >= arrangementPtr->parts.size())
-                        appState.selectedPart = static_cast<int32_t>(arrangementPtr->parts.size() - 1);
-                }
-            }
-
-            ImGui::PopButtonRepeat();
             
             //ImGui::PopStyleVar();
         }
@@ -316,8 +513,8 @@ void WindowInspector::Level_Arrangement() {
         RvlCellAnim::ArrangementPart* partPtr = appState.selectedPart >= 0 ? &arrangementPtr->parts.at(appState.selectedPart) : nullptr;
 
         if (partPtr) {
-            auto newPart = *partPtr;
-            auto originalPart = *partPtr; // TODO: find a better solution
+            RvlCellAnim::ArrangementPart newPart = *partPtr;
+            RvlCellAnim::ArrangementPart originalPart = *partPtr;
 
             ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
             {
@@ -325,8 +522,8 @@ void WindowInspector::Level_Arrangement() {
                 {
                     static int oldPosition[2]{ 0, 0 }; // Does not apply realPosition offset
                     int positionValues[2] = {
-                        newPart.positionX - (this->realPosition ? 0 : 512),
-                        newPart.positionY - (this->realPosition ? 0 : 512)
+                        partPtr->positionX - (this->realPosition ? 0 : 512),
+                        partPtr->positionY - (this->realPosition ? 0 : 512)
                     };
                     if (ImGui::DragInt2("Position XY##World", positionValues, 1.f)) {
                         partPtr->positionX = static_cast<int16_t>(
@@ -360,7 +557,7 @@ void WindowInspector::Level_Arrangement() {
                 // Scale XY
                 {
                     static float oldScale[2]{ 0.f, 0.f };
-                    float scaleValues[2] = { newPart.scaleX, newPart.scaleY };
+                    float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
                     if (ImGui::DragFloat2("Scale XY##World", scaleValues, 0.01f)) {
                         partPtr->scaleX = scaleValues[0];
                         partPtr->scaleY = scaleValues[1];
@@ -509,11 +706,10 @@ void WindowInspector::Level_Arrangement() {
             if (newPart != originalPart) {
                 *partPtr = originalPart;
 
-                std::shared_ptr<BaseCommand> command = std::make_shared<CommandModifyArrangementPart>(
+                SessionManager::getInstance().getCurrentSession()->executeCommand(
+                std::make_shared<CommandModifyArrangementPart>(
                     CommandModifyArrangementPart(newPart)
-                );
-                SessionManager::getInstance()
-                    .getCurrentSession()->executeCommand(command);
+                ));
             }
         } else {
             ImGui::Text("No part selected.");
@@ -548,18 +744,28 @@ void WindowInspector::Level_Arrangement() {
                 ImGui::Separator();
 
                 if (ImGui::Selectable("Insert new part above")) {
-                    RvlCellAnim::ArrangementPart newPart;
+                    sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertArrangementPart>(
+                    CommandInsertArrangementPart(
+                        sessionManager.getCurrentSession()->cellIndex,
+                        appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                        n + 1,
+                        RvlCellAnim::ArrangementPart()
+                    )));
 
-                    auto it = arrangementPtr->parts.begin() + n + 1;
-                    arrangementPtr->parts.insert(it, newPart);
+                    changed = true;
 
                     appState.selectedPart = n + 1;
                 }
                 if (ImGui::Selectable("Insert new part below")) {
-                    RvlCellAnim::ArrangementPart newPart;
+                    sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertArrangementPart>(
+                    CommandInsertArrangementPart(
+                        sessionManager.getCurrentSession()->cellIndex,
+                        appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                        n,
+                        RvlCellAnim::ArrangementPart()
+                    )));
 
-                    auto it = arrangementPtr->parts.begin() + n;
-                    arrangementPtr->parts.insert(it, newPart);
+                    changed = true;
 
                     appState.selectedPart = n;
                 };
@@ -568,14 +774,28 @@ void WindowInspector::Level_Arrangement() {
 
                 if (ImGui::BeginMenu("Paste part..", allowPastePart)) {
                     if (ImGui::MenuItem("..above")) {
-                        auto it = arrangementPtr->parts.begin() + n + 1;
-                        arrangementPtr->parts.insert(it, copyPart);
+                        sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertArrangementPart>(
+                        CommandInsertArrangementPart(
+                            sessionManager.getCurrentSession()->cellIndex,
+                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            n + 1,
+                            copyPart
+                        )));
+
+                        changed = true;
 
                         appState.selectedPart = n + 1;
                     }
                     if (ImGui::MenuItem("..below")) {
-                        auto it = arrangementPtr->parts.begin() + n;
-                        arrangementPtr->parts.insert(it, copyPart);
+                        sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertArrangementPart>(
+                        CommandInsertArrangementPart(
+                            sessionManager.getCurrentSession()->cellIndex,
+                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            n,
+                            copyPart
+                        )));
+
+                        changed = true;
 
                         appState.selectedPart = n;
                     }
@@ -583,7 +803,15 @@ void WindowInspector::Level_Arrangement() {
                     ImGui::Separator();
 
                     if (ImGui::MenuItem("..here (replace)")) {
-                        arrangementPtr->parts.at(n) = copyPart;
+                        sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandModifyArrangementPart>(
+                        CommandModifyArrangementPart(
+                            sessionManager.getCurrentSession()->cellIndex,
+                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            n,
+                            copyPart
+                        )));
+
+                        changed = true;
 
                         appState.selectedPart = n;
                     }
@@ -592,32 +820,67 @@ void WindowInspector::Level_Arrangement() {
 
                 if (ImGui::BeginMenu("Paste part (special)..", allowPastePart)) {
                     if (ImGui::MenuItem("..transform")) {
-                        arrangementPtr->parts.at(n).positionX = copyPart.positionX;
-                        arrangementPtr->parts.at(n).positionY = copyPart.positionY;
+                        RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(n);
 
-                        arrangementPtr->parts.at(n).scaleX = copyPart.scaleX;
-                        arrangementPtr->parts.at(n).scaleY = copyPart.scaleY;
+                        newPart.positionX = copyPart.positionX;
+                        newPart.positionY = copyPart.positionY;
 
-                        arrangementPtr->parts.at(n).angle = copyPart.angle;
+                        newPart.scaleX = copyPart.scaleX;
+                        newPart.scaleY = copyPart.scaleY;
 
-                        arrangementPtr->parts.at(n).flipX = copyPart.flipX;
-                        arrangementPtr->parts.at(n).flipY = copyPart.flipY;
+                        newPart.angle = copyPart.angle;
+
+                        newPart.flipX = copyPart.flipX;
+                        newPart.flipY = copyPart.flipY;
+
+                        sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandModifyArrangementPart>(
+                        CommandModifyArrangementPart(
+                            sessionManager.getCurrentSession()->cellIndex,
+                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            n,
+                            newPart
+                        )));
+
+                        changed = true;
 
                         appState.selectedPart = n;
                     }
 
                     if (ImGui::MenuItem("..opacity")) {
-                        arrangementPtr->parts.at(n).opacity = copyPart.opacity;
+                        RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(n);
+                        newPart.opacity = copyPart.opacity;
+
+                        sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandModifyArrangementPart>(
+                        CommandModifyArrangementPart(
+                            sessionManager.getCurrentSession()->cellIndex,
+                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            n,
+                            newPart
+                        )));
+
+                        changed = true;
 
                         appState.selectedPart = n;
                     }
 
                     if (ImGui::MenuItem("..region")) {
-                        arrangementPtr->parts.at(n).regionX = copyPart.regionX;
-                        arrangementPtr->parts.at(n).regionY = copyPart.regionY;
+                        RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(n);
 
-                        arrangementPtr->parts.at(n).regionW = copyPart.regionW;
-                        arrangementPtr->parts.at(n).regionH = copyPart.regionH;
+                        newPart.regionX = copyPart.regionX;
+                        newPart.regionY = copyPart.regionY;
+
+                        newPart.regionW = copyPart.regionW;
+                        newPart.regionH = copyPart.regionH;
+
+                        sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandModifyArrangementPart>(
+                        CommandModifyArrangementPart(
+                            sessionManager.getCurrentSession()->cellIndex,
+                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            n,
+                            newPart
+                        )));
+
+                        changed = true;
 
                         appState.selectedPart = n;
                     }
@@ -633,20 +896,7 @@ void WindowInspector::Level_Arrangement() {
 
                 ImGui::Separator();
                 if (ImGui::Selectable("Delete part", false, ImGuiSelectableFlags_DontClosePopups))
-                    ImGui::OpenPopup("###DeletePartConfirm");
-
-                if (ImGui::BeginPopup("Are you sure?###DeletePartConfirm")) {
-                    ImGui::TextUnformatted("Are you sure you want to\ndelete this part?");
-                    ImGui::Separator();
-                    if (ImGui::Selectable("Do it"))
-                        deletePart = true;
-                    ImGui::Selectable("Nevermind");
-
-                    ImGui::EndPopup();
-                }
-
-                if (deletePart)
-                    ImGui::CloseCurrentPopup();
+                    deletePart = true;
 
                 ImGui::EndPopup();
             }
@@ -658,40 +908,49 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::SameLine();
             ImGui::SetCursorPosX(basePositionX - firstButtonWidth - ImGui::GetStyle().ItemSpacing.x);
-            if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
-                changed |= true;
 
-                uint16_t nSwap = n + 1;
-                if (nSwap >= 0 && nSwap < arrangementPtr->parts.size()) {
-                    std::swap(arrangementPtr->parts.at(n), arrangementPtr->parts.at(nSwap));
-                    appState.selectedPart = nSwap;
-                }
+            ImGui::BeginDisabled(n == arrangementPtr->parts.size() - 1);
+            if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
+                sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandMoveArrangementPart>(
+                CommandMoveArrangementPart(
+                    sessionManager.getCurrentSession()->cellIndex,
+                    appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                    n,
+                    false
+                )));
+
+                changed = true;
             }
+            ImGui::EndDisabled();
+
             ImGui::SameLine();
             ImGui::SetCursorPosX(basePositionX);
-            if (ImGui::SmallButton((char*) ICON_FA_ARROW_DOWN "")) {
-                changed |= true;
 
-                uint16_t nSwap = n - 1;
-                if (nSwap >= 0 && nSwap < arrangementPtr->parts.size()) {
-                    std::swap(arrangementPtr->parts.at(n), arrangementPtr->parts.at(nSwap));
-                    appState.selectedPart = nSwap;
-                }
+            ImGui::BeginDisabled(n == 0);
+            if (ImGui::SmallButton((char*) ICON_FA_ARROW_DOWN "")) {
+                sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandMoveArrangementPart>(
+                CommandMoveArrangementPart(
+                    sessionManager.getCurrentSession()->cellIndex,
+                    appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                    n,
+                    true
+                )));
+
+                changed = true;
             }
+            ImGui::EndDisabled();
 
             ImGui::PopStyleVar();
 
             ImGui::PopID();
 
             if (deletePart) {
-                auto it = arrangementPtr->parts.begin() + n;
-                arrangementPtr->parts.erase(it);
-
-                appState.selectedPart = std::clamp<int32_t>(
-                    appState.selectedPart,
-                    -1,
-                    static_cast<int32_t>(arrangementPtr->parts.size() - 1)
-                );
+                sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandDeleteArrangementPart>(
+                CommandDeleteArrangementPart(
+                    sessionManager.getCurrentSession()->cellIndex,
+                    appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                    n
+                )));
             }
         }
     
@@ -720,12 +979,38 @@ void WindowInspector::Update() {
 
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Level")) {
-            if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation))
+            if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation)) {
                 inspectorLevel = InspectorLevel_Animation;
-            if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key))
+
+                if (appState.getArrangementMode())
+                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    std::make_shared<CommandSetArrangementMode>(
+                    CommandSetArrangementMode(
+                        SessionManager::getInstance().getCurrentSession()->cellIndex,
+                        false
+                    )));
+            }
+            if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key)) {
                 inspectorLevel = InspectorLevel_Key;
+
+                if (appState.getArrangementMode())
+                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    std::make_shared<CommandSetArrangementMode>(
+                    CommandSetArrangementMode(
+                        SessionManager::getInstance().getCurrentSession()->cellIndex,
+                        false
+                    )));
+            }
             if (ImGui::MenuItem("Arrangement (Immediate)", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
                 inspectorLevel = InspectorLevel_Arrangement_Im;
+
+                if (appState.getArrangementMode())
+                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    std::make_shared<CommandSetArrangementMode>(
+                    CommandSetArrangementMode(
+                        SessionManager::getInstance().getCurrentSession()->cellIndex,
+                        false
+                    )));
 
                 appState.focusOnSelectedPart = true;
                 appState.selectedPart = std::clamp<int32_t>(
@@ -737,7 +1022,14 @@ void WindowInspector::Update() {
             if (ImGui::MenuItem("Arrangement (Outside Anim)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
                 inspectorLevel = InspectorLevel_Arrangement;
 
-                appState.arrangementMode = true;
+                if (!appState.getArrangementMode())
+                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    std::make_shared<CommandSetArrangementMode>(
+                    CommandSetArrangementMode(
+                        SessionManager::getInstance().getCurrentSession()->cellIndex,
+                        true
+                    )));
+
                 appState.focusOnSelectedPart = true;
 
                 appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
@@ -780,7 +1072,22 @@ void WindowInspector::Update() {
 
     lastInspectorLevel = inspectorLevel;
 
-    appState.arrangementMode = inspectorLevel == InspectorLevel_Arrangement;
+    if (
+        !appState.getArrangementMode() &&
+        inspectorLevel == InspectorLevel_Arrangement
+    ) 
+        inspectorLevel = InspectorLevel_Arrangement_Im;
+    else if (
+        appState.getArrangementMode() &&
+        inspectorLevel != InspectorLevel_Arrangement
+    ) {
+        SessionManager::getInstance().getCurrentSession()->executeCommand(
+        std::make_shared<CommandSetArrangementMode>(
+        CommandSetArrangementMode(
+            SessionManager::getInstance().getCurrentSession()->cellIndex,
+            false
+        )));
+    }
 
     switch (inspectorLevel) {
         case InspectorLevel_Animation:
