@@ -231,7 +231,7 @@ void WindowSpritesheet::Update() {
                         }
 
                         sessionManager.SessionChanged();
-                        sessionManager.getCurrentSessionModified() |= true;
+                        sessionManager.getCurrentSessionModified() = true;
                     }
                 }
             }

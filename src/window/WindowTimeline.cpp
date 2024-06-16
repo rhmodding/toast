@@ -403,7 +403,7 @@ void WindowTimeline::Update() {
 
                             ImGui::BeginDisabled(i == (appState.playerState.frameCount - 1));
                             if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
-                                changed |= true;
+                                changed = true;
 
                                 std::swap(
                                     globalAnimatable->getCurrentAnimation()->keys.at(i),
@@ -423,7 +423,7 @@ void WindowTimeline::Update() {
 
                             ImGui::BeginDisabled(i == 0);
                             if (ImGui::Selectable(!io.KeyAlt ? "Move back" : "Move back (without hold frames)")) {
-                                changed |= true;
+                                changed = true;
 
                                 std::swap(
                                     globalAnimatable->getCurrentAnimation()->keys.at(i),
@@ -536,7 +536,7 @@ void WindowTimeline::Update() {
                         ImGui::PopID();
 
                         if (deleteKeyMode) {
-                            changed |= true;
+                            changed = true;
 
                             std::vector<RvlCellAnim::AnimationKey>& keys = globalAnimatable->getCurrentAnimation()->keys;
 

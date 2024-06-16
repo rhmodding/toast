@@ -733,7 +733,7 @@ void App::UpdatePopups() {
                     }
 
                     sessionManager.SessionChanged();
-                    sessionManager.getCurrentSessionModified() |= true;
+                    sessionManager.getCurrentSessionModified() = true;
                 }
                 else
                     ImGui::CloseCurrentPopup();

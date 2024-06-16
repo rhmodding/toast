@@ -439,7 +439,7 @@ void WindowCanvas::Update() {
     }
 
     if (interactionDeactivated && draggingPart) { // Submit command
-        changed |= true;
+        changed = true;
 
         GET_SESSION_MANAGER;
         GET_ANIMATABLE;

@@ -104,7 +104,7 @@ void WindowInspector::Level_Animation() {
         ImGui::Dummy({ 0, 5 });
 
         if (ImGui::Button("OK", ImVec2(120, 0))) {
-            changed |= true;
+            changed = true;
 
             query->second = newMacroName;
             ImGui::CloseCurrentPopup();
@@ -343,7 +343,7 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        changed |= true;
+                        changed = true;
 
                         originalPart.positionX = static_cast<int16_t>(
                             oldPosition[0] - (this->realPosition ? 0 : 512)
@@ -372,7 +372,7 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        changed |= true;
+                        changed = true;
 
                         originalPart.scaleX = oldScale[0];
                         originalPart.scaleY = oldScale[1];
@@ -394,7 +394,7 @@ void WindowInspector::Level_Arrangement() {
                     oldAngle = originalPart.angle;
 
                 if (ImGui::IsItemDeactivated()) {
-                    changed |= true;
+                    changed = true;
 
                     originalPart.angle = oldAngle;
                     newPart.angle = newAngle;
@@ -420,7 +420,7 @@ void WindowInspector::Level_Arrangement() {
                     oldOpacity = originalPart.opacity;
 
                 if (ImGui::IsItemDeactivated()) {
-                    changed |= true;
+                    changed = true;
 
                     originalPart.opacity = oldOpacity;
                     newPart.opacity = newOpacity;
@@ -447,7 +447,7 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        changed |= true;
+                        changed = true;
 
                         originalPart.regionX = static_cast<uint16_t>(oldPosition[0]);
                         originalPart.regionY = static_cast<uint16_t>(oldPosition[1]);
@@ -475,7 +475,7 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        changed |= true;
+                        changed = true;
 
                         originalPart.regionW = static_cast<uint16_t>(oldSize[0]);
                         originalPart.regionH = static_cast<uint16_t>(oldSize[1]);
