@@ -77,6 +77,26 @@ namespace RvlCellAnim {
         uint8_t opacity{ 0xFFu };
 
         Unknown32 unknown;
+
+        bool operator==(const AnimationKey& other) const {
+            return
+                this->arrangementIndex == other.arrangementIndex &&
+
+                this->holdFrames == other.holdFrames &&
+
+                this->scaleX == other.scaleX &&
+                this->scaleY == other.scaleY &&
+
+                this->angle == other.angle &&
+
+                this->opacity == other.opacity &&
+
+                this->unknown == other.unknown;
+        }
+
+        bool operator!=(const AnimationKey& other) const {
+            return !(*this == other);
+        }
     };
 
     struct Animation {
