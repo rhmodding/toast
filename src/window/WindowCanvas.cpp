@@ -234,11 +234,8 @@ void WindowCanvas::Update() {
 
     // Dragging
     const float mousePanThreshold = -1.0f;
-    bool dragging = interactionActive && (
-        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold) 
-    );
+    bool draggingLeft = interactionActive &&
+        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold);
 
     bool draggingCanvas = interactionActive && (
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
@@ -413,7 +410,7 @@ void WindowCanvas::Update() {
         hoveringOverSelectedPart = isPointInPolygon(io.MousePos, polygon, 5);
     }
 
-    if (hoveringOverSelectedPart && dragging && !draggingPart) {
+    if (hoveringOverSelectedPart && draggingLeft && !draggingPart) {
         draggingPart = true;
 
         dragPartOffset = ImVec2(
