@@ -11,9 +11,16 @@
 
 #include "../SessionManager.hpp"
 
+#include "../command/CommandMoveAnimationKey.hpp"
+#include "../command/CommandDeleteAnimationKey.hpp"
+#include "../command/CommandDeleteManyAnimationKeys.hpp"
+#include "../command/CommandInsertAnimationKey.hpp"
+#include "../command/CommandModifyAnimationKey.hpp"
+
 void WindowTimeline::Update() {
     GET_APP_STATE;
     GET_ANIMATABLE;
+    GET_SESSION_MANAGER;
 
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
@@ -292,6 +299,8 @@ void WindowTimeline::Update() {
 
                                 ImGui::BeginDisabled(!splitPossible);
                                 if (ImGui::Selectable("Split key (interp, new arrange)")) {
+                                    changed = true;
+
                                     RvlCellAnim::AnimationKey newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
                                     RvlCellAnim::Arrangement newArrangement = *arrangementA;
 
@@ -354,16 +363,28 @@ void WindowTimeline::Update() {
                                             newKey.holdFrames = 1;
                                     }
 
-                                    globalAnimatable->getCurrentAnimation()->keys.insert(
-                                        globalAnimatable->getCurrentAnimation()->keys.begin() + i + 1,
+                                    {
+                                        RvlCellAnim::AnimationKey modKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                                        modKey.holdFrames -= newKey.holdFrames;
+
+                                        sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandModifyAnimationKey>(
+                                        CommandModifyAnimationKey(
+                                            sessionManager.getCurrentSession()->cellIndex,
+                                            appState.globalAnimatable->getCurrentAnimationIndex(),
+                                            i,
+                                            modKey
+                                        )));
+                                    }
+
+                                    appState.playerState.currentFrame = i + 1;
+
+                                    sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
+                                    CommandInsertAnimationKey(
+                                        sessionManager.getCurrentSession()->cellIndex,
+                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        i + 1,
                                         newKey
-                                    );
-
-                                    globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames -= newKey.holdFrames;
-
-                                    appState.playerState.currentFrame++;
-                                    appState.playerState.updateCurrentFrame();
-                                    appState.playerState.updateSetFrameCount();
+                                    )));
                                 }
                                 ImGui::EndDisabled();
                             }
@@ -371,32 +392,31 @@ void WindowTimeline::Update() {
                             ImGui::Separator();
 
                             if (ImGui::Selectable(!io.KeyAlt ? "Push key after" : "Duplicate key after")) {
-                                RvlCellAnim::AnimationKey newKey;
-                                if (io.KeyAlt)
-                                    newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                                changed = true;
 
-                                globalAnimatable->getCurrentAnimation()->keys.insert(
-                                    globalAnimatable->getCurrentAnimation()->keys.begin() + i + 1,
-                                    newKey
-                                );
+                                appState.playerState.currentFrame = i + 1;
 
-                                appState.playerState.currentFrame++;
-                                appState.playerState.updateCurrentFrame();
-                                appState.playerState.updateSetFrameCount();
+                                sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
+                                CommandInsertAnimationKey(
+                                    sessionManager.getCurrentSession()->cellIndex,
+                                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                                    i + 1,
+                                    io.KeyAlt ? globalAnimatable->getCurrentAnimation()->keys.at(i) : RvlCellAnim::AnimationKey()
+                                )));
                             }
 
                             if (ImGui::Selectable(!io.KeyAlt ? "Push key before" : "Duplicate key before")) {
-                                RvlCellAnim::AnimationKey newKey;
-                                if (io.KeyAlt)
-                                    newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                                changed = true;
 
-                                globalAnimatable->getCurrentAnimation()->keys.insert(
-                                    globalAnimatable->getCurrentAnimation()->keys.begin() + i,
-                                    newKey
-                                );
+                                appState.playerState.currentFrame = i;
 
-                                appState.playerState.updateCurrentFrame();
-                                appState.playerState.updateSetFrameCount();
+                                sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
+                                CommandInsertAnimationKey(
+                                    sessionManager.getCurrentSession()->cellIndex,
+                                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                                    i,
+                                    io.KeyAlt ? globalAnimatable->getCurrentAnimation()->keys.at(i) : RvlCellAnim::AnimationKey()
+                                )));
                             }
 
                             ImGui::Separator();
@@ -405,16 +425,14 @@ void WindowTimeline::Update() {
                             if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
                                 changed = true;
 
-                                std::swap(
-                                    globalAnimatable->getCurrentAnimation()->keys.at(i),
-                                    globalAnimatable->getCurrentAnimation()->keys.at(i + 1)
-                                );
-
-                                if (io.KeyAlt)
-                                    std::swap(
-                                        globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames,
-                                        globalAnimatable->getCurrentAnimation()->keys.at(i + 1).holdFrames
-                                    );
+                                sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandMoveAnimationKey>(
+                                CommandMoveAnimationKey(
+                                    sessionManager.getCurrentSession()->cellIndex,
+                                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                                    i,
+                                    false,
+                                    io.KeyAlt
+                                )));
 
                                 appState.playerState.currentFrame++;
                                 appState.playerState.updateCurrentFrame();
@@ -425,16 +443,14 @@ void WindowTimeline::Update() {
                             if (ImGui::Selectable(!io.KeyAlt ? "Move back" : "Move back (without hold frames)")) {
                                 changed = true;
 
-                                std::swap(
-                                    globalAnimatable->getCurrentAnimation()->keys.at(i),
-                                    globalAnimatable->getCurrentAnimation()->keys.at(i - 1)
-                                );
-
-                                if (io.KeyAlt)
-                                    std::swap(
-                                        globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames,
-                                        globalAnimatable->getCurrentAnimation()->keys.at(i - 1).holdFrames
-                                    );
+                                sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandMoveAnimationKey>(
+                                CommandMoveAnimationKey(
+                                    sessionManager.getCurrentSession()->cellIndex,
+                                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                                    i,
+                                    true,
+                                    io.KeyAlt
+                                )));
 
                                 appState.playerState.currentFrame--;
                                 appState.playerState.updateCurrentFrame();
@@ -444,57 +460,21 @@ void WindowTimeline::Update() {
                             ImGui::Separator();
 
                             ImGui::BeginDisabled(appState.playerState.frameCount == 1);
-                            if (ImGui::Selectable("Delete key", false, ImGuiSelectableFlags_DontClosePopups))
-                                ImGui::OpenPopup("###DeleteKeyConfirm");
+                            if (ImGui::Selectable("Delete key", false))
+                                deleteKeyMode = DeleteKeyMode_Current;
                             ImGui::EndDisabled();
 
                             ImGui::Separator();
 
                             ImGui::BeginDisabled(i == 0);
-                            if (ImGui::Selectable("Delete key(s) to left", false, ImGuiSelectableFlags_DontClosePopups))
-                                ImGui::OpenPopup("###DeleteKeysLConfirm");
+                            if (ImGui::Selectable("Delete key(s) to left", false))
+                                deleteKeyMode = DeleteKeyMode_ToLeft;
                             ImGui::EndDisabled();
 
                             ImGui::BeginDisabled(i == appState.playerState.frameCount - 1);
-                            if (ImGui::Selectable("Delete key(s) to right", false, ImGuiSelectableFlags_DontClosePopups))
-                                ImGui::OpenPopup("###DeleteKeysRConfirm");
-                            ImGui::EndDisabled();
-
-                            // Sub-popups
-                            {
-                                if (ImGui::BeginPopup("Are you sure?###DeleteKeyConfirm")) {
-                                    ImGui::TextUnformatted("Are you sure you want to\ndelete this key?");
-                                    ImGui::Separator();
-                                    if (ImGui::Selectable("Do it"))
-                                        deleteKeyMode = DeleteKeyMode_Current;
-                                    ImGui::Selectable("Nevermind");
-
-                                    ImGui::EndPopup();
-                                }
-
-                                if (ImGui::BeginPopup("Are you sure?###DeleteKeysLConfirm")) {
-                                    ImGui::TextUnformatted("Are you sure you want to\ndelete the keys to the left?");
-                                    ImGui::Separator();
-                                    if (ImGui::Selectable("Do it"))
-                                        deleteKeyMode = DeleteKeyMode_ToLeft;
-                                    ImGui::Selectable("Nevermind");
-
-                                    ImGui::EndPopup();
-                                }
-
-                                if (ImGui::BeginPopup("Are you sure?###DeleteKeysRConfirm")) {
-                                    ImGui::TextUnformatted("Are you sure you want to\ndelete the keys to the right?");
-                                    ImGui::Separator();
-                                    if (ImGui::Selectable("Do it"))
-                                        deleteKeyMode = DeleteKeyMode_ToRight;
-                                    ImGui::Selectable("Nevermind");
-
-                                    ImGui::EndPopup();
-                                }
-                            
-                                if (deleteKeyMode)
-                                    ImGui::CloseCurrentPopup();
-                            }          
+                            if (ImGui::Selectable("Delete key(s) to right", false))
+                                deleteKeyMode = DeleteKeyMode_ToRight;
+                            ImGui::EndDisabled();        
 
                             ImGui::EndPopup();
                         }
@@ -541,28 +521,38 @@ void WindowTimeline::Update() {
                             std::vector<RvlCellAnim::AnimationKey>& keys = globalAnimatable->getCurrentAnimation()->keys;
 
                             switch (deleteKeyMode) {
-                                case DeleteKeyMode_Current:
-                                    keys.erase(keys.begin() + i);
-                                    break;
+                                case DeleteKeyMode_Current: {
+                                    sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandDeleteAnimationKey>(
+                                    CommandDeleteAnimationKey(
+                                        sessionManager.getCurrentSession()->cellIndex,
+                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        i
+                                    )));
+                                } break;
 
-                                case DeleteKeyMode_ToLeft:
-                                    keys.erase(keys.begin(), keys.begin() + i);
-                                    break;
-                                case DeleteKeyMode_ToRight:
-                                    keys.erase(keys.begin() + i + 1, keys.end());
-                                    break;
+                                case DeleteKeyMode_ToLeft: {
+                                    if (appState.playerState.currentFrame == i)
+                                        appState.playerState.currentFrame = 0;
+
+                                    sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandDeleteManyAnimationKeys>(
+                                    CommandDeleteManyAnimationKeys(
+                                        sessionManager.getCurrentSession()->cellIndex,
+                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        0, i
+                                    )));
+                                } break;
+                                case DeleteKeyMode_ToRight: {
+                                    sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandDeleteManyAnimationKeys>(
+                                    CommandDeleteManyAnimationKeys(
+                                        sessionManager.getCurrentSession()->cellIndex,
+                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        i + 1, keys.size()
+                                    )));
+                                } break;
                                 
                                 default:
                                     break;
                             }
-
-                            appState.playerState.currentFrame = std::clamp<uint16_t>(
-                                appState.playerState.currentFrame,
-                                0,
-                                static_cast<uint16_t>(globalAnimatable->getCurrentAnimation()->keys.size() - 1)
-                            );
-                            appState.playerState.updateSetFrameCount();
-                            appState.playerState.updateCurrentFrame();
                         }
                     }
 
