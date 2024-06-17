@@ -142,9 +142,6 @@ namespace Common {
         return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
     }
     float EaseIn(float t) {
-        if (t == 0.f)
-            return 0.f; // Avoid division by 0 exception
-        
         return t * t;
     }
     float EaseOut(float t) {
