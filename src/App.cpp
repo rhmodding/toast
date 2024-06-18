@@ -822,7 +822,7 @@ void App::UpdatePopups() {
 
             ImGui::SameLine();
 
-            if (ImGui::Button("Scaled part regions")) {
+            if (ImGui::Button("Apply region scaling")) {
                 SessionManager::Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
                 float scaleX =
@@ -849,7 +849,7 @@ void App::UpdatePopups() {
                 ImGui::CloseCurrentPopup();
             } ImGui::SetItemDefaultFocus();
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-                ImGui::SetTooltip("Select this option for texture resizes (like HD scales).");
+                ImGui::SetTooltip("Select this option for texture upscales.");
 
             ImGui::EndPopup();
 
