@@ -712,6 +712,15 @@ void App::UpdatePopups() {
             ImGui::Separator();
             ImGui::Dummy({ 0, 5 });
 
+            const char* formatList[] = {
+                "RGBA32 (full-depth color)",
+                "RGB5A3 (variable color depth)",
+            };
+            static int selectedFormatIndex{ 0 };
+            ImGui::Combo("Image Format", &selectedFormatIndex, formatList, ARRAY_LENGTH(formatList));
+
+            ImGui::Dummy({ 0, 5 });
+
             if (ImGui::Button("Ready", ImVec2(120, 0))) {
                 GET_SESSION_MANAGER;
 
@@ -728,6 +737,19 @@ void App::UpdatePopups() {
                     cellanimSheet->FreeTexture();
                     delete cellanimSheet;
                     cellanimSheet = newImage;
+
+                    switch (selectedFormatIndex) {
+                        case 0:
+                            cellanimSheet->tplOutFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
+                            break;
+                        
+                        case 1:
+                            cellanimSheet->tplOutFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
+                            break;
+                        
+                        default:
+                            break;
+                    }
 
                     ImGui::CloseCurrentPopup();
 
