@@ -76,7 +76,8 @@ namespace RvlCellAnim {
 
         uint8_t opacity{ 0xFFu };
 
-        Unknown32 unknown;
+        uint8_t offsetLeft{ 0 }, offsetRight{ 0 };
+        uint8_t offsetTop{ 0 }, offsetBottom{ 0 };
 
         bool operator==(const AnimationKey& other) const {
             return
@@ -91,7 +92,10 @@ namespace RvlCellAnim {
 
                 this->opacity == other.opacity &&
 
-                this->unknown == other.unknown;
+                this->offsetLeft == other.offsetLeft &&
+                this->offsetRight == other.offsetRight &&
+                this->offsetTop == other.offsetTop &&
+                this->offsetBottom == other.offsetBottom;
         }
 
         bool operator!=(const AnimationKey& other) const {

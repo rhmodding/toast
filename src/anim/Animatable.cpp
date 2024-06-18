@@ -282,8 +282,8 @@ void Animatable::DrawKey(
         };
 
         ImVec2 topLeftOffset = {
-            CANVAS_ORIGIN + (part.positionX - CANVAS_ORIGIN) + (this->offset.x - 512),
-            CANVAS_ORIGIN + (part.positionY - CANVAS_ORIGIN) + (this->offset.y - 512),
+            static_cast<float>(part.positionX) - CANVAS_ORIGIN,
+            static_cast<float>(part.positionY) - CANVAS_ORIGIN
         };
 
         ImVec2 bottomRightOffset = {
@@ -326,17 +326,17 @@ void Animatable::DrawKey(
 
             // Key & animatable scale
             {
-                transformedQuad[0].x = ((transformedQuad[0].x - keyCenter.x) * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
-                transformedQuad[0].y = ((transformedQuad[0].y - keyCenter.y) * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+                transformedQuad[0].x = (transformedQuad[0].x * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
+                transformedQuad[0].y = (transformedQuad[0].y * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
 
-                transformedQuad[1].x = ((transformedQuad[1].x - keyCenter.x) * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
-                transformedQuad[1].y = ((transformedQuad[1].y - keyCenter.y) * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+                transformedQuad[1].x = (transformedQuad[1].x * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
+                transformedQuad[1].y = (transformedQuad[1].y * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
 
-                transformedQuad[2].x = ((transformedQuad[2].x - keyCenter.x) * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
-                transformedQuad[2].y = ((transformedQuad[2].y - keyCenter.y) * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+                transformedQuad[2].x = (transformedQuad[2].x * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
+                transformedQuad[2].y = (transformedQuad[2].y * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
 
-                transformedQuad[3].x = ((transformedQuad[3].x - keyCenter.x) * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
-                transformedQuad[3].y = ((transformedQuad[3].y - keyCenter.y) * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+                transformedQuad[3].x = (transformedQuad[3].x * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
+                transformedQuad[3].y = (transformedQuad[3].y * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
             }
 
             // Key rotation
@@ -345,6 +345,12 @@ void Animatable::DrawKey(
                 transformedQuad[1] = rotateVec2(transformedQuad[1], this->currentKey->angle, keyCenter);
                 transformedQuad[2] = rotateVec2(transformedQuad[2], this->currentKey->angle, keyCenter);
                 transformedQuad[3] = rotateVec2(transformedQuad[3], this->currentKey->angle, keyCenter);
+            }
+        
+            // Key offset addition
+            for (uint8_t i = 0; i < 4; i++) {
+                transformedQuad[i].x += (key->offsetRight - key->offsetLeft) * this->scaleX;
+                transformedQuad[i].y += (key->offsetBottom - key->offsetTop) * this->scaleY;
             }
         }
 

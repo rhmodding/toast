@@ -87,7 +87,8 @@ struct AnimationKeyRaw {
     uint16_t holdFrames;
 
     // Unknown value
-    uint32_t unknown;
+    uint8_t offsetLeft, offsetRight;
+    uint8_t offsetTop, offsetBottom;
 
     uint8_t /* FLOAT */ scaleX[4]; // Value is uint8_t[4] but is later byte-swapped and casted to LE float
     uint8_t /* FLOAT */ scaleY[4]; // Value is uint8_t[4] but is later byte-swapped and casted to LE float
@@ -199,7 +200,10 @@ namespace RvlCellAnim {
 
                 key.opacity = keyRaw->opacity;
 
-                key.unknown.u32 = BYTESWAP_32(keyRaw->unknown);
+                key.offsetLeft = keyRaw->offsetLeft;
+                key.offsetRight = keyRaw->offsetRight;
+                key.offsetTop = keyRaw->offsetTop;
+                key.offsetBottom = keyRaw->offsetBottom;
 
                 animation.keys[j] = key;
             }
@@ -313,8 +317,11 @@ namespace RvlCellAnim {
                 Common::writeBigEndianFloat(key.scaleX, animationKeyRaw->scaleX);
                 Common::writeBigEndianFloat(key.scaleY, animationKeyRaw->scaleY);
                 Common::writeBigEndianFloat(key.angle, animationKeyRaw->angle);
-
-                animationKeyRaw->unknown = BYTESWAP_32(key.unknown.u32);
+                
+                animationKeyRaw->offsetLeft = key.offsetLeft;
+                animationKeyRaw->offsetRight = key.offsetRight;
+                animationKeyRaw->offsetTop = key.offsetTop;
+                animationKeyRaw->offsetBottom = key.offsetBottom;
             }
         }
     
