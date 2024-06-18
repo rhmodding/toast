@@ -838,6 +838,9 @@ void App::UpdatePopups() {
                         part.regionW *= scaleX;
                         part.regionY *= scaleY;
                         part.regionH *= scaleY;
+
+                        part.scaleX /= scaleX;
+                        part.scaleY /= scaleY;
                     }
 
                 currentSession->getCellanim()->textureW = currentSession->getCellanimSheet()->width;
