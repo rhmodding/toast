@@ -19,15 +19,8 @@ namespace Common {
     }
 
     float readBigEndianFloat(const uint8_t* bytes) {
-        uint32_t intValue = (static_cast<uint32_t>(bytes[0]) << 24) |
-                            (static_cast<uint32_t>(bytes[1]) << 16) |
-                            (static_cast<uint32_t>(bytes[2]) << 8) |
-                            static_cast<uint32_t>(bytes[3]);
-
-        float result;
-        std::memcpy(&result, &intValue, sizeof(float));
-        
-        return result;
+        uint32_t value = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(bytes));
+        return *reinterpret_cast<float*>(&value);
     }
 
     void writeBigEndianFloat(float value, uint8_t* bytes) {
