@@ -17,6 +17,8 @@
 #include "SessionManager.hpp"
 #include "ConfigManager.hpp"
 
+#include "common.hpp"
+
 #include <tinyfiledialogs.h>
 
 //#define STB_IMAGE_IMPLEMENTATION
