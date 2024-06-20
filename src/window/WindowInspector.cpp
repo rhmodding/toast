@@ -87,6 +87,8 @@ void WindowInspector::Update() {
                     CommandSetArrangementMode(
                         false
                     )));
+
+                appState.focusOnSelectedPart = false;
             }
             if (ImGui::MenuItem("Arrangement (Immediate)", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
                 inspectorLevel = InspectorLevel_Arrangement_Im;
