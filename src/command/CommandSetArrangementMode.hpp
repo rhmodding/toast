@@ -7,30 +7,52 @@
 
 class CommandSetArrangementMode : public BaseCommand {
 public:
-    // Constructor: Set arrangement mode in a session's scope.
+    // Constructor: Set arrangement mode in the current session's scope.
     CommandSetArrangementMode(
-        uint32_t sessionIndex,
         bool enabled
     ) :
-        sessionIndex(sessionIndex),
         enabled(enabled)
     {}
 
     void Execute() override {
         GET_SESSION_MANAGER;
 
-        sessionManager.sessionList.at(this->sessionIndex).arrangementMode = enabled;
+        sessionManager.getCurrentSession()->arrangementMode = this->enabled;
+
+        this->UpdateState(this->enabled);
     }
 
     void Rollback() override {
         GET_SESSION_MANAGER;
 
-        sessionManager.sessionList.at(this->sessionIndex).arrangementMode = !enabled;
+        sessionManager.getCurrentSession()->arrangementMode = !this->enabled;
+
+        this->UpdateState(!this->enabled);
     }
 
 private:
-    uint32_t sessionIndex;
-    
+    void UpdateState(bool lEnabled) {
+        GET_APP_STATE;
+
+        appState.selectedPart = std::clamp<int32_t>(
+            appState.selectedPart,
+            -1,
+            appState.globalAnimatable->getCurrentArrangement()->parts.size() - 1
+        );
+
+        auto& globalAnimatable = appState.globalAnimatable;
+
+        if (lEnabled) {
+            appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
+
+            appState.playerState.ToggleAnimating(false);
+            globalAnimatable->setAnimationKeyFromPtr(&appState.controlKey);
+        }
+        else {
+            globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
+        }
+    }
+
     bool enabled;
 };
 
