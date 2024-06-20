@@ -7,17 +7,6 @@
 #include "stb/stb_image_write.h"
 
 namespace Common {
-    constexpr uint32_t magicToUint32(const char* magic, bool bigEndian) {
-        uint32_t result = 0;
-
-        for (size_t i = 0; i < 4; ++i) {
-            size_t shift = bigEndian ? (8 * (3 - i)) : (8 * i);
-            result |= static_cast<uint32_t>(magic[i]) << shift;
-        }
-
-        return result;
-    }
-
     float readBigEndianFloat(const uint8_t* bytes) {
         uint32_t value = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(bytes));
         return *reinterpret_cast<float*>(&value);

@@ -35,26 +35,12 @@
 #define GET_WINDOW_DRAWLIST ImDrawList* drawList = ImGui::GetWindowDrawList()
 
 namespace Common {
-    template <typename T>
-    T beRightShift(T num, int shift) {
-        T numCpy = num;
-        
-        numCpy = BYTESWAP_32(numCpy);
-
-        numCpy = numCpy >> shift;
-
-        numCpy = BYTESWAP_32(numCpy);
-
-        return num;
-    }
-
-    constexpr uint32_t magicToUint32(const char* magic, bool bigEndian = false);
-
     // Byte-swap and cast uint8_t[4] to LE float
     float readBigEndianFloat(const uint8_t* bytes);
 
     // Cast LE float to uint8_t[4] and byte-swap
     void writeBigEndianFloat(float value, uint8_t* bytes);
+    
     template <typename T>
     void deleteIfNotNullptr(T*& ptr, bool setNullptr = true) {
         if (ptr)
