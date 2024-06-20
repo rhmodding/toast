@@ -33,6 +33,10 @@ set(SOURCES
     src/window/WindowInspector.cpp
     src/window/WindowSpritesheet.cpp
 
+    src/window/WindowInspector/WindowInspector_Animation.cpp
+    src/window/WindowInspector/WindowInspector_Arrangement.cpp
+    src/window/WindowInspector/WindowInspector_Key.cpp
+
     src/window/WindowConfig.cpp
     src/window/WindowAbout.cpp
 
