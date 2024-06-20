@@ -50,50 +50,6 @@ set(SOURCES
     src/stb/stb_image_write.h
 )
 
-set(HEADERS
-    ext/imgui/imconfig.h
-    ext/imgui/imgui.h
-    ext/imgui/imgui_internal.h
-    ext/imgui/backends/imgui_impl_glfw.h
-    ext/imgui/backends/imgui_impl_opengl3.h
-    ext/imgui/backends/imgui_impl_opengl3_loader.h
-
-    ext/tinyfiledialogs/tinyfiledialogs.h
-
-    src/App.hpp
-
-    src/anim/Animatable.hpp
-    src/anim/RvlCellAnim.hpp
-
-    src/archive/U8.hpp
-
-    src/compression/Yaz0.hpp
-
-    src/texture/ImageConvert.hpp
-    src/texture/TPL.hpp
-
-    src/window/BaseWindow.hpp
-
-    src/window/WindowTimeline.hpp
-    src/window/WindowCanvas.hpp
-    src/window/WindowHybridList.hpp
-    src/window/WindowInspector.hpp
-    src/window/WindowSpritesheet.hpp
-
-    src/window/WindowConfig.hpp
-    src/window/WindowAbout.hpp
-
-    src/AppState.hpp
-
-    src/SessionManager.hpp
-
-    src/ConfigManager.hpp
-
-    src/common.hpp
-
-    src/ConsoleSplash.hpp
-)
-
 # Disable MSVC unsafe function warnings (strcpy, sprintf, etc..)
 IF (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
