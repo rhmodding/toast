@@ -1,0 +1,343 @@
+#include "../WindowInspector.hpp"
+
+#include "../../font/FontAwesome.h"
+
+#include "../../SessionManager.hpp"
+
+#include "../../command/CommandInsertArrangement.hpp"
+#include "../../command/CommandModifyAnimationKey.hpp"
+
+const uint16_t uint16_one = 1;
+
+void WindowInspector::Level_Key() {
+    GET_APP_STATE;
+    GET_ANIMATABLE;
+    GET_SESSION_MANAGER;
+
+    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
+
+    DrawPreview(globalAnimatable);
+
+    ImGui::SameLine();
+
+    RvlCellAnim::AnimationKey newKey = *globalAnimatable->getCurrentKey();
+    RvlCellAnim::AnimationKey originalKey = *globalAnimatable->getCurrentKey();
+
+    uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
+    auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(animationIndex);
+
+    const char* animationName = 
+        query != sessionManager.getCurrentSession()->getAnimationNames()->end() ?
+            query->second.c_str() : nullptr;
+
+    ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+
+        ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex+1);
+
+        ImGui::PushFont(appState.fontLarge);
+        ImGui::TextWrapped("Key no. %u", globalAnimatable->getCurrentKeyIndex()+1);
+        ImGui::PopFont();
+
+        ImGui::PopStyleVar();
+    }
+    ImGui::EndChild();
+
+    RvlCellAnim::AnimationKey* animKey = globalAnimatable->getCurrentKey();
+
+    ImGui::SeparatorText((char*)ICON_FA_IMAGE " Arrangement");
+
+    // Arrangement Input
+    {
+        static uint16_t oldArrangement{ 0 };
+        uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
+
+        ImGui::SetNextItemWidth(ImGui::CalcItemWidth() - (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x) * 2);
+        if (ImGui::InputScalar(
+            "##Arrangement No.",
+            ImGuiDataType_U16,
+            &newArrangement,
+            nullptr, nullptr,
+            "%u"
+        )) {
+            globalAnimatable->getCurrentKey()->arrangementIndex =
+                std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size());
+
+            appState.selectedPart = std::clamp<int32_t>(
+                appState.selectedPart,
+                -1,
+                globalAnimatable->getCurrentArrangement()->parts.size() - 1
+            );
+        }
+
+        if (ImGui::IsItemActivated())
+            oldArrangement = originalKey.arrangementIndex;
+
+        if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
+            changed = true;
+
+            originalKey.arrangementIndex = oldArrangement;
+            newKey.arrangementIndex =
+                std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size());
+        }
+
+        // Start +- Buttons
+
+        const ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+
+        ImGui::PushButtonRepeat(true);
+
+        ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+        if (
+            ImGui::Button("-##Arrangement No._dec", buttonSize) &&
+            globalAnimatable->getCurrentKey()->arrangementIndex > 0
+        ) {
+            if (!appState.getArrangementMode())
+                newKey.arrangementIndex--;
+            else
+                globalAnimatable->getCurrentKey()->arrangementIndex--;
+
+            appState.selectedPart = std::clamp<int32_t>(
+                appState.selectedPart,
+                -1,
+                globalAnimatable->getCurrentArrangement()->parts.size() - 1
+            );
+        }
+        ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+        if (
+            ImGui::Button("+##Arrangement No._inc", buttonSize) &&
+            (globalAnimatable->getCurrentKey()->arrangementIndex + 1) < globalAnimatable->cellanim->arrangements.size()
+        ) {
+            if (!appState.getArrangementMode())
+                newKey.arrangementIndex++;
+            else
+                globalAnimatable->getCurrentKey()->arrangementIndex++;
+
+            appState.selectedPart = std::clamp<int32_t>(
+                appState.selectedPart,
+                -1,
+                globalAnimatable->getCurrentArrangement()->parts.size() - 1
+            );
+        }
+
+        ImGui::PopButtonRepeat();
+
+        ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+        ImGui::Text("Arrangement No.");
+    }
+
+    if (ImGui::Button("Duplicate Arrangement & Switch")) {
+        SessionManager::getInstance().getCurrentSession()->executeCommand(
+        std::make_shared<CommandInsertArrangement>(
+        CommandInsertArrangement(
+            sessionManager.getCurrentSession()->cellIndex,
+            sessionManager.getCurrentSession()->getCellanim()->arrangements.size(),
+            sessionManager.getCurrentSession()->getCellanim()->arrangements.at(animKey->arrangementIndex)
+        )));
+
+        newKey.arrangementIndex = 
+            sessionManager.getCurrentSession()->getCellanim()->arrangements.size() - 1;
+    }
+
+    ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
+
+    {
+        static uint16_t oldHoldFrames{ 0 };
+        uint16_t holdFrames = animKey->holdFrames;
+        if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            if (holdFrames <= 1)
+                holdFrames = 1;
+            
+            animKey->holdFrames = holdFrames;
+        };
+
+        if (ImGui::IsItemActivated())
+            oldHoldFrames = originalKey.holdFrames;
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            originalKey.holdFrames = oldHoldFrames;
+            newKey.holdFrames = holdFrames;
+        }
+    }
+
+    ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
+
+    // Position XY
+    {
+        static int oldPosition[2]{ 0, 0 };
+        int positionValues[2] = {
+            animKey->offsetRight - animKey->offsetLeft,
+            animKey->offsetBottom - animKey->offsetTop
+        };
+        if (ImGui::DragInt2("Position XY", positionValues, 1.f, -UINT8_MAX, UINT8_MAX)) {
+            if (positionValues[0] < 0) {
+                animKey->offsetLeft = std::clamp(positionValues[0] * -1, 0, UINT8_MAX);
+                animKey->offsetRight = 0;
+            } else {
+                animKey->offsetLeft = 0;
+                animKey->offsetRight = std::clamp(positionValues[0], 0, UINT8_MAX);
+            }
+
+            if (positionValues[1] < 0) {
+                animKey->offsetTop = std::clamp(positionValues[1] * -1, 0, UINT8_MAX);
+                animKey->offsetBottom = 0;
+            } else {
+                animKey->offsetTop = 0;
+                animKey->offsetBottom = std::clamp(positionValues[1], 0, UINT8_MAX);
+            }
+        }
+
+        if (ImGui::IsItemActivated()) {
+            oldPosition[0] = originalKey.offsetRight - originalKey.offsetLeft;
+            oldPosition[1] = originalKey.offsetBottom - originalKey.offsetTop;
+        }
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            {
+                if (oldPosition[0] < 0) {
+                    originalKey.offsetLeft = std::clamp(oldPosition[0] * -1, 0, UINT8_MAX);
+                    originalKey.offsetRight = 0;
+                } else {
+                    originalKey.offsetLeft = 0;
+                    originalKey.offsetRight = std::clamp(oldPosition[0], 0, UINT8_MAX);
+                }
+
+                if (oldPosition[1] < 0) {
+                    originalKey.offsetTop = std::clamp(oldPosition[1] * -1, 0, UINT8_MAX);
+                    originalKey.offsetBottom = 0;
+                } else {
+                    originalKey.offsetTop = 0;
+                    originalKey.offsetBottom = std::clamp(oldPosition[1], 0, UINT8_MAX);
+                }
+            }
+
+            {
+                if (positionValues[0] < 0) {
+                    newKey.offsetLeft = std::clamp(positionValues[0] * -1, 0, UINT8_MAX);
+                    newKey.offsetRight = 0;
+                } else {
+                    newKey.offsetLeft = 0;
+                    newKey.offsetRight = std::clamp(positionValues[0], 0, UINT8_MAX);
+                }
+
+                if (positionValues[1] < 0) {
+                    newKey.offsetTop = std::clamp(positionValues[1] * -1, 0, UINT8_MAX);
+                    newKey.offsetBottom = 0;
+                } else {
+                    newKey.offsetTop = 0;
+                    newKey.offsetBottom = std::clamp(positionValues[1], 0, UINT8_MAX);
+                }
+            }
+        }
+    }
+
+    // Scale XY
+    {
+        static float oldScale[2]{ 0.f, 0.f };
+        float scaleValues[2] = { animKey->scaleX, animKey->scaleY };
+        if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
+            animKey->scaleX = scaleValues[0];
+            animKey->scaleY = scaleValues[1];
+        }
+
+        if (ImGui::IsItemActivated()) {
+            oldScale[0] = originalKey.scaleX;
+            oldScale[1] = originalKey.scaleY;
+        }
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            originalKey.scaleX = oldScale[0];
+            originalKey.scaleY = oldScale[1];
+
+            newKey.scaleX = scaleValues[0];
+            newKey.scaleY = scaleValues[1];
+        }
+    }
+
+    // Angle Z slider
+    {
+        static float oldAngle{ 0.f };
+        float newAngle = animKey->angle;
+        if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
+            animKey->angle = newAngle;
+
+        if (ImGui::IsItemActivated())
+            oldAngle = originalKey.angle;
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            originalKey.angle = oldAngle;
+            newKey.angle = newAngle;
+        }
+    }
+
+    ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
+
+    // Opacity slider
+    {
+        static const uint8_t min{ 0 };
+        static const uint8_t max{ 0xFF };
+
+        static uint8_t oldOpacity{ 0 };
+        uint8_t newOpacity = animKey->opacity;
+        if (ImGui::SliderScalar("Opacity", ImGuiDataType_U8, &newOpacity, &min, &max, "%u"))
+            animKey->opacity = newOpacity;
+
+        if (ImGui::IsItemActivated())
+            oldOpacity = originalKey.opacity;
+
+        if (ImGui::IsItemDeactivated()) {
+            changed = true;
+
+            originalKey.opacity = oldOpacity;
+            newKey.opacity = newOpacity;
+        }
+    }
+
+
+
+    /*
+
+    if (ConfigManager::getInstance().config.showUnknownValues) {
+        ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
+
+        if (ImGui::CollapsingHeader("..as Uint32", ImGuiTreeNodeFlags_None)) {
+            changed |= ImGui::InputScalar(" A", ImGuiDataType_U32, &animKey->unknown.u32, &uint32_one, nullptr, "%u");
+        }
+        ImGui::Separator();
+        if (ImGui::CollapsingHeader("..as Uint16", ImGuiTreeNodeFlags_None)) {
+            changed |= ImGui::InputScalar(" A", ImGuiDataType_U16, &animKey->unknown.u16[0], &uint16_one, nullptr, "%u");
+            changed |= ImGui::InputScalar(" B", ImGuiDataType_U16, &animKey->unknown.u16[1], &uint16_one, nullptr, "%u");
+        }
+        ImGui::Separator();
+        if (ImGui::CollapsingHeader("..as Uint8 (byte)", ImGuiTreeNodeFlags_None)) {
+            changed |= ImGui::InputScalar(" A", ImGuiDataType_U8, &animKey->unknown.u8[0], &uint8_one, nullptr, "%u");
+            changed |= ImGui::InputScalar(" B", ImGuiDataType_U8, &animKey->unknown.u8[1], &uint8_one, nullptr, "%u");
+            changed |= ImGui::InputScalar(" C", ImGuiDataType_U8, &animKey->unknown.u8[2], &uint8_one, nullptr, "%u");
+            changed |= ImGui::InputScalar(" D", ImGuiDataType_U8, &animKey->unknown.u8[3], &uint8_one, nullptr, "%u");
+        }
+    }
+
+    */
+
+    if (newKey != originalKey) {
+        *globalAnimatable->getCurrentKey() = originalKey;
+
+        SessionManager::getInstance().getCurrentSession()->executeCommand(
+        std::make_shared<CommandModifyAnimationKey>(
+        CommandModifyAnimationKey(
+            sessionManager.getCurrentSession()->cellIndex,
+            appState.globalAnimatable->getCurrentAnimationIndex(),
+            appState.globalAnimatable->getCurrentKeyIndex(),
+            newKey
+        )));
+    }
+}

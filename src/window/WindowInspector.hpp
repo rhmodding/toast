@@ -5,6 +5,8 @@
 
 #include "../anim/Animatable.hpp"
 
+#include "../AppState.hpp"
+
 #include <unordered_map>
 #include <string>
 
@@ -21,6 +23,8 @@ public:
 
 private:
     bool realPosition{ true };
+
+    void DrawPreview(Animatable* animatable);
 
     void Level_Animation();
     void Level_Key();
