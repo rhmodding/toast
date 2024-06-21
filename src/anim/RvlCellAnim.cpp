@@ -145,10 +145,10 @@ namespace RvlCellAnim {
                 arrangementPart.positionX = BYTESWAP_16(arrangementPartRaw->positionX);
                 arrangementPart.positionY = BYTESWAP_16(arrangementPartRaw->positionY);
 
-                arrangementPart.scaleX = Common::readBigEndianFloat(&arrangementPartRaw->scaleX[0]);
-                arrangementPart.scaleY = Common::readBigEndianFloat(&arrangementPartRaw->scaleY[0]);
+                arrangementPart.scaleX = Common::byteswapFloat(arrangementPartRaw->scaleX);
+                arrangementPart.scaleY = Common::byteswapFloat(arrangementPartRaw->scaleY);
 
-                arrangementPart.angle = Common::readBigEndianFloat(&arrangementPartRaw->angle[0]);
+                arrangementPart.angle = Common::byteswapFloat(arrangementPartRaw->angle);
 
                 arrangementPart.flipX = arrangementPartRaw->flipX != 0;
                 arrangementPart.flipY = arrangementPartRaw->flipY != 0;
@@ -254,6 +254,11 @@ namespace RvlCellAnim {
                 arrangementPartRaw->positionX = BYTESWAP_16(part.positionX);
                 arrangementPartRaw->positionY = BYTESWAP_16(part.positionY);
 
+                arrangementPartRaw->scaleX = Common::byteswapFloat(part.scaleX);
+                arrangementPartRaw->scaleY = Common::byteswapFloat(part.scaleY);
+
+                arrangementPartRaw->angle = Common::byteswapFloat(part.angle);
+
                 arrangementPartRaw->flipX = part.flipX ? 0x01 : 0x00;
                 arrangementPartRaw->flipY = part.flipY ? 0x01 : 0x00;
 
@@ -261,10 +266,6 @@ namespace RvlCellAnim {
 
                 arrangementPartRaw->unknown_1 = BYTESWAP_32(part.unknown.u32);
                 arrangementPartRaw->unknown_2 = 0x00;
-
-                Common::writeBigEndianFloat(part.scaleX, arrangementPartRaw->scaleX);
-                Common::writeBigEndianFloat(part.scaleY, arrangementPartRaw->scaleY);
-                Common::writeBigEndianFloat(part.angle, arrangementPartRaw->angle);
             }
         }
     

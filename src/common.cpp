@@ -7,26 +7,11 @@
 #include "stb/stb_image_write.h"
 
 namespace Common {
-    float readBigEndianFloat(const uint8_t* bytes) {
-        uint32_t value = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(bytes));
-        return *reinterpret_cast<float*>(&value);
-    }
-
     float byteswapFloat(float value) {
         uint32_t rValue = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(&value));
         return *reinterpret_cast<float*>(&value);
     }
 
-    void writeBigEndianFloat(float value, uint8_t* bytes) {
-        uint32_t intValue;
-        std::memcpy(&intValue, &value, sizeof(float));
-
-        bytes[0] = static_cast<uint8_t>(intValue >> 24);
-        bytes[1] = static_cast<uint8_t>(intValue >> 16);
-        bytes[2] = static_cast<uint8_t>(intValue >> 8);
-        bytes[3] = static_cast<uint8_t>(intValue);
-    }
-    
     std::string randomString(const uint32_t length) {
         static const char characters[] =
             "0123456789"
