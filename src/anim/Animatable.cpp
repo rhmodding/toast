@@ -215,8 +215,8 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
     
         // Key offset addition
         for (uint8_t i = 0; i < 4; i++) {
-            transformedQuad[i].x += (key->offsetRight - key->offsetLeft) * this->scaleX;
-            transformedQuad[i].y += (key->offsetBottom - key->offsetTop) * this->scaleY;
+            transformedQuad[i].x += (key->positionX) * this->scaleX;
+            transformedQuad[i].y += (key->positionY) * this->scaleY;
         }
     }
 

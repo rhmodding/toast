@@ -12,6 +12,11 @@ namespace Common {
         return *reinterpret_cast<float*>(&value);
     }
 
+    float byteswapFloat(float value) {
+        uint32_t rValue = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(&value));
+        return *reinterpret_cast<float*>(&value);
+    }
+
     void writeBigEndianFloat(float value, uint8_t* bytes) {
         uint32_t intValue;
         std::memcpy(&intValue, &value, sizeof(float));

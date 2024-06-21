@@ -86,14 +86,10 @@ struct AnimationKeyRaw {
     // Amount of frames the key is held for
     uint16_t holdFrames;
 
-    // Unknown value
-    uint8_t offsetLeft, offsetRight;
-    uint8_t offsetTop, offsetBottom;
-
-    uint8_t /* FLOAT */ scaleX[4]; // Value is uint8_t[4] but is later byte-swapped and casted to LE float
-    uint8_t /* FLOAT */ scaleY[4]; // Value is uint8_t[4] but is later byte-swapped and casted to LE float
-
-    uint8_t /* FLOAT */ angle[4]; // Value is uint8_t[4] but is later byte-swapped and casted to LE float
+    // Transform values
+    int16_t positionX{ 0 }, positionY{ 0 };
+    float scaleX, scaleY;
+    float angle; // Angle in degrees
 
     // Opacity, ranges from 0 - 255
     uint8_t opacity;
@@ -193,17 +189,15 @@ namespace RvlCellAnim {
 
                 key.holdFrames = BYTESWAP_16(keyRaw->holdFrames);
 
-                key.scaleX = Common::readBigEndianFloat(&keyRaw->scaleX[0]);
-                key.scaleY = Common::readBigEndianFloat(&keyRaw->scaleY[0]);
+                key.positionX = BYTESWAP_16(keyRaw->positionX);
+                key.positionY = BYTESWAP_16(keyRaw->positionY);
 
-                key.angle = Common::readBigEndianFloat(&keyRaw->angle[0]);
+                key.scaleX = Common::byteswapFloat(keyRaw->scaleX);
+                key.scaleY = Common::byteswapFloat(keyRaw->scaleY);
+
+                key.angle = Common::byteswapFloat(keyRaw->angle);
 
                 key.opacity = keyRaw->opacity;
-
-                key.offsetLeft = keyRaw->offsetLeft;
-                key.offsetRight = keyRaw->offsetRight;
-                key.offsetTop = keyRaw->offsetTop;
-                key.offsetBottom = keyRaw->offsetBottom;
 
                 animation.keys[j] = key;
             }
@@ -312,16 +306,15 @@ namespace RvlCellAnim {
 
                 animationKeyRaw->holdFrames = BYTESWAP_16(key.holdFrames);
 
-                animationKeyRaw->opacity = key.opacity;
+                animationKeyRaw->positionX = BYTESWAP_16(key.positionX);
+                animationKeyRaw->positionY = BYTESWAP_16(key.positionY);
 
-                Common::writeBigEndianFloat(key.scaleX, animationKeyRaw->scaleX);
-                Common::writeBigEndianFloat(key.scaleY, animationKeyRaw->scaleY);
-                Common::writeBigEndianFloat(key.angle, animationKeyRaw->angle);
-                
-                animationKeyRaw->offsetLeft = key.offsetLeft;
-                animationKeyRaw->offsetRight = key.offsetRight;
-                animationKeyRaw->offsetTop = key.offsetTop;
-                animationKeyRaw->offsetBottom = key.offsetBottom;
+                animationKeyRaw->scaleX = Common::byteswapFloat(key.scaleX);
+                animationKeyRaw->scaleY = Common::byteswapFloat(key.scaleY);
+
+                animationKeyRaw->angle = Common::byteswapFloat(key.angle);
+
+                animationKeyRaw->opacity = key.opacity;
             }
         }
     

@@ -38,6 +38,8 @@ namespace Common {
     // Byte-swap and cast uint8_t[4] to LE float
     float readBigEndianFloat(const uint8_t* bytes);
 
+    float byteswapFloat(float value);
+
     // Cast LE float to uint8_t[4] and byte-swap
     void writeBigEndianFloat(float value, uint8_t* bytes);
     

@@ -169,70 +169,27 @@ void WindowInspector::Level_Key() {
     {
         static int oldPosition[2]{ 0, 0 };
         int positionValues[2] = {
-            animKey->offsetRight - animKey->offsetLeft,
-            animKey->offsetBottom - animKey->offsetTop
+            animKey->positionX,
+            animKey->positionY
         };
         if (ImGui::DragInt2("Position XY", positionValues, 1.f, -UINT8_MAX, UINT8_MAX)) {
-            if (positionValues[0] < 0) {
-                animKey->offsetLeft = std::clamp(positionValues[0] * -1, 0, UINT8_MAX);
-                animKey->offsetRight = 0;
-            } else {
-                animKey->offsetLeft = 0;
-                animKey->offsetRight = std::clamp(positionValues[0], 0, UINT8_MAX);
-            }
-
-            if (positionValues[1] < 0) {
-                animKey->offsetTop = std::clamp(positionValues[1] * -1, 0, UINT8_MAX);
-                animKey->offsetBottom = 0;
-            } else {
-                animKey->offsetTop = 0;
-                animKey->offsetBottom = std::clamp(positionValues[1], 0, UINT8_MAX);
-            }
+            animKey->positionX = positionValues[0];
+            animKey->positionY = positionValues[1];
         }
 
         if (ImGui::IsItemActivated()) {
-            oldPosition[0] = originalKey.offsetRight - originalKey.offsetLeft;
-            oldPosition[1] = originalKey.offsetBottom - originalKey.offsetTop;
+            oldPosition[0] = originalKey.positionX;
+            oldPosition[1] = originalKey.positionY;
         }
 
         if (ImGui::IsItemDeactivated()) {
             changed = true;
 
-            {
-                if (oldPosition[0] < 0) {
-                    originalKey.offsetLeft = std::clamp(oldPosition[0] * -1, 0, UINT8_MAX);
-                    originalKey.offsetRight = 0;
-                } else {
-                    originalKey.offsetLeft = 0;
-                    originalKey.offsetRight = std::clamp(oldPosition[0], 0, UINT8_MAX);
-                }
+            originalKey.positionX = oldPosition[0];
+            originalKey.positionY = oldPosition[1];
 
-                if (oldPosition[1] < 0) {
-                    originalKey.offsetTop = std::clamp(oldPosition[1] * -1, 0, UINT8_MAX);
-                    originalKey.offsetBottom = 0;
-                } else {
-                    originalKey.offsetTop = 0;
-                    originalKey.offsetBottom = std::clamp(oldPosition[1], 0, UINT8_MAX);
-                }
-            }
-
-            {
-                if (positionValues[0] < 0) {
-                    newKey.offsetLeft = std::clamp(positionValues[0] * -1, 0, UINT8_MAX);
-                    newKey.offsetRight = 0;
-                } else {
-                    newKey.offsetLeft = 0;
-                    newKey.offsetRight = std::clamp(positionValues[0], 0, UINT8_MAX);
-                }
-
-                if (positionValues[1] < 0) {
-                    newKey.offsetTop = std::clamp(positionValues[1] * -1, 0, UINT8_MAX);
-                    newKey.offsetBottom = 0;
-                } else {
-                    newKey.offsetTop = 0;
-                    newKey.offsetBottom = std::clamp(positionValues[1], 0, UINT8_MAX);
-                }
-            }
+            newKey.positionX = positionValues[0];
+            newKey.positionY = positionValues[1];
         }
     }
 

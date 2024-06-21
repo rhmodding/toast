@@ -355,22 +355,15 @@ void WindowTimeline::Update() {
 
                                         // Offset
                                         {
-                                            newKey.offsetTop = static_cast<int16_t>((
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i).offsetTop +
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i+1).offsetTop
-                                            ) / 2);
-                                            newKey.offsetBottom = static_cast<int16_t>((
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i).offsetBottom +
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i+1).offsetBottom
-                                            ) / 2);
-                                            newKey.offsetLeft = static_cast<int16_t>((
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i).offsetLeft +
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i+1).offsetLeft
-                                            ) / 2);
-                                            newKey.offsetRight = static_cast<int16_t>((
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i).offsetRight +
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i+1).offsetRight
-                                            ) / 2);
+                                            newKey.positionX = (
+                                                globalAnimatable->getCurrentAnimation()->keys.at(i).positionX +
+                                                globalAnimatable->getCurrentAnimation()->keys.at(i+1).positionX
+                                            ) / 2;
+
+                                            newKey.positionY = (
+                                                globalAnimatable->getCurrentAnimation()->keys.at(i).positionY +
+                                                globalAnimatable->getCurrentAnimation()->keys.at(i+1).positionY
+                                            ) / 2;
                                         }
 
                                         newKey.opacity = static_cast<uint16_t>((
