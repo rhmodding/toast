@@ -102,8 +102,8 @@ ImVec2 Animatable::getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t pa
         float totalScaleY = key->scaleY * this->scaleY;
 
         ImVec2 point = {
-            CANVAS_ORIGIN + ((part.positionX - CANVAS_ORIGIN) * totalScaleX) + (this->offset.x - 512),
-            CANVAS_ORIGIN + ((part.positionY - CANVAS_ORIGIN) * totalScaleY) + (this->offset.y - 512),
+            CANVAS_ORIGIN + ((part.positionX - CANVAS_ORIGIN) * totalScaleX) + (this->offset.x - CANVAS_ORIGIN),
+            CANVAS_ORIGIN + ((part.positionY - CANVAS_ORIGIN) * totalScaleY) + (this->offset.y - CANVAS_ORIGIN),
         };
 
         return point;
@@ -143,8 +143,8 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
     // float totalScaleY = this->currentKey->scaleY * this->scaleY;
 
     ImVec2 keyCenter = {
-        CANVAS_ORIGIN + (this->offset.x - 512),
-        CANVAS_ORIGIN + (this->offset.y - 512)
+        CANVAS_ORIGIN + (this->offset.x - CANVAS_ORIGIN),
+        CANVAS_ORIGIN + (this->offset.y - CANVAS_ORIGIN)
     };
 
     ImVec2 topLeftOffset = {
