@@ -415,17 +415,17 @@ void WindowSpritesheet::Update() {
 
             uint16_t sourceRect[4] = { partPtr->regionX, partPtr->regionY, partPtr->regionW, partPtr->regionH };
 
-            float dataDiffScaleX = static_cast<float>(globalAnimatable->texture->width) / globalAnimatable->cellanim->textureW;
-            float dataDiffScaleY = static_cast<float>(globalAnimatable->texture->height) / globalAnimatable->cellanim->textureH;
+            float mismatchScaleX = static_cast<float>(globalAnimatable->texture->width) / globalAnimatable->cellanim->textureW;
+            float mismatchScaleY = static_cast<float>(globalAnimatable->texture->height) / globalAnimatable->cellanim->textureH;
 
             ImVec2 topLeftOffset = {
-                (sourceRect[0] * scale * dataDiffScaleX) + imagePosition.x,
-                (sourceRect[1] * scale * dataDiffScaleY) + imagePosition.y,
+                (sourceRect[0] * scale * mismatchScaleX) + imagePosition.x,
+                (sourceRect[1] * scale * mismatchScaleY) + imagePosition.y,
             };
 
             ImVec2 bottomRightOffset = {
-                topLeftOffset.x + (sourceRect[2] * scale * dataDiffScaleX),
-                topLeftOffset.y + (sourceRect[3] * scale * dataDiffScaleY)
+                topLeftOffset.x + (sourceRect[2] * scale * mismatchScaleX),
+                topLeftOffset.y + (sourceRect[3] * scale * mismatchScaleY)
             };
 
             drawList->AddRect(topLeftOffset, bottomRightOffset, IM_COL32(255, 0, 0, 255));

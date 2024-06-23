@@ -129,14 +129,14 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
     RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
     RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
 
-    float dataDiffScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
-    float dataDiffScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
+    float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
+    float mismatchScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
 
     uint16_t sourceRect[4] = {
-        static_cast<uint16_t>(part.regionX * dataDiffScaleX),
-        static_cast<uint16_t>(part.regionY * dataDiffScaleY),
-        static_cast<uint16_t>(part.regionW * dataDiffScaleX),
-        static_cast<uint16_t>(part.regionH * dataDiffScaleY)
+        static_cast<uint16_t>(part.regionX * mismatchScaleX),
+        static_cast<uint16_t>(part.regionY * mismatchScaleY),
+        static_cast<uint16_t>(part.regionW * mismatchScaleX),
+        static_cast<uint16_t>(part.regionH * mismatchScaleY)
     };
 
     // float totalScaleX = this->currentKey->scaleX * this->scaleX;
@@ -269,14 +269,14 @@ void Animatable::DrawKey(
         if ((part.opacity == 0) && allowOpacity)
             continue; // Part not visible; don't bother drawing it.
 
-        float dataDiffScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
-        float dataDiffScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
+        float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
+        float mismatchScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
 
         uint16_t sourceRect[4] = {
-            static_cast<uint16_t>(part.regionX * dataDiffScaleX),
-            static_cast<uint16_t>(part.regionY * dataDiffScaleY),
-            static_cast<uint16_t>(part.regionW * dataDiffScaleX),
-            static_cast<uint16_t>(part.regionH * dataDiffScaleY)
+            static_cast<uint16_t>(part.regionX * mismatchScaleX),
+            static_cast<uint16_t>(part.regionY * mismatchScaleY),
+            static_cast<uint16_t>(part.regionW * mismatchScaleX),
+            static_cast<uint16_t>(part.regionH * mismatchScaleY)
         };
 
         auto transformedQuad = this->getPartWorldQuad(key, i);
