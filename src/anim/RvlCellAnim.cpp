@@ -223,7 +223,7 @@ namespace RvlCellAnim {
 
         header->arrangementCount = BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size()));
 
-        size_t writeOffset{ sizeof(RvlCellAnimHeader) };
+        uint32_t writeOffset{ sizeof(RvlCellAnimHeader) };
 
         for (const Arrangement& arrangement : this->arrangements) {
             result.resize(
