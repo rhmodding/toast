@@ -192,25 +192,25 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
 
         // Key & animatable scale
         {
-            transformedQuad[0].x = (transformedQuad[0].x * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[0].y = (transformedQuad[0].y * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+            transformedQuad[0].x = (transformedQuad[0].x * key->scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[0].y = (transformedQuad[0].y * key->scaleY * this->scaleY) + keyCenter.y;
 
-            transformedQuad[1].x = (transformedQuad[1].x * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[1].y = (transformedQuad[1].y * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+            transformedQuad[1].x = (transformedQuad[1].x * key->scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[1].y = (transformedQuad[1].y * key->scaleY * this->scaleY) + keyCenter.y;
 
-            transformedQuad[2].x = (transformedQuad[2].x * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[2].y = (transformedQuad[2].y * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+            transformedQuad[2].x = (transformedQuad[2].x * key->scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[2].y = (transformedQuad[2].y * key->scaleY * this->scaleY) + keyCenter.y;
 
-            transformedQuad[3].x = (transformedQuad[3].x * this->currentKey->scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[3].y = (transformedQuad[3].y * this->currentKey->scaleY * this->scaleY) + keyCenter.y;
+            transformedQuad[3].x = (transformedQuad[3].x * key->scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[3].y = (transformedQuad[3].y * key->scaleY * this->scaleY) + keyCenter.y;
         }
 
         // Key rotation
-        if (fmod(this->currentKey->angle, 360)) {
-            transformedQuad[0] = rotateVec2(transformedQuad[0], this->currentKey->angle, keyCenter);
-            transformedQuad[1] = rotateVec2(transformedQuad[1], this->currentKey->angle, keyCenter);
-            transformedQuad[2] = rotateVec2(transformedQuad[2], this->currentKey->angle, keyCenter);
-            transformedQuad[3] = rotateVec2(transformedQuad[3], this->currentKey->angle, keyCenter);
+        if (fmod(key->angle, 360)) {
+            transformedQuad[0] = rotateVec2(transformedQuad[0], key->angle, keyCenter);
+            transformedQuad[1] = rotateVec2(transformedQuad[1], key->angle, keyCenter);
+            transformedQuad[2] = rotateVec2(transformedQuad[2], key->angle, keyCenter);
+            transformedQuad[3] = rotateVec2(transformedQuad[3], key->angle, keyCenter);
         }
     
         // Key offset addition
@@ -300,7 +300,7 @@ void Animatable::DrawKey(
         uint8_t modAlpha = (colorMod >> 24) & 0xFF;
         uint8_t baseAlpha =
             allowOpacity ? (
-                (part.opacity * this->currentKey->opacity) / 255
+                (part.opacity * key->opacity) / 255
             ) : 255;
 
         drawList->AddImageQuad(
