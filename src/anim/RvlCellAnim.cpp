@@ -22,14 +22,14 @@ struct RvlCellAnimHeader {
     // Unknown value
     uint32_t unknown_0;
 
-    // Sheet index. The sheet will be located in cellanim.tpl under "cellanim_{sheetIndex}"
+    // Index into cellanim.tpl for the associated sheet
     uint16_t sheetIndex;
 
     // Unknown value
     uint16_t unknown_1;
     
-    uint16_t sheetW; // Sheet width
-    uint16_t sheetH; // Sheet height
+    uint16_t sheetW; // Sheet width in relation to UV regions
+    uint16_t sheetH; // Sheet height in relation to UV regions
 
     // Amount of arrangements (commonly referred to as sprites)
     uint16_t arrangementCount;
@@ -39,24 +39,22 @@ struct RvlCellAnimHeader {
 };
 
 struct ArrangementPartRaw {
-    uint16_t regionX; // X position of part in spritesheet
-    uint16_t regionY; // Y position of part in spritesheet
-    uint16_t regionW; // Width of part in spritesheet
-    uint16_t regionH; // Height of part in spritesheet
+    uint16_t regionX; // X position of UV region in spritesheet
+    uint16_t regionY; // Y position of UV region in spritesheet
+    uint16_t regionW; // Width of UV region in spritesheet
+    uint16_t regionH; // Height of UV region in spritesheet
 
     // Unknown value
     uint32_t unknown_1;
 
-    int16_t positionX; // X position of rendered part (originates from top left)
-    int16_t positionY; // Y position of rendered part (originates from top left)
-
-    // Value is uint8_t[4] but is later byte-swapped and casted to LE float
-    uint8_t /* FLOAT */ scaleX[4], scaleY[4], angle[4];
+    // Transform values
+    int16_t positionX{ 0 }, positionY{ 0 };
+    float scaleX, scaleY;
+    float angle; // Angle in degrees
 
     uint8_t flipX; // Horizontally flipped (boolean)
     uint8_t flipY; // Vertically flipped (boolean)
 
-    // 0 - 255
     uint8_t opacity;
 
     // Unknown value, possibly padding?
@@ -91,7 +89,6 @@ struct AnimationKeyRaw {
     float scaleX, scaleY;
     float angle; // Angle in degrees
 
-    // Opacity, ranges from 0 - 255
     uint8_t opacity;
 
     // 24-byte padding
