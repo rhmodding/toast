@@ -91,25 +91,6 @@ int16_t Animatable::getHoldFramesLeft() const {
     return this->holdKey;
 }
 
-ImVec2 Animatable::getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
-    assert(this->cellanim);
-
-    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
-    RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
-
-    {
-        float totalScaleX = key->scaleX * this->scaleX;
-        float totalScaleY = key->scaleY * this->scaleY;
-
-        ImVec2 point = {
-            CANVAS_ORIGIN + ((part.positionX - CANVAS_ORIGIN) * totalScaleX) + (this->offset.x - CANVAS_ORIGIN),
-            CANVAS_ORIGIN + ((part.positionY - CANVAS_ORIGIN) * totalScaleY) + (this->offset.y - CANVAS_ORIGIN),
-        };
-
-        return point;
-    }
-}
-
 ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
     float s = sinf(angle * ((float)M_PI / 180.f));
     float c = cosf(angle * ((float)M_PI / 180.f));

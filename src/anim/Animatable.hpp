@@ -71,7 +71,6 @@ public:
     // Does the Animatable actually draw anything at all to the screen?
     bool getDoesDraw(bool allowOpacity = true) const;
 
-    ImVec2 getPartWorldSpace(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
     std::array<ImVec2, 4> getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
 };
 
