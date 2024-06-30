@@ -36,7 +36,9 @@
 
 namespace Common {
     float byteswapFloat(float value);
-    
+
+    bool SaveBackupFile(const char* filePath, bool once);
+
     template <typename T>
     void deleteIfNotNullptr(T*& ptr, bool setNullptr = true) {
         if (ptr)

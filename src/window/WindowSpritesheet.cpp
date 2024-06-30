@@ -22,12 +22,12 @@ void WindowSpritesheet::RunEditor() {
     GET_CONFIG_MANAGER;
 
     // Some apps like Photoshop complain about relative paths
-    std::string imagePath = std::filesystem::absolute(configManager.config.textureEditPath.c_str()).string();
+    std::string imagePath = std::filesystem::absolute(configManager.getConfig().textureEditPath.c_str()).string();
 
     std::stringstream commandStream;
     commandStream <<
         "cmd.exe /c \"\"" <<
-        configManager.config.imageEditorPath <<
+        configManager.getConfig().imageEditorPath <<
         "\" \"" << imagePath << "\"\"";
 
     std::string command = commandStream.str();
@@ -179,13 +179,13 @@ void WindowSpritesheet::Update() {
         }
 
         if (ImGui::BeginMenu("Edit")) {
-            bool imageEditorDefined = !ConfigManager::getInstance().config.imageEditorPath.empty();
+            bool imageEditorDefined = !ConfigManager::getInstance().getConfig().imageEditorPath.empty();
 
             if (ImGui::MenuItem("Edit in editing tool...", nullptr, false, imageEditorDefined)) {
                 GET_SESSION_MANAGER;
                 GET_CONFIG_MANAGER;
 
-                if (sessionManager.getCurrentSession()->getCellanimSheet()->ExportToFile(configManager.config.textureEditPath.c_str())) {
+                if (sessionManager.getCurrentSession()->getCellanimSheet()->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
                     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
                     ImGui::OpenPopup("###DialogWaitForModifiedPNG");
                     ImGui::PopID();

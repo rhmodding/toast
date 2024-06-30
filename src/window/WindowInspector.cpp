@@ -7,8 +7,6 @@
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
-#include "../ConfigManager.hpp"
-
 #include "../command/CommandModifyArrangementPart.hpp"
 #include "../command/CommandMoveArrangementPart.hpp"
 #include "../command/CommandDeleteArrangementPart.hpp"

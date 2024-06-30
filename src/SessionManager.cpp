@@ -14,6 +14,8 @@
 
 #include <filesystem>
 
+#include "ConfigManager.hpp"
+
 int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;
 
@@ -283,8 +285,18 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
         return -1;
     }
 
-    std::ofstream file(outPath, std::ios::binary);
+    GET_CONFIG_MANAGER;
+    if (
+        configManager.getConfig().backupBehaviour != BackupBehaviour_None &&
+        !Common::SaveBackupFile(
+            outPath,
 
+            configManager.getConfig().backupBehaviour == BackupBehaviour_SaveOnce
+        )
+    )
+        std::cerr << "[SessionManager::ExportSessionCompressedArc] Failed to save backup of file!\n";
+
+    std::ofstream file(outPath, std::ios::binary);
     if (file.is_open()) {
         file.write(
             reinterpret_cast<const char*>((*compressedArchive).data()),

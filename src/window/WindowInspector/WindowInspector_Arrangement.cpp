@@ -314,7 +314,7 @@ void WindowInspector::Level_Arrangement() {
                 }
             }
 
-            if (ConfigManager::getInstance().config.showUnknownValues) {
+            if (ConfigManager::getInstance().getConfig().showUnknownValues) {
                 ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
 
                 if (ImGui::CollapsingHeader("..as Uint32", ImGuiTreeNodeFlags_None)) {

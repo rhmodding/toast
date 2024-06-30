@@ -3,7 +3,7 @@
 #include "ConfigManager.hpp"
 
 void AppState::UpdateTheme() {
-    this->darkTheme = ConfigManager::getInstance().config.darkTheme;
+    this->darkTheme = ConfigManager::getInstance().getConfig().theme == ThemeChoice_Dark;
 
     if (this->darkTheme) {
         ImGui::StyleColorsDark();
@@ -16,7 +16,7 @@ void AppState::UpdateTheme() {
 }
 
 void AppState::UpdateUpdateRate() {
-    this->updateRate = 1000. / ConfigManager::getInstance().config.updateRate;
+    this->updateRate = 1000. / ConfigManager::getInstance().getConfig().updateRate;
 }
 
 void AppState::PlayerState::updateSetFrameCount() {

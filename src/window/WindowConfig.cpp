@@ -119,6 +119,11 @@ void WindowConfig::Update() {
                     uint32_t updateRate = this->selfConfig.updateRate;
                     if (ImGui::DragScalar("Update rate", ImGuiDataType_U32, &updateRate, .5f, nullptr, nullptr, "%u ups"))
                         this->selfConfig.updateRate = std::clamp<uint32_t>(updateRate, 1, UINT32_MAX);
+
+                    ImGui::Separator();
+
+                    const char* backupOptions[] = { "Don't backup", "Backup (don't overwrite last backup)", "Backup (always overwrite last backup)" };
+                    ImGui::Combo("Backup behaviour", reinterpret_cast<int*>(&this->selfConfig.backupBehaviour), backupOptions, 3);
                 } break;
 
                 case Category_Theming: {
@@ -143,14 +148,14 @@ void WindowConfig::Update() {
 
             GET_CONFIG_MANAGER;
 
-            ImGui::BeginDisabled(this->selfConfig == configManager.config);
+            ImGui::BeginDisabled(this->selfConfig == configManager.getConfig());
             if (ImGui::Button("Revert")) {
-                this->selfConfig = configManager.config;
+                this->selfConfig = configManager.getConfig();
             }
             ImGui::SameLine();
 
             if (ImGui::Button("Save & Apply")) {
-                configManager.config = this->selfConfig;
+                configManager.setConfig(this->selfConfig);
                 configManager.SaveConfig();
 
                 AppState::getInstance().UpdateTheme();

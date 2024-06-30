@@ -12,6 +12,43 @@ namespace Common {
         return *reinterpret_cast<float*>(&value);
     }
 
+    bool SaveBackupFile(const char* filePath, bool once) {
+        char newFileName[PATH_MAX];
+        sprintf(newFileName, "%s.bak", filePath);
+
+        std::ifstream src(filePath,    std::ios::binary);
+        std::ofstream dst(newFileName, std::ios::binary);
+
+        bool exists{ false };
+        {
+            std::ifstream f(newFileName);
+            exists = f.good();
+        }
+
+        if (exists && once) {
+            std::cout << "[Common::SaveBackupFile] Source file at path \"" << filePath << "\" already exists. Returning..\n";
+            return true;
+        }
+
+        if (!src.is_open()) {
+            std::cerr << "[Common::SaveBackupFile] Error opening source file at path: " << filePath << '\n';
+            return false;
+        }
+        if (!dst.is_open()) {
+            std::cerr << "[Common::SaveBackupFile] Error opening destination file at path: " << newFileName << '\n';
+            return false;
+        }
+
+        dst << src.rdbuf();
+
+        src.close();
+        dst.close();
+
+        std::cout << "[Common::SaveBackupFile] Successfully cloned file at path: " << filePath << '\n';
+
+        return true;
+    }
+
     std::string randomString(const uint32_t length) {
         static const char characters[] =
             "0123456789"

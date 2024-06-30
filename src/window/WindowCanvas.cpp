@@ -241,7 +241,7 @@ void WindowCanvas::Update() {
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
         (
-            ConfigManager::getInstance().config.canvasLMBPanEnabled && 
+            ConfigManager::getInstance().getConfig().canvasLMBPanEnabled && 
             ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
         )
     );

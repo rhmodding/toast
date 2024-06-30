@@ -232,8 +232,11 @@ void App::AttemptExit() {
 
     GET_CONFIG_MANAGER;
 
-    configManager.config.lastWindowWidth = windowWidth;
-    configManager.config.lastWindowHeight = windowHeight;
+    ConfigManager::Config config = configManager.getConfig();
+    config.lastWindowWidth = windowWidth;
+    config.lastWindowHeight = windowHeight;
+
+    configManager.setConfig(config);
 
     configManager.SaveConfig();
 
@@ -273,8 +276,8 @@ App::App() {
     configManager.LoadConfig();
 
     this->window = glfwCreateWindow(
-        configManager.config.lastWindowWidth,
-        configManager.config.lastWindowHeight,
+        configManager.getConfig().lastWindowWidth,
+        configManager.getConfig().lastWindowHeight,
         WINDOW_TITLE,
         nullptr, nullptr
     );

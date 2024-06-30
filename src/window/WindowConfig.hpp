@@ -13,7 +13,7 @@ public:
     
     ConfigManager::Config selfConfig;
 
-    WindowConfig() { selfConfig = ConfigManager::getInstance().config; }
+    WindowConfig() { selfConfig = ConfigManager::getInstance().getConfig(); }
 };
 
 #endif // WINDOWCONFIG_HPP
