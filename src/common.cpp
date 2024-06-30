@@ -9,7 +9,7 @@
 namespace Common {
     float byteswapFloat(float value) {
         uint32_t rValue = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(&value));
-        return *reinterpret_cast<float*>(&value);
+        return *reinterpret_cast<float*>(&rValue);
     }
 
     bool SaveBackupFile(const char* filePath, bool once) {
