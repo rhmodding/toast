@@ -46,7 +46,7 @@ private:
             appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
 
             appState.playerState.ToggleAnimating(false);
-            globalAnimatable->setAnimationKeyFromPtr(&appState.controlKey);
+            globalAnimatable->overrideAnimationKey(&appState.controlKey);
         }
         else {
             globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);

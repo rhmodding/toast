@@ -242,7 +242,7 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
     return false;
 }
 
-void Animatable::setAnimationKeyFromPtr(RvlCellAnim::AnimationKey* key) {
+void Animatable::overrideAnimationKey(RvlCellAnim::AnimationKey* key) {
     assert(this->cellanim);
     assert(key);
 

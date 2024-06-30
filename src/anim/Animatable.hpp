@@ -48,7 +48,7 @@ public:
     void setAnimationFromIndex(uint16_t animIndex);
     void setAnimationKeyFromIndex(uint16_t keyIndex);
 
-    void setAnimationKeyFromPtr(RvlCellAnim::AnimationKey* key);
+    void overrideAnimationKey(RvlCellAnim::AnimationKey* key);
 
     void setAnimating(bool animating);
     bool getAnimating() const;

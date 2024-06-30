@@ -370,7 +370,7 @@ void SessionManager::SessionChanged() {
             );
 
             appState.playerState.ToggleAnimating(false);
-            globalAnimatable->setAnimationKeyFromPtr(&appState.controlKey);
+            globalAnimatable->overrideAnimationKey(&appState.controlKey);
         } else {
             appState.selectedAnimation = std::clamp<uint16_t>(
                 appState.selectedAnimation,
