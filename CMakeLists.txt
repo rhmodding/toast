@@ -140,6 +140,9 @@ add_subdirectory(ext/nlohmann.json)
 
 target_link_libraries(toast PRIVATE nlohmann_json::nlohmann_json)
 
+# Optimization flag
+set(CMAKE_CXX_FLAGS "-O1")
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET toast PROPERTY CXX_STANDARD 20)
 endif()
