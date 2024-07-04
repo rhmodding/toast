@@ -22,6 +22,8 @@
 
 #include "../common.hpp"
 
+#define HEADER_MAGIC 0x307A6159
+
 #define CHUNKS_PER_GROUP 8
 #define MAX_MATCH_LENGTH 0xFF + 0x12
 #define ZLIB_MIN_MATCH 3
@@ -49,10 +51,12 @@ namespace Yaz0 {
 
         Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
 
-        header->magic[0] = 'Y';
-        header->magic[1] = 'a';
-        header->magic[2] = 'z';
-        header->magic[3] = '0';
+        *reinterpret_cast<uint32_t*>(header->magic) = HEADER_MAGIC;
+        // header->magic[0] = 'Y';
+        // header->magic[1] = 'a';
+        // header->magic[2] = 'z';
+        // header->magic[3] = '0';
+
         header->uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize));
         header->reserved[0] = 0x0000;
         header->reserved[1] = 0x0000;
@@ -144,8 +148,8 @@ namespace Yaz0 {
 
         uint32_t uncompressedSize = BYTESWAP_32(header->uncompressedSize);
 
-        if (std::strncmp(header->magic, "Yaz0", 4) != 0) {
-            std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: header magic failed strncmp!\n";
+        if (*reinterpret_cast<const uint32_t*>(header->magic) != HEADER_MAGIC) {
+            std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: header magic failed check!\n";
             return std::nullopt; // return nothing (std::optional)
         }
 
