@@ -32,10 +32,8 @@ namespace Common {
             exists = f.good();
         }
 
-        if (exists && once) {
-            std::cout << "[Common::SaveBackupFile] Source file at path \"" << filePath << "\" already exists. Returning..\n";
+        if (exists && once)
             return true;
-        }
 
         if (!src.is_open()) {
             std::cerr << "[Common::SaveBackupFile] Error opening source file at path: " << filePath << '\n';
