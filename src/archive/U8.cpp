@@ -38,12 +38,27 @@ struct U8ArchiveHeader {
 };
 
 struct U8ArchiveNode {
-    // 0x0: file, 0x1: directory
-    uint8_t type;
+    uint32_t attributes; // uint8: type, uint24: nameOffset
 
-    // Offset from the string pool for the name of the file/dir.
-    // This is technically a uint24_t but since that type isn't avaliable we use 3 uint8_t's in an array
-    uint8_t nameOffset[3];
+    // 0x00: file, 0x01: directory
+    inline uint8_t getType() const {
+        return static_cast<uint8_t>(this->attributes & 0xFF);
+    }
+
+    // Offset into the string pool for the name of the node.
+    inline uint32_t getNameOffset() const { 
+       return BYTESWAP_32((this->attributes >> 8) & 0xFFFFFF);
+    }
+
+    inline void setType(uint8_t type) {
+        this->attributes &= 0xFFFFFF00;
+        this->attributes |= static_cast<uint32_t>(type);
+    }
+
+    inline void setNameOffset(uint32_t offset) {
+        this->attributes &= 0x000000FF;
+        this->attributes |= (BYTESWAP_32(offset) & 0xFFFFFF) << 8;
+    }
 
     // File: Offset of begin of data
     // Directory: Index of the parent directory
@@ -140,7 +155,7 @@ namespace U8 {
                 (i * sizeof(U8ArchiveNode))
             );
 
-            if (node->type == 0x00) {
+            if (node->getType() == 0x00) {
                 File file(stringList.at(i));
 
                 const unsigned char* dataStart = archiveData + BYTESWAP_32(node->dataOffset);
@@ -151,7 +166,7 @@ namespace U8 {
 
                 currentDirectory->AddFile(file);
             }
-            else if (node->type == 0x01) {
+            else if (node->getType() == 0x01) {
                 Directory directory(stringList.at(i));
 
                 currentDirectory->AddDirectory(directory);
@@ -160,7 +175,7 @@ namespace U8 {
                 dirStack[++dirIndex] = BYTESWAP_32(node->size);
             }
             else {
-                std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: invalid node type (" << std::to_string(node->type) << ")!\n";
+                std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: invalid node type (" << std::to_string(node->getType()) << ")!\n";
                 return;
             }
 
@@ -297,26 +312,22 @@ namespace U8 {
 
             switch (entry.type) {
                 case 0x02: { // Root node
-                    node->type = 0x01;
+                    node->setType(0x01);
 
                     node->size = BYTESWAP_32(entry.nextOutOfDir);
 
                     node->dataOffset = 0x0000;
-                    node->nameOffset[2] = 0x00;
-                    node->nameOffset[1] = 0x00;
-                    node->nameOffset[0] = 0x00;
+                    node->setNameOffset(0x000000);
                 } break;
 
                 case 0x01: { // Directory
-                    node->type = 0x01;
+                    node->setType(0x01);
 
                     node->size = BYTESWAP_32(entry.nextOutOfDir);
 
                     node->dataOffset = BYTESWAP_32(entry.parent);
 
-                    node->nameOffset[0] = (uint8_t)((stringOffsets.at(i) >> 16) & 0xFF);
-                    node->nameOffset[1] = (uint8_t)((stringOffsets.at(i) >> 8) & 0xFF);
-                    node->nameOffset[2] = (uint8_t)(stringOffsets.at(i) & 0xFF);
+                    node->setNameOffset(stringOffsets.at(i) & 0xFFFFFF);
 
                     // Copy string
                     strcpy(
@@ -332,15 +343,13 @@ namespace U8 {
                 case 0x00: { // File
                     std::vector<unsigned char>* data = &reinterpret_cast<File*>(entry.ptr)->data;
 
-                    node->type = 0x00;
+                    node->setType(0x00);
 
                     node->size = BYTESWAP_32(static_cast<uint32_t>(data->size()));
 
                     node->dataOffset = BYTESWAP_32(dataOffsets.at(i));
 
-                    node->nameOffset[0] = (uint8_t)((stringOffsets.at(i) >> 16) & 0xFF);
-                    node->nameOffset[1] = (uint8_t)((stringOffsets.at(i) >> 8) & 0xFF);
-                    node->nameOffset[2] = (uint8_t)(stringOffsets.at(i) & 0xFF);
+                    node->setNameOffset(stringOffsets.at(i) & 0xFFFFFF);
 
                     // Copy string
                     strcpy(
