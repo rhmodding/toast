@@ -19,6 +19,8 @@ public:
         sprintf(str, "Task%u", id);
 
         this->imguiID = ImHashStr(str);
+
+        this->startTime = static_cast<float>(ImGui::GetTime());
     }
 
     virtual ~AsyncTask() = default;
@@ -47,7 +49,10 @@ public:
             ImGui::Dummy(ImVec2(0.f, 1.f));
 
             ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-            ImGui::ProgressBar(-1.f * (float)ImGui::GetTime(), ImVec2(.0f, 15.f));
+            ImGui::ProgressBar(
+                -1.f * static_cast<float>(ImGui::GetTime() - this->startTime),
+                ImVec2(.0f, 15.f)
+            );
             ImGui::PopStyleColor();
 
             ImGui::EndPopup();
@@ -81,6 +86,8 @@ private:
     const char* message;
 
     ImGuiID imguiID;
+
+    float startTime;
 };
 
 #endif // ASYNCTASK_HPP
