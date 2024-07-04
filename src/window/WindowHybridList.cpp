@@ -1,17 +1,19 @@
 #include "WindowHybridList.hpp"
 
-#include "imgui.h"
-
-#include "GLFW/glfw3.h"
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include <sstream>
 #include <string>
 
+#include <cmath>
+
+#include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
 void WindowHybridList::FlashWindow() {
     this->flashWindow = true;
-    this->flashTimer = static_cast<float>(glfwGetTime());
+    this->flashTimer = static_cast<float>(ImGui::GetTime());
 }
 
 void WindowHybridList::ResetFlash() {
@@ -25,12 +27,11 @@ ImVec4 adjustBrightness(const ImVec4& color, float factor) {
     adjustedColor.x = std::lerp(color.x, 1.f, factor);
     adjustedColor.y = std::lerp(color.y, 1.f, factor);
     adjustedColor.z = std::lerp(color.z, 1.f, factor);
-    adjustedColor.w = color.w; // Alpha remains unchanged
+    adjustedColor.w = color.w;
     
-    // Ensure color components are within [0, 1] range
-    adjustedColor.x = std::min(std::max(adjustedColor.x, 0.0f), 1.0f);
-    adjustedColor.y = std::min(std::max(adjustedColor.y, 0.0f), 1.0f);
-    adjustedColor.z = std::min(std::max(adjustedColor.z, 0.0f), 1.0f);
+    adjustedColor.x = std::min(std::max(adjustedColor.x, 0.0f), 1.f);
+    adjustedColor.y = std::min(std::max(adjustedColor.y, 0.0f), 1.f);
+    adjustedColor.z = std::min(std::max(adjustedColor.z, 0.0f), 1.f);
 
     return adjustedColor;
 }
@@ -48,7 +49,7 @@ void WindowHybridList::Update() {
 
     lastArrangementMode = appState.getArrangementMode();
 
-    if (this->flashWindow && (static_cast<float>(glfwGetTime()) - this->flashTimer > WINDOW_FLASH_TIME))
+    if (this->flashWindow && (static_cast<float>(ImGui::GetTime()) - this->flashTimer > WINDOW_FLASH_TIME))
         ResetFlash();
 
     if (this->flashWindow) {
@@ -57,7 +58,7 @@ void WindowHybridList::Update() {
             ImGuiCol_WindowBg,
             adjustBrightness(
                 color,
-                (this->flashTimer - static_cast<float>(glfwGetTime())) + WINDOW_FLASH_TIME
+                (this->flashTimer - static_cast<float>(ImGui::GetTime())) + WINDOW_FLASH_TIME
             )
         );
     }
@@ -74,10 +75,10 @@ void WindowHybridList::Update() {
 
                 GET_SESSION_MANAGER;
 
-                auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(n);
+                auto query = sessionManager.getCurrentSession()->getAnimationNames().find(n);
 
                 const char* animName =
-                    query != sessionManager.getCurrentSession()->getAnimationNames()->end() ?
+                    query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
                         query->second.c_str() :
                         "(no macro defined)";
 

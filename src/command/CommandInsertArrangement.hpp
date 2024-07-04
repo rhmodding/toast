@@ -47,10 +47,10 @@ private:
 
     RvlCellAnim::Arrangement arrangement;
 
-    RvlCellAnim::RvlCellAnimObject* getCellanim() {
+    std::shared_ptr<RvlCellAnim::RvlCellAnimObject> getCellanim() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex);
+            ->cellanims.at(this->cellanimIndex).object;
     }
 };
 

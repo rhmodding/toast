@@ -9,22 +9,18 @@
 
 #include "Yaz0.hpp"
 
-#include "../common.hpp"
-
-#include <cstdint>
-
 #include <iostream>
 #include <fstream>
 
-#include <optional>
-
 #include <string>
-#include <vector>
+
 #include <bitset>
 
 #include <algorithm>
 
 #include <zlib-ng.h>
+
+#include "../common.hpp"
 
 #define CHUNKS_PER_GROUP 8
 #define MAX_MATCH_LENGTH 0xFF + 0x12

@@ -3,8 +3,6 @@
 
 #include "BaseWindow.hpp"
 
-#include "../anim/Animatable.hpp"
-
 class WindowTimeline : public BaseWindow {
 public:
     void Update() override;

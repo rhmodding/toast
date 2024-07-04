@@ -7,7 +7,9 @@
 
 #include "../common.hpp"
 
-#include "imgui.h"
+#include <imgui.h>
+
+#include <memory>
 
 class Animatable {
 private:
@@ -31,17 +33,22 @@ private:
     );
 
 public:
-    RvlCellAnim::RvlCellAnimObject* cellanim{ nullptr };
-    Common::Image* texture{ nullptr };
+    std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim;
+    std::shared_ptr<Common::Image> texture;
 
     ImVec2 offset{ 512, 512 };
 
-    float scaleX{ 1.0f };
-    float scaleY{ 1.0f };
+    float scaleX{ 1.f };
+    float scaleY{ 1.f };
 
     bool visible{ true };
 
-    Animatable(RvlCellAnim::RvlCellAnimObject* cellanim, Common::Image* texture) : cellanim(cellanim), texture(texture) {}
+    Animatable(
+        std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim,
+        std::shared_ptr<Common::Image> texture
+    ) :
+        cellanim(cellanim), texture(texture)
+    {}
 
     ~Animatable() {};
 

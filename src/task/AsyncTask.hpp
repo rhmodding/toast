@@ -4,8 +4,8 @@
 #include <thread>
 #include <atomic>
 
-#include "imgui.h"
-#include "imgui_internal.h"
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include <sstream>
 
@@ -47,7 +47,7 @@ public:
             ImGui::Dummy(ImVec2(0.f, 1.f));
 
             ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-            ImGui::ProgressBar(-1.0f * (float)ImGui::GetTime(), ImVec2(.0f, 15.f));
+            ImGui::ProgressBar(-1.f * (float)ImGui::GetTime(), ImVec2(.0f, 15.f));
             ImGui::PopStyleColor();
 
             ImGui::EndPopup();

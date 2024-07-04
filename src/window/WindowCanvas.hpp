@@ -1,15 +1,13 @@
 #ifndef WINDOWCANVAS_HPP
 #define WINDOWCANVAS_HPP
 
-#include "imgui.h"
+#include "BaseWindow.hpp"
+
+#include <imgui.h>
 
 #include <cstdint>
 
 #include "../AppState.hpp"
-
-#include "BaseWindow.hpp"
-
-#include "../anim/Animatable.hpp"
 
 #define CANVAS_ZOOM_SPEED 0.04f
 #define CANVAS_ZOOM_SPEED_FAST 0.08f

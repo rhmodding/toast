@@ -3,10 +3,6 @@
 
 #include "BaseWindow.hpp"
 
-#include "../anim/Animatable.hpp"
-
-#include "../common.hpp"
-
 #include "../AppState.hpp"
 
 class WindowSpritesheet : public BaseWindow {
@@ -39,6 +35,8 @@ private:
     void RunEditor();
 
     void PaletteWindow();
+
+    void FormatPopup();
 };
 
 #endif // WINDOWSPRITESHEET_HPP

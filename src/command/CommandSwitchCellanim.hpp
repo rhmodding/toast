@@ -15,20 +15,20 @@ public:
         sessionIndex(sessionIndex),
         cellanimIndex(cellanimIndex)
     {
-        this->previousCellanim = SessionManager::getInstance().sessionList.at(this->sessionIndex).cellIndex;
+        this->previousCellanim = SessionManager::getInstance().sessionList.at(this->sessionIndex).currentCellanim;
     }
 
     void Execute() override {
         GET_SESSION_MANAGER;
 
-        sessionManager.sessionList.at(this->sessionIndex).cellIndex = this->cellanimIndex;
+        sessionManager.sessionList.at(this->sessionIndex).currentCellanim = this->cellanimIndex;
         sessionManager.SessionChanged();
     }
 
     void Rollback() override {
         GET_SESSION_MANAGER;
 
-        sessionManager.sessionList.at(this->sessionIndex).cellIndex = this->previousCellanim;
+        sessionManager.sessionList.at(this->sessionIndex).currentCellanim = this->previousCellanim;
         sessionManager.SessionChanged();
     }
 

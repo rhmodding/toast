@@ -27,7 +27,7 @@ public:
     ) :
         newPart(newPart)
     {
-        this->cellanimIndex = SessionManager::getInstance().getCurrentSession()->cellIndex;
+        this->cellanimIndex = SessionManager::getInstance().getCurrentSession()->currentCellanim;
         this->arrangementIndex = AppState::getInstance().globalAnimatable->getCurrentKey()->arrangementIndex;
         this->partIndex = AppState::getInstance().selectedPart;
 
@@ -53,7 +53,7 @@ private:
     RvlCellAnim::ArrangementPart& getPart() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex)
+            ->cellanims.at(this->cellanimIndex).object
             ->arrangements.at(this->arrangementIndex)
             .parts.at(this->partIndex);
     }

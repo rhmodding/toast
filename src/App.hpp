@@ -1,21 +1,12 @@
 #ifndef APP_HPP
 #define APP_HPP
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
 
-#include "AppState.hpp"
-
-#include <iostream>
 #include <cassert>
-
-#include <unordered_map>
-#include <string>
-
-#include "common.hpp"
-#include "anim/Animatable.hpp"
 
 #include "window/WindowCanvas.hpp"
 #include "window/WindowHybridList.hpp"
@@ -25,6 +16,12 @@
 
 #include "window/WindowConfig.hpp"
 #include "window/WindowAbout.hpp"
+
+#include <queue>
+#include <functional>
+#include <future>
+#include <mutex>
+#include <condition_variable>
 
 #define WINDOW_TITLE "Toast Beta"
 
@@ -110,7 +107,50 @@ private: // Flags
     bool dialog_warnExitWithUnsavedChanges{ false };
     // Exit even if there are unsaved changes.
     bool exitWithUnsavedChanges{ false };
+    
+private:
+    std::mutex mtcQueueMutex;
+    std::condition_variable mtcCondition;
+public:
+    struct MtCommand {
+        std::function<void()> func;
+        std::promise<void> promise;
+    };
+    std::queue<MtCommand> mtCommandQueue;
+
+    std::future<void> enqueueCommand(std::function<void()> func) {
+        if (std::this_thread::get_id() == this->getWindowThreadID()) {
+            func();
+
+            std::promise<void> promise;
+            promise.set_value();
+
+            return promise.get_future();
+        }
+
+        std::lock_guard<std::mutex> lock(this->mtcQueueMutex);
+
+        MtCommand command{ func, std::promise<void>() };
+        auto future = command.promise.get_future();
+
+        this->mtCommandQueue.push(std::move(command));
+
+        this->mtcCondition.notify_one();
+
+        return future;
+    }
+
+    // TODO: move MtCommand stuff into another class
+
+private:
+    std::thread::id windowThreadID;
+public:
+    std::thread::id getWindowThreadID() {
+        return this->windowThreadID;
+    }
 
 }; // class App
+
+extern App* gAppPtr;
 
 #endif // APP_HPP

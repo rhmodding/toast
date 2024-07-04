@@ -27,32 +27,42 @@ class SessionManager : public Singleton<SessionManager> {
 
 public:
     struct Session {
-        bool open{ false };
+        struct CellanimData {
+            std::shared_ptr<RvlCellAnim::RvlCellAnimObject> object;
+            std::string name;
+            std::unordered_map<uint16_t, std::string> animNames;
+        };
+        std::vector<CellanimData> cellanims;
+        std::vector<std::shared_ptr<Common::Image>> sheets;
+
+        uint16_t currentCellanim{ 0 };
+
+        ///////////////////////////
 
         std::string mainPath;
 
-        uint16_t cellIndex{ 0 };
+        bool traditionalMethod{ false }; // Has this session been opened with a brcad, png and h file?
+        std::unique_ptr<std::string> pngPath;
+        std::unique_ptr<std::string> headerPath;
 
-        bool traditionalMethod{ false };
-        std::string* pngPath{ nullptr };
-        std::string* headerPath{ nullptr };
+        ///////////////////////////
 
-        std::vector<RvlCellAnim::RvlCellAnimObject*> cellanims;
-        std::vector<Common::Image*> cellanimSheets;
-        std::vector<std::unordered_map<uint16_t, std::string>*> animationNames;
-        std::vector<std::string> cellNames;
-
-        RvlCellAnim::RvlCellAnimObject* getCellanim() {
-            return this->cellanims.at(this->cellIndex);
+        std::shared_ptr<RvlCellAnim::RvlCellAnimObject> getCellanimObject() {
+            return this->cellanims.at(this->currentCellanim).object;
         }
-        Common::Image*& getCellanimSheet() {
-            return this->cellanimSheets.at(this->getCellanim()->sheetIndex % this->cellanimSheets.size());
+        std::string& getCellanimName() {
+            return this->cellanims.at(this->currentCellanim).name;
         }
-        std::unordered_map<uint16_t, std::string>* getAnimationNames() {
-            return this->animationNames.at(this->cellIndex);
+        std::shared_ptr<Common::Image>& getCellanimSheet() {
+            return this->sheets.at(this->getCellanimObject()->sheetIndex % this->sheets.size());
+        }
+        std::unordered_map<uint16_t, std::string>& getAnimationNames() {
+            return this->cellanims.at(this->currentCellanim).animNames;
         }
 
         bool arrangementMode{ false };
+
+        bool modified{ false };
 
     private:
         std::deque<std::shared_ptr<BaseCommand>> undoStack;
@@ -96,8 +106,13 @@ public:
             undoStack.push_back(command);
         }
 
-    public:
-        bool modified{ false };
+        bool canUndo() {
+            return !this->undoStack.empty();
+        }
+
+        bool canRedo() {
+            return !this->redoStack.empty();
+        }
     };
     std::deque<Session> sessionList;
 
@@ -120,7 +135,8 @@ public:
     void SessionChanged();
 
     enum SessionError: int16_t {
-        SessionOpenError_None = 0,
+        SessionError_None = 0,
+        
         SessionOpenError_FailOpenArchive = -1,
         SessionOpenError_FailFindTPL = -2,
         SessionOpenError_RootDirNotFound = -3,
@@ -133,7 +149,7 @@ public:
         SessionOutError_FailOpenFile = -9,
         SessionOutError_ZlibError = -10,
         SessionOutError_FailTPLTextureExport = -11,
-    } lastSessionError{ SessionOpenError_None };
+    } lastSessionError{ SessionError_None };
 
     // Push session from a Yaz0-compressed Arc file (SZS).
     int32_t PushSessionFromCompressedArc(const char* filePath);
@@ -148,6 +164,8 @@ public:
     void FreeAllSessions();
 
 private:
+    std::mutex mtx;
+
     SessionManager() {} // Private constructor to prevent instantiation
 };
 

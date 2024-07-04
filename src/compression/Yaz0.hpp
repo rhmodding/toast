@@ -1,10 +1,10 @@
 #ifndef YAZ0_HPP
 #define YAZ0_HPP
 
-#include <vector>
-#include <optional>
 
 #include <cstdint>
+#include <vector>
+#include <optional>
 
 namespace Yaz0 {
     std::optional<std::vector<unsigned char>> decompress(const unsigned char* compressedData, const size_t dataSize);

@@ -1,14 +1,13 @@
 #include "WindowTimeline.hpp"
 
-#include "imgui.h"
-#include "imgui_internal.h"
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include <cstdint>
 
-#include "../AppState.hpp"
-
 #include "../font/FontAwesome.h"
 
+#include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
 #include "../command/CommandMoveAnimationKey.hpp"
@@ -382,7 +381,7 @@ void WindowTimeline::Update() {
 
                                         sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandModifyAnimationKey>(
                                         CommandModifyAnimationKey(
-                                            sessionManager.getCurrentSession()->cellIndex,
+                                            sessionManager.getCurrentSession()->currentCellanim,
                                             appState.globalAnimatable->getCurrentAnimationIndex(),
                                             i,
                                             modKey
@@ -393,7 +392,7 @@ void WindowTimeline::Update() {
 
                                     sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
                                     CommandInsertAnimationKey(
-                                        sessionManager.getCurrentSession()->cellIndex,
+                                        sessionManager.getCurrentSession()->currentCellanim,
                                         appState.globalAnimatable->getCurrentAnimationIndex(),
                                         i + 1,
                                         newKey
@@ -411,7 +410,7 @@ void WindowTimeline::Update() {
 
                                 sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
                                 CommandInsertAnimationKey(
-                                    sessionManager.getCurrentSession()->cellIndex,
+                                    sessionManager.getCurrentSession()->currentCellanim,
                                     appState.globalAnimatable->getCurrentAnimationIndex(),
                                     i + 1,
                                     io.KeyAlt ? globalAnimatable->getCurrentAnimation()->keys.at(i) : RvlCellAnim::AnimationKey()
@@ -425,7 +424,7 @@ void WindowTimeline::Update() {
 
                                 sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
                                 CommandInsertAnimationKey(
-                                    sessionManager.getCurrentSession()->cellIndex,
+                                    sessionManager.getCurrentSession()->currentCellanim,
                                     appState.globalAnimatable->getCurrentAnimationIndex(),
                                     i,
                                     io.KeyAlt ? globalAnimatable->getCurrentAnimation()->keys.at(i) : RvlCellAnim::AnimationKey()
@@ -440,7 +439,7 @@ void WindowTimeline::Update() {
 
                                 sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandMoveAnimationKey>(
                                 CommandMoveAnimationKey(
-                                    sessionManager.getCurrentSession()->cellIndex,
+                                    sessionManager.getCurrentSession()->currentCellanim,
                                     appState.globalAnimatable->getCurrentAnimationIndex(),
                                     i,
                                     false,
@@ -458,7 +457,7 @@ void WindowTimeline::Update() {
 
                                 sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandMoveAnimationKey>(
                                 CommandMoveAnimationKey(
-                                    sessionManager.getCurrentSession()->cellIndex,
+                                    sessionManager.getCurrentSession()->currentCellanim,
                                     appState.globalAnimatable->getCurrentAnimationIndex(),
                                     i,
                                     true,
@@ -537,7 +536,7 @@ void WindowTimeline::Update() {
                                 case DeleteKeyMode_Current: {
                                     sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandDeleteAnimationKey>(
                                     CommandDeleteAnimationKey(
-                                        sessionManager.getCurrentSession()->cellIndex,
+                                        sessionManager.getCurrentSession()->currentCellanim,
                                         appState.globalAnimatable->getCurrentAnimationIndex(),
                                         i
                                     )));
@@ -549,7 +548,7 @@ void WindowTimeline::Update() {
 
                                     sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandDeleteManyAnimationKeys>(
                                     CommandDeleteManyAnimationKeys(
-                                        sessionManager.getCurrentSession()->cellIndex,
+                                        sessionManager.getCurrentSession()->currentCellanim,
                                         appState.globalAnimatable->getCurrentAnimationIndex(),
                                         0, i
                                     )));
@@ -557,7 +556,7 @@ void WindowTimeline::Update() {
                                 case DeleteKeyMode_ToRight: {
                                     sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandDeleteManyAnimationKeys>(
                                     CommandDeleteManyAnimationKeys(
-                                        sessionManager.getCurrentSession()->cellIndex,
+                                        sessionManager.getCurrentSession()->currentCellanim,
                                         appState.globalAnimatable->getCurrentAnimationIndex(),
                                         i + 1, keys.size()
                                     )));

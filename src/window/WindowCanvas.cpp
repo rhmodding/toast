@@ -65,8 +65,6 @@ bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVe
 const ImVec2 feverSafeAreaSize(832, 456);
 const ImVec2 megamixSafeAreaSize(440, 240);
 
-const uint8_t uint8_one = 1;
-
 void WindowCanvas::Menubar() {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Grid")) {
@@ -233,7 +231,7 @@ void WindowCanvas::Update() {
     );
 
     // Dragging
-    const float mousePanThreshold = -1.0f;
+    const float mousePanThreshold = -1.f;
     bool draggingLeft = interactionActive &&
         ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold);
 

@@ -11,7 +11,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include <optional>
 
@@ -80,6 +80,10 @@ namespace Common {
         Image() = default;
         Image(uint16_t width, uint16_t height, GLuint texture) : width(width), height(height), texture(texture) {}
 
+        ~Image() {
+            this->FreeTexture();
+        }
+
         bool LoadFromFile(const char* filename) {
             return LoadTextureFromFile(filename, &this->texture, &this->width, &this->height);
         }
@@ -89,7 +93,11 @@ namespace Common {
         }
 
         void FreeTexture() {
+            if (this->texture == 0)
+                return;
+
             glDeleteTextures(1, &this->texture);
+            this->texture = 0;
         }
 
         std::optional<TPL::TPLTexture> ExportToTPLTexture();

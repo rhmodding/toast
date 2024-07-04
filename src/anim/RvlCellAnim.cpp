@@ -320,7 +320,7 @@ namespace RvlCellAnim {
     }
 
     // Note: the object is dynamically allocated here. Make sure to delete it when you're done!
-    RvlCellAnimObject* ObjectFromFile(const char* path) {
+    std::shared_ptr<RvlCellAnimObject> ObjectFromFile(const char* path) {
         std::ifstream file(path, std::ios::binary | std::ios::ate);
         //                                binary mode        seek to end
 
@@ -338,9 +338,11 @@ namespace RvlCellAnim {
 
         file.close();
 
-        RvlCellAnimObject* object = new RvlCellAnimObject(
-            reinterpret_cast<unsigned char*>(buffer), fileSize
-        );
+        std::shared_ptr<RvlCellAnimObject> object =
+            std::make_shared<RvlCellAnimObject>(
+            RvlCellAnimObject(
+                reinterpret_cast<unsigned char*>(buffer), fileSize
+            ));
 
         delete[] buffer;
 

@@ -1,16 +1,7 @@
 #ifndef WINDOWHYBRIDLIST_HPP
 #define WINDOWHYBRIDLIST_HPP
 
-#include <cstdint>
-
-#include "../AppState.hpp"
-
 #include "BaseWindow.hpp"
-
-#include <unordered_map>
-#include <string>
-
-#include "../anim/Animatable.hpp"
 
 class WindowHybridList : public BaseWindow {
 public:

@@ -6,6 +6,13 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
+#include <fstream>
+
+#include <mutex>
+#include <thread>
+
+#include "App.hpp"
+
 namespace Common {
     float byteswapFloat(float value) {
         uint32_t rValue = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(&value));
@@ -66,7 +73,6 @@ namespace Common {
     }
 
     bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, int* height)  {
-        // Load from file
         int imageWidth{ 0 };
         int imageHeight{ 0 };
 
@@ -76,20 +82,22 @@ namespace Common {
             return false;
         }
 
-        // Create a OpenGL texture identifier
         GLuint imageTexture;
-        glGenTextures(1, &imageTexture);
-        glBindTexture(GL_TEXTURE_2D, imageTexture);
+        std::future<void> future = gAppPtr->enqueueCommand([&imageTexture, imageWidth, imageHeight, imagePtr]() {
+            glGenTextures(1, &imageTexture);
+            glBindTexture(GL_TEXTURE_2D, imageTexture);
 
-        // Setup filtering parameters for display
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        // Upload pixels into texture
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagePtr);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagePtr);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+        });
+
+        future.get();
+        
         stbi_image_free(imagePtr);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
 
         *texturePtr = imageTexture;
 
@@ -102,7 +110,6 @@ namespace Common {
     }
 
     bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* width, int* height) {
-        // Load from memory
         int imageWidth{ 0 };
         int imageHeight{ 0 };
 
@@ -112,20 +119,22 @@ namespace Common {
             return false;
         }
 
-        // Create a OpenGL texture identifier
         GLuint imageTexture;
-        glGenTextures(1, &imageTexture);
-        glBindTexture(GL_TEXTURE_2D, imageTexture);
+        std::future<void> future = gAppPtr->enqueueCommand([&imageTexture, imageWidth, imageHeight, imagePtr]() {
+            glGenTextures(1, &imageTexture);
+            glBindTexture(GL_TEXTURE_2D, imageTexture);
 
-        // Setup filtering parameters for display
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        // Upload pixels into texture
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagePtr);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imagePtr);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+        });
+
+        future.get();
+
         stbi_image_free(imagePtr);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
 
         *texturePtr = imageTexture;
 
@@ -165,8 +174,6 @@ namespace Common {
         ))
             return std::nullopt; // return nothing (std::optional)
 
-        glBindTexture(GL_TEXTURE_2D, this->texture);
-
         TPL::TPLTexture tplTexture;
         tplTexture.data.resize(
             this->width *
@@ -174,16 +181,27 @@ namespace Common {
             4
         );
 
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
+        GLint wrapModeS, wrapModeT;
+
+        {
+            GLuint texture = this->texture;
+            uint8_t* textureBuffer = tplTexture.data.data();
+            std::future<void> future = gAppPtr->enqueueCommand([texture, textureBuffer, &wrapModeS, &wrapModeT]() {
+                glBindTexture(GL_TEXTURE_2D, texture);
+
+                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureBuffer);
+
+                glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapModeS);
+                glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapModeT);
+
+                glBindTexture(GL_TEXTURE_2D, 0);
+            });
+
+            future.get();
+        }
 
         tplTexture.width = this->width;
         tplTexture.height = this->height;
-
-        GLint wrapModeS, wrapModeT;
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapModeS);
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapModeT);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
 
         tplTexture.wrapS = wrapModeS == GL_REPEAT ?
             TPL::TPL_WRAP_MODE_REPEAT :
@@ -214,17 +232,24 @@ namespace Common {
         ))
             return false;
 
-        glBindTexture(GL_TEXTURE_2D, this->texture);
-
         unsigned char* data = new unsigned char[
             this->width *
             this->height *
             4
         ]; // 4 bytes per pixel (RGBA)
 
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        {
+            GLuint texture = this->texture;
+            std::future<void> future = gAppPtr->enqueueCommand([texture, data]() {
+                glBindTexture(GL_TEXTURE_2D, texture);
 
-        glBindTexture(GL_TEXTURE_2D, 0);
+                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+                glBindTexture(GL_TEXTURE_2D, 0);
+            });
+
+            future.get();
+        }
 
         // Write buffer data to PNG file
         int write = stbi_write_png(

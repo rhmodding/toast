@@ -1,14 +1,19 @@
 #include "TPL.hpp"
 
-#include "../common.hpp"
-
 #include <iostream>
 #include <fstream>
+
+#include <unordered_set>
 
 #include "ImageConvert.hpp"
 
 #include "PaletteUtils.hpp"
-#include <unordered_set>
+
+#include "../common.hpp"
+
+#include <thread>
+#include <memory>
+#include "../App.hpp"
 
 #define TPL_VERSION_NUMBER 0x30AF2000
 
@@ -382,66 +387,69 @@ namespace TPL {
         return tpl;
     }
 
-    GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture) {
+    GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
         GLuint imageTexture;
         
-        glGenTextures(1, &imageTexture);
-        glBindTexture(GL_TEXTURE_2D, imageTexture);
+        GLint minFilter{ GL_LINEAR };
+        GLint magFilter{ GL_LINEAR };
 
-        GLint minFilter;
-        GLint magFilter;
+        TPL::TPLTexFilter tplMinFilter = tplTexture.minFilter;
+        TPL::TPLTexFilter tplMagFilter = tplTexture.magFilter;
 
-        switch (tplTexture.magFilter) {
-            case TPL::TPL_TEX_FILTER_NEAR:
-                magFilter = GL_NEAREST;
-                break;
-            case TPL::TPL_TEX_FILTER_LINEAR:
-                magFilter = GL_LINEAR;
-                break;
-            default:
-                magFilter = GL_LINEAR;
-                break;
-        }
+        std::future<void> future = gAppPtr->enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
+            glGenTextures(1, &imageTexture);
+            glBindTexture(GL_TEXTURE_2D, imageTexture);
 
-        switch (tplTexture.minFilter) {
-            case TPL::TPL_TEX_FILTER_NEAR:
-                minFilter = GL_NEAREST;
-                break;
-            case TPL::TPL_TEX_FILTER_LINEAR:
-                minFilter = GL_LINEAR;
-                break;
-            case TPL::TPL_TEX_FILTER_NEAR_MIP_NEAR:
-                minFilter = GL_NEAREST_MIPMAP_NEAREST;
-                break;
-            case TPL::TPL_TEX_FILTER_LIN_MIP_NEAR:
-                minFilter = GL_LINEAR_MIPMAP_NEAREST;
-                break;
-            case TPL::TPL_TEX_FILTER_NEAR_MIP_LIN:
-                minFilter = GL_NEAREST_MIPMAP_LINEAR;
-                break;
-            case TPL::TPL_TEX_FILTER_LIN_MIP_LIN:
-                minFilter = GL_LINEAR_MIPMAP_LINEAR;
-                break;
-            default:
-                minFilter = GL_LINEAR;
-                break;
-        }
+            switch (tplTexture.minFilter) {
+                case TPL::TPL_TEX_FILTER_NEAR:
+                    minFilter = GL_NEAREST;
+                    break;
+                case TPL::TPL_TEX_FILTER_LINEAR:
+                    break;
+                case TPL::TPL_TEX_FILTER_NEAR_MIP_NEAR:
+                    minFilter = GL_NEAREST_MIPMAP_NEAREST;
+                    break;
+                case TPL::TPL_TEX_FILTER_LIN_MIP_NEAR:
+                    minFilter = GL_LINEAR_MIPMAP_NEAREST;
+                    break;
+                case TPL::TPL_TEX_FILTER_NEAR_MIP_LIN:
+                    minFilter = GL_NEAREST_MIPMAP_LINEAR;
+                    break;
+                case TPL::TPL_TEX_FILTER_LIN_MIP_LIN:
+                    minFilter = GL_LINEAR_MIPMAP_LINEAR;
+                    break;
+                default:
+                    break;
+            }
 
-        glTexParameteri(
-            GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-            tplTexture.wrapS == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
-        );
-        glTexParameteri(
-            GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-            tplTexture.wrapT == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
-        );
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-        
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tplTexture.width, tplTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
-        
-        glBindTexture(GL_TEXTURE_2D, 0);
-        
+            switch (tplTexture.magFilter) {
+                case TPL::TPL_TEX_FILTER_NEAR:
+                    magFilter = GL_NEAREST;
+                    break;
+                case TPL::TPL_TEX_FILTER_LINEAR:
+                    break;
+                default:
+                    break;
+            }
+
+            glTexParameteri(
+                GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                tplTexture.wrapS == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
+            );
+            glTexParameteri(
+                GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                tplTexture.wrapT == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
+            );
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tplTexture.width, tplTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
+            
+            glBindTexture(GL_TEXTURE_2D, 0);
+        });
+
+        future.get();
+
         return imageTexture;
     }
 }

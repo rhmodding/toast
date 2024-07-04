@@ -4,6 +4,8 @@
 #include <vector>
 #include <cstdint>
 
+#include <memory>
+
 namespace RvlCellAnim {
     union Unknown32 {
         uint32_t u32;
@@ -122,7 +124,7 @@ namespace RvlCellAnim {
         RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize);
     };
 
-    RvlCellAnimObject* ObjectFromFile(const char *filename);
+    std::shared_ptr<RvlCellAnimObject> ObjectFromFile(const char *filename);
 }
 
 #endif // RVLCELLANIM_HPP

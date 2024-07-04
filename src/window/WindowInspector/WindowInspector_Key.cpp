@@ -7,6 +7,9 @@
 #include "../../command/CommandInsertArrangement.hpp"
 #include "../../command/CommandModifyAnimationKey.hpp"
 
+#include "../../AppState.hpp"
+#include "../../anim/Animatable.hpp"
+
 const uint16_t uint16_one = 1;
 
 void WindowInspector::Level_Key() {
@@ -24,10 +27,10 @@ void WindowInspector::Level_Key() {
     RvlCellAnim::AnimationKey originalKey = *globalAnimatable->getCurrentKey();
 
     uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
-    auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(animationIndex);
+    auto query = sessionManager.getCurrentSession()->getAnimationNames().find(animationIndex);
 
     const char* animationName = 
-        query != sessionManager.getCurrentSession()->getAnimationNames()->end() ?
+        query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
             query->second.c_str() : nullptr;
 
     ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
@@ -131,13 +134,13 @@ void WindowInspector::Level_Key() {
         SessionManager::getInstance().getCurrentSession()->executeCommand(
         std::make_shared<CommandInsertArrangement>(
         CommandInsertArrangement(
-            sessionManager.getCurrentSession()->cellIndex,
-            sessionManager.getCurrentSession()->getCellanim()->arrangements.size(),
-            sessionManager.getCurrentSession()->getCellanim()->arrangements.at(animKey->arrangementIndex)
+            sessionManager.getCurrentSession()->currentCellanim,
+            sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size(),
+            sessionManager.getCurrentSession()->getCellanimObject()->arrangements.at(animKey->arrangementIndex)
         )));
 
         newKey.arrangementIndex = 
-            sessionManager.getCurrentSession()->getCellanim()->arrangements.size() - 1;
+            sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
     }
 
     ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
@@ -291,7 +294,7 @@ void WindowInspector::Level_Key() {
         SessionManager::getInstance().getCurrentSession()->executeCommand(
         std::make_shared<CommandModifyAnimationKey>(
         CommandModifyAnimationKey(
-            sessionManager.getCurrentSession()->cellIndex,
+            sessionManager.getCurrentSession()->currentCellanim,
             appState.globalAnimatable->getCurrentAnimationIndex(),
             appState.globalAnimatable->getCurrentKeyIndex(),
             newKey

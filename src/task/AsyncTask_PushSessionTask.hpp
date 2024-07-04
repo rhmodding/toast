@@ -1,0 +1,52 @@
+#ifndef ASYNCTASK_PUSHSESSIONTASK_HPP
+#define ASYNCTASK_PUSHSESSIONTASK_HPP
+
+#include "AsyncTask.hpp"
+
+#include "../SessionManager.hpp"
+
+#include "../AppState.hpp"
+
+#include <string>
+
+class PushSessionTask : public AsyncTask {
+public:
+    PushSessionTask(
+        uint32_t id,
+        std::string filePath
+    ) :
+        AsyncTask(id, "Opening session.."),
+
+        filePath(filePath),
+        result(0)
+    {}
+
+protected:
+    void Run() override {
+        int32_t tResult = SessionManager::getInstance().PushSessionFromCompressedArc(filePath.c_str());
+        result.store(tResult);
+    }
+
+    void Effect() override {
+        GET_SESSION_MANAGER;
+
+        if (this->result < 0) {
+            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+            ImGui::OpenPopup("###SessionOpenErr");
+            ImGui::PopID();
+
+            return;
+        }
+        
+        sessionManager.currentSession = result;
+        sessionManager.SessionChanged();
+    }
+
+private:
+    SessionManager::Session* session;
+    std::string filePath;
+
+    std::atomic<int32_t> result;
+};
+
+#endif // ASYNCTASK_PUSHSESSIONTASK_HPP

@@ -1,19 +1,20 @@
 #include "U8.hpp"
 
-#include "../common.hpp"
+#include <cstdint>
 
 #include <iostream>
 #include <fstream>
-#include <vector>
+
 #include <bitset>
-#include <unordered_map>
-#include <optional>
-#include <cstdint>
 
 #include <algorithm>
 
-#include "../compression/Yaz0.hpp"
+#include <unordered_map>
 #include <stack>
+
+#include "../common.hpp"
+
+#include "../compression/Yaz0.hpp"
 
 #pragma pack(push, 1) // Pack struct members tightly without padding
 
@@ -63,12 +64,20 @@ namespace U8 {
 
     void Directory::AddFile(File& file) {
         file.parent = this;
-        files.push_back(file);
+        this->files.push_back(file);
+    }
+    void Directory::AddFile(File&& file) {
+        file.parent = this;
+        this->files.push_back(std::move(file));
     }
 
     void Directory::AddDirectory(Directory& directory) {
         directory.parent = this;
-        subdirectories.push_back(directory);
+        this->subdirectories.push_back(directory);
+    }
+    void Directory::AddDirectory(Directory&& directory) {
+        directory.parent = this;
+        this->subdirectories.push_back(std::move(directory));
     }
 
     void Directory::SortAlphabetically() {
@@ -82,7 +91,7 @@ namespace U8 {
     }
 
     Directory* Directory::GetParent() const {
-        return parent;
+        return this->parent;
     }
 
     U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize) {

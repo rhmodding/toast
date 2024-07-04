@@ -3,19 +3,14 @@
 #include "font/SegoeUI.h"
 #include "font/FontAwesome.h"
 
-#include <chrono>
+#include <imgui_internal.h>
 
-#include <thread>
+#include <chrono>
 
 #include <iostream>
 
 #include <string>
 #include <sstream>
-
-#include "imgui_internal.h"
-
-#include "SessionManager.hpp"
-#include "ConfigManager.hpp"
 
 #include "common.hpp"
 
@@ -24,9 +19,20 @@
 //#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#include "SessionManager.hpp"
+#include "ConfigManager.hpp"
+
 #include "command/CommandSwitchCellanim.hpp"
 
+#include "task/AsyncTaskManager.hpp"
+#include "task/AsyncTask_ExportSessionTask.hpp"
+#include "task/AsyncTask_PushSessionTask.hpp"
+
 #include "_binary/images/toastIcon.png.h"
+
+App* gAppPtr{ nullptr };
+
+#define MAX_
 
 #if defined(__APPLE__)
     #define SCS_EXIT "Cmd+Q"
@@ -62,11 +68,13 @@
             ImGui::GetIO().KeyShift && \
             ImGui::IsKeyReleased(ImGuiKey_S)
 
+#define SCS_UNDO SCST_CTRL "+Z"
 #define SC_UNDO \
             SCT_CTRL && \
             !ImGui::GetIO().KeyShift && \
             ImGui::IsKeyReleased(ImGuiKey_Z)
 
+#define SCS_REDO SCST_CTRL "+Shift+Z"
 #define SC_REDO \
             SCT_CTRL && \
             ImGui::GetIO().KeyShift && \
@@ -87,18 +95,9 @@ void A_LD_CreateCompressedArcSession() {
     if (!openFileDialog)
         return;
 
-    GET_SESSION_MANAGER;
-
-    int32_t result = sessionManager.PushSessionFromCompressedArc(openFileDialog);
-    if (result < 0) {
-        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-        ImGui::OpenPopup("###SessionOpenErr");
-        ImGui::PopID();
-    }
-    else {
-        sessionManager.currentSession = result;
-        sessionManager.SessionChanged();
-    }
+    AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
+        std::string(openFileDialog)
+    );
 }
 
 void A_LD_CreateTraditionalSession() {
@@ -161,8 +160,12 @@ void A_LD_CreateTraditionalSession() {
 
 void A_LD_SaveCurrentSessionAsSzs() {
     GET_SESSION_MANAGER;
+    GET_ASYNC_TASK_MANAGER;
 
-    if (!sessionManager.getCurrentSession())
+    if (
+        !sessionManager.getCurrentSession() ||
+        asyncTaskManager.HasTaskOfType<ExportSessionTask>()
+    )
         return;
 
     const char* filterPatterns[] = { "*.szs" };
@@ -173,46 +176,32 @@ void A_LD_SaveCurrentSessionAsSzs() {
         "Compressed Arc File (.szs)"
     );
 
-    if (saveFileDialog) {
-        int32_t result = sessionManager.ExportSessionCompressedArc(
-            sessionManager.getCurrentSession(), saveFileDialog
+    if (saveFileDialog)
+        asyncTaskManager.StartTask<ExportSessionTask>(
+            sessionManager.getCurrentSession(),
+            std::string(saveFileDialog)
         );
-        if (result < 0) {
-            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-            ImGui::OpenPopup("###SessionOutErr");
-            ImGui::PopID();
-        }
-        else {
-            sessionManager.getCurrentSession()->mainPath = saveFileDialog;
-            sessionManager.getCurrentSession()->traditionalMethod = false;
-        }
-    }
 }
 
 void A_SaveCurrentSessionSzs() {
     GET_SESSION_MANAGER;
+    GET_ASYNC_TASK_MANAGER;
 
     if (
         !sessionManager.getCurrentSession() ||
-        sessionManager.getCurrentSession()->traditionalMethod
+        sessionManager.getCurrentSession()->traditionalMethod ||
+
+        asyncTaskManager.HasTaskOfType<ExportSessionTask>()
     )
         return;
 
-    int32_t result = sessionManager.ExportSessionCompressedArc(
+    asyncTaskManager.StartTask<ExportSessionTask>(
         sessionManager.getCurrentSession(),
-        sessionManager.getCurrentSession()->mainPath.c_str()
+        sessionManager.getCurrentSession()->mainPath
     );
-
-    if (result < 0) {
-        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-        ImGui::OpenPopup("###SessionOutErr");
-        ImGui::PopID();
-    }
 }
 
 #pragma endregion
-
-App* gAppPtr{ nullptr };
 
 void App::AttemptExit() {
     GET_SESSION_MANAGER;
@@ -244,6 +233,8 @@ void App::AttemptExit() {
 }
 
 App::App() {
+    gAppPtr = this;
+
     glfwSetErrorCallback([](int error_code, const char* description) {
         std::cerr << "GLFW Error (" << error_code << "): " << description << '\n';
     });
@@ -275,6 +266,8 @@ App::App() {
     GET_CONFIG_MANAGER;
     configManager.LoadConfig();
 
+    this->windowThreadID = std::this_thread::get_id();
+
     this->window = glfwCreateWindow(
         configManager.getConfig().lastWindowWidth,
         configManager.getConfig().lastWindowHeight,
@@ -283,14 +276,13 @@ App::App() {
     );
     assert(this->window);
 
-    gAppPtr = this;
     glfwSetWindowCloseCallback(this->window, [](GLFWwindow* window) {
         extern App* gAppPtr;
         gAppPtr->AttemptExit();
     });
 
     glfwMakeContextCurrent(this->window);
-    glfwSwapInterval(1); // Enable vsync
+    //glfwSwapInterval(1); // Enable vsync
 
     // Icon
     GLFWimage windowIcon;
@@ -356,6 +348,8 @@ App::App() {
 }
 
 App::~App() {
+    glfwMakeContextCurrent(this->window);
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -411,6 +405,7 @@ void App::SetupFonts() {
 
 void App::Menubar() {
     GET_APP_STATE;
+    GET_SESSION_MANAGER;
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
@@ -435,7 +430,21 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("File")) {
-            GET_SESSION_MANAGER;
+            if (ImGui::MenuItem(
+                (char*)ICON_FA_FILE_IMPORT " Open (szs)...",
+                SCS_LAUNCH_OPEN_SZS_DIALOG,
+                nullptr
+            ))
+                A_LD_CreateCompressedArcSession();
+
+            if (ImGui::MenuItem(
+                (char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
+                SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG,
+                nullptr
+            ))
+                A_LD_CreateTraditionalSession();
+
+            ImGui::Separator();
 
             if (ImGui::MenuItem(
                 (char*)ICON_FA_FILE_EXPORT " Save (szs)", SCS_SAVE_CURRENT_SESSION_SZS, false,
@@ -450,22 +459,23 @@ void App::Menubar() {
             ))
                 A_LD_SaveCurrentSessionAsSzs();
 
-            ImGui::Separator();
+            ImGui::EndMenu();
+        }
 
-            // TODO: add Apple shortcut
+        if (ImGui::BeginMenu("Edit")) {
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_IMPORT " Open (szs)...",
-                SCS_LAUNCH_OPEN_SZS_DIALOG,
-                nullptr
+                (char*)ICON_FA_ARROW_ROTATE_LEFT " Undo", SCS_UNDO, false,
+                    !!sessionManager.getCurrentSession() &&
+                    sessionManager.getCurrentSession()->canUndo()
             ))
-                A_LD_CreateCompressedArcSession();
+                sessionManager.getCurrentSession()->undo();
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
-                SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG,
-                nullptr
+                (char*)ICON_FA_ARROW_ROTATE_RIGHT " Redo", SCS_REDO, false,
+                    !!sessionManager.getCurrentSession() &&
+                    sessionManager.getCurrentSession()->canRedo()
             ))
-                A_LD_CreateTraditionalSession();
+                sessionManager.getCurrentSession()->redo();
 
             ImGui::EndMenu();
         }
@@ -527,9 +537,8 @@ void App::Menubar() {
             for (int n = 0; n < sessionManager.sessionList.size(); n++) {
                 ImGui::PushID(n);
 
-                bool sessionOpen = sessionManager.sessionList.at(n).open;
+                bool sessionOpen{ true };
                 if (
-                    sessionManager.sessionList.at(n).open &&
                     ImGui::BeginTabItem(
                         sessionManager.sessionList.at(n).mainPath.c_str(),
                         &sessionOpen,
@@ -550,15 +559,18 @@ void App::Menubar() {
                         ImGui::Text("Select a Cellanim:");
                         ImGui::Separator();
                         for (uint16_t i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
-                            std::string* str = &sessionManager.sessionList.at(n).cellNames.at(i);
+                            const std::string& str = sessionManager.sessionList.at(n).cellanims.at(i).name;
 
                             std::stringstream fmtStream;
-                            fmtStream << std::to_string(i) << ". " << str->substr(0, str->size() - 6);
+                            fmtStream << std::to_string(i) << ". " << str.substr(0, str.size() - 6);
 
-                            if (ImGui::MenuItem(fmtStream.str().c_str(), nullptr, sessionManager.sessionList.at(n).cellIndex == i)) {
+                            if (ImGui::MenuItem(
+                                fmtStream.str().c_str(), nullptr,
+                                sessionManager.sessionList.at(n).currentCellanim == i
+                            )) {
                                 ImGui::CloseCurrentPopup();
 
-                                if (sessionManager.sessionList.at(n).cellIndex != i) {
+                                if (sessionManager.sessionList.at(n).currentCellanim != i) {
                                     sessionManager.currentSession = n;
 
                                     sessionManager.sessionList.at(n).executeCommand(std::make_shared<CommandSwitchCellanim>(
@@ -573,19 +585,16 @@ void App::Menubar() {
                     }
                 }
 
-                if (sessionManager.sessionList.at(n).open) {
-                    std::string* cellName = &sessionManager.sessionList.at(n).cellNames.at(
-                        sessionManager.sessionList.at(n).cellIndex
-                    );
+                const std::string& cellanimName = sessionManager.sessionList.at(n).cellanims.at(
+                    sessionManager.sessionList.at(n).currentCellanim
+                ).name;
+                ImGui::SetItemTooltip(
+                    "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
+                    sessionManager.sessionList.at(n).mainPath.c_str(),
+                    cellanimName.substr(0, cellanimName.size() - 6).c_str()
+                );
 
-                    ImGui::SetItemTooltip(
-                        "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
-                        sessionManager.sessionList.at(n).mainPath.c_str(),
-                        cellName->substr(0, cellName->size() - 6).c_str()
-                    );
-                }
-
-                if (!sessionOpen && sessionManager.sessionList.at(n).open) {
+                if (!sessionOpen) {
                     sessionManager.sessionClosing = n;
 
                     if (sessionManager.sessionList.at(n).modified) {
@@ -729,18 +738,17 @@ void App::UpdatePopups() {
             if (ImGui::Button("Ready", ImVec2(120, 0))) {
                 GET_SESSION_MANAGER;
 
-                Common::Image* newImage = new Common::Image();
-                newImage->LoadFromFile(ConfigManager::getInstance().config.textureEditPath.c_str());
+                std::shared_ptr<Common::Image> newImage =
+                    std::make_shared<Common::Image>(Common::Image());
+                newImage->LoadFromFile(ConfigManager::getInstance().getConfig().textureEditPath.c_str());
 
                 if (newImage->texture) {
-                    Common::Image*& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
+                    auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
 
                     bool diffSize =
                         newImage->width  != cellanimSheet->width ||
                         newImage->height != cellanimSheet->height;
 
-                    cellanimSheet->FreeTexture();
-                    delete cellanimSheet;
                     cellanimSheet = newImage;
 
                     switch (selectedFormatIndex) {
@@ -817,8 +825,8 @@ void App::UpdatePopups() {
             if (ImGui::Button("No region scaling")) {
                 SessionManager::Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
-                currentSession->getCellanim()->textureW = currentSession->getCellanimSheet()->width;
-                currentSession->getCellanim()->textureH = currentSession->getCellanimSheet()->height;
+                currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->width;
+                currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->height;
 
                 ImGui::CloseCurrentPopup();
             }
@@ -832,12 +840,12 @@ void App::UpdatePopups() {
 
                 float scaleX =
                     static_cast<float>(currentSession->getCellanimSheet()->width) /
-                    currentSession->getCellanim()->textureW;
+                    currentSession->getCellanimObject()->textureW;
                 float scaleY =
                     static_cast<float>(currentSession->getCellanimSheet()->height) /
-                    currentSession->getCellanim()->textureH;
+                    currentSession->getCellanimObject()->textureH;
 
-                for (auto& arrangement : currentSession->getCellanim()->arrangements)
+                for (auto& arrangement : currentSession->getCellanimObject()->arrangements)
                     for (auto& part : arrangement.parts) {
                         part.regionX *= scaleX;
                         part.regionW *= scaleX;
@@ -848,8 +856,8 @@ void App::UpdatePopups() {
                         part.scaleY /= scaleY;
                     }
 
-                currentSession->getCellanim()->textureW = currentSession->getCellanimSheet()->width;
-                currentSession->getCellanim()->textureH = currentSession->getCellanimSheet()->height;
+                currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->width;
+                currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->height;
 
                 ImGui::CloseCurrentPopup();
             } ImGui::SetItemDefaultFocus();
@@ -982,6 +990,8 @@ void App::Update() {
 
     static ImGuiIO& io{ ImGui::GetIO() };
 
+    glfwMakeContextCurrent(this->window);
+
     glfwPollEvents();
 
     // Start frame
@@ -1012,7 +1022,7 @@ void App::Update() {
         if (this->windowSpritesheet)
             this->windowSpritesheet->Update();
     }
-
+    
     if (this->windowConfig->open)
         this->windowConfig->Update();
     if (this->windowAbout->open)
@@ -1026,6 +1036,22 @@ void App::Update() {
         this->dialog_warnExitWithUnsavedChanges = false;
     }
 
+    AsyncTaskManager::getInstance().UpdateTasks();
+
+    {
+        std::unique_lock<std::mutex> lock(this->mtcQueueMutex);
+        while (!this->mtCommandQueue.empty()) {
+            auto command = std::move(this->mtCommandQueue.front());
+            this->mtCommandQueue.pop();
+
+            lock.unlock();
+                command.func();
+
+                command.promise.set_value();
+            lock.lock();
+        }
+    }
+
     this->UpdatePopups();
 
     // TODO: Implement timeline auto-scroll
@@ -1037,9 +1063,9 @@ void App::Update() {
     // Render
     ImGui::Render();
 
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
+    int fbSize[2];
+    glfwGetFramebufferSize(window, fbSize, fbSize + 1);
+    glViewport(0, 0, fbSize[0], fbSize[1]);
 
     glClearColor(
         appState.windowClearColor.x * appState.windowClearColor.w,

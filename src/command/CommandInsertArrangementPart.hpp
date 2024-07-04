@@ -52,7 +52,7 @@ private:
     RvlCellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex)
+            ->cellanims.at(this->cellanimIndex).object
             ->arrangements.at(this->arrangementIndex);
     }
 };

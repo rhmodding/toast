@@ -1,6 +1,6 @@
 #include "WindowInspector.hpp"
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include "../font/FontAwesome.h"
 

@@ -4,6 +4,9 @@
 
 #include "../../SessionManager.hpp"
 
+#include "../../AppState.hpp"
+#include "../../anim/Animatable.hpp"
+
 void WindowInspector::Level_Animation() {
     GET_APP_STATE;
     GET_ANIMATABLE;
@@ -16,10 +19,10 @@ void WindowInspector::Level_Animation() {
     ImGui::SameLine();
 
     uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
-    auto query = sessionManager.getCurrentSession()->getAnimationNames()->find(animationIndex);
+    auto query = sessionManager.getCurrentSession()->getAnimationNames().find(animationIndex);
 
     const char* animationName = 
-        query != sessionManager.getCurrentSession()->getAnimationNames()->end() ?
+        query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
             query->second.c_str() : nullptr;
 
     ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);

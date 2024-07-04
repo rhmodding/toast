@@ -1,12 +1,10 @@
 #include "WindowConfig.hpp"
 
-#include "../AppState.hpp"
-
 #include <imgui.h>
 
 #include <cstdint>
 
-#include <stdio.h>
+#include "../AppState.hpp"
 
 enum Categories: uint8_t {
     Category_General,
@@ -117,7 +115,7 @@ void WindowConfig::Update() {
                     ImGui::Separator();
 
                     uint32_t updateRate = this->selfConfig.updateRate;
-                    if (ImGui::DragScalar("Update rate", ImGuiDataType_U32, &updateRate, .5f, nullptr, nullptr, "%u ups"))
+                    if (ImGui::DragScalar("App update rate", ImGuiDataType_U32, &updateRate, .5f, nullptr, nullptr, "%u cycles per second"))
                         this->selfConfig.updateRate = std::clamp<uint32_t>(updateRate, 1, UINT32_MAX);
 
                     ImGui::Separator();
@@ -127,11 +125,8 @@ void WindowConfig::Update() {
                 } break;
 
                 case Category_Theming: {
-                    int currentTheme = this->selfConfig.darkTheme ? 0 : 1;
-
-                    const char* themeOptions[] = { "Dark", "Light" };
-                    if (ImGui::Combo("Theme", &currentTheme, themeOptions, 2))
-                        this->selfConfig.darkTheme = currentTheme == 0;
+                    const char* themeOptions[] = { "Light", "Dark" };
+                    ImGui::Combo("Theme", reinterpret_cast<int*>(&this->selfConfig.theme), themeOptions, 2);
                 } break;
 
                 case Category_Paths: {

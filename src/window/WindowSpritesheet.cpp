@@ -1,20 +1,24 @@
 #include "WindowSpritesheet.hpp"
 
-#include "imgui.h"
+#include <imgui.h>
+
+#include <cstdlib>
 
 #include <iostream>
-#include "../SessionManager.hpp"
-
-#include <cstdlib> // for std::system
-
 #include <sstream>
-#include <future>
+
+#include <string>
+
+#include <tinyfiledialogs.h>
 
 #include <filesystem>
 
+#include <thread>
+
+#include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"
 
-#include <tinyfiledialogs.h>
+#include "../texture/ImageConvert.hpp"
 
 #define SHEET_ZOOM_TIME .3f // seconds
 
@@ -129,6 +133,178 @@ void WindowSpritesheet::PaletteWindow() {
     ImGui::End();
 }
 
+void WindowSpritesheet::FormatPopup() {
+    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("Re-encode image..###ReencodePopup", nullptr)) {
+        GET_SESSION_MANAGER;
+
+        const char* formatList[] = {
+            "RGBA32",
+            "RGB5A3",
+        };
+        static int selectedFormatIndex{ 0 };
+
+        TPL::TPLImageFormat tplFormat;
+        switch (selectedFormatIndex) {
+            case 0:
+                tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
+                break;
+            case 1:
+                tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
+                break;
+            
+            default:
+                tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
+                break;
+        }
+
+        // Left
+        {
+            ImGui::BeginGroup();
+            ImGui::BeginChild("Properties", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
+
+            {
+                ImGui::PushFont(AppState::getInstance().fontLarge);
+                ImGui::SeparatorText("Image Info");
+                ImGui::PopFont();
+
+                if (ImGui::BeginChild("ImageInfoChild", ImVec2(-FLT_MIN, 0.0f), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
+                    ImGui::BulletText(
+                        "Size: %ux%u", 
+                        sessionManager.getCurrentSession()->getCellanimSheet()->width,
+                        sessionManager.getCurrentSession()->getCellanimSheet()->height
+                    );
+
+                    uint32_t dataSize = ImageConvert::getImageByteSize(
+                        tplFormat,
+                        sessionManager.getCurrentSession()->getCellanimSheet()->width,
+                        sessionManager.getCurrentSession()->getCellanimSheet()->height
+                    );
+                    char formattedStr[32];
+                    {
+                        char numberStr[32];
+                        sprintf(numberStr, "%u", dataSize);
+
+                        uint32_t srcLen = strlen(numberStr);
+                        uint32_t destLen = srcLen + (srcLen - 1) / 3;
+
+                        int srcIndex = srcLen - 1;
+                        int destIndex = destLen - 1;
+
+                        uint16_t digitCount = 0;
+
+                        while (srcIndex >= 0) {
+                                if (digitCount == 3) {
+                                formattedStr[destIndex--] = '.';
+                                digitCount = 0;
+                                }
+                                else {
+                                formattedStr[destIndex--] = numberStr[srcIndex--]; // Fix here
+                                digitCount++;
+                                }
+                        }
+                        formattedStr[destLen] = '\0'; // Null-terminate the new string
+                    }
+
+                    ImGui::BulletText("Data Size: %sB", formattedStr);
+                }
+                ImGui::EndChild();
+            }
+            {
+                ImGui::PushFont(AppState::getInstance().fontLarge);
+                ImGui::SeparatorText("Format Info");
+                ImGui::PopFont();
+
+                if (ImGui::BeginChild("FormatInfoChild", ImVec2(-FLT_MIN, 0.0f), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
+                    const char* colorDesc;
+                    const char* alphaDesc;
+
+                    switch (tplFormat) {
+                        case TPL::TPL_IMAGE_FORMAT_RGBA32:
+                            colorDesc = "Colors: 24-bit, millions of colors";
+                            alphaDesc = "Alpha: 8-bit, ranged 0 to 255";
+                            break;
+                        case TPL::TPL_IMAGE_FORMAT_RGB5A3:
+                            colorDesc = "Color:\n   Opaque pixels:\n      15-bit, 32768 colors\n   Transparent pixels:\n      12-bit, 4096 colors";
+                            alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
+                            break;
+                    }
+
+                    ImGui::BulletText("%s", colorDesc);
+                    ImGui::BulletText("%s", alphaDesc);
+                }
+                ImGui::EndChild();
+            }
+
+            ImGui::Dummy({ 0, 5 });
+            ImGui::Separator();
+            ImGui::Dummy({ 0, 5 });
+
+            ImGui::Combo("Format", &selectedFormatIndex, formatList, ARRAY_LENGTH(formatList));
+
+            ImGui::EndChild();
+
+            if (ImGui::Button("Cancel"))
+                ImGui::CloseCurrentPopup();
+            ImGui::SameLine();
+
+            if (ImGui::Button("Apply")) {
+                sessionManager.getCurrentSession()->getCellanimSheet()->tplOutFormat = tplFormat;
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndGroup();
+        }
+
+        ImGui::SameLine();
+
+        // Right
+        {
+            ImGui::SetNextWindowSizeConstraints({ 256.f, 0.f }, { FLT_MAX, FLT_MAX });
+            ImGui::BeginChild("ImageView");
+
+            static float bgScale{ .215f };
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGui::SliderFloat("##BGSlider", &bgScale, 0.f, 1.f, "BG: %.3f");
+
+            ImVec2 imageRect = ImVec2(
+                static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->width),
+                static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->height)
+            );
+
+            float scale;
+            Common::fitRectangle(imageRect, ImGui::GetContentRegionAvail(), scale);
+
+            ImVec2 imagePosition = ImVec2(
+                ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * 0.5f,
+                ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - imageRect.y) * 0.5f
+            );
+
+            ImGui::GetWindowDrawList()->AddRectFilled(
+                imagePosition,
+                { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, },
+                ImGui::ColorConvertFloat4ToU32({ bgScale, bgScale, bgScale, 1.f })
+            );
+
+            ImGui::GetWindowDrawList()->AddImage(
+                (void*)(intptr_t)sessionManager.getCurrentSession()->getCellanimSheet()->texture,
+                imagePosition,
+                { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
+            );
+            
+            ImGui::EndChild();
+        }
+
+        ImGui::EndPopup();
+    }
+
+    ImGui::PopID();
+}
+
 void WindowSpritesheet::Update() {
     GET_SESSION_MANAGER;
 
@@ -210,18 +386,17 @@ void WindowSpritesheet::Update() {
                 if (openFileDialog) {
                     GET_SESSION_MANAGER;
 
-                    Common::Image* newImage = new Common::Image();
+                    std::shared_ptr<Common::Image> newImage =
+                        std::make_shared<Common::Image>(Common::Image());
                     newImage->LoadFromFile(openFileDialog);
 
                     if (newImage->texture) {
-                        Common::Image*& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
+                        auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
 
                         bool diffSize =
                             newImage->width  != cellanimSheet->width ||
                             newImage->height != cellanimSheet->height;
 
-                        cellanimSheet->FreeTexture();
-                        delete cellanimSheet;
                         cellanimSheet = newImage;
 
                         if (diffSize) {
@@ -246,7 +421,11 @@ void WindowSpritesheet::Update() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Re-encode (change format)..");
+            if (ImGui::MenuItem("Re-encode (change format)..")) {
+                ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+                ImGui::OpenPopup("###ReencodePopup");
+                ImGui::PopID();
+            }
 
             if (ImGui::MenuItem(
                 "Modify color palette..",
@@ -273,6 +452,8 @@ void WindowSpritesheet::Update() {
 
         ImGui::EndMenuBar();
     }
+
+    this->FormatPopup();
 
     ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
     ImVec2 canvasSize = ImGui::GetContentRegionAvail();
@@ -322,13 +503,13 @@ void WindowSpritesheet::Update() {
     // Inital sheet zoom
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && interactionHovered) {
         this->sheetZoomTriggered = true;
-        this->sheetZoomTimer = static_cast<float>(glfwGetTime());
+        this->sheetZoomTimer = static_cast<float>(ImGui::GetTime());
     }
 
     if (
         this->sheetZoomTriggered &&
         (
-            static_cast<float>(glfwGetTime()) -
+            static_cast<float>(ImGui::GetTime()) -
             this->sheetZoomTimer
         ) > SHEET_ZOOM_TIME
     ) {
@@ -337,7 +518,7 @@ void WindowSpritesheet::Update() {
     }
 
     // Dragging
-    const float mousePanThreshold = -1.0f;
+    const float mousePanThreshold = -1.f;
     bool draggingCanvas = this->sheetZoomEnabled && interactionActive && (
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
@@ -365,7 +546,7 @@ void WindowSpritesheet::Update() {
     }
 
     if (this->sheetZoomTriggered) {
-        float rel = (glfwGetTime() - this->sheetZoomTimer) / SHEET_ZOOM_TIME;
+        float rel = (ImGui::GetTime() - this->sheetZoomTimer) / SHEET_ZOOM_TIME;
         float rScale = (this->sheetZoomEnabled ? Common::EaseIn : Common::EaseOut)(
             this->sheetZoomEnabled ?
                 1.f - rel :

@@ -49,7 +49,7 @@ private:
     RvlCellAnim::AnimationKey& getKey() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex)
+            ->cellanims.at(this->cellanimIndex).object
             ->animations.at(this->animationIndex)
             .keys.at(this->keyIndex);
     }
@@ -57,7 +57,7 @@ private:
     RvlCellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex)
+            ->cellanims.at(this->cellanimIndex).object
             ->arrangements.at(this->getKey().arrangementIndex);
     }
 };

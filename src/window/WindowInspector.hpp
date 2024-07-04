@@ -5,11 +5,6 @@
 
 #include "../anim/Animatable.hpp"
 
-#include "../AppState.hpp"
-
-#include <unordered_map>
-#include <string>
-
 class WindowInspector : public BaseWindow {
 public:
     void Update() override;

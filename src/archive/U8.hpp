@@ -30,8 +30,10 @@ namespace U8 {
         Directory* parent{ nullptr };
 
         void AddFile(File& file);
+        void AddFile(File&& file);
 
         void AddDirectory(Directory& directory);
+        void AddDirectory(Directory&& directory);
 
         void SortAlphabetically();
 

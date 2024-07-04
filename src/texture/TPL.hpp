@@ -2,8 +2,11 @@
 #define TPL_HPP
 
 #include <cstdint>
-#include <string>
+
 #include <vector>
+
+#include <string>
+
 #include <optional>
 
 #include <GL/gl.h>
@@ -104,7 +107,7 @@ namespace TPL {
 
     std::optional<TPLObject> readTPLFile(const std::string& filePath);
 
-    GLuint LoadTPLTextureIntoGLTexture(TPL::TPLTexture tplTexture);
+    GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture);
 }
 
 #endif // TPL_HPP
