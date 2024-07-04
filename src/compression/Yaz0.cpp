@@ -135,6 +135,11 @@ namespace Yaz0 {
     }
 
     std::optional<std::vector<unsigned char>> decompress(const unsigned char* compressedData, const size_t dataSize) {
+        if (dataSize < sizeof(Yaz0Header)) {
+            std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: data size smaller than header size!\n";
+            return std::nullopt; // return nothing (std::optional)
+        }
+
         const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(compressedData);
 
         uint32_t uncompressedSize = BYTESWAP_32(header->uncompressedSize);

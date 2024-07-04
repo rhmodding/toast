@@ -96,6 +96,11 @@ namespace TPL {
     }
 
     TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
+        if (dataSize < sizeof(TPLPalette)) {
+            std::cerr << "[TPLObject::TPLObject] Invalid TPL binary: data size smaller than palette size!\n";
+            return;
+        }
+
         const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
 
         if (palette->versionNumber != TPL_VERSION_NUMBER) {

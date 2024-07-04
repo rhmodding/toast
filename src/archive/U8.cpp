@@ -95,6 +95,11 @@ namespace U8 {
     }
 
     U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize) {
+        if (dataSize < sizeof(U8ArchiveHeader)) {
+            std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: data size smaller than header size!\n";
+            return;
+        }
+
         const U8ArchiveHeader* header = reinterpret_cast<const U8ArchiveHeader*>(archiveData);
 
         if (header->magic != HEADER_MAGIC) {
