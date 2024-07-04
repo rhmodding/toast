@@ -23,17 +23,19 @@ namespace Common {
         char newFileName[PATH_MAX];
         sprintf(newFileName, "%s.bak", filePath);
 
-        std::ifstream src(filePath,    std::ios::binary);
-        std::ofstream dst(newFileName, std::ios::binary);
-
         bool exists{ false };
         {
-            std::ifstream f(newFileName);
-            exists = f.good();
+            if (FILE *file = fopen(newFileName, "r")) {
+                fclose(file);
+                exists = true;
+            } 
         }
 
-        if (exists && once)
+        if (once && exists)
             return true;
+
+        std::ifstream src(filePath,    std::ios::binary);
+        std::ofstream dst(newFileName, std::ios::binary);
 
         if (!src.is_open()) {
             std::cerr << "[Common::SaveBackupFile] Error opening source file at path: " << filePath << '\n';
