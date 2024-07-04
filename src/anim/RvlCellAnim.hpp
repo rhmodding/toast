@@ -124,7 +124,7 @@ namespace RvlCellAnim {
         RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize);
     };
 
-    std::shared_ptr<RvlCellAnimObject> ObjectFromFile(const char *filename);
+    std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char *filePath);
 }
 
 #endif // RVLCELLANIM_HPP

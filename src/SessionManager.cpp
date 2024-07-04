@@ -158,7 +158,7 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
     newSession.cellanims.resize(1);
     newSession.sheets.resize(1);
 
-    newSession.cellanims.at(0).object = RvlCellAnim::ObjectFromFile(paths[0]);
+    newSession.cellanims.at(0).object = RvlCellAnim::readRvlCellAnimFile(paths[0]);
     if (
         !newSession.cellanims.at(0).object ||
         !newSession.cellanims.at(0).object->ok

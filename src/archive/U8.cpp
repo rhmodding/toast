@@ -373,28 +373,28 @@ namespace U8 {
         return result;
     }
 
-    std::optional<U8ArchiveObject> readYaz0U8Archive(const std::string& filePath) {
-        std::ifstream file(filePath, std::ios::binary);
+    std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
+        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
             std::cerr << "[U8::readYaz0U8Archive] Error opening file at path: " << filePath << '\n';
             return std::nullopt;
         }
 
-        // file read
-        file.seekg(0, std::ios::end);
-        std::streampos fileSize = file.tellg();
+        const std::streampos fileSize = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        std::vector<char> fileContent(fileSize);
-        file.read(fileContent.data(), fileSize);
+        unsigned char* buffer = new unsigned char[fileSize];
+        file.read(reinterpret_cast<char*>(buffer), fileSize);
 
         file.close();
 
         // yaz0 decompress
-        auto decompressedData = Yaz0::decompress(
-            reinterpret_cast<unsigned char*>(fileContent.data()),
+        const auto decompressedData = Yaz0::decompress(
+            buffer,
             fileSize
         );
+
+        delete[] buffer;
 
         if (!decompressedData.has_value()) {
             std::cerr << "[U8::readYaz0U8Archive] Error decompressing file at path: " << filePath << '\n';

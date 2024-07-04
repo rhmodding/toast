@@ -319,30 +319,23 @@ namespace RvlCellAnim {
         return result;
     }
 
-    // Note: the object is dynamically allocated here. Make sure to delete it when you're done!
-    std::shared_ptr<RvlCellAnimObject> ObjectFromFile(const char* path) {
-        std::ifstream file(path, std::ios::binary | std::ios::ate);
-        //                                binary mode        seek to end
-
+    std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char* filePath) {
+        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
-            std::cerr << "[RvlCellAnim::ObjectFromFile] Could not open file at path: " << path << '\n';
+            std::cerr << "[RvlCellAnim::readRvlCellAnimFile] Could not open file at path: " << filePath << '\n';
             return nullptr;
         }
 
-        std::streampos fileSize = file.tellg();
+        const std::streampos fileSize = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        char* buffer = new char[fileSize];
-
-        assert(file.read(buffer, fileSize));
+        unsigned char* buffer = new unsigned char[fileSize];
+        file.read(reinterpret_cast<char*>(buffer), fileSize);
 
         file.close();
 
         std::shared_ptr<RvlCellAnimObject> object =
-            std::make_shared<RvlCellAnimObject>(
-            RvlCellAnimObject(
-                reinterpret_cast<unsigned char*>(buffer), fileSize
-            ));
+            std::make_shared<RvlCellAnimObject>(RvlCellAnimObject(buffer, fileSize));
 
         delete[] buffer;
 
