@@ -11,7 +11,7 @@
 #include <mutex>
 #include <thread>
 
-#include "App.hpp"
+#include "MtCommandManager.hpp"
 
 namespace Common {
     float byteswapFloat(float value) {
@@ -83,7 +83,7 @@ namespace Common {
         }
 
         GLuint imageTexture;
-        std::future<void> future = gAppPtr->enqueueCommand([&imageTexture, imageWidth, imageHeight, imagePtr]() {
+        std::future<void> future = MtCommandManager::getInstance().enqueueCommand([&imageTexture, imageWidth, imageHeight, imagePtr]() {
             glGenTextures(1, &imageTexture);
             glBindTexture(GL_TEXTURE_2D, imageTexture);
 
@@ -120,7 +120,7 @@ namespace Common {
         }
 
         GLuint imageTexture;
-        std::future<void> future = gAppPtr->enqueueCommand([&imageTexture, imageWidth, imageHeight, imagePtr]() {
+        std::future<void> future = MtCommandManager::getInstance().enqueueCommand([&imageTexture, imageWidth, imageHeight, imagePtr]() {
             glGenTextures(1, &imageTexture);
             glBindTexture(GL_TEXTURE_2D, imageTexture);
 
@@ -186,7 +186,7 @@ namespace Common {
         {
             GLuint texture = this->texture;
             uint8_t* textureBuffer = tplTexture.data.data();
-            std::future<void> future = gAppPtr->enqueueCommand([texture, textureBuffer, &wrapModeS, &wrapModeT]() {
+            std::future<void> future = MtCommandManager::getInstance().enqueueCommand([texture, textureBuffer, &wrapModeS, &wrapModeT]() {
                 glBindTexture(GL_TEXTURE_2D, texture);
 
                 glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureBuffer);
@@ -240,7 +240,7 @@ namespace Common {
 
         {
             GLuint texture = this->texture;
-            std::future<void> future = gAppPtr->enqueueCommand([texture, data]() {
+            std::future<void> future = MtCommandManager::getInstance().enqueueCommand([texture, data]() {
                 glBindTexture(GL_TEXTURE_2D, texture);
 
                 glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);

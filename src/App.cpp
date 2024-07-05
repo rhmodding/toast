@@ -28,6 +28,8 @@
 #include "task/AsyncTask_ExportSessionTask.hpp"
 #include "task/AsyncTask_PushSessionTask.hpp"
 
+#include "MtCommandManager.hpp"
+
 #include "_binary/images/toastIcon.png.h"
 
 App* gAppPtr{ nullptr };
@@ -1038,19 +1040,7 @@ void App::Update() {
 
     AsyncTaskManager::getInstance().UpdateTasks();
 
-    {
-        std::unique_lock<std::mutex> lock(this->mtcQueueMutex);
-        while (!this->mtCommandQueue.empty()) {
-            auto command = std::move(this->mtCommandQueue.front());
-            this->mtCommandQueue.pop();
-
-            lock.unlock();
-                command.func();
-
-                command.promise.set_value();
-            lock.lock();
-        }
-    }
+    MtCommandManager::getInstance().Update();
 
     this->UpdatePopups();
 

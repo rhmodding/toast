@@ -13,7 +13,8 @@
 
 #include <thread>
 #include <memory>
-#include "../App.hpp"
+
+#include "../MtCommandManager.hpp"
 
 #define TPL_VERSION_NUMBER 0x30AF2000
 
@@ -401,7 +402,7 @@ namespace TPL {
         TPL::TPLTexFilter tplMinFilter = tplTexture.minFilter;
         TPL::TPLTexFilter tplMagFilter = tplTexture.magFilter;
 
-        std::future<void> future = gAppPtr->enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
+        std::future<void> future = MtCommandManager::getInstance().enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
             glGenTextures(1, &imageTexture);
             glBindTexture(GL_TEXTURE_2D, imageTexture);
 

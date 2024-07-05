@@ -17,11 +17,7 @@
 #include "window/WindowConfig.hpp"
 #include "window/WindowAbout.hpp"
 
-#include <queue>
-#include <functional>
-#include <future>
-#include <mutex>
-#include <condition_variable>
+#include <thread>
 
 #define WINDOW_TITLE "Toast Beta"
 
@@ -107,40 +103,6 @@ private: // Flags
     bool dialog_warnExitWithUnsavedChanges{ false };
     // Exit even if there are unsaved changes.
     bool exitWithUnsavedChanges{ false };
-    
-private:
-    std::mutex mtcQueueMutex;
-    std::condition_variable mtcCondition;
-public:
-    struct MtCommand {
-        std::function<void()> func;
-        std::promise<void> promise;
-    };
-    std::queue<MtCommand> mtCommandQueue;
-
-    std::future<void> enqueueCommand(std::function<void()> func) {
-        if (std::this_thread::get_id() == this->getWindowThreadID()) {
-            func();
-
-            std::promise<void> promise;
-            promise.set_value();
-
-            return promise.get_future();
-        }
-
-        std::lock_guard<std::mutex> lock(this->mtcQueueMutex);
-
-        MtCommand command{ func, std::promise<void>() };
-        auto future = command.promise.get_future();
-
-        this->mtCommandQueue.push(std::move(command));
-
-        this->mtcCondition.notify_one();
-
-        return future;
-    }
-
-    // TODO: move MtCommand stuff into another class
 
 private:
     std::thread::id windowThreadID;
