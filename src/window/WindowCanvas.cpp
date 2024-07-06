@@ -395,7 +395,7 @@ void WindowCanvas::Update() {
     }
 
     // set hoveringOverSelectedPart
-    if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
+    if (appState.focusOnSelectedPart && appState.selectedPart >= 0 && !appState.playerState.playing) {
         auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
         ImVec2 polygon[5] = {
             bounding[0],
