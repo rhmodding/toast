@@ -12,6 +12,23 @@
 
 const uint16_t uint16_one = 1;
 
+bool getArrangementUnique(uint16_t index) {
+    uint8_t timesUsed{ 0 };
+
+    for (const auto& animation : SessionManager::getInstance().getCurrentSession()->getCellanimObject()->animations) {
+        for (const auto& key : animation.keys) {
+            if (key.arrangementIndex == index)
+                timesUsed++;
+
+            if (timesUsed > 1) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 void WindowInspector::Level_Key() {
     GET_APP_STATE;
     GET_ANIMATABLE;
@@ -130,7 +147,10 @@ void WindowInspector::Level_Key() {
         ImGui::Text("Arrangement No.");
     }
 
-    if (ImGui::Button("Duplicate Arrangement & Switch")) {
+    bool arrangementUnique = getArrangementUnique(globalAnimatable->getCurrentKey()->arrangementIndex);
+    ImGui::BeginDisabled(arrangementUnique);
+
+    if (ImGui::Button("Make arrangement unique (duplicate)")) {
         SessionManager::getInstance().getCurrentSession()->executeCommand(
         std::make_shared<CommandInsertArrangement>(
         CommandInsertArrangement(
@@ -142,6 +162,11 @@ void WindowInspector::Level_Key() {
         newKey.arrangementIndex = 
             sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
     }
+
+    ImGui::EndDisabled();
+
+    if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("This arrangement is only used once.");
 
     ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
 
