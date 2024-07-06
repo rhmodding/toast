@@ -374,6 +374,15 @@ void SessionManager::SessionChanged() {
             this->getCurrentSession()->getCellanimSheet()
         );
 
+        appState.selectedAnimation = std::clamp<uint16_t>(
+            appState.selectedAnimation,
+            0,
+            globalAnimatable->cellanim->animations.size() - 1
+        );
+
+        globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
+        appState.playerState.updateSetFrameCount();
+
         if (appState.getArrangementMode()) {
             appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
                 appState.controlKey.arrangementIndex,
@@ -383,16 +392,7 @@ void SessionManager::SessionChanged() {
 
             appState.playerState.ToggleAnimating(false);
             globalAnimatable->overrideAnimationKey(&appState.controlKey);
-        } else {
-            appState.selectedAnimation = std::clamp<uint16_t>(
-                appState.selectedAnimation,
-                0,
-                globalAnimatable->cellanim->animations.size() - 1
-            );
-
-            globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
         }
-        appState.playerState.updateSetFrameCount();
 
         appState.selectedPart = std::clamp<int32_t>(
             appState.selectedPart,
