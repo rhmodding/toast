@@ -38,8 +38,11 @@ void AppState::PlayerState::updateCurrentFrame() {
 
     RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
-    if (appState.selectedPart >= arrangementPtr->parts.size())
-        appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
+    appState.selectedPart = std::clamp<int32_t>(
+        appState.selectedPart,
+        -1,
+        arrangementPtr->parts.size() - 1
+    );
 
     this->holdFramesLeft = 0;
 }
@@ -61,7 +64,7 @@ uint16_t AppState::PlayerState::getTotalPseudoFrames() {
 
     GET_ANIMATABLE;
 
-    for (auto key : globalAnimatable->getCurrentAnimation()->keys)
+    for (const auto& key : globalAnimatable->getCurrentAnimation()->keys)
         result += key.holdFrames;
 
     return result;
@@ -92,15 +95,15 @@ void AppState::PlayerState::Update() {
 
     if (this->playing && globalAnimatable) {
         auto now = std::chrono::steady_clock::now();
-        auto duration = now - this->previous;
-        float delta = std::chrono::duration_cast<std::chrono::duration<float>>(duration).count();
+        float delta = std::chrono::duration_cast<std::chrono::duration<float>>(now - this->previous).count();
+
         this->previous = now;
 
         while (delta >= this->timeLeft) {
             globalAnimatable->Update();
             delta -= this->timeLeft;
 
-            this->timeLeft = 1 / (float)frameRate;
+            this->timeLeft = 1.f / frameRate;
 
             if (!globalAnimatable->getAnimating() && this->loopEnabled) {
                 globalAnimatable->setAnimationFromIndex(globalAnimatable->getCurrentAnimationIndex());
@@ -115,8 +118,11 @@ void AppState::PlayerState::Update() {
 
             RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
-            if (appState.selectedPart >= arrangementPtr->parts.size())
-                appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
+            appState.selectedPart = std::clamp<int32_t>(
+                appState.selectedPart,
+                -1,
+                arrangementPtr->parts.size() - 1
+            );
         }
 
         this->timeLeft -= delta;
