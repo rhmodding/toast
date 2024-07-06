@@ -68,6 +68,17 @@ void WindowInspector::Level_Animation() {
         if (ImGui::Button("OK", ImVec2(120, 0))) {
             changed = true;
 
+            // Replace spaces with underscores
+            {
+                char* character = newMacroName;
+
+                while (*character != '\0') {
+                    if (*character == ' ')
+                        *character = '_';
+                    character++;
+                }
+            }
+
             query->second = newMacroName;
             ImGui::CloseCurrentPopup();
         } ImGui::SetItemDefaultFocus();
