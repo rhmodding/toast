@@ -38,12 +38,12 @@ public:
         ImGui::PushID(this->imguiID);
 
         if (!isComplete)
-            ImGui::OpenPopup("Working..");
+            ImGui::OpenPopup("###WORKING");
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
         
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f));
-        if (ImGui::BeginPopupModal("Working..", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginPopupModal((char*)ICON_FA_WAND_MAGIC_SPARKLES "  Working..###WORKING", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::Text(this->message);
 
             ImGui::Dummy(ImVec2(0.f, 1.f));
