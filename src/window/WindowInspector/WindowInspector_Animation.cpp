@@ -29,7 +29,7 @@ void WindowInspector::Level_Animation() {
     {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
-        ImGui::Text("Animation no. %u:", animationIndex);
+        ImGui::Text("Animation no. %u:", animationIndex + 1);
 
         ImGui::PushFont(appState.fontLarge);
         ImGui::TextWrapped("%s", animationName ? animationName : "(no macro defined)");
