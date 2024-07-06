@@ -4,8 +4,6 @@
 
 #include "App.hpp"
 
-#include "AppState.hpp"
-
 #include "ConsoleSplash.hpp"
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
@@ -17,7 +15,7 @@ int main(int argc, char** argv) {
 
     {
         App app;
-        while (!app.shouldStopRunning())
+        while (app.isRunning())
             app.Update();
     }
 }

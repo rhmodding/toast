@@ -205,33 +205,27 @@ void A_SaveCurrentSessionSzs() {
 
 #pragma endregion
 
-void App::AttemptExit() {
+void App::AttemptExit(bool force) {
     GET_SESSION_MANAGER;
 
-    if (!this->exitWithUnsavedChanges)
+    if (!force)
         for (uint32_t i = 0; i < sessionManager.sessionList.size(); i++) {
             if (sessionManager.sessionList.at(i).modified) {
                 this->dialog_warnExitWithUnsavedChanges = true;
-
-                // Cancel close
-                return;
+                return; // Cancel
             }
         }
-
-    int windowWidth, windowHeight;
-    glfwGetWindowSize(window, &windowWidth, &windowHeight);
 
     GET_CONFIG_MANAGER;
 
     ConfigManager::Config config = configManager.getConfig();
-    config.lastWindowWidth = windowWidth;
-    config.lastWindowHeight = windowHeight;
+
+    glfwGetWindowSize(window, &config.lastWindowWidth, &config.lastWindowHeight);
 
     configManager.setConfig(config);
-
     configManager.SaveConfig();
 
-    this->stopMainLoop = true;
+    this->running = false;
 }
 
 App::App() {
@@ -937,8 +931,7 @@ void App::UpdatePopups() {
             if (ImGui::Button("Exit without saving")) {
                 ImGui::CloseCurrentPopup();
 
-                this->exitWithUnsavedChanges = true;
-                this->AttemptExit();
+                this->AttemptExit(true);
             }
 
             ImGui::EndPopup();

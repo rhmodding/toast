@@ -25,9 +25,9 @@ class App {
 public:
     void Update();
 
-    void AttemptExit();
+    void AttemptExit(bool force = false);
 
-    bool shouldStopRunning() const { return this->stopMainLoop; }
+    bool isRunning() const { return this->running; }
 
     // Constructor
     App();
@@ -97,7 +97,7 @@ private: // Windows
     GLFWwindow* window{ nullptr };
 
 private: // Flags
-    bool stopMainLoop{ false };
+    bool running{ true };
 
     // Launch dialog ###AttemptExitWhileUnsavedChanges
     bool dialog_warnExitWithUnsavedChanges{ false };
