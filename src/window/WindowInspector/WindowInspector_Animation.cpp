@@ -46,8 +46,8 @@ void WindowInspector::Level_Animation() {
     ImGui::SeparatorText((char*)ICON_FA_PENCIL " Macro name");
     if (ImGui::Button("Edit macro name..")) {
         std::string copyName(animationName ? animationName : "");
-        if (copyName.size() > 256)
-            copyName.resize(256); // Truncate
+        if (copyName.size() > 255)
+            copyName.resize(255); // Truncate
 
         strcpy(newMacroName, copyName.c_str());
         ImGui::OpenPopup("###EditMacroNamePopup");
