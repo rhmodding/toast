@@ -12,8 +12,8 @@
 #include "../command/CommandModifyArrangementPart.hpp"
 
 bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
-    double x = point.x, y = point.y;
-    bool inside = false;
+    float x = point.x, y = point.y;
+    bool inside{ false };
  
     // Store the first point in the polygon and initialize
     // the second point
@@ -36,7 +36,7 @@ bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVe
                 if (x <= std::max(p1.x, p2.x)) {
                     // Calculate the x-intersection of the
                     // line connecting the point to the edge
-                    double x_intersection
+                    float xIntersection
                         = (y - p1.y) * (p2.x - p1.x)
                               / (p2.y - p1.y)
                           + p1.x;
@@ -44,8 +44,7 @@ bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVe
                     // Check if the point is on the same
                     // line as the edge or to the left of
                     // the x-intersection
-                    if (p1.x == p2.x
-                        || x <= x_intersection) {
+                    if (p1.x == p2.x || x <= xIntersection) {
                         // Flip the inside flag
                         inside = !inside;
                     }
@@ -58,7 +57,6 @@ bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVe
         p1 = p2;
     }
  
-    // Return the value of the inside flag
     return inside;
 }
 
