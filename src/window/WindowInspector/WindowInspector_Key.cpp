@@ -165,8 +165,35 @@ void WindowInspector::Level_Key() {
 
     ImGui::EndDisabled();
 
+    if (
+        arrangementUnique &&
+        ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
+        ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)
+    )
+        ImGui::OpenPopup("DuplicateAnywayPopup");
+
+    if (ImGui::BeginPopup("DuplicateAnywayPopup")) {
+        ImGui::Text("Would you like to duplicate this\narrangement anyway?");
+        ImGui::Separator();
+        if (ImGui::Selectable("Ok")) {
+            SessionManager::getInstance().getCurrentSession()->executeCommand(
+            std::make_shared<CommandInsertArrangement>(
+            CommandInsertArrangement(
+                sessionManager.getCurrentSession()->currentCellanim,
+                sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size(),
+                sessionManager.getCurrentSession()->getCellanimObject()->arrangements.at(animKey->arrangementIndex)
+            )));
+
+            newKey.arrangementIndex = 
+                sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
+        }
+        ImGui::Selectable("Nevermind");
+        
+        ImGui::EndPopup();
+    }
+
     if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("This arrangement is only used once.");
+        ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
 
     ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
 
