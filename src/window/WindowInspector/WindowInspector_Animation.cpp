@@ -7,6 +7,7 @@
 #include "../../AppState.hpp"
 #include "../../anim/Animatable.hpp"
 
+#include "../../command/CommandModifyAnimationName.hpp"
 #include "../../command/CommandSwapAnimations.hpp"
 
 void WindowInspector::Level_Animation() {
@@ -69,6 +70,7 @@ void WindowInspector::Level_Animation() {
     ImGui::Unindent();
 
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
@@ -94,7 +96,13 @@ void WindowInspector::Level_Animation() {
                 }
             }
 
-            query->second = newMacroName;
+            sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandModifyAnimationName>(
+            CommandModifyAnimationName(
+                sessionManager.getCurrentSession()->currentCellanim,
+                animationIndex,
+                newMacroName
+            )));
+            
             ImGui::CloseCurrentPopup();
         } ImGui::SetItemDefaultFocus();
 
