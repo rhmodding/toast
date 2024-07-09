@@ -394,10 +394,6 @@ void SessionManager::SessionChanged() {
             globalAnimatable->overrideAnimationKey(&appState.controlKey);
         }
 
-        appState.selectedPart = std::clamp<int32_t>(
-            appState.selectedPart,
-            -1,
-            globalAnimatable->getCurrentArrangement()->parts.size() - 1
-        );
+        appState.correctSelectedPart();
     }
 }

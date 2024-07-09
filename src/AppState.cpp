@@ -38,11 +38,7 @@ void AppState::PlayerState::updateCurrentFrame() {
 
     RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
-    appState.selectedPart = std::clamp<int32_t>(
-        appState.selectedPart,
-        -1,
-        arrangementPtr->parts.size() - 1
-    );
+    appState.correctSelectedPart();
 
     this->holdFramesLeft = 0;
 }
@@ -118,11 +114,7 @@ void AppState::PlayerState::Update() {
 
             RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
-            appState.selectedPart = std::clamp<int32_t>(
-                appState.selectedPart,
-                -1,
-                arrangementPtr->parts.size() - 1
-            );
+            appState.correctSelectedPart();
         }
 
         this->timeLeft -= delta;

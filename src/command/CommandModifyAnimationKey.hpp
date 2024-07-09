@@ -26,12 +26,7 @@ public:
     void Execute() override {
         this->getKey() = this->newKey;
 
-        GET_APP_STATE;
-        appState.selectedPart = std::clamp<int32_t>(
-            appState.selectedPart,
-            -1,
-            this->getArrangement().parts.size() - 1
-        );
+        AppState::getInstance().correctSelectedPart();
     }
 
     void Rollback() override {

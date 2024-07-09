@@ -86,6 +86,14 @@ public:
     // Apparently there can be 0 parts in an arrangement. In that case we set selectedPart to -1
     int32_t selectedPart{ -1 };
 
+    inline void correctSelectedPart() {
+        this->selectedPart = std::clamp<int32_t>(
+            this->selectedPart,
+            -1,
+            this->globalAnimatable->getCurrentArrangement()->parts.size() - 1
+        );
+    }
+
     bool focusOnSelectedPart{ false };
     
     Animatable* globalAnimatable{ nullptr };

@@ -27,12 +27,7 @@ public:
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.erase(it);
 
-        GET_APP_STATE;
-        appState.selectedPart = std::clamp<int32_t>(
-            appState.selectedPart,
-            -1,
-            static_cast<int32_t>(arrangement.parts.size() - 1)
-        );
+        AppState::getInstance().correctSelectedPart();
     }
 
     void Rollback() override {

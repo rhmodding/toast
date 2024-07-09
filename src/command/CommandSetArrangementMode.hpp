@@ -34,11 +34,7 @@ private:
     void UpdateState(bool lEnabled) {
         GET_APP_STATE;
 
-        appState.selectedPart = std::clamp<int32_t>(
-            appState.selectedPart,
-            -1,
-            appState.globalAnimatable->getCurrentArrangement()->parts.size() - 1
-        );
+        appState.correctSelectedPart();
 
         auto& globalAnimatable = appState.globalAnimatable;
 

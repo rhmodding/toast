@@ -73,11 +73,7 @@ private:
             appState.playerState.updateSetFrameCount();
             appState.playerState.updateCurrentFrame();
 
-            RvlCellAnim::Arrangement* arrangementPtr =
-                appState.globalAnimatable->getCurrentArrangement();
-
-            if (appState.selectedPart >= arrangementPtr->parts.size())
-                appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
+            appState.correctSelectedPart();
         }
     }
 

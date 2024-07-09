@@ -84,11 +84,7 @@ void WindowInspector::Level_Key() {
             globalAnimatable->getCurrentKey()->arrangementIndex =
                 std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size());
 
-            appState.selectedPart = std::clamp<int32_t>(
-                appState.selectedPart,
-                -1,
-                globalAnimatable->getCurrentArrangement()->parts.size() - 1
-            );
+            appState.correctSelectedPart();
         }
 
         if (ImGui::IsItemActivated())
@@ -118,11 +114,7 @@ void WindowInspector::Level_Key() {
             else
                 globalAnimatable->getCurrentKey()->arrangementIndex--;
 
-            appState.selectedPart = std::clamp<int32_t>(
-                appState.selectedPart,
-                -1,
-                globalAnimatable->getCurrentArrangement()->parts.size() - 1
-            );
+            appState.correctSelectedPart();
         }
         ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
         if (
@@ -134,11 +126,7 @@ void WindowInspector::Level_Key() {
             else
                 globalAnimatable->getCurrentKey()->arrangementIndex++;
 
-            appState.selectedPart = std::clamp<int32_t>(
-                appState.selectedPart,
-                -1,
-                globalAnimatable->getCurrentArrangement()->parts.size() - 1
-            );
+            appState.correctSelectedPart();
         }
 
         ImGui::PopButtonRepeat();
