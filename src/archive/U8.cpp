@@ -38,7 +38,7 @@ struct U8ArchiveHeader {
 };
 
 struct U8ArchiveNode {
-    uint32_t attributes; // uint8: type, uint24: nameOffset
+    uint32_t attributes{ 0x00000000 }; // uint8: type, uint24: nameOffset
 
     // 0x00: file, 0x01: directory
     inline uint8_t getType() const {
@@ -50,14 +50,9 @@ struct U8ArchiveNode {
        return BYTESWAP_32((this->attributes >> 8) & 0xFFFFFF);
     }
 
-    inline void setType(uint8_t type) {
-        this->attributes &= 0xFFFFFF00;
-        this->attributes |= static_cast<uint32_t>(type);
-    }
-
-    inline void setNameOffset(uint32_t offset) {
-        this->attributes &= 0x000000FF;
-        this->attributes |= (BYTESWAP_32(offset) & 0xFFFFFF) << 8;
+    inline void setAttributes(uint8_t type, uint32_t offset) {
+        this->attributes = BYTESWAP_32(offset);
+        *reinterpret_cast<uint8_t*>(&this->attributes) = type;
     }
 
     // File: Offset of begin of data
@@ -312,22 +307,19 @@ namespace U8 {
 
             switch (entry.type) {
                 case 0x02: { // Root node
-                    node->setType(0x01);
-
                     node->size = BYTESWAP_32(entry.nextOutOfDir);
 
                     node->dataOffset = 0x0000;
-                    node->setNameOffset(0x000000);
+
+                    node->setAttributes(0x01, 0x000000);
                 } break;
 
                 case 0x01: { // Directory
-                    node->setType(0x01);
-
                     node->size = BYTESWAP_32(entry.nextOutOfDir);
 
                     node->dataOffset = BYTESWAP_32(entry.parent);
 
-                    node->setNameOffset(stringOffsets.at(i) & 0xFFFFFF);
+                    node->setAttributes(0x01, stringOffsets.at(i) & 0xFFFFFF);
 
                     // Copy string
                     strcpy(
@@ -343,13 +335,11 @@ namespace U8 {
                 case 0x00: { // File
                     std::vector<unsigned char>* data = &reinterpret_cast<File*>(entry.ptr)->data;
 
-                    node->setType(0x00);
-
                     node->size = BYTESWAP_32(static_cast<uint32_t>(data->size()));
 
                     node->dataOffset = BYTESWAP_32(dataOffsets.at(i));
 
-                    node->setNameOffset(stringOffsets.at(i) & 0xFFFFFF);
+                    node->setAttributes(0x00, stringOffsets.at(i) & 0xFFFFFF);
 
                     // Copy string
                     strcpy(
