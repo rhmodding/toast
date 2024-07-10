@@ -60,6 +60,62 @@ bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVe
     return inside;
 }
 
+void DrawRotatedBox(ImDrawList* draw_list, ImVec2 center, float radius, float rotation_degrees, ImU32 color) {
+    // Convert rotation from degrees to radians
+    float rotation = rotation_degrees * IM_PI / 180.0f;
+
+    // Calculate the corners of the box before rotation
+    ImVec2 top_left(-radius, -radius);
+    ImVec2 top_right(radius, -radius);
+    ImVec2 bottom_right(radius, radius);
+    ImVec2 bottom_left(-radius, radius);
+
+    // Define a function to rotate a point around the center
+    auto rotate_point = [](ImVec2 point, ImVec2 center, float rotation) -> ImVec2
+    {
+        if (fmod(rotation, 360.f) == 0.f)
+            return point;
+
+        float s = sinf(rotation);
+        float c = cosf(rotation);
+
+        // Translate point back to origin
+        point.x -= center.x;
+        point.y -= center.y;
+
+        // Rotate point
+        float xnew = point.x * c - point.y * s;
+        float ynew = point.x * s + point.y * c;
+
+        // Translate point back
+        point.x = xnew + center.x;
+        point.y = ynew + center.y;
+
+        return point;
+    };
+
+    // Rotate corners around the center
+    ImVec2 p1 = rotate_point({
+        top_left.x + center.x,
+        top_left.y + center.y
+    }, center, rotation);
+    ImVec2 p2 = rotate_point({
+        top_right.x + center.x,
+        top_right.y + center.y
+    }, center, rotation);
+    ImVec2 p3 = rotate_point({
+        bottom_right.x + center.x,
+        bottom_right.y + center.y
+    }, center, rotation);
+    ImVec2 p4 = rotate_point({
+        bottom_left.x + center.x,
+        bottom_left.y + center.y
+    }, center, rotation);
+
+    // Draw the rotated box using AddQuad
+    draw_list->AddQuad(p1, p2, p3, p4, color);
+}
+
 const ImVec2 feverSafeAreaSize(832, 456);
 const ImVec2 megamixSafeAreaSize(440, 240);
 
@@ -266,21 +322,37 @@ void WindowCanvas::Update() {
         {
             // Draw grid
             if ((this->gridType != GridType_None) && this->enableGridLines) {
-                float GRID_STEP = 64.0f * (this->canvasZoom + 1);
+                const float GRID_STEP = 64.0f * (this->canvasZoom + 1);
 
-                for (float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP); x < this->canvasSize.x; x += GRID_STEP)
+                static const ImU32 normalColor = IM_COL32(200, 200, 200, 40);
+                static const ImU32 centerColorX = IM_COL32(255, 0, 0, 70);
+                static const ImU32 centerColorY = IM_COL32(0, 255, 0, 70);
+
+                for (
+                    float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP);
+                    x < this->canvasSize.x;
+                    x += GRID_STEP
+                ) {
+                    bool centered = fabs((this->canvasTopLeft.x + x) - origin.x) < .01f;
                     drawList->AddLine(
                         ImVec2(this->canvasTopLeft.x + x, this->canvasTopLeft.y),
                         ImVec2(this->canvasTopLeft.x + x, canvasBottomRight.y),
-                        IM_COL32(200, 200, 200, 40)
+                        centered ? centerColorX : normalColor
                     );
+                }
                 
-                for (float y = fmodf(this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP); y < this->canvasSize.y; y += GRID_STEP)
+                for (
+                    float y = fmodf(this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP);
+                    y < this->canvasSize.y;
+                    y += GRID_STEP
+                ) {
+                    bool centered = fabs((this->canvasTopLeft.y + y) - origin.y) < .01f;
                     drawList->AddLine(
                         ImVec2(this->canvasTopLeft.x, this->canvasTopLeft.y + y),
                         ImVec2(canvasBottomRight.x, this->canvasTopLeft.y + y),
-                        IM_COL32(200, 200, 200, 40)
+                        centered ? centerColorY : normalColor
                     );
+                }
             }
         
             // Draw animatable
@@ -311,20 +383,44 @@ void WindowCanvas::Update() {
 
             // Draw selected part bounds
             if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
+                uint32_t color = hoveringOverSelectedPart && ImGui::IsWindowHovered() ?
+                    IM_COL32(255, 255, 0, 255) :
+                    IM_COL32(
+                        partBoundingDrawColor.x * 255,
+                        partBoundingDrawColor.y * 255,
+                        partBoundingDrawColor.z * 255,
+                        partBoundingDrawColor.w * 255
+                    );
+
                 auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
                 drawList->AddQuad(
                     bounding[0], bounding[1], bounding[2], bounding[3],
-
-                    // Yellow color if hovering
-                    hoveringOverSelectedPart && ImGui::IsWindowHovered() ?
-                        IM_COL32(255, 255, 0, 255) :
-                        IM_COL32(
-                            partBoundingDrawColor.x * 255,
-                            partBoundingDrawColor.y * 255,
-                            partBoundingDrawColor.z * 255,
-                            partBoundingDrawColor.w * 255
-                        )
+                    color
                 );
+
+                float thrLength = sqrtf(
+                    ((bounding[2].x - bounding[0].x)*(bounding[2].x - bounding[0].x)) +
+                    ((bounding[2].y - bounding[0].y)*(bounding[2].y - bounding[0].y))
+                );
+
+                // If quad is too small, only draw the bounding.
+                if (thrLength >= 35.f) {
+                    float angle =
+                        globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart).angle +
+                        globalAnimatable->getCurrentKey()->angle;
+
+                    for (uint8_t i = 0; i < 4; i++) {
+                        DrawRotatedBox(drawList, {
+                            (bounding[i].x + bounding[(i+1) % 4].x) / 2.f,
+                            (bounding[i].y + bounding[(i+1) % 4].y) / 2.f
+                        }, 4.f, angle, color);
+                    }
+
+                    DrawRotatedBox(drawList, {
+                        (bounding[0].x + bounding[2].x) / 2.f,
+                        (bounding[0].y + bounding[2].y) / 2.f
+                    }, 3.f, angle, color);
+                }
             }
 
             // Draw all part bounds if enabled
