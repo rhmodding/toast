@@ -11,6 +11,10 @@
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
+#include "../command/CommandDeleteArrangement.hpp"
+#include "../command/CommandInsertArrangement.hpp"
+#include "../command/CommandModifyArrangement.hpp"
+
 void WindowHybridList::FlashWindow() {
     this->flashWindow = true;
     this->flashTimer = static_cast<float>(ImGui::GetTime());
@@ -67,13 +71,22 @@ void WindowHybridList::Update() {
 
     ImGui::BeginChild("List", ImVec2(0, 0), ImGuiChildFlags_Border);
     {
+        int32_t deleteArrangement{ -1 };
+
+        static RvlCellAnim::Arrangement copyArrangement;
+        static bool allowPasteArrangement{ false };
+
+        static RvlCellAnim::Animation copyAnimation;
+        static bool allowPasteAnimation{ false };
+
+        std::shared_ptr<BaseCommand> command;
+
+        GET_SESSION_MANAGER;
         GET_ANIMATABLE;
 
         if (!appState.getArrangementMode())
             for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
                 std::stringstream fmtStream;
-
-                GET_SESSION_MANAGER;
 
                 auto query = sessionManager.getCurrentSession()->getAnimationNames().find(n);
 
@@ -93,10 +106,43 @@ void WindowHybridList::Update() {
                     appState.playerState.updateSetFrameCount();
                     appState.playerState.updateCurrentFrame();
 
-                    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
+                    appState.correctSelectedPart();
+                }
 
-                    if (appState.selectedPart >= arrangementPtr->parts.size())
-                        appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
+                if (ImGui::BeginPopupContextItem()) {
+                    ImGui::Text("Animation no. %u", n+1);
+                    ImGui::Text("\"%s\"", animName);
+
+                    ImGui::Separator();
+
+                    if (ImGui::BeginMenu("Paste animation..", allowPasteAnimation)) {
+                        ImGui::MenuItem("..above");
+                        ImGui::MenuItem("..below");
+                        
+                        ImGui::Separator();
+
+                        ImGui::MenuItem("..here (replace)");
+                    
+                        ImGui::EndMenu();
+                    }
+                    if (ImGui::BeginMenu("Paste animation (special)..", allowPasteAnimation)) {
+                        ImGui::MenuItem("..key timing");
+                    
+                        ImGui::EndMenu();
+                    }
+
+                    ImGui::Separator();
+
+                    if (ImGui::Selectable("Copy animation")) {
+                        copyAnimation = globalAnimatable->cellanim->animations.at(n);
+                        allowPasteAnimation = true;
+                    }
+
+                    ImGui::Separator();
+
+                    ImGui::Selectable("Delete animation");
+
+                    ImGui::EndPopup();
                 }
             }
         else
@@ -112,10 +158,93 @@ void WindowHybridList::Update() {
                     // Update arrangementPtr
                     arrangementPtr = globalAnimatable->getCurrentArrangement();
 
-                    if (appState.selectedPart >= arrangementPtr->parts.size())
-                        appState.selectedPart = static_cast<int16_t>(arrangementPtr->parts.size() - 1);
+                    appState.correctSelectedPart();
+                }
+
+                if (ImGui::BeginPopupContextItem()) {
+                    ImGui::TextUnformatted(buffer);
+                    ImGui::Separator();
+
+                    if (ImGui::Selectable("Insert new arrangement above")) {
+                        command = std::make_shared<CommandInsertArrangement>(
+                        CommandInsertArrangement(
+                            sessionManager.getCurrentSession()->currentCellanim,
+                            n+1,
+                            RvlCellAnim::Arrangement()
+                        ));
+
+                        appState.controlKey.arrangementIndex = n + 1;
+                    }
+                    if (ImGui::Selectable("Insert new arrangement below")) {
+                        command = std::make_shared<CommandInsertArrangement>(
+                        CommandInsertArrangement(
+                            sessionManager.getCurrentSession()->currentCellanim,
+                            n,
+                            RvlCellAnim::Arrangement()
+                        ));
+
+                        appState.controlKey.arrangementIndex = n;
+                    }
+
+                    ImGui::Separator();
+
+                    if (ImGui::BeginMenu("Paste arrangement..")) {
+                        if (ImGui::MenuItem("..above")) {
+                            command = std::make_shared<CommandInsertArrangement>(
+                            CommandInsertArrangement(
+                                sessionManager.getCurrentSession()->currentCellanim,
+                                n+1,
+                                copyArrangement
+                            ));
+
+                            appState.controlKey.arrangementIndex = n + 1;
+                        };
+                        if (ImGui::MenuItem("..below")) {
+                            command = std::make_shared<CommandInsertArrangement>(
+                            CommandInsertArrangement(
+                                sessionManager.getCurrentSession()->currentCellanim,
+                                n,
+                                copyArrangement
+                            ));
+
+                            appState.controlKey.arrangementIndex = n;
+                        }
+                        
+                        ImGui::Separator();
+
+                        if (ImGui::MenuItem("..here (replace)")) {
+                            command = std::make_shared<CommandModifyArrangement>(
+                            CommandModifyArrangement(
+                                sessionManager.getCurrentSession()->currentCellanim,
+                                n,
+                                copyArrangement
+                            ));
+                        }
+                    
+                        ImGui::EndMenu();
+                    }
+
+                    if (ImGui::Selectable("Copy arrangement")) {
+                        copyArrangement = globalAnimatable->cellanim->arrangements.at(n);
+                        allowPasteArrangement = true;
+                    }
+
+                    ImGui::Separator();
+
+                    if (ImGui::Selectable("Delete arrangement")) {
+                        command = std::make_shared<CommandDeleteArrangement>(
+                        CommandDeleteArrangement(
+                            sessionManager.getCurrentSession()->currentCellanim,
+                            n
+                        ));
+                    }
+
+                    ImGui::EndPopup();
                 }
             }
+
+        if (command)
+            sessionManager.getCurrentSession()->executeCommand(command);
     }
     ImGui::EndChild();
 
