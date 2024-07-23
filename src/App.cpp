@@ -558,7 +558,7 @@ void App::Menubar() {
                             const std::string& str = sessionManager.sessionList.at(n).cellanims.at(i).name;
 
                             std::stringstream fmtStream;
-                            fmtStream << std::to_string(i) << ". " << str.substr(0, str.size() - 6);
+                            fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
 
                             if (ImGui::MenuItem(
                                 fmtStream.str().c_str(), nullptr,
