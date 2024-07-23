@@ -215,7 +215,7 @@ void WindowInspector::Level_Key() {
             animKey->positionX,
             animKey->positionY
         };
-        if (ImGui::DragInt2("Position XY", positionValues, 1.f, -UINT8_MAX, UINT8_MAX)) {
+        if (ImGui::DragInt2("Position XY", positionValues, 1.f, -INT16_MAX, INT16_MAX)) {
             animKey->positionX = positionValues[0];
             animKey->positionY = positionValues[1];
         }

@@ -147,7 +147,7 @@ void WindowInspector::Level_Arrangement() {
                         partPtr->positionX - (this->realPosition ? 0 : 512),
                         partPtr->positionY - (this->realPosition ? 0 : 512)
                     };
-                    if (ImGui::DragInt2("Position XY##World", positionValues, 1.f)) {
+                    if (ImGui::DragInt2("Position XY##World", positionValues, 1.f, INT16_MIN, INT16_MAX)) {
                         partPtr->positionX = static_cast<int16_t>(
                             positionValues[0] + (this->realPosition ? 0 : 512)
                         );
