@@ -34,7 +34,7 @@ void WindowInspector::Level_Animation() {
 
         ImGui::Text("Animation no. %u:", animationIndex + 1);
 
-        ImGui::PushFont(appState.fontLarge);
+        ImGui::PushFont(appState.fonts.large);
         ImGui::TextWrapped("%s", animationName ? animationName : "(no macro defined)");
         ImGui::PopFont();
 

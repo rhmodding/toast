@@ -94,7 +94,7 @@ void WindowSpritesheet::PaletteWindow() {
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, -2 });
 
-            ImGui::PushFont(AppState::getInstance().fontLarge);
+            ImGui::PushFont(AppState::getInstance().fonts.large);
             ImGui::TextWrapped("Color %u", selected);
             ImGui::PopFont();
 
@@ -167,7 +167,7 @@ void WindowSpritesheet::FormatPopup() {
             ImGui::BeginChild("Properties", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
 
             {
-                ImGui::PushFont(AppState::getInstance().fontLarge);
+                ImGui::PushFont(AppState::getInstance().fonts.large);
                 ImGui::SeparatorText("Image Info");
                 ImGui::PopFont();
 
@@ -214,7 +214,7 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::EndChild();
             }
             {
-                ImGui::PushFont(AppState::getInstance().fontLarge);
+                ImGui::PushFont(AppState::getInstance().fonts.large);
                 ImGui::SeparatorText("Format Info");
                 ImGui::PopFont();
 
@@ -329,7 +329,7 @@ void WindowSpritesheet::Update() {
                     if (enabled)
                         gridType = GridType_Custom;
                     else
-                        gridType = AppState::getInstance().darkTheme ? GridType_Dark : GridType_Light;
+                        gridType = AppState::getInstance().getDarkThemeEnabled() ? GridType_Dark : GridType_Light;
                 };
 
                 ImGui::SeparatorText("Color Picker");

@@ -10,6 +10,8 @@
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
+#include "../PlayerManager.hpp"
+
 #include "../command/CommandMoveAnimationKey.hpp"
 #include "../command/CommandDeleteAnimationKey.hpp"
 #include "../command/CommandDeleteManyAnimationKeys.hpp"
@@ -20,6 +22,8 @@ void WindowTimeline::Update() {
     GET_APP_STATE;
     GET_ANIMATABLE;
     GET_SESSION_MANAGER;
+
+    GET_PLAYER_MANAGER;
 
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
@@ -50,21 +54,19 @@ void WindowTimeline::Update() {
                 switch (column) {
                     case 0: {
                         char playPauseButtonLabel[24] = { '\0' };
-                        const char* playPauseIcon = appState.playerState.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
+                        const char* playPauseIcon = playerManager.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
 
                         sprintf(playPauseButtonLabel, "%s##playPauseButton", playPauseIcon);
 
                         if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
                             if (
-                                (appState.playerState.currentFrame == appState.playerState.frameCount - 1) &&
-                                (appState.playerState.holdFramesLeft == 0)
-                            ) {
-                                appState.playerState.currentFrame = 0;
-                                appState.playerState.updateCurrentFrame();
-                            }
+                                (playerManager.getCurrentKeyIndex() == playerManager.getKeyCount() - 1) &&
+                                (playerManager.getHoldFramesLeft() == 0)
+                            )
+                                playerManager.setCurrentKeyIndex(0);
 
-                            appState.playerState.ResetTimer();
-                            appState.playerState.ToggleAnimating(!appState.playerState.playing);
+                            playerManager.ResetTimer();
+                            playerManager.setAnimating(!playerManager.playing);
                         } 
                         ImGui::SameLine();
 
@@ -73,36 +75,31 @@ void WindowTimeline::Update() {
 
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
                         if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", ImVec2(32-6, 32-6))) {
-                            appState.playerState.currentFrame = 0;
-                            appState.playerState.updateCurrentFrame();
+                            playerManager.setCurrentKeyIndex(0);
                         } ImGui::SameLine();
 
                         ImGui::SetItemTooltip("Go to first key");
 
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
                         if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", ImVec2(32-6, 32-6))) {
-                            if (appState.playerState.currentFrame >= 1) {
-                                appState.playerState.currentFrame--;
-                                appState.playerState.updateCurrentFrame();
-                            }
+                            if (playerManager.getCurrentKeyIndex() >= 1)
+                                playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() - 1);
                         } ImGui::SameLine();
 
                         ImGui::SetItemTooltip("Step back a key");
                         
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
                         if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", ImVec2(32-6, 32-6))) {
-                            appState.playerState.playing = false;
-                            appState.playerState.currentFrame = 0;
-                            appState.playerState.updateCurrentFrame();
+                            playerManager.setAnimating(false);
+                            playerManager.setCurrentKeyIndex(0);
                         } ImGui::SameLine();
 
                         ImGui::SetItemTooltip("Stop playback and go to first key");
 
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
                         if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", ImVec2(32-6, 32-6))) {
-                            if (appState.playerState.currentFrame < appState.playerState.frameCount - 1) {
-                                appState.playerState.currentFrame++;
-                                appState.playerState.updateCurrentFrame();
+                            if (playerManager.getCurrentKeyIndex() != playerManager.getKeyCount() - 1) {
+                                playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() + 1);
                             }
                         } ImGui::SameLine();
 
@@ -110,11 +107,7 @@ void WindowTimeline::Update() {
                         
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
                         if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", ImVec2(32-6, 32-6))) {
-                            appState.playerState.currentFrame =
-                                appState.playerState.frameCount -
-                                (appState.playerState.frameCount > 0 ? 1 : 0);
-
-                            appState.playerState.updateCurrentFrame();
+                            playerManager.setCurrentKeyIndex(playerManager.getKeyCount() - 1);
                         } ImGui::SameLine();
 
                         ImGui::SetItemTooltip("Go to last key");
@@ -124,13 +117,13 @@ void WindowTimeline::Update() {
 
                         {
                             bool popColor{ false }; // Use local boolean since state can be mutated by button
-                            if (appState.playerState.loopEnabled) {
+                            if (playerManager.looping) {
                                 popColor = true;
                                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
                             }
 
                             if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", ImVec2(32, 32)))
-                                appState.playerState.loopEnabled = !appState.playerState.loopEnabled;
+                                playerManager.looping ^= true;
 
                             ImGui::SetItemTooltip("Toggle looping");
 
@@ -142,22 +135,26 @@ void WindowTimeline::Update() {
                     case 1: {
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
 
+                        uint16_t keyIndex = playerManager.getCurrentKeyIndex();
+
                         ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                        if (ImGui::InputScalar("Frame", ImGuiDataType_U16, &appState.playerState.currentFrame, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
-                            appState.playerState.updateCurrentFrame();
+                        if (ImGui::InputScalar("Key Index", ImGuiDataType_U16, &keyIndex, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                            playerManager.setCurrentKeyIndex(keyIndex);
                         }
 
                         ImGui::SameLine();
 
+                        uint32_t holdFramesLeft = playerManager.getHoldFramesLeft();
+
                         ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
                         ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-                        ImGui::InputScalar("Hold Frames Left", ImGuiDataType_U16, &appState.playerState.holdFramesLeft, nullptr, nullptr, "%u", ImGuiInputTextFlags_ReadOnly);
+                        ImGui::InputScalar("Hold Frames Left", ImGuiDataType_U16, &holdFramesLeft, nullptr, nullptr, "%u", ImGuiInputTextFlags_ReadOnly);
                         ImGui::PopItemFlag();
 
                         ImGui::SameLine();
 
                         ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                        ImGui::InputScalar("FPS", ImGuiDataType_U16, &appState.playerState.frameRate, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+                        ImGui::InputScalar("FPS", ImGuiDataType_U16, &playerManager.frameRate, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
                     } break;
 
                     case 2: {
@@ -235,11 +232,11 @@ void WindowTimeline::Update() {
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
                     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
 
-                    for (uint16_t i = 0; i < appState.playerState.frameCount; i++) {
+                    for (uint16_t i = 0; i < playerManager.getKeyCount(); i++) {
                         ImGui::PushID(i);
 
                         bool popColor{ false };
-                        if (appState.playerState.currentFrame == i) {
+                        if (playerManager.getCurrentKeyIndex() == i) {
                             popColor = true;
                             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
                         }
@@ -248,8 +245,7 @@ void WindowTimeline::Update() {
                         sprintf(buffer, "%u##KeyButton", i+1);
 
                         if (ImGui::Button(buffer, buttonDimensions)) {
-                            appState.playerState.currentFrame = i;
-                            appState.playerState.updateCurrentFrame();
+                            playerManager.setCurrentKeyIndex(i);
                         }
 
                         enum DeleteKeyMode: uint16_t {
@@ -285,7 +281,7 @@ void WindowTimeline::Update() {
                                 RvlCellAnim::Arrangement* arrangementA{ nullptr };
                                 RvlCellAnim::Arrangement* arrangementB{ nullptr };
 
-                                if (i+1 < appState.playerState.frameCount) {
+                                if (i+1 < playerManager.getKeyCount()) {
                                     arrangementA = &globalAnimatable->cellanim->arrangements.at(
                                         globalAnimatable->getCurrentAnimation()->keys.at(i).arrangementIndex
                                     );
@@ -388,7 +384,7 @@ void WindowTimeline::Update() {
                                         )));
                                     }
 
-                                    appState.playerState.currentFrame = i + 1;
+                                    playerManager.setCurrentKeyIndex(i + 1);
 
                                     sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
                                     CommandInsertAnimationKey(
@@ -406,7 +402,7 @@ void WindowTimeline::Update() {
                             if (ImGui::Selectable(!io.KeyAlt ? "Push key after" : "Duplicate key after")) {
                                 changed = true;
 
-                                appState.playerState.currentFrame = i + 1;
+                                playerManager.setCurrentKeyIndex(i + 1);
 
                                 sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
                                 CommandInsertAnimationKey(
@@ -420,7 +416,7 @@ void WindowTimeline::Update() {
                             if (ImGui::Selectable(!io.KeyAlt ? "Push key before" : "Duplicate key before")) {
                                 changed = true;
 
-                                appState.playerState.currentFrame = i;
+                                playerManager.setCurrentKeyIndex(i);
 
                                 sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandInsertAnimationKey>(
                                 CommandInsertAnimationKey(
@@ -433,7 +429,7 @@ void WindowTimeline::Update() {
 
                             ImGui::Separator();
 
-                            ImGui::BeginDisabled(i == (appState.playerState.frameCount - 1));
+                            ImGui::BeginDisabled(i == (playerManager.getKeyCount() - 1));
                             if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
                                 changed = true;
 
@@ -446,8 +442,7 @@ void WindowTimeline::Update() {
                                     io.KeyAlt
                                 )));
 
-                                appState.playerState.currentFrame++;
-                                appState.playerState.updateCurrentFrame();
+                                playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() + 1);
                             } 
                             ImGui::EndDisabled();
 
@@ -464,14 +459,13 @@ void WindowTimeline::Update() {
                                     io.KeyAlt
                                 )));
 
-                                appState.playerState.currentFrame--;
-                                appState.playerState.updateCurrentFrame();
+                                playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() - 1);
                             }
                             ImGui::EndDisabled();
 
                             ImGui::Separator();
 
-                            ImGui::BeginDisabled(appState.playerState.frameCount == 1);
+                            ImGui::BeginDisabled(playerManager.getKeyCount() == 1);
                             if (ImGui::Selectable("Delete key", false))
                                 deleteKeyMode = DeleteKeyMode_Current;
                             ImGui::EndDisabled();
@@ -483,7 +477,7 @@ void WindowTimeline::Update() {
                                 deleteKeyMode = DeleteKeyMode_ToLeft;
                             ImGui::EndDisabled();
 
-                            ImGui::BeginDisabled(i == appState.playerState.frameCount - 1);
+                            ImGui::BeginDisabled(i == playerManager.getKeyCount() - 1);
                             if (ImGui::Selectable("Delete key(s) to right", false))
                                 deleteKeyMode = DeleteKeyMode_ToRight;
                             ImGui::EndDisabled();        
@@ -543,8 +537,8 @@ void WindowTimeline::Update() {
                                 } break;
 
                                 case DeleteKeyMode_ToLeft: {
-                                    if (appState.playerState.currentFrame == i)
-                                        appState.playerState.currentFrame = 0;
+                                    if (playerManager.getCurrentKeyIndex() == i)
+                                        playerManager.setCurrentKeyIndex(0);
 
                                     sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandDeleteManyAnimationKeys>(
                                     CommandDeleteManyAnimationKeys(
@@ -585,7 +579,7 @@ void WindowTimeline::Update() {
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
                     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
 
-                    for (uint16_t i = 0; i < appState.playerState.frameCount; i++) {
+                    for (uint16_t i = 0; i < playerManager.getKeyCount(); i++) {
                         ImGui::PushID(i);
 
                         // Key button dummy
@@ -596,9 +590,9 @@ void WindowTimeline::Update() {
                             ImGui::SameLine();
 
                             ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(
-                                appState.playerState.currentFrame == i ?
-                                    ((holdFrames - appState.playerState.holdFramesLeft) / (float)holdFrames) :
-                                appState.playerState.currentFrame > i ?
+                                playerManager.getCurrentKeyIndex() == i ?
+                                    ((holdFrames - playerManager.getHoldFramesLeft()) / (float)holdFrames) :
+                                playerManager.getCurrentKeyIndex() > i ?
                                     1.f : 0.f,
                                 0.5f
                             ));
@@ -633,7 +627,7 @@ void WindowTimeline::Update() {
                         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
                         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
 
-                        for (uint16_t i = 0; i < appState.playerState.frameCount; i++) {
+                        for (uint16_t i = 0; i < playerManager.getKeyCount(); i++) {
                             ImGui::PushID(i);
 
                             char buffer[18];
@@ -641,9 +635,9 @@ void WindowTimeline::Update() {
 
                             ImGui::BeginDisabled();
                             if (
-                                i >= appState.playerState.currentFrame - appState.onionSkinState.backCount &&
-                                i <= appState.playerState.currentFrame + appState.onionSkinState.frontCount &&
-                                i != appState.playerState.currentFrame
+                                i >= playerManager.getCurrentKeyIndex() - appState.onionSkinState.backCount &&
+                                i <= playerManager.getCurrentKeyIndex() + appState.onionSkinState.frontCount &&
+                                i != playerManager.getCurrentKeyIndex()
                             )
                                 ImGui::Button(buffer, buttonDimensions);
                             else

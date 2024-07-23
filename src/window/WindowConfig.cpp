@@ -94,7 +94,7 @@ void WindowConfig::Update() {
 
             ImGui::TextWrapped("Category");
 
-            ImGui::PushFont(AppState::getInstance().fontLarge);
+            ImGui::PushFont(AppState::getInstance().fonts.large);
             ImGui::TextWrapped("%s", categoryNames[selected]);
             ImGui::PopFont();
 
@@ -154,7 +154,6 @@ void WindowConfig::Update() {
                 configManager.SaveConfig();
 
                 AppState::getInstance().UpdateTheme();
-                AppState::getInstance().UpdateUpdateRate();
             }
             ImGui::EndDisabled();
             ImGui::EndGroup();

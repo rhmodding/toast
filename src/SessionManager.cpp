@@ -17,6 +17,7 @@
 #include <thread>
 
 #include "ConfigManager.hpp"
+#include "PlayerManager.hpp"
 
 int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;
@@ -381,7 +382,6 @@ void SessionManager::SessionChanged() {
         );
 
         globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
-        appState.playerState.updateSetFrameCount();
 
         if (appState.getArrangementMode()) {
             appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
@@ -390,7 +390,7 @@ void SessionManager::SessionChanged() {
                 globalAnimatable->cellanim->arrangements.size() - 1
             );
 
-            appState.playerState.ToggleAnimating(false);
+            PlayerManager::getInstance().setAnimating(false);
             globalAnimatable->overrideAnimationKey(&appState.controlKey);
         }
 

@@ -7,6 +7,8 @@
 
 #include "SessionManager.hpp"
 
+#include "ConfigManager.hpp"
+
 #include <cstdint>
 
 #include <imgui.h>
@@ -23,54 +25,32 @@
 class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>; // Allow access to base class constructor
 
+private:
+    ImVec4 windowClearColor{ Common::RGBAtoImVec4(24, 24, 24, 255) };
 public:
     bool enableDemoWindow{ false };
 
-    bool darkTheme{ true };
-    ImVec4 windowClearColor{ Common::RGBAtoImVec4(24, 24, 24, 255) };
+    inline bool getDarkThemeEnabled() {
+        return ConfigManager::getInstance().getConfig().theme == ThemeChoice_Dark;
+    }
     void UpdateTheme();
 
-    double updateRate{ 1000 / 60.0 };
-    void UpdateUpdateRate(); // huh
+    inline ImVec4 getWindowClearColor() {
+        return this->windowClearColor;
+    }
 
-    struct PlayerState {
-        bool loopEnabled{ false };
-        bool playing{ false };
-
-        // Current frame
-        uint16_t currentFrame{ 0 };
-
-        uint16_t holdFramesLeft{ 0 };
-
-        // Total frame count
-        uint16_t frameCount{ 0 };
-
-        uint16_t frameRate{ 60 };
-
-        void updateSetFrameCount();
-        void updateCurrentFrame();
-
-        void ResetTimer();
-
-        void ToggleAnimating(bool animating);
-
-        uint16_t getTotalPseudoFrames();
-        uint16_t getCurrentPseudoFrames();
-
-        float getAnimationProgression();
-
-        void Update();
-    private:
-        std::chrono::steady_clock::time_point previous;
-        float timeLeft{ 0.f };
-    } playerState;
+    inline uint32_t getUpdateRate() {
+        return ConfigManager::getInstance().getConfig().updateRate;
+    }
 
     ImGuiID globalPopupID{ ImHashStr("GlobalPopupID") };
 
-    ImFont* fontNormal;
-    ImFont* fontLarge;
-    ImFont* fontGiant;
-    ImFont* fontIcon;
+    struct Fonts {
+        ImFont* normal;
+        ImFont* large;
+        ImFont* giant;
+        ImFont* icon;
+    } fonts;
 
     bool getArrangementMode() {
         if (SessionManager::getInstance().currentSession >= 0)
@@ -83,7 +63,6 @@ public:
     RvlCellAnim::AnimationKey controlKey{ 0, 1, 1.f, 1.f, 0.f, 255 };
 
     uint16_t selectedAnimation{ 0 };
-    // Apparently there can be 0 parts in an arrangement. In that case we set selectedPart to -1
     int32_t selectedPart{ -1 };
 
     inline void correctSelectedPart() {
@@ -95,7 +74,7 @@ public:
     }
 
     bool focusOnSelectedPart{ false };
-    
+
     Animatable* globalAnimatable{ nullptr };
 
     struct OnionSkinState {
@@ -108,6 +87,16 @@ public:
         bool drawUnder{ false };
     } onionSkinState;
 
+    enum CopyPasteContext {
+        CopyPasteContext_None,
+
+        CopyPasteContext_Animation,
+        CopyPasteContext_Arrangement,
+        CopyPasteContext_Part,
+        CopyPasteContext_Key,
+
+        CopyPasteContext_Max
+    } lastCopyPasteContext{ CopyPasteContext_None };
 private:
     AppState() {} // Private constructor to prevent instantiation
 };

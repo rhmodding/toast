@@ -121,7 +121,7 @@ void WindowAbout::Update() {
 
     GET_APP_STATE;
 
-    ImGui::PushFont(appState.fontGiant);
+    ImGui::PushFont(appState.fonts.giant);
 
     drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), mainStrings[0]);
     textPosition.y += ImGui::GetTextLineHeight() + 5.f;

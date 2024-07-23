@@ -7,6 +7,8 @@
 
 #include "../SessionManager.hpp"
 
+#include "../PlayerManager.hpp"
+
 class CommandDeleteAnimationKey : public BaseCommand {
 public:
     // Constructor: Delete key by cellanimIndex, animationIndex and keyIndex.
@@ -24,14 +26,7 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.erase(it);
 
-        GET_APP_STATE;
-        appState.playerState.currentFrame = std::clamp<uint16_t>(
-            appState.playerState.currentFrame,
-            0,
-            static_cast<uint16_t>(appState.globalAnimatable->getCurrentAnimation()->keys.size() - 1)
-        );
-        appState.playerState.updateSetFrameCount();
-        appState.playerState.updateCurrentFrame();
+        PlayerManager::getInstance().clampCurrentKeyIndex();
     }
 
     void Rollback() override {
@@ -40,14 +35,7 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.insert(it, this->key);
 
-        GET_APP_STATE;
-        appState.playerState.currentFrame = std::clamp<uint16_t>(
-            appState.playerState.currentFrame,
-            0,
-            static_cast<uint16_t>(appState.globalAnimatable->getCurrentAnimation()->keys.size() - 1)
-        );
-        appState.playerState.updateSetFrameCount();
-        appState.playerState.updateCurrentFrame();
+        PlayerManager::getInstance().clampCurrentKeyIndex();
     }
 
 private:

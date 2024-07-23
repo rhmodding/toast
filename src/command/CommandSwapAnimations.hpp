@@ -8,6 +8,8 @@
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
+#include "../PlayerManager.hpp"
+
 class CommandSwapAnimations : public BaseCommand {
 public:
     // Constructor: Swap animations by cellanimIndex, animationIndexA and animationIndexB.
@@ -58,20 +60,25 @@ private:
     void updateAnimationState() {
         GET_APP_STATE;
 
+        uint16_t newSelectedAnimation{ 0 };
+        bool selectedDifferentAnimation{ false };
+
         if (
             appState.selectedAnimation == animationIndexA ||
             appState.selectedAnimation == animationIndexB
         ) {
-            appState.selectedAnimation =
+            newSelectedAnimation =
                 appState.selectedAnimation == animationIndexA ? animationIndexB :
                 appState.selectedAnimation == animationIndexB ? animationIndexA :
                 appState.selectedAnimation;
 
+            selectedDifferentAnimation = newSelectedAnimation != appState.selectedAnimation;
+
+            appState.selectedAnimation = newSelectedAnimation;
             appState.globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
 
-            appState.playerState.currentFrame = 0;
-            appState.playerState.updateSetFrameCount();
-            appState.playerState.updateCurrentFrame();
+            if (selectedDifferentAnimation)
+                PlayerManager::getInstance().setCurrentKeyIndex(0);
 
             appState.correctSelectedPart();
         }

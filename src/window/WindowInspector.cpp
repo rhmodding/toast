@@ -31,7 +31,7 @@ void WindowInspector::DrawPreview(Animatable* animatable) {
         canvasTopLeft.y + static_cast<int>(canvasSize.y / 2)
     );
 
-    uint32_t backgroundColor = appState.darkTheme ?
+    const uint32_t backgroundColor = AppState::getInstance().getDarkThemeEnabled() ?
         IM_COL32(50, 50, 50, 255) :
         IM_COL32(255, 255, 255, 255);
 

@@ -42,7 +42,7 @@ void WindowInspector::Level_Arrangement() {
         {
             //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
-            ImGui::PushFont(appState.fontLarge);
+            ImGui::PushFont(appState.fonts.large);
             ImGui::TextWrapped("Arrangement no.");
             ImGui::PopFont();
 

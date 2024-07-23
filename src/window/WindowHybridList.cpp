@@ -11,6 +11,8 @@
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
+#include "../PlayerManager.hpp"
+
 #include "../command/CommandDeleteArrangement.hpp"
 #include "../command/CommandInsertArrangement.hpp"
 #include "../command/CommandModifyArrangement.hpp"
@@ -102,9 +104,7 @@ void WindowHybridList::Update() {
 
                     globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
 
-                    appState.playerState.currentFrame = 0;
-                    appState.playerState.updateSetFrameCount();
-                    appState.playerState.updateCurrentFrame();
+                    PlayerManager::getInstance().setCurrentKeyIndex(0);
 
                     appState.correctSelectedPart();
                 }

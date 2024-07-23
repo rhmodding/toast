@@ -6,8 +6,9 @@
 #include <math.h>
 
 #include "../SessionManager.hpp"
-
 #include "../ConfigManager.hpp"
+
+#include "../PlayerManager.hpp"
 
 #include "../command/CommandModifyArrangementPart.hpp"
 
@@ -137,7 +138,7 @@ void WindowCanvas::Menubar() {
                     if (enabled)
                         gridType = GridType_Custom;
                     else
-                        gridType = AppState::getInstance().darkTheme ? GridType_Dark : GridType_Light;
+                        gridType = AppState::getInstance().getDarkThemeEnabled() ? GridType_Dark : GridType_Light;
                 };
 
                 ImGui::SeparatorText("Color Picker");
@@ -489,7 +490,11 @@ void WindowCanvas::Update() {
     }
 
     // set hoveringOverSelectedPart
-    if (appState.focusOnSelectedPart && appState.selectedPart >= 0 && !appState.playerState.playing) {
+    if (
+        appState.focusOnSelectedPart &&
+        appState.selectedPart >= 0 &&
+        !PlayerManager::getInstance().playing
+    ) {
         auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
         ImVec2 polygon[5] = {
             bounding[0],
@@ -576,7 +581,7 @@ void WindowCanvas::DrawCanvasText() {
     uint32_t textColor{ 0 };
     switch (this->gridType) {
         case GridType_None:
-            textColor = AppState::getInstance().darkTheme ? IM_COL32_WHITE : IM_COL32_BLACK;
+            textColor = AppState::getInstance().getDarkThemeEnabled() ? IM_COL32_WHITE : IM_COL32_BLACK;
             break;
         
         case GridType_Dark:

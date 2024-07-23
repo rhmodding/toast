@@ -56,7 +56,7 @@ void WindowInspector::Level_Key() {
 
         ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex+1);
 
-        ImGui::PushFont(appState.fontLarge);
+        ImGui::PushFont(appState.fonts.large);
         ImGui::TextWrapped("Key no. %u", globalAnimatable->getCurrentKeyIndex()+1);
         ImGui::PopFont();
 

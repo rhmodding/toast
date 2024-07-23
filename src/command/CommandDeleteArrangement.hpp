@@ -6,6 +6,7 @@
 #include "../anim/RvlCellAnim.hpp"
 
 #include "../SessionManager.hpp"
+#include "../PlayerManager.hpp"
 
 #include "../AppState.hpp"
 
@@ -42,7 +43,7 @@ public:
         GET_APP_STATE;
 
         if (!appState.getArrangementMode())
-            appState.playerState.updateCurrentFrame();
+            PlayerManager::getInstance().clampCurrentKeyIndex();
         else
             appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
                 appState.controlKey.arrangementIndex,
@@ -71,7 +72,7 @@ public:
         GET_APP_STATE;
 
         if (!appState.getArrangementMode())
-            appState.playerState.updateCurrentFrame();
+            PlayerManager::getInstance().clampCurrentKeyIndex();
         else
             appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
                 appState.controlKey.arrangementIndex,

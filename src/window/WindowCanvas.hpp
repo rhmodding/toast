@@ -32,7 +32,7 @@ public:
         GridType_Light,
         
         GridType_Custom
-    } gridType{ AppState::getInstance().darkTheme ? GridType_Dark : GridType_Light };
+    } gridType{ AppState::getInstance().getDarkThemeEnabled() ? GridType_Dark : GridType_Light };
     ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
     bool   enableGridLines{ true };
 

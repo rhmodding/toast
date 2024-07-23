@@ -21,6 +21,7 @@
 
 #include "SessionManager.hpp"
 #include "ConfigManager.hpp"
+#include "PlayerManager.hpp"
 
 #include "command/CommandSwitchCellanim.hpp"
 
@@ -301,7 +302,6 @@ App::App() {
     GET_APP_STATE;
 
     appState.UpdateTheme();
-    appState.UpdateUpdateRate();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
@@ -373,7 +373,7 @@ void App::SetupFonts() {
     {
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        appState.fontNormal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.0f, &fontConfig);
+        appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.0f, &fontConfig);
     }
 
     {
@@ -383,19 +383,19 @@ void App::SetupFonts() {
         fontConfig.MergeMode = true;
         fontConfig.PixelSnapH = true;
 
-        appState.fontIcon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.0f, &fontConfig, icons_ranges);
+        appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.0f, &fontConfig, icons_ranges);
     }
 
     {
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        appState.fontLarge = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.0f, &fontConfig);
+        appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.0f, &fontConfig);
     }
 
     {
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        appState.fontGiant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.0f, &fontConfig);
+        appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.0f, &fontConfig);
     }
 }
 
@@ -973,8 +973,10 @@ void App::Update() {
         a = std::chrono::system_clock::now();
         std::chrono::duration<double, std::milli> workTime = a - b;
 
-        if (workTime.count() < appState.updateRate) {
-            std::chrono::duration<double, std::milli> deltaMs(appState.updateRate - workTime.count());
+        double updateRate = 1000. / ConfigManager::getInstance().getConfig().updateRate;
+
+        if (workTime.count() < updateRate) {
+            std::chrono::duration<double, std::milli> deltaMs(updateRate - workTime.count());
             auto deltaMsDuration = std::chrono::duration_cast<std::chrono::milliseconds>(deltaMs);
             std::this_thread::sleep_for(std::chrono::milliseconds(deltaMsDuration.count()));
         }
@@ -1003,7 +1005,7 @@ void App::Update() {
         ImGui::ShowDemoWindow(&appState.enableDemoWindow);
 
     if (!!SessionManager::getInstance().getCurrentSession()) {
-        appState.playerState.Update();
+        PlayerManager::getInstance().Update();
 
         // Windows
         if (this->windowCanvas)
@@ -1050,11 +1052,12 @@ void App::Update() {
     glfwGetFramebufferSize(window, fbSize, fbSize + 1);
     glViewport(0, 0, fbSize[0], fbSize[1]);
 
+    const ImVec4 clearColor = appState.getWindowClearColor();
     glClearColor(
-        appState.windowClearColor.x * appState.windowClearColor.w,
-        appState.windowClearColor.y * appState.windowClearColor.w,
-        appState.windowClearColor.z * appState.windowClearColor.w,
-        appState.windowClearColor.w
+        clearColor.x * clearColor.w,
+        clearColor.y * clearColor.w,
+        clearColor.z * clearColor.w,
+        clearColor.w
     );
     glClear(GL_COLOR_BUFFER_BIT);
 

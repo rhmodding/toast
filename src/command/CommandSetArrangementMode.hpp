@@ -5,6 +5,8 @@
 
 #include "../SessionManager.hpp"
 
+#include "../PlayerManager.hpp"
+
 class CommandSetArrangementMode : public BaseCommand {
 public:
     // Constructor: Set arrangement mode in the current session's scope.
@@ -41,7 +43,7 @@ private:
         if (lEnabled) {
             appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
 
-            appState.playerState.ToggleAnimating(false);
+            PlayerManager::getInstance().setAnimating(false);
             globalAnimatable->overrideAnimationKey(&appState.controlKey);
         }
         else {
