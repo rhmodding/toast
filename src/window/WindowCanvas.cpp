@@ -12,6 +12,10 @@
 
 #include "../command/CommandModifyArrangementPart.hpp"
 
+inline ImVec2 roundVec2(const ImVec2& point) {
+    return { IM_ROUND(point.x), IM_ROUND(point.y) };
+}
+
 bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
     float x = point.x, y = point.y;
     bool inside{ false };
@@ -382,65 +386,6 @@ void WindowCanvas::Update() {
                 }
             }
 
-            // Draw selected part bounds
-            if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
-                uint32_t color = hoveringOverSelectedPart && ImGui::IsWindowHovered() ?
-                    IM_COL32(255, 255, 0, 255) :
-                    IM_COL32(
-                        partBoundingDrawColor.x * 255,
-                        partBoundingDrawColor.y * 255,
-                        partBoundingDrawColor.z * 255,
-                        partBoundingDrawColor.w * 255
-                    );
-
-                auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
-                drawList->AddQuad(
-                    bounding[0], bounding[1], bounding[2], bounding[3],
-                    color
-                );
-
-                float thrLength = sqrtf(
-                    ((bounding[2].x - bounding[0].x)*(bounding[2].x - bounding[0].x)) +
-                    ((bounding[2].y - bounding[0].y)*(bounding[2].y - bounding[0].y))
-                );
-
-                // If quad is too small, only draw the bounding.
-                if (thrLength >= 35.f) {
-                    float angle =
-                        globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart).angle +
-                        globalAnimatable->getCurrentKey()->angle;
-
-                    for (uint8_t i = 0; i < 4; i++) {
-                        DrawRotatedBox(drawList, {
-                            (bounding[i].x + bounding[(i+1) % 4].x) / 2.f,
-                            (bounding[i].y + bounding[(i+1) % 4].y) / 2.f
-                        }, 4.f, angle, color);
-                    }
-
-                    DrawRotatedBox(drawList, {
-                        (bounding[0].x + bounding[2].x) / 2.f,
-                        (bounding[0].y + bounding[2].y) / 2.f
-                    }, 3.f, angle, color);
-                }
-            }
-
-            // Draw all part bounds if enabled
-            if (this->drawAllBounding)
-                for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
-                    if (appState.focusOnSelectedPart && appState.selectedPart == i)
-                        continue; // Skip over part if bounds are already drawn
-
-                    uint32_t color = IM_COL32(
-                        partBoundingDrawColor.x * 255,
-                        partBoundingDrawColor.y * 255,
-                        partBoundingDrawColor.z * 255,
-                        partBoundingDrawColor.w * 255
-                    );
-
-                    auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
-                    drawList->AddQuad(bounding[0], bounding[1], bounding[2], bounding[3], color);
-                }
-        
             // Draw safe area if enabled
             if (this->visualizeSafeArea) {
                 ImVec2 boxTopLeft = {
@@ -476,6 +421,72 @@ void WindowCanvas::Update() {
                     color
                 );
             }
+
+            // Draw selected part bounds
+            if (appState.focusOnSelectedPart && appState.selectedPart >= 0) {
+                uint32_t color = hoveringOverSelectedPart && ImGui::IsWindowHovered() ?
+                    IM_COL32(255, 255, 0, 255) :
+                    IM_COL32(
+                        partBoundingDrawColor.x * 255,
+                        partBoundingDrawColor.y * 255,
+                        partBoundingDrawColor.z * 255,
+                        partBoundingDrawColor.w * 255
+                    );
+
+                auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
+                drawList->AddQuad(
+                    roundVec2(bounding[0]), roundVec2(bounding[1]),
+                    roundVec2(bounding[2]), roundVec2(bounding[3]),
+                    color
+                );
+
+                float thrLength = sqrtf(
+                    ((bounding[2].x - bounding[0].x)*(bounding[2].x - bounding[0].x)) +
+                    ((bounding[2].y - bounding[0].y)*(bounding[2].y - bounding[0].y))
+                );
+
+                // If quad is too small, only draw the bounding.
+                if (thrLength >= 35.f) {
+                    float angle =
+                        globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart).angle +
+                        globalAnimatable->getCurrentKey()->angle;
+
+                    // Side boxes
+                    for (uint8_t i = 0; i < 4; i++) {
+                        DrawRotatedBox(drawList, {
+                            IM_ROUND((bounding[i].x + bounding[(i+1) % 4].x) / 2.f),
+                            IM_ROUND((bounding[i].y + bounding[(i+1) % 4].y) / 2.f)
+                        }, 4.f, angle, color);
+                    }
+
+                    // Center box
+                    DrawRotatedBox(drawList, {
+                        IM_ROUND((bounding[0].x + bounding[2].x) / 2.f),
+                        IM_ROUND((bounding[0].y + bounding[2].y) / 2.f)
+                    }, 3.f, angle, color);
+                }
+            }
+
+            // Draw all part bounds if enabled
+            if (this->drawAllBounding)
+                for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
+                    if (appState.focusOnSelectedPart && appState.selectedPart == i)
+                        continue; // Skip over part if bounds are already drawn
+
+                    const uint32_t color = IM_COL32(
+                        partBoundingDrawColor.x * 255,
+                        partBoundingDrawColor.y * 255,
+                        partBoundingDrawColor.z * 255,
+                        partBoundingDrawColor.w * 255
+                    );
+
+                    auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
+                    drawList->AddQuad(
+                        roundVec2(bounding[0]), roundVec2(bounding[1]),
+                        roundVec2(bounding[2]), roundVec2(bounding[3]),
+                        color
+                    );
+                }
         }
         drawList->PopClipRect();
 
