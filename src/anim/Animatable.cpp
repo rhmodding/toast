@@ -104,7 +104,41 @@ ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
     return { x + origin.x, y + origin.y };
 }
 
-// Top-left, top-right, bottom-right, top-left
+ImRect getBoundingBox(const std::array<ImVec2, 4>* quads, uint32_t quadCount) {
+    if (quadCount == 0 || quads == nullptr) {
+        // Return an empty rectangle if no quads are provided.
+        return ImRect{{0, 0}, {0, 0}};
+    }
+
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float maxY = std::numeric_limits<float>::lowest();
+
+    for (uint32_t i = 0; i < quadCount; ++i) {
+        for (const ImVec2& vertex : quads[i]) {
+            if (vertex.x < minX) minX = vertex.x;
+            if (vertex.y < minY) minY = vertex.y;
+            if (vertex.x > maxX) maxX = vertex.x;
+            if (vertex.y > maxY) maxY = vertex.y;
+        }
+    }
+
+    return ImRect{{minX, minY}, {maxX, maxY}};
+}
+
+ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
+    const auto& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
+
+    std::vector<std::array<ImVec2, 4>> quads(arrangement.parts.size());
+
+    for (uint16_t i = 0; i < arrangement.parts.size(); i++)
+        quads[i] = this->getPartWorldQuad(key, i);
+
+    return getBoundingBox(quads.data(), quads.size());
+}
+
+// Top-left, top-right, bottom-right, bottom-left
 std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
     assert(this->cellanim);
 

@@ -8,6 +8,7 @@
 #include "../common.hpp"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <memory>
 
@@ -79,6 +80,7 @@ public:
     bool getDoesDraw(bool allowOpacity = true) const;
 
     std::array<ImVec2, 4> getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const;
+    ImRect getKeyWorldRect(RvlCellAnim::AnimationKey* key) const;
 };
 
 #endif // ANIMATABLE_HPP

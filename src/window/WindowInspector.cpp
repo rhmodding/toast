@@ -37,14 +37,24 @@ void WindowInspector::DrawPreview(Animatable* animatable) {
 
     drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor, ImGui::GetStyle().FrameRounding);
 
-    drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
+    //drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
 
-    animatable->offset = origin;
-    animatable->scaleX = 0.7f;
-    animatable->scaleY = 0.7f;
+    ImRect keyRect = animatable->getKeyWorldRect(animatable->getCurrentKey());
+
+    float scaleX = canvasSize.x / (keyRect.GetWidth() * (1 / animatable->scaleX));
+    float scaleY = canvasSize.y / (keyRect.GetHeight() * (1 / animatable->scaleY));
+
+    animatable->offset = { 0, 0 };
+    animatable->scaleX = std::min(scaleX, scaleY);
+    animatable->scaleY = std::min(scaleX, scaleY);
+
+    // Recalculate
+    ImVec2 keyCenter = animatable->getKeyWorldRect(animatable->getCurrentKey()).GetCenter();
+    animatable->offset = { origin.x - keyCenter.x, origin.y - keyCenter.y };
+
     animatable->Draw(drawList);
 
-    drawList->PopClipRect();
+    //drawList->PopClipRect();
 
     ImGui::Dummy(canvasSize);
 }
