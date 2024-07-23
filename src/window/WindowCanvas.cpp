@@ -604,9 +604,8 @@ void WindowCanvas::DrawCanvasText() {
             break;
 
         case GridType_Custom: {
-            float y = 0.2126f * customGridColor.x + 0.7152f * customGridColor.y + 0.0722f * customGridColor.z;
-
-            if (y > 0.5f)
+            float lumi = 0.2126f * customGridColor.x + 0.7152f * customGridColor.y + 0.0722f * customGridColor.z;
+            if (lumi > 0.5f)
                 textColor = IM_COL32_BLACK;
             else
                 textColor = IM_COL32_WHITE;

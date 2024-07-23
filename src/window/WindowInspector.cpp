@@ -22,9 +22,9 @@ void WindowInspector::DrawPreview(Animatable* animatable) {
     GET_APP_STATE;
     GET_WINDOW_DRAWLIST;
 
-    ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
-    ImVec2 canvasSize = { 92, 92 };
-    ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+    const ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
+    const ImVec2 canvasSize = { 96, 96 };
+    const ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
 
     const ImVec2 origin(
         canvasTopLeft.x + static_cast<int>(canvasSize.x / 2),
