@@ -207,7 +207,7 @@ namespace RvlCellAnim {
 
     std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
         // Allocate header now
-        std::vector<unsigned char> result(sizeof(RvlCellAnimHeader));
+        std::vector<unsigned char> result(sizeof(RvlCellAnimHeader) + 8);
 
         RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
         header->magic = HEADER_MAGIC;
@@ -316,6 +316,8 @@ namespace RvlCellAnim {
             }
         }
     
+        strcpy(reinterpret_cast<char*>(result.data() + result.size() - 8), "MWTOAST");
+
         return result;
     }
 
