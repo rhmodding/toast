@@ -15,9 +15,8 @@
 #define CANVAS_ORIGIN 512
 
 void Animatable::setAnimationFromIndex(uint16_t animIndex) {
-    assert(this->cellanim);
-
-    assert(this->cellanim->animations.size() >= animIndex);
+    SAFE_ASSERT(this->cellanim, true);
+    SAFE_ASSERT(this->cellanim->animations.size() >= animIndex, true);
 
     this->currentAnimation = &this->cellanim->animations.at(animIndex);
     this->currentAnimationIndex = animIndex;
@@ -29,10 +28,10 @@ void Animatable::setAnimationFromIndex(uint16_t animIndex) {
 }
 
 void Animatable::setAnimationKeyFromIndex(uint16_t keyIndex) {
-    assert(this->cellanim);
-    assert(this->currentAnimation);
+    SAFE_ASSERT(this->cellanim, true);
+    SAFE_ASSERT(this->currentAnimation, true);
 
-    assert(this->currentAnimation->keys.size() >= keyIndex);
+    SAFE_ASSERT(this->currentAnimation->keys.size() >= keyIndex, true);
 
     this->currentKey = &this->currentAnimation->keys.at(keyIndex);
     this->currentKeyIndex = keyIndex;
@@ -87,7 +86,7 @@ RvlCellAnim::Arrangement* Animatable::getCurrentArrangement() const {
     return &this->cellanim->arrangements.at(this->getCurrentKey()->arrangementIndex);
 }
 
-int16_t Animatable::getHoldFramesLeft() const {
+int32_t Animatable::getHoldFramesLeft() const {
     return this->holdKey;
 }
 
@@ -140,7 +139,9 @@ ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
 
 // Top-left, top-right, bottom-right, bottom-left
 std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
-    assert(this->cellanim);
+    std::array<ImVec2, 4> transformedQuad({{0,0},{0,0},{0,0},{0,0}});
+
+    SAFE_ASSERT_RET(this->cellanim, transformedQuad);
 
     RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
     RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
@@ -154,9 +155,6 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
         static_cast<uint16_t>(part.regionW * mismatchScaleX),
         static_cast<uint16_t>(part.regionH * mismatchScaleY)
     };
-
-    // float totalScaleX = this->currentKey->scaleX * this->scaleX;
-    // float totalScaleY = this->currentKey->scaleY * this->scaleY;
 
     ImVec2 keyCenter = {
         CANVAS_ORIGIN + (this->offset.x - CANVAS_ORIGIN),
@@ -173,16 +171,16 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
         topLeftOffset.y + (part.regionH * part.scaleY)
     };
 
-    std::array<ImVec2, 4> transformedQuad({
+    transformedQuad = {
         topLeftOffset,
         { bottomRightOffset.x, topLeftOffset.y },
         bottomRightOffset,
         { topLeftOffset.x, bottomRightOffset.y },
-    });
+    };
 
     ImVec2 center = {
-        (topLeftOffset.x + bottomRightOffset.x) / 2.0f,
-        (topLeftOffset.y + bottomRightOffset.y) / 2.0f
+        (topLeftOffset.x + bottomRightOffset.x) / 2.f,
+        (topLeftOffset.y + bottomRightOffset.y) / 2.f
     };
 
     // Transformations
@@ -240,7 +238,10 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
 }
 
 bool Animatable::getDoesDraw(bool allowOpacity) const {
-    if (!this->cellanim || !this->currentAnimation || !this->visible)
+    SAFE_ASSERT_RET(this->cellanim, false);
+    SAFE_ASSERT_RET(this->currentAnimation, false);
+
+    if (!this->visible)
         return false;
 
     RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
@@ -259,8 +260,8 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
 }
 
 void Animatable::overrideAnimationKey(RvlCellAnim::AnimationKey* key) {
-    assert(this->cellanim);
-    assert(key);
+    SAFE_ASSERT(this->cellanim, true);
+    SAFE_ASSERT(key, true);
 
     this->animating = false;
     this->currentKey = key;
@@ -342,8 +343,8 @@ void Animatable::DrawKey(
 }
 
 void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
-    assert(this->cellanim);
-    assert(this->currentAnimation);
+    SAFE_ASSERT(this->cellanim, true);
+    SAFE_ASSERT(this->currentAnimation, true);
 
     if (!this->visible)
         return;
@@ -352,8 +353,8 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
 }
 
 void Animatable::DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_t frontCount, uint8_t opacity) {
-    assert(this->cellanim);
-    assert(this->currentAnimation);
+    SAFE_ASSERT(this->cellanim, true);
+    SAFE_ASSERT(this->currentAnimation, true);
 
     if (!this->visible)
         return;

@@ -34,6 +34,24 @@
 #define GET_IMGUI_IO ImGuiIO& io = ImGui::GetIO()
 #define GET_WINDOW_DRAWLIST ImDrawList* drawList = ImGui::GetWindowDrawList()
 
+#define SAFE_ASSERT(condition, shouldReturn) \
+    do { \
+        if (!(condition)) { \
+            std::cerr << "[SAFE_ASSERT] Assertion failed!: (" #condition "), function " << __FUNCTION__ \
+                      << ", file " << __FILE__ << ", line " << __LINE__ << "." << std::endl; \
+            if (shouldReturn) return; \
+        } \
+    } while (false)
+
+#define SAFE_ASSERT_RET(condition, ret) \
+    do { \
+        if (!(condition)) { \
+            std::cerr << "Assertion failed: (" #condition "), function " << __FUNCTION__ \
+                      << ", file " << __FILE__ << ", line " << __LINE__ << "." << std::endl; \
+            return (ret); \
+        } \
+    } while (false)
+
 namespace Common {
     float byteswapFloat(float value);
 

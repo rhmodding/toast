@@ -19,7 +19,7 @@ private:
     RvlCellAnim::Animation* currentAnimation{ nullptr };
     RvlCellAnim::AnimationKey* currentKey{ nullptr };
 
-    int16_t holdKey{ 0 };
+    int32_t holdKey{ 0 };
 
     uint16_t currentAnimationIndex{ 0 };
     uint16_t currentKeyIndex{ 0 };
@@ -64,7 +64,7 @@ public:
     uint16_t getCurrentAnimationIndex() const;
     uint16_t getCurrentKeyIndex() const;
 
-    int16_t getHoldFramesLeft() const;
+    int32_t getHoldFramesLeft() const;
 
     RvlCellAnim::AnimationKey* getCurrentKey() const;
     RvlCellAnim::Animation* getCurrentAnimation() const;
