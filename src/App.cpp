@@ -477,6 +477,150 @@ void App::Menubar() {
             ImGui::EndMenu();
         }
 
+        const bool sessionAvaliable = sessionManager.currentSession >= 0;
+
+        if (ImGui::BeginMenu("Cellanim", sessionAvaliable)) {
+            if (ImGui::BeginMenu("Select")) {
+                for (uint16_t i = 0; i < sessionManager.getCurrentSession()->cellanims.size(); i++) {
+                    const std::string& str = sessionManager.getCurrentSession()->cellanims.at(i).name;
+
+                    std::stringstream fmtStream;
+                    fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
+
+                    if (ImGui::MenuItem(
+                        fmtStream.str().c_str(), nullptr,
+                        sessionManager.getCurrentSession()->currentCellanim == i
+                    )) {
+                        if (sessionManager.getCurrentSession()->currentCellanim != i) {
+                            sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandSwitchCellanim>(
+                            CommandSwitchCellanim(
+                                sessionManager.currentSession, i
+                            )));
+                        }
+                    }
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Optimize ..");
+
+            ImGui::EndMenu();
+        }
+        
+        if (ImGui::BeginMenu("Spritesheets", sessionAvaliable)) {
+            ImGui::MenuItem("Switch sheet ..");
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Remove unused sheets ..");
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Animation", sessionAvaliable)) {
+            ImGui::Text("Edit macro name ..");
+
+            ImGui::Separator();
+
+            ImGui::Text("Swap index ..");
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Key",
+            sessionAvaliable &&
+            !sessionManager.getInstance().getCurrentSession()->arrangementMode
+        )) {
+            ImGui::Text(
+                "Selected key (no. %u)",
+                appState.globalAnimatable->getCurrentKeyIndex()
+            );
+
+            ImGui::Separator();
+
+            ImGui::Text("Make arrangent unique (duplicate)");
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Interpolate ..");
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Move selected key ..")) {
+                ImGui::MenuItem(".. up");
+                ImGui::MenuItem(".. down");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Duplicate selected key ..")) {
+                ImGui::MenuItem(".. before");
+                ImGui::MenuItem(".. after");
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Delete selected key");
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Arrangement", sessionAvaliable)) {
+            ImGui::Text(
+                "Current arrangement (no. %u)",
+                appState.globalAnimatable->getCurrentKey()->arrangementIndex
+            );
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Transform as whole ..");
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Region")) {
+                ImGui::MenuItem("Pad (Expand/Contract) ..");
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Part",
+            sessionAvaliable && appState.selectedPart >= 0
+        )) {
+            ImGui::Text(
+                "Selected part (no. %u)",
+                appState.selectedPart
+            );
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Visible", nullptr, true);
+            ImGui::MenuItem("Locked");
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Region")) {
+                ImGui::MenuItem("Pad (Expand/Contract) ..");
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Set name (identifier) ..");
+
+            ImGui::Separator();
+
+            ImGui::MenuItem("Delete");
+
+            ImGui::EndMenu();
+        }
+
         if (ImGui::BeginMenu("Windows")) {
             if (ImGui::MenuItem("Canvas", "", !!this->windowCanvas)) {
                 if (this->windowCanvas)
