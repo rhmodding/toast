@@ -13,7 +13,7 @@
 #include "App.hpp"
 
 // Stores instance of MtCommandManager in local mtCommandManager.
-#define GET_MT_COMMAND_MANAGER MtCommandManager& mtCommandManager =  MtCommandManager::getInstance()
+#define GET_MT_COMMAND_MANAGER MtCommandManager& mtCommandManager = MtCommandManager::getInstance()
 
 class MtCommandManager : public Singleton<MtCommandManager> {
     friend class Singleton<MtCommandManager>; // Allow access to base class constructor
