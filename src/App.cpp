@@ -315,14 +315,15 @@ App::App() {
 
     style.FrameRounding = 5;
     style.WindowRounding = 5;
+    style.ChildRounding = 5;
+    style.GrabRounding = 5;
+    style.PopupRounding = 5;
 
     style.FramePadding.x = 5;
     style.FramePadding.y = 3;
 
     style.ItemSpacing.x = 9;
     style.ItemSpacing.y = 4;
-
-    style.PopupRounding = 5;
 
     style.WindowTitleAlign.x = 0.5f;
     style.WindowTitleAlign.y = 0.5f;
