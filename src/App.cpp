@@ -40,12 +40,13 @@ App* gAppPtr{ nullptr };
 #if defined(__APPLE__)
     #define SCS_EXIT "Cmd+Q"
     #define SCST_CTRL "Cmd"
-    #define SCT_CTRL ImGui::GetIO().KeySuper
 #else
     #define SCS_EXIT "Alt+F4"
     #define SCST_CTRL "Ctrl"
-    #define SCT_CTRL ImGui::GetIO().KeyCtrl
 #endif
+
+
+#define SCT_CTRL ImGui::GetIO().KeyCtrl
 
 #define SCS_LAUNCH_OPEN_SZS_DIALOG SCST_CTRL "+O"
 #define SC_LAUNCH_OPEN_SZS_DIALOG \
