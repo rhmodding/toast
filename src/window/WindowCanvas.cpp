@@ -19,49 +19,40 @@ inline ImVec2 roundVec2(const ImVec2& point) {
 bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
     float x = point.x, y = point.y;
     bool inside{ false };
- 
-    // Store the first point in the polygon and initialize
-    // the second point
+
     ImVec2 p1 = polygon[0];
     ImVec2 p2;
- 
-    // Loop through each edge in the polygon
+
     for (uint16_t i = 1; i <= numVertices; i++) {
-        // Get the next point in the polygon
         p2 = polygon[i % numVertices];
- 
-        // Check if the point is above the minimum y
+
+        // Point is above the minimum y
         // coordinate of the edge
         if (y > std::min(p1.y, p2.y)) {
-            // Check if the point is below the maximum y
+            // Point is below the maximum y
             // coordinate of the edge
             if (y <= std::max(p1.y, p2.y)) {
-                // Check if the point is to the left of the
+                // Point is to the left of the
                 // maximum x coordinate of the edge
                 if (x <= std::max(p1.x, p2.x)) {
-                    // Calculate the x-intersection of the
-                    // line connecting the point to the edge
-                    float xIntersection
-                        = (y - p1.y) * (p2.x - p1.x)
-                              / (p2.y - p1.y)
-                          + p1.x;
- 
-                    // Check if the point is on the same
-                    // line as the edge or to the left of
-                    // the x-intersection
-                    if (p1.x == p2.x || x <= xIntersection) {
-                        // Flip the inside flag
-                        inside = !inside;
-                    }
+                    // X-intersection of line connecting
+                    // point to edge
+                    const float xIntersection =
+                        (y - p1.y) * (p2.x - p1.x)
+                        / (p2.y - p1.y)
+                        + p1.x;
+
+                    // Point on same line as edge or
+                    // line is on left of x-intersection
+                    if (p1.x == p2.x || x <= xIntersection)
+                        inside ^= true;
                 }
             }
         }
- 
-        // Store the current point as the first point for
-        // the next iteration
+
         p1 = p2;
     }
- 
+
     return inside;
 }
 
