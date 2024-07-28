@@ -225,7 +225,7 @@ void App::AttemptExit(bool force) {
     glfwGetWindowSize(window, &config.lastWindowWidth, &config.lastWindowHeight);
 
     configManager.setConfig(config);
-    configManager.SaveConfig();
+    configManager.Save();
 
     this->running = false;
 }
@@ -265,7 +265,7 @@ App::App() {
 
     // Config
     GET_CONFIG_MANAGER;
-    configManager.LoadConfig();
+    configManager.Load();
 
     this->windowThreadID = std::this_thread::get_id();
 

@@ -163,7 +163,7 @@ void WindowConfig::Update() {
 
             if (ImGui::Button("Save & Apply")) {
                 configManager.setConfig(this->selfConfig);
-                configManager.SaveConfig();
+                configManager.Save();
 
                 AppState::getInstance().applyTheming();
             }

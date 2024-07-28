@@ -81,7 +81,6 @@ public:
     const Config& getConfig() const {
         return config;
     }
-
     void setConfig(const Config& newConfig) {
         config = newConfig;
     }
@@ -116,14 +115,11 @@ public:
     bool firstTime{ false };
     std::string configPath{ "toast.config.json" };
 
-    void LoadConfig() {
+    void Load() {
         std::ifstream file(configPath);
 
-        if (!file.is_open()) {
-            firstTime = true;
-
-            this->ResetConfig();
-            this->SaveConfig();
+            this->Reset();
+            this->Save();
 
             return;
         }
@@ -135,7 +131,7 @@ public:
         this->config = j.get<Config>();
     }
 
-    void SaveConfig() {
+    void Save() const {
         std::ofstream file(this->configPath);
 
         if (!file.is_open()) {
@@ -149,7 +145,7 @@ public:
         file.close();
     }
 
-    void ResetConfig() {
+    void Reset() {
         config = Config{};
     }
 
