@@ -235,7 +235,10 @@ App::App() {
     glfwSetErrorCallback([](int error_code, const char* description) {
         std::cerr << "GLFW Error (" << error_code << "): " << description << '\n';
     });
-    assert(glfwInit());
+    if (UNLIKELY(!glfwInit())) {
+        std::cerr << "[App:App] Failed to init GLFW!\n";
+        __builtin_trap();
+    }
 
     #if defined(IMGUI_IMPL_OPENGL_ES2)
         // GL ES 2.0 + GLSL 100
@@ -271,7 +274,11 @@ App::App() {
         WINDOW_TITLE,
         nullptr, nullptr
     );
-    assert(this->window);
+
+    if (UNLIKELY(!this->window)) {
+        std::cerr << "[App::App] Window failed to init!\n";
+        __builtin_trap();
+    }
 
     glfwSetWindowCloseCallback(this->window, [](GLFWwindow* window) {
         extern App* gAppPtr;

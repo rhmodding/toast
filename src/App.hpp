@@ -33,7 +33,11 @@ public:
     bool isRunning() const { return this->running; }
 
     GLFWwindow* getWindow() {
-        assert(this->window);
+        if (UNLIKELY(!this->window)) {
+            std::cerr << "[App::getWindow] Window ptr is nullptr !\n";
+            __builtin_trap();
+        }
+
         return this->window;
     }
 
