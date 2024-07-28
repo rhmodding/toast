@@ -641,6 +641,9 @@ uint32_t ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const ui
 
         case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
             return width * height / 2;
+
+        default:
+            break;
     }
 
     return 0;
@@ -680,6 +683,9 @@ uint32_t ImageConvert::getImageByteSize(const TPL::TPLTexture& texture) {
 
         case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
             return texture.width * texture.height / 2;
+
+        default:
+            break;
     }
 
     return 0;

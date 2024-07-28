@@ -37,7 +37,7 @@ uint16_t PlayerManager::getCurrentPseudoFrames() {
         return 0;
 
     uint16_t result{ 0 };
-    for (uint32_t keyIndex = 0; keyIndex < currentFrame; keyIndex++)
+    for (uint32_t keyIndex = 0; keyIndex < this->currentFrame; keyIndex++)
         result += globalAnimatable->getCurrentAnimation()->keys.at(keyIndex).holdFrames;
 
     result += globalAnimatable->getCurrentKey()->holdFrames - globalAnimatable->getHoldFramesLeft();

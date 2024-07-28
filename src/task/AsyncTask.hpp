@@ -44,7 +44,7 @@ public:
 
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f));
         if (ImGui::BeginPopupModal((char*)ICON_FA_WAND_MAGIC_SPARKLES "  Working..###WORKING", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text(this->message);
+            ImGui::TextUnformatted(this->message);
 
             ImGui::Dummy(ImVec2(0.f, 1.f));
 
