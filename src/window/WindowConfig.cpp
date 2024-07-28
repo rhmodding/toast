@@ -165,7 +165,7 @@ void WindowConfig::Update() {
                 configManager.setConfig(this->selfConfig);
                 configManager.SaveConfig();
 
-                AppState::getInstance().UpdateTheme();
+                AppState::getInstance().applyTheming();
             }
             ImGui::EndDisabled();
             ImGui::EndGroup();

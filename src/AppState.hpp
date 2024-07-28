@@ -6,15 +6,12 @@
 #include "anim/Animatable.hpp"
 
 #include "SessionManager.hpp"
-
 #include "ConfigManager.hpp"
 
 #include <cstdint>
 
 #include <imgui.h>
 #include <imgui_internal.h>
-
-#include <chrono>
 
 // Stores instance of AppState in local appState.
 #define GET_APP_STATE AppState& appState = AppState::getInstance()
@@ -33,7 +30,17 @@ public:
     inline bool getDarkThemeEnabled() {
         return ConfigManager::getInstance().getConfig().theme == ThemeChoice_Dark;
     }
-    void UpdateTheme();
+
+    void applyTheming() {
+        if (this->getDarkThemeEnabled()) {
+            ImGui::StyleColorsDark();
+            this->windowClearColor = Common::RGBAtoImVec4(24, 24, 24, 255);
+        }
+        else {
+            ImGui::StyleColorsLight();
+            this->windowClearColor = Common::RGBAtoImVec4(248, 248, 248, 255);
+        }
+    }
 
     inline ImVec4 getWindowClearColor() {
         return this->windowClearColor;

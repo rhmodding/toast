@@ -303,7 +303,7 @@ App::App() {
 
     GET_APP_STATE;
 
-    appState.UpdateTheme();
+    appState.applyTheming();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();

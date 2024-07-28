@@ -42,8 +42,6 @@ set(SOURCES
 
     src/common.cpp
 
-    src/AppState.cpp
-
     src/SessionManager.cpp
 
     src/PlayerManager.cpp
