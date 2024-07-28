@@ -20,38 +20,50 @@ const char* categoryNames[] = {
     "Paths"
 };
 
-bool CPPSTRING_InputText(const char* label, std::string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr) {
+bool CppInputText(const char* label, std::string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* userData = nullptr) {
     struct InputTextCallback_UserData {
         std::string*            Str;
         ImGuiInputTextCallback  ChainCallback;
         void*                   ChainCallbackUserData;
     };
-    
+
+    struct UserData {
+        std::string* stringPtr;
+        ImGuiInputTextCallback chainCb;
+        void* cbUserData;
+    } lUserData {
+        .stringPtr = str,
+        .chainCb = callback,
+        .cbUserData = userData
+    };
+
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    InputTextCallback_UserData cb_user_data;
-    cb_user_data.Str = str;
-    cb_user_data.ChainCallback = callback;
-    cb_user_data.ChainCallbackUserData = user_data;
+    //InputTextCallback_UserData cb_user_data;
+    //cb_user_data.Str = str;
+    //cb_user_data.ChainCallback = callback;
+    //cb_user_data.ChainCallbackUserData = user_data;
     return ImGui::InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
-        InputTextCallback_UserData* user_data = (InputTextCallback_UserData*)data->UserData;
-        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
-        {
+        UserData* userData = (UserData*)data->UserData;
+        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
             // Resize string callback
-            // If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
-            std::string* str = user_data->Str;
+            //
+            // If for some reason we refuse the new length (BufTextLen) and/or
+            // capacity (BufSize) we need to set them back to what we want.
+
+            std::string* str = userData->stringPtr;
             IM_ASSERT(data->Buf == str->c_str());
+
             str->resize(data->BufTextLen);
             data->Buf = (char*)str->c_str();
         }
-        else if (user_data->ChainCallback)
-        {
-            // Forward to user callback, if any
-            data->UserData = user_data->ChainCallbackUserData;
-            return user_data->ChainCallback(data);
+        else if (userData->chainCb) {
+            data->UserData = userData->cbUserData;
+            return userData->chainCb(data);
         }
+
         return 0;
-    }, &cb_user_data);
+    }, &lUserData);
 }
 
 void WindowConfig::Update() {
@@ -130,10 +142,10 @@ void WindowConfig::Update() {
                 } break;
 
                 case Category_Paths: {
-                    CPPSTRING_InputText("Image editor path", &this->selfConfig.imageEditorPath);
-                    CPPSTRING_InputText("Texture edit path", &this->selfConfig.textureEditPath);
+                    CppInputText("Image editor path", &this->selfConfig.imageEditorPath);
+                    CppInputText("Texture edit path", &this->selfConfig.textureEditPath);
                 } break;
-                
+
                 default:
                     ImGui::TextWrapped("No options avaliable.");
                     break;
