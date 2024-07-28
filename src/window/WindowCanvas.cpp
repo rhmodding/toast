@@ -56,60 +56,50 @@ bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVe
     return inside;
 }
 
-void DrawRotatedBox(ImDrawList* draw_list, ImVec2 center, float radius, float rotation_degrees, ImU32 color) {
-    // Convert rotation from degrees to radians
-    float rotation = rotation_degrees * IM_PI / 180.0f;
+void DrawRotatedBox(ImDrawList* draw_list, ImVec2 center, float radius, float rotation, ImU32 color) {
+    float radiusInv = -radius;
 
-    // Calculate the corners of the box before rotation
-    ImVec2 top_left(-radius, -radius);
-    ImVec2 top_right(radius, -radius);
-    ImVec2 bottom_right(radius, radius);
-    ImVec2 bottom_left(-radius, radius);
-
-    // Define a function to rotate a point around the center
-    auto rotate_point = [](ImVec2 point, ImVec2 center, float rotation) -> ImVec2
-    {
+    auto rotatePoint = [](ImVec2 point, ImVec2 center, float rotation) -> ImVec2 {
         if (fmod(rotation, 360.f) == 0.f)
             return point;
 
-        float s = sinf(rotation);
-        float c = cosf(rotation);
+        float rad = rotation * IM_PI / 180.f;
 
-        // Translate point back to origin
+        float s = sinf(rad);
+        float c = cosf(rad);
+
         point.x -= center.x;
         point.y -= center.y;
 
-        // Rotate point
         float xnew = point.x * c - point.y * s;
         float ynew = point.x * s + point.y * c;
 
-        // Translate point back
         point.x = xnew + center.x;
         point.y = ynew + center.y;
 
         return point;
     };
 
-    // Rotate corners around the center
-    ImVec2 p1 = rotate_point({
-        top_left.x + center.x,
-        top_left.y + center.y
-    }, center, rotation);
-    ImVec2 p2 = rotate_point({
-        top_right.x + center.x,
-        top_right.y + center.y
-    }, center, rotation);
-    ImVec2 p3 = rotate_point({
-        bottom_right.x + center.x,
-        bottom_right.y + center.y
-    }, center, rotation);
-    ImVec2 p4 = rotate_point({
-        bottom_left.x + center.x,
-        bottom_left.y + center.y
-    }, center, rotation);
+    draw_list->AddQuad(
+        rotatePoint({
+            radiusInv + center.x,
+            radiusInv + center.y
+        }, center, rotation),
+        rotatePoint({
+            radius    + center.x,
+            radiusInv + center.y
+        }, center, rotation),
+        rotatePoint({
+            radius + center.x,
+            radius + center.y
+        }, center, rotation),
+        rotatePoint({
+            radiusInv + center.x,
+            radius    + center.y
+        }, center, rotation),
 
-    // Draw the rotated box using AddQuad
-    draw_list->AddQuad(p1, p2, p3, p4, color);
+        color
+    );
 }
 
 const ImVec2 feverSafeAreaSize(832, 456);
@@ -193,7 +183,7 @@ void WindowCanvas::Menubar() {
 
             if (ImGui::BeginMenu("Safe Area")) {
                 ImGui::Checkbox("Enabled", &this->visualizeSafeArea);
-                
+
                 ImGui::SeparatorText("Options");
 
                 ImGui::BeginDisabled(!this->visualizeSafeArea);
@@ -236,7 +226,7 @@ void WindowCanvas::Update() {
         case GridType_None:
             backgroundColor = IM_COL32_BLACK_TRANS;
             break;
-        
+
         case GridType_Dark:
             backgroundColor = IM_COL32(50, 50, 50, 255);
             break;
@@ -253,7 +243,7 @@ void WindowCanvas::Update() {
                 customGridColor.w * 255
             );
             break;
-    
+
         default:
             // The default value of backgroundColor is already 0.
             break;
@@ -289,7 +279,7 @@ void WindowCanvas::Update() {
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
         (
-            ConfigManager::getInstance().getConfig().canvasLMBPanEnabled && 
+            ConfigManager::getInstance().getConfig().canvasLMBPanEnabled &&
             ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
         )
     );
@@ -297,7 +287,7 @@ void WindowCanvas::Update() {
     static bool    draggingPart{ false };
     static ImVec2  dragPartOffset{ 0, 0 };
     static int16_t dragPartBeginOffset[2];
-    
+
     static bool hoveringOverSelectedPart{ false };
 
     GET_ANIMATABLE;
@@ -336,7 +326,7 @@ void WindowCanvas::Update() {
                         centered ? centerColorX : normalColor
                     );
                 }
-                
+
                 for (
                     float y = fmodf(this->canvasOffset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP);
                     y < this->canvasSize.y;
@@ -350,7 +340,7 @@ void WindowCanvas::Update() {
                     );
                 }
             }
-        
+
             // Draw animatable
             {
                 bool drawOnionSkin = appState.onionSkinState.enabled;
@@ -524,7 +514,7 @@ void WindowCanvas::Update() {
     if (draggingPart) {
         dragPartOffset.x += io.MouseDelta.x / ((canvasZoom) + 1.f) / globalAnimatable->getCurrentKey()->scaleX;
         dragPartOffset.y += io.MouseDelta.y / ((canvasZoom) + 1.f) / globalAnimatable->getCurrentKey()->scaleY;
-    
+
         arrangementPtr->parts.at(appState.selectedPart).positionX = static_cast<int16_t>(dragPartOffset.x);
         arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
     }
@@ -562,7 +552,7 @@ void WindowCanvas::Update() {
         if (interactionHovered) {
             GET_IMGUI_IO;
 
-            if (io.KeyShift) 
+            if (io.KeyShift)
                 this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
             else
                 this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED;
@@ -584,7 +574,7 @@ void WindowCanvas::DrawCanvasText() {
         case GridType_None:
             textColor = AppState::getInstance().getDarkThemeEnabled() ? IM_COL32_WHITE : IM_COL32_BLACK;
             break;
-        
+
         case GridType_Dark:
             textColor = IM_COL32_WHITE;
             break;
@@ -600,7 +590,7 @@ void WindowCanvas::DrawCanvasText() {
             else
                 textColor = IM_COL32_WHITE;
         } break;
-    
+
         default:
             break;
     }
