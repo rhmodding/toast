@@ -82,29 +82,29 @@ void WindowAbout::Update() {
 
     GET_WINDOW_DRAWLIST;
 
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
-    ImVec2 canvasSize = ImGui::GetContentRegionAvail();
-    ImVec2 canvasBottomRight = ImVec2(
+    const ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
+    const ImVec2 canvasSize = ImGui::GetContentRegionAvail();
+    const ImVec2 canvasBottomRight = ImVec2(
         canvasTopLeft.x + canvasSize.x,
         canvasTopLeft.y + canvasSize.y
     );
 
-    ImVec2 imageSize = ImVec2(350, 350);
+    const ImVec2 imageSize = ImVec2(350, 350);
 
-    ImVec2 imageTopLeft = ImVec2(
+    const ImVec2 imageTopLeft = ImVec2(
         canvasTopLeft.x - 20,
 
         canvasTopLeft.y + ((canvasSize.y - imageSize.y) / 2) -
         ((cosf(ImGui::GetTime()) + 1) * 15) + 8
     );
-    ImVec2 imageBottomRight = ImVec2(
+    const ImVec2 imageBottomRight = ImVec2(
         imageTopLeft.x + imageSize.x,
         imageTopLeft.y + imageSize.y
     );
 
-    drawList->AddImage((void*)(intptr_t)this->image.texture, imageTopLeft, imageBottomRight);
+    drawList->AddImage((void*)(uintptr_t)this->image.texture, imageTopLeft, imageBottomRight);
 
     // Text
     ImVec2 textPosition = ImVec2(
