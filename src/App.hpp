@@ -46,7 +46,11 @@ private: // Methods
 
     void BeginMainWindow() {
         ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode;
-        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        ImGuiWindowFlags windowFlags =
+            ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+            ImGuiWindowFlags_NoBackground;
 
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -54,28 +58,22 @@ private: // Methods
         ImGui::SetNextWindowSize(viewport->WorkSize);
         ImGui::SetNextWindowViewport(viewport->ID);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0,0,0,0));
-
-        windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-        windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.f, 0.f, 0.f, 0.f));
 
         if (dockspaceFlags & ImGuiDockNodeFlags_PassthruCentralNode)
             windowFlags |= ImGuiWindowFlags_NoBackground;
 
-        ImGui::Begin(WINDOW_TITLE "###MainAppWindow", nullptr, windowFlags);
+        ImGui::Begin(WINDOW_TITLE "###AppWindow", nullptr, windowFlags);
 
         ImGui::PopStyleVar(3);
+        ImGui::PopStyleColor();
 
         // Submit the Dockspace
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-            ImGuiID dockspaceId = ImGui::GetID("mainDockspace");
-            ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), dockspaceFlags);
-
-            ImGui::PopStyleColor();
-        }
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
+            ImGui::DockSpace(ImGui::GetID("mainDockspace"), ImVec2(0.f, 0.f), dockspaceFlags);
     }
 
     void Menubar();
