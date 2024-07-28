@@ -7,7 +7,9 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include <sstream>
+#include "../font/FontAwesome.h"
+
+#include "../common.hpp"
 
 class AsyncTask {
 public:
@@ -37,7 +39,7 @@ public:
     void RenderPopup() {
         ImGui::PushID(this->imguiID);
 
-        if (!isComplete)
+        if (LIKELY(!isComplete))
             ImGui::OpenPopup("###WORKING");
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
@@ -64,9 +66,9 @@ public:
     }
 
     void TryRunEffect() {
-        if (isComplete && !hasEffectRun) {
-            Effect();
-            hasEffectRun = true;
+        if (UNLIKELY(this->isComplete) && !UNLIKELY(this->hasEffectRun)) {
+            this->Effect();
+            this->hasEffectRun = true;
         }
     }
 

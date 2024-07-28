@@ -34,7 +34,7 @@ ImVec4 adjustBrightness(const ImVec4& color, float factor) {
     adjustedColor.y = std::lerp(color.y, 1.f, factor);
     adjustedColor.z = std::lerp(color.z, 1.f, factor);
     adjustedColor.w = color.w;
-    
+
     adjustedColor.x = std::min(std::max(adjustedColor.x, 0.0f), 1.f);
     adjustedColor.y = std::min(std::max(adjustedColor.y, 0.0f), 1.f);
     adjustedColor.z = std::min(std::max(adjustedColor.z, 0.0f), 1.f);
@@ -55,10 +55,13 @@ void WindowHybridList::Update() {
 
     lastArrangementMode = appState.getArrangementMode();
 
-    if (this->flashWindow && (static_cast<float>(ImGui::GetTime()) - this->flashTimer > WINDOW_FLASH_TIME))
+    if (
+        UNLIKELY(this->flashWindow) &&
+        (static_cast<float>(ImGui::GetTime()) - this->flashTimer > WINDOW_FLASH_TIME)
+    )
         ResetFlash();
 
-    if (this->flashWindow) {
+    if (UNLIKELY(this->flashWindow)) {
         ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
         ImGui::PushStyleColor(
             ImGuiCol_WindowBg,
@@ -118,16 +121,16 @@ void WindowHybridList::Update() {
                     if (ImGui::BeginMenu("Paste animation..", allowPasteAnimation)) {
                         ImGui::MenuItem("..above");
                         ImGui::MenuItem("..below");
-                        
+
                         ImGui::Separator();
 
                         ImGui::MenuItem("..here (replace)");
-                    
+
                         ImGui::EndMenu();
                     }
                     if (ImGui::BeginMenu("Paste animation (special)..", allowPasteAnimation)) {
                         ImGui::MenuItem("..key timing");
-                    
+
                         ImGui::EndMenu();
                     }
 
@@ -205,7 +208,7 @@ void WindowHybridList::Update() {
 
                             appState.controlKey.arrangementIndex = n;
                         }
-                        
+
                         ImGui::Separator();
 
                         if (ImGui::MenuItem("..here (replace)")) {
@@ -215,7 +218,7 @@ void WindowHybridList::Update() {
                                 copyArrangement
                             );
                         }
-                    
+
                         ImGui::EndMenu();
                     }
 

@@ -96,7 +96,7 @@ namespace RvlCellAnim {
     RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
         const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
-        if (header->magic != HEADER_MAGIC) {
+        if (UNLIKELY(header->magic != HEADER_MAGIC)) {
             std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: header magic failed check!\n";
             return;
         }
@@ -318,7 +318,7 @@ namespace RvlCellAnim {
 
     std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char* filePath) {
         std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-        if (!file.is_open()) {
+        if (UNLIKELY(!file.is_open())) {
             std::cerr << "[RvlCellAnim::readRvlCellAnimFile] Could not open file at path: " << filePath << '\n';
             return nullptr;
         }

@@ -10,9 +10,6 @@
 #include "Yaz0.hpp"
 
 #include <iostream>
-#include <fstream>
-
-#include <string>
 
 #include <bitset>
 
@@ -173,7 +170,7 @@ namespace Yaz0 {
                 bitsLeft = 8;
             }
 
-            if (readOffset >= dataSize) {
+            if (UNLIKELY(readOffset >= dataSize)) {
                 // We've reached the end of the uncompressed file but we're not finished reading yet;
                 // Usually this means the file is invalid.
 
@@ -197,7 +194,7 @@ namespace Yaz0 {
                     return std::nullopt;
 
                 uint32_t dist = ((byteA & 0xF) << 8) | byteB;
-                if ((destOffset - (dist + 1)) < 0) {
+                if (UNLIKELY((destOffset - (dist + 1)) < 0)) {
                     std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the destination offset is out of bounds (negative)!\n";
                     std::cout << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
                     return std::nullopt; // return nothing (std::optional)

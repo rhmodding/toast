@@ -7,6 +7,7 @@
 
 #include "SessionManager.hpp"
 #include "ConfigManager.hpp"
+#include "common.hpp"
 
 #include <cstdint>
 
@@ -63,7 +64,7 @@ public:
     } fonts;
 
     bool getArrangementMode() {
-        if (SessionManager::getInstance().currentSession >= 0)
+        if (LIKELY(SessionManager::getInstance().currentSession >= 0))
             return SessionManager::getInstance().getCurrentSession()->arrangementMode;
         else
             return false;

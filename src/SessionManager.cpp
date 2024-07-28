@@ -14,8 +14,6 @@
 
 #include <filesystem>
 
-#include <thread>
-
 #include "ConfigManager.hpp"
 #include "PlayerManager.hpp"
 
@@ -23,7 +21,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;
 
     auto __archiveResult = U8::readYaz0U8Archive(filePath);
-    if (!__archiveResult.has_value()) {
+    if (UNLIKELY(!__archiveResult.has_value())) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_FailOpenArchive;
 
@@ -32,7 +30,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     U8::U8ArchiveObject archiveObject = std::move(*__archiveResult);
 
-    if (archiveObject.structure.subdirectories.size() < 1) {
+    if (UNLIKELY(archiveObject.structure.subdirectories.size() < 1)) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_RootDirNotFound;
 
@@ -40,10 +38,10 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     }
 
     auto __tplSearch = U8::findFile("./cellanim.tpl", archiveObject.structure);
-    if (!__tplSearch.has_value()) {
+    if (UNLIKELY(!__tplSearch.has_value())) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_FailFindTPL;
-        
+
         return -1;
     }
 
@@ -52,12 +50,15 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     std::vector<const U8::File*> brcadFiles;
     for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
-        if (file.name.size() >= 6 && file.name.substr(file.name.size() - 6) == ".brcad") {
+        if (
+            file.name.size() >= 6 &&
+            file.name.substr(file.name.size() - 6) == ".brcad"
+        ) {
             brcadFiles.push_back(&file);
         }
     }
 
-    if (brcadFiles.empty()) {
+    if (UNLIKELY(brcadFiles.empty())) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_NoBXCADsFound;
 
@@ -78,7 +79,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
                 brcadFiles.at(i)->data.data(), brcadFiles.at(i)->data.size()
             ));
 
-        if (!cellanim.object->ok) {
+        if (UNLIKELY(!cellanim.object->ok)) {
             std::lock_guard<std::mutex> lock(this->mtx);
             this->lastSessionError = SessionOpenError_FailOpenBXCAD;
 
@@ -130,13 +131,13 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     // sheets
     for (uint32_t i = 0; i < tplObject.textures.size(); i++) {
         auto& sheet = newSession.sheets.at(i);
-        
+
         sheet = std::make_shared<Common::Image>(
             tplObject.textures.at(i).width,
             tplObject.textures.at(i).height,
             TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(i))
         );
-        
+
         sheet->tplOutFormat = tplObject.textures.at(i).format;
         sheet->tplColorPalette = tplObject.textures.at(i).palette;
     }
@@ -235,7 +236,7 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
 
     { // Serialize all sub-data
         U8::Directory directory(".");
-        
+
         // BRCAD files
         for (uint32_t i = 0; i < session->cellanims.size(); i++) {
             U8::File file(session->cellanims.at(i).name);
@@ -251,11 +252,11 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
             const auto& map = session->cellanims.at(i).animNames;
             for (auto it = map.begin(); it != map.end(); ++it) {
                 stream << "#define " << it->second << " " << std::to_string(it->first);
-                
+
                 if (std::next(it) != map.end())
                     stream << "\n";
             }
-        
+
             const std::string& cellanimName = session->cellanims.at(i).name;
             U8::File file(
                 "rcad_" +
@@ -281,14 +282,14 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
             for (uint32_t i = 0; i < session->sheets.size(); i++) {
                 auto tplTexture = session->sheets.at(i)->ExportToTPLTexture();
 
-                if (!tplTexture.has_value()) {
+                if (UNLIKELY(!tplTexture.has_value())) {
                     this->lastSessionError = SessionOutError_FailTPLTextureExport;
                     return -1;
                 }
 
                 tplObject.textures.push_back(std::move(*tplTexture));
             }
-            
+
             file.data = tplObject.Reserialize();
 
             directory.AddFile(file);
@@ -302,7 +303,7 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
     auto archiveRaw = archive.Reserialize();
     auto compressedArchive = Yaz0::compress(archiveRaw.data(), archiveRaw.size());
 
-    if (!compressedArchive.has_value()) {
+    if (UNLIKELY(!compressedArchive.has_value())) {
         this->lastSessionError = SessionOutError_ZlibError;
         return -1;
     }
@@ -319,14 +320,15 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
         std::cerr << "[SessionManager::ExportSessionCompressedArc] Failed to save backup of file!\n";
 
     std::ofstream file(outPath, std::ios::binary);
-    if (file.is_open()) {
+    if (LIKELY(file.is_open())) {
         file.write(
             reinterpret_cast<const char*>((*compressedArchive).data()),
             (*compressedArchive).size()
         );
-        
+
         file.close();
-    } else {
+    }
+    else {
         this->lastSessionError = SessionOutError_FailOpenFile;
         return -1;
     }
@@ -339,7 +341,10 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
 void SessionManager::FreeSessionIndex(int32_t index) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
-    if (index >= this->sessionList.size() || index < 0)
+    if (
+        UNLIKELY(index >= this->sessionList.size()) ||
+        UNLIKELY(index < 0)
+    )
         return;
 
     auto it = this->sessionList.begin() + index;
@@ -358,40 +363,41 @@ void SessionManager::FreeAllSessions() {
 
 void SessionManager::SessionChanged() {
     std::lock_guard<std::mutex> lock(this->mtx);
-    
+
     this->currentSession =
         std::clamp<int32_t>(this->currentSession, -1, this->sessionList.size() - 1);
 
-    if (this->currentSession >= 0) {
-        GET_APP_STATE;
-        GET_ANIMATABLE;
+    if (UNLIKELY(this->currentSession < 0))
+        return;
 
-        Common::deleteIfNotNullptr(globalAnimatable);
+    GET_APP_STATE;
+    GET_ANIMATABLE;
 
-        globalAnimatable = new Animatable(
-            this->getCurrentSession()->getCellanimObject(),
-            this->getCurrentSession()->getCellanimSheet()
-        );
+    Common::deleteIfNotNullptr(globalAnimatable);
 
-        appState.selectedAnimation = std::clamp<uint16_t>(
-            appState.selectedAnimation,
+    globalAnimatable = new Animatable(
+        this->getCurrentSession()->getCellanimObject(),
+        this->getCurrentSession()->getCellanimSheet()
+    );
+
+    appState.selectedAnimation = std::clamp<uint16_t>(
+        appState.selectedAnimation,
+        0,
+        globalAnimatable->cellanim->animations.size() - 1
+    );
+
+    globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
+
+    if (appState.getArrangementMode()) {
+        appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
+            appState.controlKey.arrangementIndex,
             0,
-            globalAnimatable->cellanim->animations.size() - 1
+            globalAnimatable->cellanim->arrangements.size() - 1
         );
 
-        globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
-
-        if (appState.getArrangementMode()) {
-            appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
-                appState.controlKey.arrangementIndex,
-                0,
-                globalAnimatable->cellanim->arrangements.size() - 1
-            );
-
-            PlayerManager::getInstance().setAnimating(false);
-            globalAnimatable->overrideAnimationKey(&appState.controlKey);
-        }
-
-        appState.correctSelectedPart();
+        PlayerManager::getInstance().setAnimating(false);
+        globalAnimatable->overrideAnimationKey(&appState.controlKey);
     }
+
+    appState.correctSelectedPart();
 }

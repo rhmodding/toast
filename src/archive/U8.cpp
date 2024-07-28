@@ -5,11 +5,8 @@
 #include <iostream>
 #include <fstream>
 
-#include <bitset>
-
 #include <algorithm>
 
-#include <unordered_map>
 #include <stack>
 
 #include "../common.hpp"
@@ -46,7 +43,7 @@ struct U8ArchiveNode {
     }
 
     // Offset into the string pool for the name of the node.
-    inline uint32_t getNameOffset() const { 
+    inline uint32_t getNameOffset() const {
        return BYTESWAP_32((this->attributes >> 8) & 0xFFFFFF);
     }
 
@@ -112,7 +109,7 @@ namespace U8 {
 
         const U8ArchiveHeader* header = reinterpret_cast<const U8ArchiveHeader*>(archiveData);
 
-        if (header->magic != HEADER_MAGIC) {
+        if (UNLIKELY(header->magic != HEADER_MAGIC)) {
             std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: header magic failed check!\n";
             return;
         }
@@ -146,7 +143,7 @@ namespace U8 {
         // Read nodes, except for first (root node)
         for (uint32_t i = 1; i < rootSize; i++) {
             const U8ArchiveNode* node = reinterpret_cast<const U8ArchiveNode*>(
-                archiveData + sizeof(U8ArchiveHeader) + 
+                archiveData + sizeof(U8ArchiveHeader) +
                 (i * sizeof(U8ArchiveNode))
             );
 
@@ -188,7 +185,7 @@ namespace U8 {
 
         U8ArchiveHeader* header = reinterpret_cast<U8ArchiveHeader*>(result.data());
         header->magic = HEADER_MAGIC;
-        
+
         header->rootNodeOffset = BYTESWAP_32(sizeof(U8ArchiveHeader));
 
         // Set headerSize and dataOffset later.

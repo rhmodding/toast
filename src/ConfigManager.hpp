@@ -2,6 +2,7 @@
 #define CONFIGMANAGER_HPP
 
 #include "Singleton.hpp"
+#include "common.hpp"
 
 #include <cstdint>
 #include <string>
@@ -117,6 +118,8 @@ public:
 
     void Load() {
         std::ifstream file(configPath);
+        if (UNLIKELY(!file.is_open())) {
+            this->firstTime = true;
 
             this->Reset();
             this->Save();
@@ -133,9 +136,8 @@ public:
 
     void Save() const {
         std::ofstream file(this->configPath);
-
-        if (!file.is_open()) {
-            std::cerr << "[ConfigManager::SaveConfig] Unable to open file for saving.\n";
+        if (UNLIKELY(!file.is_open())) {
+            std::cerr << "[ConfigManager::Save] Unable to open file for saving.\n";
             return;
         }
 

@@ -28,7 +28,7 @@ struct TPLClutHeader {
 
     // TPLClutFormat (big endian)
     uint32_t format;
-    
+
     uint32_t dataOffset;
 };
 
@@ -62,7 +62,7 @@ struct TPLHeader {
 
     // Boolean value
     uint8_t edgeLODEnable;
-    
+
     uint8_t minLOD;
     uint8_t maxLOD;
 
@@ -92,7 +92,7 @@ namespace TPL {
 
         if (format >= TPL_IMAGE_FORMAT_COUNT)
             return "Unknown format";
-            
+
         return strings[format];
     }
 
@@ -104,7 +104,7 @@ namespace TPL {
 
         const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
 
-        if (palette->versionNumber != TPL_VERSION_NUMBER) {
+        if (UNLIKELY(palette->versionNumber != TPL_VERSION_NUMBER)) {
             std::cerr << "[TPLObject::TPLObject] Invalid TPL binary: invalid version number for texture palette!\n";
             return;
         }
@@ -370,7 +370,7 @@ namespace TPL {
 
     std::optional<TPLObject> readTPLFile(const std::string& filePath) {
         std::ifstream file(filePath, std::ios::binary);
-        if (!file.is_open()) {
+        if (UNLIKELY(!file.is_open())) {
             std::cerr << "[TPL::readTPLFile] Error opening file at path: " << filePath << '\n';
             return std::nullopt;
         }
@@ -395,7 +395,7 @@ namespace TPL {
 
     GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
         GLuint imageTexture;
-        
+
         GLint minFilter{ GL_LINEAR };
         GLint magFilter{ GL_LINEAR };
 
@@ -450,7 +450,7 @@ namespace TPL {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tplTexture.width, tplTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
-            
+
             glBindTexture(GL_TEXTURE_2D, 0);
         });
 

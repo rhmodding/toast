@@ -34,11 +34,11 @@ namespace Common {
         std::ifstream src(filePath,    std::ios::binary);
         std::ofstream dst(newFileName, std::ios::binary);
 
-        if (!src.is_open()) {
+        if (UNLIKELY(!src.is_open())) {
             std::cerr << "[Common::SaveBackupFile] Error opening source file at path: " << filePath << '\n';
             return false;
         }
-        if (!dst.is_open()) {
+        if (UNLIKELY(!dst.is_open())) {
             std::cerr << "[Common::SaveBackupFile] Error opening destination file at path: " << newFileName << '\n';
             return false;
         }

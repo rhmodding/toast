@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 
     {
         App app;
-        while (app.isRunning())
+        while (LIKELY(app.isRunning()))
             app.Update();
     }
 }
