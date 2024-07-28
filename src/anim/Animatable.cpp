@@ -139,7 +139,7 @@ ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
 
 // Top-left, top-right, bottom-right, bottom-left
 std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
-    std::array<ImVec2, 4> transformedQuad({{0,0},{0,0},{0,0},{0,0}});
+    std::array<ImVec2, 4> transformedQuad;
 
     SAFE_ASSERT_RET(this->cellanim, transformedQuad);
 

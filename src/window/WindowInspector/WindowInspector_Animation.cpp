@@ -10,6 +10,8 @@
 #include "../../command/CommandModifyAnimationName.hpp"
 #include "../../command/CommandSwapAnimations.hpp"
 
+#include <sstream>
+
 void WindowInspector::Level_Animation() {
     GET_APP_STATE;
     GET_ANIMATABLE;
@@ -96,12 +98,12 @@ void WindowInspector::Level_Animation() {
                 }
             }
 
-            sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandModifyAnimationName>(
-            CommandModifyAnimationName(
+            sessionManager.getCurrentSession()->executeCommand(
+            std::make_shared<CommandModifyAnimationName>(
                 sessionManager.getCurrentSession()->currentCellanim,
                 animationIndex,
                 newMacroName
-            )));
+            ));
             
             ImGui::CloseCurrentPopup();
         } ImGui::SetItemDefaultFocus();
@@ -143,13 +145,13 @@ void WindowInspector::Level_Animation() {
 
             ImGui::BeginDisabled(swapAnim == -1);
             if (ImGui::Button("Apply")) {
-                sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandSwapAnimations>(
-                CommandSwapAnimations(
+                sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandSwapAnimations>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     animationIndex,
                     swapAnim,
                     swapNames
-                )));
+                ));
 
                 changed = true;
 

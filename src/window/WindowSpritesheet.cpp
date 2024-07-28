@@ -231,6 +231,10 @@ void WindowSpritesheet::FormatPopup() {
                             colorDesc = "Color:\n   Opaque pixels:\n      15-bit, 32768 colors\n   Transparent pixels:\n      12-bit, 4096 colors";
                             alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
                             break;
+                        default:
+                            colorDesc = "";
+                            alphaDesc = "";
+                            break;
                     }
 
                     ImGui::BulletText("%s", colorDesc);

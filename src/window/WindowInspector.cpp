@@ -79,10 +79,8 @@ void WindowInspector::Update() {
 
                 if (appState.getArrangementMode())
                     SessionManager::getInstance().getCurrentSession()->executeCommand(
-                    std::make_shared<CommandSetArrangementMode>(
-                    CommandSetArrangementMode(
-                        false
-                    )));
+                        std::make_shared<CommandSetArrangementMode>(false)
+                    );
 
                 appState.focusOnSelectedPart = false;
             }
@@ -91,10 +89,8 @@ void WindowInspector::Update() {
 
                 if (appState.getArrangementMode())
                     SessionManager::getInstance().getCurrentSession()->executeCommand(
-                    std::make_shared<CommandSetArrangementMode>(
-                    CommandSetArrangementMode(
-                        false
-                    )));
+                        std::make_shared<CommandSetArrangementMode>(false)
+                    );
 
                 appState.focusOnSelectedPart = false;
             }
@@ -103,10 +99,8 @@ void WindowInspector::Update() {
 
                 if (appState.getArrangementMode())
                     SessionManager::getInstance().getCurrentSession()->executeCommand(
-                    std::make_shared<CommandSetArrangementMode>(
-                    CommandSetArrangementMode(
-                        false
-                    )));
+                        std::make_shared<CommandSetArrangementMode>(false)
+                    );
 
                 appState.focusOnSelectedPart = true;
             }
@@ -115,10 +109,8 @@ void WindowInspector::Update() {
 
                 if (!appState.getArrangementMode())
                     SessionManager::getInstance().getCurrentSession()->executeCommand(
-                    std::make_shared<CommandSetArrangementMode>(
-                    CommandSetArrangementMode(
-                        true
-                    )));
+                        std::make_shared<CommandSetArrangementMode>(true)
+                    );
 
                 appState.focusOnSelectedPart = true;
             }

@@ -282,11 +282,13 @@ App::App() {
     //glfwSwapInterval(1); // Enable vsync
 
     // Icon
+#if !defined(__APPLE__)
     GLFWimage windowIcon;
     windowIcon.pixels = stbi_load_from_memory(toastIcon_png, toastIcon_png_size, &windowIcon.width, &windowIcon.height, nullptr, 4);
 
     glfwSetWindowIcon(window, 1, &windowIcon); 
     stbi_image_free(windowIcon.pixels);
+#endif
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -492,10 +494,10 @@ void App::Menubar() {
                         sessionManager.getCurrentSession()->currentCellanim == i
                     )) {
                         if (sessionManager.getCurrentSession()->currentCellanim != i) {
-                            sessionManager.getCurrentSession()->executeCommand(std::make_shared<CommandSwitchCellanim>(
-                            CommandSwitchCellanim(
+                            sessionManager.getCurrentSession()->executeCommand(
+                            std::make_shared<CommandSwitchCellanim>(
                                 sessionManager.currentSession, i
-                            )));
+                            ));
                         }
                     }
                 }
@@ -714,10 +716,10 @@ void App::Menubar() {
                                 if (sessionManager.sessionList.at(n).currentCellanim != i) {
                                     sessionManager.currentSession = n;
 
-                                    sessionManager.sessionList.at(n).executeCommand(std::make_shared<CommandSwitchCellanim>(
-                                    CommandSwitchCellanim(
+                                    sessionManager.sessionList.at(n).executeCommand(
+                                    std::make_shared<CommandSwitchCellanim>(
                                         n, i
-                                    )));
+                                    ));
                                 }
                             }
                         }

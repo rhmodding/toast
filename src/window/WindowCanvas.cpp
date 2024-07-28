@@ -556,10 +556,9 @@ void WindowCanvas::Update() {
         newPart.positionX = static_cast<int16_t>(dragPartOffset.x);
         newPart.positionY = static_cast<int16_t>(dragPartOffset.y);
 
-        std::shared_ptr<BaseCommand> command = std::make_shared<CommandModifyArrangementPart>(
-            CommandModifyArrangementPart(newPart)
+        sessionManager.getCurrentSession()->executeCommand(
+            std::make_shared<CommandModifyArrangementPart>(newPart)
         );
-        sessionManager.getCurrentSession()->executeCommand(command);
 
         draggingPart = false;
     }

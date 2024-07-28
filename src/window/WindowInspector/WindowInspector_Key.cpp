@@ -141,11 +141,10 @@ void WindowInspector::Level_Key() {
     if (ImGui::Button("Make arrangement unique (duplicate)")) {
         SessionManager::getInstance().getCurrentSession()->executeCommand(
         std::make_shared<CommandInsertArrangement>(
-        CommandInsertArrangement(
             sessionManager.getCurrentSession()->currentCellanim,
             sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size(),
             sessionManager.getCurrentSession()->getCellanimObject()->arrangements.at(animKey->arrangementIndex)
-        )));
+        ));
 
         newKey.arrangementIndex = 
             sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
@@ -166,11 +165,10 @@ void WindowInspector::Level_Key() {
         if (ImGui::Selectable("Ok")) {
             SessionManager::getInstance().getCurrentSession()->executeCommand(
             std::make_shared<CommandInsertArrangement>(
-            CommandInsertArrangement(
                 sessionManager.getCurrentSession()->currentCellanim,
                 sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size(),
                 sessionManager.getCurrentSession()->getCellanimObject()->arrangements.at(animKey->arrangementIndex)
-            )));
+            ));
 
             newKey.arrangementIndex = 
                 sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
@@ -333,11 +331,10 @@ void WindowInspector::Level_Key() {
 
         SessionManager::getInstance().getCurrentSession()->executeCommand(
         std::make_shared<CommandModifyAnimationKey>(
-        CommandModifyAnimationKey(
             sessionManager.getCurrentSession()->currentCellanim,
             appState.globalAnimatable->getCurrentAnimationIndex(),
             appState.globalAnimatable->getCurrentKeyIndex(),
             newKey
-        )));
+        ));
     }
 }

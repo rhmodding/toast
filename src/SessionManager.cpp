@@ -130,14 +130,12 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     // sheets
     for (uint32_t i = 0; i < tplObject.textures.size(); i++) {
         auto& sheet = newSession.sheets.at(i);
-
-        sheet = 
-            std::make_shared<Common::Image>(
-            Common::Image(
-                tplObject.textures.at(i).width,
-                tplObject.textures.at(i).height,
-                TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(i))
-            ));
+        
+        sheet = std::make_shared<Common::Image>(
+            tplObject.textures.at(i).width,
+            tplObject.textures.at(i).height,
+            TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(i))
+        );
         
         sheet->tplOutFormat = tplObject.textures.at(i).format;
         sheet->tplColorPalette = tplObject.textures.at(i).palette;

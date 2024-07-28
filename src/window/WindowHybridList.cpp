@@ -167,21 +167,19 @@ void WindowHybridList::Update() {
 
                     if (ImGui::Selectable("Insert new arrangement above")) {
                         command = std::make_shared<CommandInsertArrangement>(
-                        CommandInsertArrangement(
                             sessionManager.getCurrentSession()->currentCellanim,
                             n+1,
                             RvlCellAnim::Arrangement()
-                        ));
+                        );
 
                         appState.controlKey.arrangementIndex = n + 1;
                     }
                     if (ImGui::Selectable("Insert new arrangement below")) {
                         command = std::make_shared<CommandInsertArrangement>(
-                        CommandInsertArrangement(
                             sessionManager.getCurrentSession()->currentCellanim,
                             n,
                             RvlCellAnim::Arrangement()
-                        ));
+                        );
 
                         appState.controlKey.arrangementIndex = n;
                     }
@@ -191,21 +189,19 @@ void WindowHybridList::Update() {
                     if (ImGui::BeginMenu("Paste arrangement..")) {
                         if (ImGui::MenuItem("..above")) {
                             command = std::make_shared<CommandInsertArrangement>(
-                            CommandInsertArrangement(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 n+1,
                                 copyArrangement
-                            ));
+                            );
 
                             appState.controlKey.arrangementIndex = n + 1;
                         };
                         if (ImGui::MenuItem("..below")) {
                             command = std::make_shared<CommandInsertArrangement>(
-                            CommandInsertArrangement(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 n,
                                 copyArrangement
-                            ));
+                            );
 
                             appState.controlKey.arrangementIndex = n;
                         }
@@ -214,11 +210,10 @@ void WindowHybridList::Update() {
 
                         if (ImGui::MenuItem("..here (replace)")) {
                             command = std::make_shared<CommandModifyArrangement>(
-                            CommandModifyArrangement(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 n,
                                 copyArrangement
-                            ));
+                            );
                         }
                     
                         ImGui::EndMenu();
@@ -233,10 +228,9 @@ void WindowHybridList::Update() {
 
                     if (ImGui::Selectable("Delete arrangement")) {
                         command = std::make_shared<CommandDeleteArrangement>(
-                        CommandDeleteArrangement(
                             sessionManager.getCurrentSession()->currentCellanim,
                             n
-                        ));
+                        );
                     }
 
                     ImGui::EndPopup();
