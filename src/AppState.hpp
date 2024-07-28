@@ -40,6 +40,9 @@ public:
             ImGui::StyleColorsLight();
             this->windowClearColor = Common::RGBAtoImVec4(248, 248, 248, 255);
         }
+
+        ImGui::GetStyle().Colors[ImGuiCol_TabSelectedOverline] = ImVec4();
+        ImGui::GetStyle().Colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4();
     }
 
     inline ImVec4 getWindowClearColor() {
