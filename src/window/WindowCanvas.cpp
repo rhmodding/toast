@@ -308,7 +308,7 @@ void WindowCanvas::Update() {
         {
             // Draw grid
             if ((this->gridType != GridType_None) && this->enableGridLines) {
-                const float GRID_STEP = 64.0f * (this->canvasZoom + 1);
+                const float GRID_STEP = 64.f * (this->canvasZoom + 1.f);
 
                 static const ImU32 normalColor = IM_COL32(200, 200, 200, 40);
                 static const ImU32 centerColorX = IM_COL32(255, 0, 0, 70);

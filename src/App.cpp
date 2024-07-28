@@ -317,7 +317,7 @@ App::App() {
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        style.WindowRounding = 0.0f;
+        style.WindowRounding = 0.f;
         style.Colors[ImGuiCol_WindowBg].w = 1.f;
     }
 
@@ -385,7 +385,7 @@ void App::SetupFonts() {
     {
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.0f, &fontConfig);
+        appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
     }
 
     {
@@ -395,19 +395,19 @@ void App::SetupFonts() {
         fontConfig.MergeMode = true;
         fontConfig.PixelSnapH = true;
 
-        appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.0f, &fontConfig, icons_ranges);
+        appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, icons_ranges);
     }
 
     {
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.0f, &fontConfig);
+        appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
     }
 
     {
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.0f, &fontConfig);
+        appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
     }
 }
 

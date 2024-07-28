@@ -52,7 +52,7 @@ void WindowSpritesheet::PaletteWindow() {
     if (!this->showPaletteWindow)
         return;
 
-    if (ImGui::Begin("Color Palette", &this->showPaletteWindow)) {     
+    if (ImGui::Begin("Color Palette", &this->showPaletteWindow)) {
         GET_WINDOW_DRAWLIST;
 
         static uint16_t selected{ 0 };
@@ -103,7 +103,7 @@ void WindowSpritesheet::PaletteWindow() {
             ImGui::Dummy({ 0, 5 });
             ImGui::Separator();
             ImGui::Dummy({ 0, 5 });
-            
+
             uint32_t& selectedColor = colors.at(selected);
 
             const uint8_t r = (selectedColor >> 24) & 0xFF;
@@ -124,7 +124,7 @@ void WindowSpritesheet::PaletteWindow() {
                     (static_cast<uint8_t>(values[2] * 255.f) <<  8) |
                     (static_cast<uint8_t>(values[3] * 255.f) <<  0)
                 );
-                
+
 
             ImGui::EndChild();
         }
@@ -155,7 +155,7 @@ void WindowSpritesheet::FormatPopup() {
             case 1:
                 tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
                 break;
-            
+
             default:
                 tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
                 break;
@@ -171,9 +171,9 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::SeparatorText("Image Info");
                 ImGui::PopFont();
 
-                if (ImGui::BeginChild("ImageInfoChild", ImVec2(-FLT_MIN, 0.0f), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
+                if (ImGui::BeginChild("ImageInfoChild", ImVec2(-FLT_MIN, 0.f), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
                     ImGui::BulletText(
-                        "Size: %ux%u", 
+                        "Size: %ux%u",
                         sessionManager.getCurrentSession()->getCellanimSheet()->width,
                         sessionManager.getCurrentSession()->getCellanimSheet()->height
                     );
@@ -218,7 +218,7 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::SeparatorText("Format Info");
                 ImGui::PopFont();
 
-                if (ImGui::BeginChild("FormatInfoChild", ImVec2(-FLT_MIN, 0.0f), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
+                if (ImGui::BeginChild("FormatInfoChild", ImVec2(-FLT_MIN, 0.f), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
                     const char* colorDesc;
                     const char* alphaDesc;
 
@@ -299,7 +299,7 @@ void WindowSpritesheet::FormatPopup() {
                 imagePosition,
                 { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
             );
-            
+
             ImGui::EndChild();
         }
 
@@ -468,7 +468,7 @@ void WindowSpritesheet::Update() {
         case GridType_None:
             backgroundColor = IM_COL32_BLACK_TRANS;
             break;
-        
+
         case GridType_Dark:
             backgroundColor = IM_COL32(50, 50, 50, 255);
             break;
@@ -485,7 +485,7 @@ void WindowSpritesheet::Update() {
                 customGridColor.w * 255
             );
             break;
-    
+
         default:
             break;
     }

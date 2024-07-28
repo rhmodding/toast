@@ -35,9 +35,9 @@ ImVec4 adjustBrightness(const ImVec4& color, float factor) {
     adjustedColor.z = std::lerp(color.z, 1.f, factor);
     adjustedColor.w = color.w;
 
-    adjustedColor.x = std::min(std::max(adjustedColor.x, 0.0f), 1.f);
-    adjustedColor.y = std::min(std::max(adjustedColor.y, 0.0f), 1.f);
-    adjustedColor.z = std::min(std::max(adjustedColor.z, 0.0f), 1.f);
+    adjustedColor.x = std::min(std::max(adjustedColor.x, 0.f), 1.f);
+    adjustedColor.y = std::min(std::max(adjustedColor.y, 0.f), 1.f);
+    adjustedColor.z = std::min(std::max(adjustedColor.z, 0.f), 1.f);
 
     return adjustedColor;
 }
