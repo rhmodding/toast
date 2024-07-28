@@ -3,6 +3,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(toast)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(SOURCES
     ext/imgui/imgui.cpp
     ext/imgui/imgui_demo.cpp
