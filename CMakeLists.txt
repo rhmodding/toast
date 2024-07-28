@@ -145,6 +145,13 @@ target_link_libraries(toast PRIVATE nlohmann_json::nlohmann_json)
 # Optimization flag
 set(CMAKE_CXX_FLAGS "-O1")
 
+# Apple "deprecated" OpenGL but never removed it lol
+IF (APPLE)
+    target_compile_definitions(toast PRIVATE
+        GL_SILENCE_DEPRECATION
+    )
+ENDIF()
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET toast PROPERTY CXX_STANDARD 20)
 endif()
