@@ -58,7 +58,7 @@ void PlayerManager::Update() {
 
     while (delta >= this->timeLeft) {
         globalAnimatable->Update();
-        
+
         delta -= this->timeLeft;
         this->timeLeft = 1.f / frameRate;
 

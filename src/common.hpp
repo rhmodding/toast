@@ -2,12 +2,6 @@
 #define COMMON_HPP
 
 #include <string>
-#include <stdexcept>
-#include <iostream>
-#include <cstring>
-
-#undef NDEBUG
-#include <assert.h>
 
 #include <GLFW/glfw3.h>
 

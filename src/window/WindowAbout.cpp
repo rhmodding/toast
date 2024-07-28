@@ -1,8 +1,5 @@
 #include "WindowAbout.hpp"
 
-#undef NDEBUG
-#include "assert.h"
-
 #include <imgui.h>
 
 #include "../_binary/images/toastIcon_title.png.h"
@@ -135,7 +132,7 @@ void WindowAbout::Update() {
     if (ImGui::Button(mainStrings[2], { 30.f, 30.f })) {
         std::stringstream cmdStream;
 
-        cmdStream << 
+        cmdStream <<
     #ifdef _WIN32
         "start ";
     #elif __APPLE__
@@ -185,7 +182,7 @@ void WindowAbout::Update() {
 
                 additiveLineHeight = 0.f;
                 continue;
-            
+
             case CreditsLine::CLC_NextColumn:
                 textPosition.y += additiveLineHeight + ImGui::GetTextLineHeight() + 6.f;
                 additiveLineHeight = 0.f;

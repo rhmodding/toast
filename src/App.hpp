@@ -6,8 +6,7 @@
 #include <imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
 
-#include <cassert>
-
+#include "common.hpp"
 #include "window/WindowCanvas.hpp"
 #include "window/WindowHybridList.hpp"
 #include "window/WindowInspector.hpp"
@@ -23,16 +22,15 @@
 
 class App {
 public:
+    App();
+    ~App();
+
+public:
     void Update();
 
     void AttemptExit(bool force = false);
 
     bool isRunning() const { return this->running; }
-
-    // Constructor
-    App();
-    // Destructor
-    ~App();
 
     GLFWwindow* getWindow() {
         assert(this->window);

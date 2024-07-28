@@ -15,6 +15,8 @@
 
 #include <memory>
 
+#include <mutex>
+
 #include "command/BaseCommand.hpp"
 
 #define SESSION_MAX_COMMANDS 128
@@ -124,7 +126,7 @@ public:
     Session* getCurrentSession() {
         if (this->currentSession >= 0)
             return &this->sessionList.at(this->currentSession);
-        
+
         return nullptr;
     }
 
@@ -136,7 +138,7 @@ public:
 
     enum SessionError: int16_t {
         SessionError_None = 0,
-        
+
         SessionOpenError_FailOpenArchive = -1,
         SessionOpenError_FailFindTPL = -2,
         SessionOpenError_RootDirNotFound = -3,

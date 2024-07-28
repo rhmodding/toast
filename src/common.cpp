@@ -8,9 +8,6 @@
 
 #include <fstream>
 
-#include <mutex>
-#include <thread>
-
 #include "MtCommandManager.hpp"
 
 namespace Common {
@@ -28,7 +25,7 @@ namespace Common {
             if (FILE *file = fopen(newFileName, "r")) {
                 fclose(file);
                 exists = true;
-            } 
+            }
         }
 
         if (once && exists)
@@ -68,7 +65,7 @@ namespace Common {
         for (uint32_t i = 0; i < length; i++)
             string.at(i) =
                 characters[rand() % (sizeof(characters) - 1)];
-        
+
         return string;
     }
 
@@ -96,7 +93,7 @@ namespace Common {
         });
 
         future.get();
-        
+
         stbi_image_free(imagePtr);
 
         *texturePtr = imageTexture;
@@ -149,9 +146,9 @@ namespace Common {
     void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
         float widthRatio = targetRect.x / rectToFit.x;
         float heightRatio = targetRect.y / rectToFit.y;
-        
+
         scale = std::min(widthRatio, heightRatio);
-        
+
         rectToFit.x *= scale;
         rectToFit.y *= scale;
     }

@@ -3,11 +3,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <string>
-
-#undef NDEBUG
-#include <assert.h>
-
 #include "../common.hpp"
 
 #define HEADER_MAGIC 0xD8B43201
@@ -27,7 +22,7 @@ struct RvlCellAnimHeader {
 
     // Unknown value
     uint16_t unknown_1;
-    
+
     uint16_t sheetW; // Sheet width in relation to UV regions
     uint16_t sheetH; // Sheet height in relation to UV regions
 
@@ -201,7 +196,7 @@ namespace RvlCellAnim {
 
             this->animations[i] = animation;
         }
-    
+
         this->ok = true;
     }
 
@@ -265,7 +260,7 @@ namespace RvlCellAnim {
                 arrangementPartRaw->unknown_2 = 0x00;
             }
         }
-    
+
         // Write animation count + unknown value
         {
             result.resize(
@@ -315,7 +310,7 @@ namespace RvlCellAnim {
                 animationKeyRaw->opacity = key.opacity;
             }
         }
-    
+
         strcpy(reinterpret_cast<char*>(result.data() + result.size() - 8), "MWTOAST");
 
         return result;

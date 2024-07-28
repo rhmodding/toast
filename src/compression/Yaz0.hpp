@@ -1,7 +1,6 @@
 #ifndef YAZ0_HPP
 #define YAZ0_HPP
 
-
 #include <cstdint>
 #include <vector>
 #include <optional>

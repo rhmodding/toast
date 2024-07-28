@@ -1,9 +1,9 @@
 /*
     * This file contains functions derived from syaz0 by zeldamods,
     * which is licensed under the GPL 2.0 license.
-    * 
+    *
     * Original source: https://github.com/zeldamods/syaz0
-    * 
+    *
     * For more details about the GPL 2.0 license, see the LICENSE file.
 */
 
@@ -78,7 +78,7 @@ namespace Yaz0 {
             {
                 unsigned char dummy[8];
                 size_t dummySize = 8;
-                
+
                 const int zlibRun = zng_compress2(
                     dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
                     [](void* data, uint32_t dist, uint32_t lc) {
@@ -112,7 +112,7 @@ namespace Yaz0 {
                             // Write group header
                             compressionData->buffer[compressionData->groupHeaderOffset] =
                                 static_cast<char>(compressionData->groupHeader.to_ulong());
-                            
+
                             // Reset values
                             compressionData->pendingChunks = 0;
                             compressionData->groupHeader.reset();

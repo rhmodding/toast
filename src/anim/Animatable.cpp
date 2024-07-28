@@ -1,8 +1,5 @@
 #include "Animatable.hpp"
 
-#undef NDEBUG
-#include <assert.h>
-
 #include "../AppState.hpp"
 
 #include "../common.hpp"
@@ -79,7 +76,7 @@ RvlCellAnim::AnimationKey* Animatable::getCurrentKey() const {
 }
 
 RvlCellAnim::Animation* Animatable::getCurrentAnimation() const {
-    return this->currentAnimation;    
+    return this->currentAnimation;
 }
 
 RvlCellAnim::Arrangement* Animatable::getCurrentArrangement() const {
@@ -226,7 +223,7 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
             transformedQuad[2] = rotateVec2(transformedQuad[2], key->angle, keyCenter);
             transformedQuad[3] = rotateVec2(transformedQuad[3], key->angle, keyCenter);
         }
-    
+
         // Key offset addition
         for (uint8_t i = 0; i < 4; i++) {
             transformedQuad[i].x += (key->positionX) * this->scaleX;
@@ -308,9 +305,9 @@ void Animatable::DrawKey(
         };
 
         ImVec2 uvs[4] =  {
-            uvTopLeft, 
-            { uvBottomRight.x, uvTopLeft.y }, 
-            uvBottomRight, 
+            uvTopLeft,
+            { uvBottomRight.x, uvTopLeft.y },
+            uvBottomRight,
             { uvTopLeft.x, uvBottomRight.y }
         };
 
@@ -328,7 +325,7 @@ void Animatable::DrawKey(
                 (colorMod >>  0) & 0xFF,
                 (colorMod >>  8) & 0xFF,
                 (colorMod >> 16) & 0xFF,
-                
+
                 static_cast<uint8_t>((static_cast<uint16_t>(baseAlpha) * modAlpha) / 255)
             )
         );

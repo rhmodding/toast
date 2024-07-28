@@ -286,7 +286,7 @@ App::App() {
     GLFWimage windowIcon;
     windowIcon.pixels = stbi_load_from_memory(toastIcon_png, toastIcon_png_size, &windowIcon.width, &windowIcon.height, nullptr, 4);
 
-    glfwSetWindowIcon(window, 1, &windowIcon); 
+    glfwSetWindowIcon(window, 1, &windowIcon);
     stbi_image_free(windowIcon.pixels);
 #endif
 
@@ -511,7 +511,7 @@ void App::Menubar() {
 
             ImGui::EndMenu();
         }
-        
+
         if (ImGui::BeginMenu("Spritesheets", sessionAvaliable)) {
             ImGui::MenuItem("Switch sheet ..");
 
@@ -723,7 +723,7 @@ void App::Menubar() {
                                 }
                             }
                         }
-                            
+
                         ImGui::EndPopup();
                     }
                 }
@@ -771,7 +771,7 @@ void App::UpdatePopups() {
         SessionManager::SessionError errorCode = SessionManager::getInstance().lastSessionError;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-        
+
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
         if (ImGui::BeginPopupModal((
             "There was an error opening the session. (" +
@@ -819,7 +819,7 @@ void App::UpdatePopups() {
 
             ImGui::EndPopup();
         }
-        
+
 
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
         if (ImGui::BeginPopupModal((
@@ -853,7 +853,7 @@ void App::UpdatePopups() {
 
             ImGui::EndPopup();
         }
-        
+
         ImGui::PopStyleVar();
     }
 
@@ -898,11 +898,11 @@ void App::UpdatePopups() {
                         case 0:
                             cellanimSheet->tplOutFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
                             break;
-                        
+
                         case 1:
                             cellanimSheet->tplOutFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
                             break;
-                        
+
                         default:
                             break;
                     }
@@ -1166,7 +1166,7 @@ void App::Update() {
         if (this->windowSpritesheet)
             this->windowSpritesheet->Update();
     }
-    
+
     if (this->windowConfig->open)
         this->windowConfig->Update();
     if (this->windowAbout->open)
@@ -1215,7 +1215,7 @@ void App::Update() {
     //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         GLFWwindow* backupCurrentContext = glfwGetCurrentContext();
-        
+
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
 

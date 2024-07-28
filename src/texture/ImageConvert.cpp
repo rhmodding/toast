@@ -2,15 +2,17 @@
 
 #include "TPL.hpp"
 
-#include "../common.hpp"
-
 #include <unordered_map>
+
+#include <iostream>
+
+#include "../common.hpp"
 
 #define IMGFMT TPL::TPLImageFormat
 
 void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, uint32_t offset = 0) {
     uint8_t rU, gU, bU;
-    
+
     rU = (pixel & 0xF100) >> 11;
     gU = (pixel & 0x7E0) >> 5;
     bU = (pixel & 0x1F);
@@ -114,7 +116,7 @@ void IMPLEMENTATION_FROM_IA4(std::vector<unsigned char>& result, uint16_t srcWid
 
 void IMPLEMENTATION_FROM_IA8(std::vector<unsigned char>& result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
     uint32_t readOffset{ 0 };
-    
+
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
 
@@ -172,7 +174,7 @@ void IMPLEMENTATION_FROM_RGB5A3(std::vector<unsigned char>& result, uint16_t src
     uint32_t readOffset{ 0 };
 
     for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
-        for (uint16_t xx = 0; xx < srcWidth; xx += 4) {  
+        for (uint16_t xx = 0; xx < srcWidth; xx += 4) {
 
             for (uint8_t y = 0; y < 4; y++) {
                 for (uint8_t x = 0; x < 4; x++) {
@@ -351,7 +353,7 @@ void IMPLEMENTATION_TO_RGB5A3(std::vector<unsigned char>& result, uint16_t srcWi
     uint32_t writeOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {  
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
 
             for (uint8_t y = 0; y < 4; y++) {
                 for (uint8_t x = 0; x < 4; x++) {
@@ -366,7 +368,7 @@ void IMPLEMENTATION_TO_RGB5A3(std::vector<unsigned char>& result, uint16_t srcWi
                     writeOffset += sizeof(uint16_t);
 
                     if (readPixel[3] == 255) { // Opaque, write RGB555 pixel
-                        // Bits: 
+                        // Bits:
                         // 1    RRRRRGGGGG BBBBB
                         // ^    ^    ^     ^
                         // Type Red  Green Blue
@@ -374,13 +376,13 @@ void IMPLEMENTATION_TO_RGB5A3(std::vector<unsigned char>& result, uint16_t srcWi
                         *(pixel + 0) = 0x0080 | ((readPixel[0] & 0xF8) >> 1) | (readPixel[1] >> 6);
                         *(pixel + 1) = ((readPixel[1] & 0x38) << 2) | (readPixel[2] >> 3);
                     } else { // Transparent, write RGBA4443
-                        // Bits: 
+                        // Bits:
                         // 0    AAA   RRRRGGGG  BBBB
                         // ^    ^     ^   ^     ^
                         // Type Alpha Red Green Blue
 
-                        *(pixel + 0) = ((readPixel[3] >> 1) & 0x70) | ((readPixel[0] & 0xF0) >> 4);                                                        
-                        *(pixel + 1) = (readPixel[1] & 0xF0) | ((readPixel[2] & 0xF0) >> 4);	
+                        *(pixel + 0) = ((readPixel[3] >> 1) & 0x70) | ((readPixel[0] & 0xF0) >> 4);
+                        *(pixel + 1) = (readPixel[1] & 0xF0) | ((readPixel[2] & 0xF0) >> 4);
                     }
                 }
             }
@@ -473,7 +475,7 @@ void IMPLEMENTATION_TO_C14X2(std::vector<unsigned char>& result, std::vector<uin
     uint32_t writeOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {  
+        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
 
             for (uint8_t y = 0; y < 4; y++) {
                 for (uint8_t x = 0; x < 4; x++) {
@@ -495,7 +497,7 @@ void IMPLEMENTATION_TO_C14X2(std::vector<unsigned char>& result, std::vector<uin
             }
         }
     }
-} 
+}
 
 #pragma endregion
 
@@ -514,7 +516,7 @@ bool ImageConvert::toRGBA32(
     buffer.resize(srcWidth * srcHeight * 4);
 
     switch (type) {
-        case IMGFMT::TPL_IMAGE_FORMAT_I4: 
+        case IMGFMT::TPL_IMAGE_FORMAT_I4:
             IMPLEMENTATION_FROM_I4(buffer, srcWidth, srcHeight, data);
             break;
 
@@ -525,11 +527,11 @@ bool ImageConvert::toRGBA32(
         case IMGFMT::TPL_IMAGE_FORMAT_IA4:
             IMPLEMENTATION_FROM_IA4(buffer, srcWidth, srcHeight, data);
             break;
-        
+
         case IMGFMT::TPL_IMAGE_FORMAT_IA8:
             IMPLEMENTATION_FROM_IA8(buffer, srcWidth, srcHeight, data);
             break;
-        
+
         case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
             IMPLEMENTATION_FROM_RGB565(buffer, srcWidth, srcHeight, data);
             break;
@@ -547,7 +549,7 @@ bool ImageConvert::toRGBA32(
                 std::cerr << "[ImageConvert::toRGBA32] Couldn't convert C8 format: no color palette passed.\n";
                 return false;
             }
-            
+
             IMPLEMENTATION_FROM_C8(buffer, srcWidth, srcHeight, data, colorPalette);
             break;
 
@@ -597,11 +599,11 @@ bool ImageConvert::fromRGBA32(
 
             IMPLEMENTATION_TO_C14X2(buffer, *colorPalette, srcWidth, srcHeight, data);
             break;
-        
+
         default:
             return false;
     }
-    
+
     return true;
 }
 
