@@ -3,6 +3,7 @@
 #include "font/SegoeUI.h"
 #include "font/FontAwesome.h"
 
+#include "imgui.h"
 #include <imgui_internal.h>
 
 #include <chrono>
