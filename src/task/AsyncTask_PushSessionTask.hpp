@@ -30,14 +30,14 @@ protected:
     void Effect() override {
         GET_SESSION_MANAGER;
 
-        if (this->result < 0) {
+        if (UNLIKELY(this->result < 0)) {
             ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
             ImGui::OpenPopup("###SessionOpenErr");
             ImGui::PopID();
 
             return;
         }
-        
+
         sessionManager.currentSession = result;
         sessionManager.SessionChanged();
     }
