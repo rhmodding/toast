@@ -21,12 +21,6 @@ const char* categoryNames[] = {
 };
 
 bool CppInputText(const char* label, std::string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* userData = nullptr) {
-    struct InputTextCallback_UserData {
-        std::string*            Str;
-        ImGuiInputTextCallback  ChainCallback;
-        void*                   ChainCallbackUserData;
-    };
-
     struct UserData {
         std::string* stringPtr;
         ImGuiInputTextCallback chainCb;
@@ -39,10 +33,6 @@ bool CppInputText(const char* label, std::string* str, ImGuiInputTextFlags flags
 
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    //InputTextCallback_UserData cb_user_data;
-    //cb_user_data.Str = str;
-    //cb_user_data.ChainCallback = callback;
-    //cb_user_data.ChainCallbackUserData = user_data;
     return ImGui::InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
         UserData* userData = (UserData*)data->UserData;
         if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
