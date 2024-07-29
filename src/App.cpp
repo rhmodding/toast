@@ -367,15 +367,15 @@ App::~App() {
 
     SessionManager::getInstance().FreeAllSessions();
 
-    Common::deleteIfNotNullptr(AppState::getInstance().globalAnimatable);
+    Common::deleteIfNotNullptr(AppState::getInstance().globalAnimatable, false);
 
-    Common::deleteIfNotNullptr(this->windowCanvas);
-    Common::deleteIfNotNullptr(this->windowHybridList);
-    Common::deleteIfNotNullptr(this->windowInspector);
-    Common::deleteIfNotNullptr(this->windowTimeline);
-    Common::deleteIfNotNullptr(this->windowSpritesheet);
-    Common::deleteIfNotNullptr(this->windowConfig);
-    Common::deleteIfNotNullptr(this->windowAbout);
+    Common::deleteIfNotNullptr(this->windowCanvas, false);
+    Common::deleteIfNotNullptr(this->windowHybridList, false);
+    Common::deleteIfNotNullptr(this->windowInspector, false);
+    Common::deleteIfNotNullptr(this->windowTimeline, false);
+    Common::deleteIfNotNullptr(this->windowSpritesheet, false);
+    Common::deleteIfNotNullptr(this->windowConfig, false);
+    Common::deleteIfNotNullptr(this->windowAbout, false);
 }
 
 void App::SetupFonts() {
