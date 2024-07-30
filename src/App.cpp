@@ -1,5 +1,6 @@
 #include "App.hpp"
 
+#include "command/CommandDeleteArrangementPart.hpp"
 #include "font/SegoeUI.h"
 #include "font/FontAwesome.h"
 
@@ -20,11 +21,17 @@
 //#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#include "anim/RvlCellAnim.hpp"
+
+#include "AppState.hpp"
+
 #include "SessionManager.hpp"
 #include "ConfigManager.hpp"
 #include "PlayerManager.hpp"
 
 #include "command/CommandSwitchCellanim.hpp"
+#include "command/CommandModifyArrangement.hpp"
+#include "command/CommandModifyArrangementPart.hpp"
 
 #include "task/AsyncTaskManager.hpp"
 #include "task/AsyncTask_ExportSessionTask.hpp"
@@ -32,11 +39,11 @@
 
 #include "MtCommandManager.hpp"
 
+#if !defined(__APPLE__)
 #include "_binary/images/toastIcon.png.h"
+#endif
 
 App* gAppPtr{ nullptr };
-
-#define MAX_
 
 #if defined(__APPLE__)
     #define SCS_EXIT "Cmd+Q"
@@ -45,7 +52,6 @@ App* gAppPtr{ nullptr };
     #define SCS_EXIT "Alt+F4"
     #define SCST_CTRL "Ctrl"
 #endif
-
 
 #define SCT_CTRL ImGui::GetIO().KeyCtrl
 
@@ -495,7 +501,7 @@ void App::Menubar() {
                 for (uint16_t i = 0; i < sessionManager.getCurrentSession()->cellanims.size(); i++) {
                     const std::string& str = sessionManager.getCurrentSession()->cellanims.at(i).name;
 
-                    std::stringstream fmtStream;
+                    std::ostringstream fmtStream;
                     fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
 
                     if (ImGui::MenuItem(
@@ -587,7 +593,8 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Transform as whole ..");
+            if (ImGui::MenuItem("Transform as whole .."))
+                appState.OpenGlobalPopup("MTransformArrangement");
 
             ImGui::Separator();
 
@@ -616,7 +623,8 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::BeginMenu("Region")) {
-                ImGui::MenuItem("Pad (Expand/Contract) ..");
+                if (ImGui::MenuItem("Pad (Expand/Contract) .."))
+                    appState.OpenGlobalPopup("MPadRegion");
 
                 ImGui::EndMenu();
             }
@@ -627,7 +635,13 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Delete");
+            if (ImGui::MenuItem("Delete"))
+                sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandDeleteArrangementPart>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                    appState.selectedPart
+                ));
 
             ImGui::EndMenu();
         }
@@ -678,6 +692,224 @@ void App::Menubar() {
         ImGui::EndMainMenuBar();
     }
 
+    BEGIN_GLOBAL_POPUP;
+    { // MTransformArrangement
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
+
+        static bool lateOpen{ false };
+        const bool active = ImGui::BeginPopup("MTransformArrangement");
+
+        GET_ANIMATABLE;
+
+        RvlCellAnim::Arrangement* arrangement{ nullptr };
+
+        if (globalAnimatable && globalAnimatable->cellanim)
+            arrangement = globalAnimatable->getCurrentArrangement();
+
+        static const int noOffset[2] = { 0, 0 };
+        static const float noScale[2] = { 1.f, 1.f };
+
+        if (!active && lateOpen && arrangement) {
+            memcpy(arrangement->tempOffset, noOffset, sizeof(int)*2);
+            memcpy(arrangement->tempScale, noScale, sizeof(float)*2);
+
+            lateOpen = false;
+        }
+
+        if (active) {
+            lateOpen = true;
+
+            ImGui::SeparatorText("Transform Arrangement");
+
+            static int offset[2] = { 0, 0 };
+            static float scale[2] = { 1.f, 1.f };
+
+            ImGui::DragInt2("Offset XY", offset, 1.f);
+            ImGui::DragFloat2("Scale XY", scale, 0.01f);
+
+            ImGui::Separator();
+
+            if (ImGui::Button("Apply")) {
+                memcpy(arrangement->tempOffset, noOffset, sizeof(int)*2);
+                memcpy(arrangement->tempScale, noScale, sizeof(float)*2);
+
+                auto newArrangement = *arrangement;
+                for (auto& part : newArrangement.parts) {
+                    part.positionX = static_cast<int16_t>(
+                        ((part.positionX - CANVAS_ORIGIN) * scale[0]) + offset[0] + CANVAS_ORIGIN
+                    );
+                    part.positionY = static_cast<int16_t>(
+                        ((part.positionY - CANVAS_ORIGIN) * scale[1]) + offset[1] + CANVAS_ORIGIN
+                    );
+
+                    part.scaleX *= scale[0];
+                    part.scaleY *= scale[1];
+                }
+
+                SessionManager::getInstance().getCurrentSession()->executeCommand(
+                std::make_shared<CommandModifyArrangement>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    globalAnimatable->getCurrentKey()->arrangementIndex,
+                    newArrangement
+                ));
+
+                SessionManager::getInstance().getCurrentSessionModified() = true;
+
+                offset[0] = 0; offset[1] = 0;
+                scale[0] = 1.f; scale[1] = 1.f;
+
+                ImGui::CloseCurrentPopup();
+                lateOpen = false;
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                offset[0] = 0; offset[1] = 0;
+                scale[0] = 1.f; scale[1] = 1.f;
+
+                ImGui::CloseCurrentPopup();
+                lateOpen = false;
+            }
+
+            memcpy(arrangement->tempOffset, offset, sizeof(int)*2);
+            memcpy(arrangement->tempScale, scale, sizeof(float)*2);
+
+            ImGui::EndPopup();
+        }
+
+        ImGui::PopStyleVar();
+    }
+
+    { // MPadRegion
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
+
+        static bool lateOpen{ false };
+        const bool active = ImGui::BeginPopup("MPadRegion");
+
+        GET_ANIMATABLE;
+
+        RvlCellAnim::ArrangementPart* part{ nullptr };
+
+        if (
+            globalAnimatable && globalAnimatable->cellanim &&
+            appState.selectedPart != -1
+        )
+            part = &globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart);
+
+        static uint16_t origOffset[2]{ 8, 8 };
+        static uint16_t origSize[2]{ 32, 32 };
+
+        static int16_t origPosition[2]{ CANVAS_ORIGIN, CANVAS_ORIGIN };
+
+        if (!active && lateOpen && part) {
+            part->regionX = origOffset[0];
+            part->regionY = origOffset[1];
+
+            part->regionW = origSize[0];
+            part->regionH = origSize[0];
+
+            part->positionX = origPosition[0];
+            part->positionY = origPosition[1];
+
+            lateOpen = false;
+        }
+
+        if (active && part) {
+            if (!lateOpen) {
+                origOffset[0] = part->regionX;
+                origOffset[1] = part->regionY;
+
+                origSize[0] = part->regionW;
+                origSize[1] = part->regionH;
+
+                origPosition[0] = part->positionX;
+                origPosition[1] = part->positionY;
+            }
+
+            lateOpen = true;
+
+            ImGui::SeparatorText("Part Region Padding");
+
+            static int padBy[2] = { 0, 0 };
+            static bool centerPart{ true };
+
+            ImGui::DragInt2("Padding (pixels)", padBy, .5f);
+
+            ImGui::Checkbox("Center part", &centerPart);
+
+            ImGui::Separator();
+
+            if (ImGui::Button("Apply")) {
+                auto newPart = *part;
+
+                newPart.regionW = origSize[0] + padBy[0];
+                newPart.regionH = origSize[1] + padBy[1];
+
+                newPart.regionX = origOffset[0] - (padBy[0] / 2);
+                newPart.regionY = origOffset[1] - (padBy[1] / 2);
+
+                if (centerPart) {
+                    newPart.positionX = origPosition[0] - (padBy[0] / 2);
+                    newPart.positionY = origPosition[1] - (padBy[1] / 2);
+                }
+
+                part->regionX = origOffset[0];
+                part->regionY = origOffset[1];
+
+                part->regionW = origSize[0];
+                part->regionH = origSize[1];
+
+                part->positionX = origPosition[0];
+                part->positionY = origPosition[1];
+
+                SessionManager::getInstance().getCurrentSession()->executeCommand(
+                std::make_shared<CommandModifyArrangementPart>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    globalAnimatable->getCurrentKey()->arrangementIndex,
+                    appState.selectedPart,
+                    newPart
+                ));
+
+                SessionManager::getInstance().getCurrentSessionModified() = true;
+
+                padBy[0] = 0;
+                padBy[1] = 0;
+
+                ImGui::CloseCurrentPopup();
+                lateOpen = false;
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                padBy[0] = 0;
+                padBy[1] = 0;
+
+                ImGui::CloseCurrentPopup();
+                lateOpen = false;
+            }
+
+            part->regionW = origSize[0] + padBy[0];
+            part->regionH = origSize[1] + padBy[1];
+
+            part->regionX = origOffset[0] - (padBy[0] / 2);
+            part->regionY = origOffset[1] - (padBy[1] / 2);
+
+            if (centerPart) {
+                part->positionX = origPosition[0] - (padBy[0] / 2);
+                part->positionY = origPosition[1] - (padBy[1] / 2);
+            }
+            else {
+                part->positionX = origPosition[0];
+                part->positionY = origPosition[1];
+            }
+
+            ImGui::EndPopup();
+        }
+
+        ImGui::PopStyleVar();
+    }
+    END_GLOBAL_POPUP;
+
     if (ImGui::BeginMenuBar()) {
         ImGuiTabBarFlags tabBarFlags =
             ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_TabListPopupButton |
@@ -713,7 +945,7 @@ void App::Menubar() {
                         for (uint16_t i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
                             const std::string& str = sessionManager.sessionList.at(n).cellanims.at(i).name;
 
-                            std::stringstream fmtStream;
+                            std::ostringstream fmtStream;
                             fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
 
                             if (ImGui::MenuItem(

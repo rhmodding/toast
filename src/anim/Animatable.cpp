@@ -1,15 +1,11 @@
 #include "Animatable.hpp"
 
-#include "../AppState.hpp"
-
 #include "../common.hpp"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 
 #include <array>
-
-#define CANVAS_ORIGIN 512
 
 void Animatable::setAnimationFromIndex(uint16_t animIndex) {
     SAFE_ASSERT(this->cellanim, true);
@@ -141,6 +137,9 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
     RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
     RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
 
+    int* arrngOffset = arrangement->tempOffset;
+    float* arrngScale = arrangement->tempScale;
+
     float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
     float mismatchScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
 
@@ -152,19 +151,29 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
     };
 
     ImVec2 keyCenter = {
-        CANVAS_ORIGIN + (this->offset.x - CANVAS_ORIGIN),
-        CANVAS_ORIGIN + (this->offset.y - CANVAS_ORIGIN)
+        this->offset.x,
+        this->offset.y
     };
 
     ImVec2 topLeftOffset = {
-        static_cast<float>(part.positionX) - CANVAS_ORIGIN,
-        static_cast<float>(part.positionY) - CANVAS_ORIGIN
+        (static_cast<float>(part.positionX) - CANVAS_ORIGIN),
+        (static_cast<float>(part.positionY) - CANVAS_ORIGIN)
     };
 
     ImVec2 bottomRightOffset = {
-        topLeftOffset.x + (part.regionW * part.scaleX),
-        topLeftOffset.y + (part.regionH * part.scaleY)
+        (topLeftOffset.x + (part.regionW * part.scaleX)),
+        (topLeftOffset.y + (part.regionH * part.scaleY))
     };
+
+    topLeftOffset.x *= arrngScale[0];
+    topLeftOffset.x += arrngOffset[0];
+    topLeftOffset.y *= arrngScale[1];
+    topLeftOffset.y += arrngOffset[1];
+
+    bottomRightOffset.x *= arrngScale[0];
+    bottomRightOffset.x += arrngOffset[0];
+    bottomRightOffset.y *= arrngScale[1];
+    bottomRightOffset.y += arrngOffset[1];
 
     transformedQuad = {
         topLeftOffset,

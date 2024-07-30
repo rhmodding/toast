@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#define CANVAS_ORIGIN 512
+
 namespace RvlCellAnim {
     union Unknown32 {
         uint32_t u32;
@@ -20,12 +22,12 @@ namespace RvlCellAnim {
     };
 
     struct ArrangementPart {
-        uint16_t regionX{ 0 }, regionY{ 0 };
-        uint16_t regionW{ 0 }, regionH{ 0 };
+        uint16_t regionX{ 8 }, regionY{ 8 };
+        uint16_t regionW{ 32 }, regionH{ 32 };
 
         Unknown32 unknown;
 
-        int16_t positionX{ 512 }, positionY{ 512 };
+        int16_t positionX{ CANVAS_ORIGIN }, positionY{ CANVAS_ORIGIN };
 
         float scaleX{ 1.f }, scaleY{ 1.f };
 
@@ -65,6 +67,9 @@ namespace RvlCellAnim {
 
     struct Arrangement {
         std::vector<ArrangementPart> parts;
+
+        int tempOffset[2]{ 0, 0 };
+        float tempScale[2]{ 1.f, 1.f };
     };
 
     struct AnimationKey {
@@ -105,7 +110,7 @@ namespace RvlCellAnim {
     struct Animation {
         std::vector<AnimationKey> keys;
     };
-    
+
     class RvlCellAnimObject {
     public:
         bool ok{ false };

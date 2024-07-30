@@ -20,6 +20,9 @@
 // Stores globalAnimatable refpointer in local globalAnimatable.
 #define GET_ANIMATABLE Animatable*& globalAnimatable = AppState::getInstance().globalAnimatable
 
+#define BEGIN_GLOBAL_POPUP ImGui::PushOverrideID(AppState::getInstance().globalPopupID)
+#define END_GLOBAL_POPUP ImGui::PopID()
+
 class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>; // Allow access to base class constructor
 
@@ -55,6 +58,11 @@ public:
     }
 
     ImGuiID globalPopupID{ ImHashStr("GlobalPopupID") };
+    inline void OpenGlobalPopup(const char* popupId) {
+        ImGui::PushOverrideID(this->globalPopupID);
+        ImGui::OpenPopup(popupId);
+        ImGui::PopID();
+    }
 
     struct Fonts {
         ImFont* normal;
