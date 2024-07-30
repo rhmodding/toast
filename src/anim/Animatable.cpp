@@ -287,7 +287,10 @@ void Animatable::DrawKey(
 
         const RvlCellAnim::ArrangementPart& part = arrangement->parts.at(i);
 
-        if ((part.opacity == 0) && allowOpacity)
+        if (
+            ((part.opacity == 0) && allowOpacity) ||
+            !part.editorVisible
+        )
             continue; // Part not visible; don't bother drawing it.
 
         float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;

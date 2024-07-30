@@ -610,6 +610,10 @@ void App::Menubar() {
         if (ImGui::BeginMenu("Part",
             sessionAvaliable && appState.selectedPart >= 0
         )) {
+            auto* part =
+                &appState.globalAnimatable->getCurrentArrangement()
+                ->parts.at(appState.selectedPart);
+
             ImGui::Text(
                 "Selected part (no. %u)",
                 appState.selectedPart
@@ -617,7 +621,7 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Visible", nullptr, true);
+            ImGui::MenuItem("Visible", nullptr, &part->editorVisible);
             ImGui::MenuItem("Locked");
 
             ImGui::Separator();
