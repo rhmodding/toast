@@ -28,7 +28,7 @@ void WindowSpritesheet::RunEditor() {
     // Some apps like Photoshop complain about relative paths
     std::string imagePath = std::filesystem::absolute(configManager.getConfig().textureEditPath.c_str()).string();
 
-    std::stringstream commandStream;
+    std::ostringstream commandStream;
     commandStream <<
         "cmd.exe /c \"\"" <<
         configManager.getConfig().imageEditorPath <<

@@ -91,7 +91,7 @@ void WindowHybridList::Update() {
 
         if (!appState.getArrangementMode())
             for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
-                std::stringstream fmtStream;
+                std::ostringstream fmtStream;
 
                 auto query = sessionManager.getCurrentSession()->getAnimationNames().find(n);
 

@@ -26,7 +26,7 @@ void WindowInspector::Level_Animation() {
     uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
     auto query = sessionManager.getCurrentSession()->getAnimationNames().find(animationIndex);
 
-    const char* animationName = 
+    const char* animationName =
         query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
             query->second.c_str() : nullptr;
 
@@ -104,7 +104,7 @@ void WindowInspector::Level_Animation() {
                 animationIndex,
                 newMacroName
             ));
-            
+
             ImGui::CloseCurrentPopup();
         } ImGui::SetItemDefaultFocus();
 
@@ -172,7 +172,7 @@ void WindowInspector::Level_Animation() {
             float beginCursorY = ImGui::GetCursorPosY();
 
             for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
-                std::stringstream fmtStream;
+                std::ostringstream fmtStream;
 
                 GET_SESSION_MANAGER;
 
@@ -207,7 +207,7 @@ void WindowInspector::Level_Animation() {
                     animationBegin = ImGui::GetTime();
                 }
             }
-            
+
             ImGui::EndChild();
         }
 

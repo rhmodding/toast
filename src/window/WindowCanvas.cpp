@@ -600,7 +600,7 @@ void WindowCanvas::DrawCanvasText() {
     GET_WINDOW_DRAWLIST;
 
     if ((this->canvasOffset.x != 0.f) || (this->canvasOffset.y != 0.f)) {
-        std::stringstream fmtStream;
+        std::ostringstream fmtStream;
         fmtStream <<
             "Offset: " <<
             std::to_string(this->canvasOffset.x) << ", " <<
@@ -618,7 +618,7 @@ void WindowCanvas::DrawCanvasText() {
     }
 
     if (this->canvasZoom != 0.f) {
-        std::stringstream fmtStream;
+        std::ostringstream fmtStream;
         fmtStream <<
             "Zoom: " <<
             std::to_string(static_cast<uint16_t>((this->canvasZoom + 1) * 100)) <<

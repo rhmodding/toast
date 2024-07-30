@@ -130,7 +130,7 @@ void WindowAbout::Update() {
     drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), mainStrings[1]);
 
     if (ImGui::Button(mainStrings[2], { 30.f, 30.f })) {
-        std::stringstream cmdStream;
+        std::ostringstream cmdStream;
 
         cmdStream <<
     #ifdef _WIN32
