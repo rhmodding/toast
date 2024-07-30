@@ -30,7 +30,7 @@ public:
         GridType_None,
         GridType_Dark,
         GridType_Light,
-        
+
         GridType_Custom
     } gridType{ AppState::getInstance().getDarkThemeEnabled() ? GridType_Dark : GridType_Light };
     ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
@@ -43,7 +43,7 @@ public:
 private:
     ImVec2 canvasTopLeft;
     ImVec2 canvasSize;
-    
+
 
     void Menubar();
 

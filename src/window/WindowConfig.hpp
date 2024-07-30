@@ -10,7 +10,7 @@ public:
     void Update() override;
 
     bool open{ false };
-    
+
     ConfigManager::Config selfConfig;
 
     WindowConfig() { selfConfig = ConfigManager::getInstance().getConfig(); }

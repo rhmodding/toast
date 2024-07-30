@@ -46,7 +46,7 @@ void WindowInspector::Level_Key() {
     uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
     auto query = sessionManager.getCurrentSession()->getAnimationNames().find(animationIndex);
 
-    const char* animationName = 
+    const char* animationName =
         query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
             query->second.c_str() : nullptr;
 
@@ -146,7 +146,7 @@ void WindowInspector::Level_Key() {
             sessionManager.getCurrentSession()->getCellanimObject()->arrangements.at(animKey->arrangementIndex)
         ));
 
-        newKey.arrangementIndex = 
+        newKey.arrangementIndex =
             sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
     }
 
@@ -170,11 +170,11 @@ void WindowInspector::Level_Key() {
                 sessionManager.getCurrentSession()->getCellanimObject()->arrangements.at(animKey->arrangementIndex)
             ));
 
-            newKey.arrangementIndex = 
+            newKey.arrangementIndex =
                 sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
         }
         ImGui::Selectable("Nevermind");
-        
+
         ImGui::EndPopup();
     }
 
@@ -189,7 +189,7 @@ void WindowInspector::Level_Key() {
         if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
             if (holdFrames <= 1)
                 holdFrames = 1;
-            
+
             animKey->holdFrames = holdFrames;
         };
 

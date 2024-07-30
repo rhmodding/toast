@@ -73,7 +73,7 @@ namespace PaletteUtils {
                         uint32_t(a);
                 }
             } break;
-            
+
             default:
                 std::cerr <<
                     "[PaletteUtils::toRGBA32] Invalid color palette format! Expected 0 to 2, got " <<
@@ -112,7 +112,7 @@ namespace PaletteUtils {
                     uint8_t a = (*(data + i) >>  0) & 0xFF;
 
                     if (a == 255) { // Opaque, write RGB555 pixel
-                        // Bits: 
+                        // Bits:
                         // 1    RRRRRGGGGG BBBBB
                         // ^    ^    ^     ^
                         // Type Red  Green Blue
@@ -120,24 +120,24 @@ namespace PaletteUtils {
                         *(pixel + 0) = 0x0080 | ((r & 0xF8) >> 1) | (g >> 6);
                         *(pixel + 1) = ((g & 0x38) << 2) | (b >> 3);
                     } else { // Transparent, write RGBA4443
-                        // Bits: 
+                        // Bits:
                         // 0    AAA   RRRRGGGG  BBBB
                         // ^    ^     ^   ^     ^
                         // Type Alpha Red Green Blue
 
-                        *(pixel + 0) = ((a >> 1) & 0x70) | ((r & 0xF0) >> 4);                                                        
-                        *(pixel + 1) = (g & 0xF0) | ((b & 0xF0) >> 4);	
+                        *(pixel + 0) = ((a >> 1) & 0x70) | ((r & 0xF0) >> 4);
+                        *(pixel + 1) = (g & 0xF0) | ((b & 0xF0) >> 4);
                     }
                 }
             } break;
-            
+
             default:
                 std::cerr <<
                     "[PaletteUtils::WriteRGBA32Palette] Invalid color palette format! Expected 0 to 2, got " <<
                     format << '\n';
                 return false;
         }
-    
+
         return true;
     }
 }

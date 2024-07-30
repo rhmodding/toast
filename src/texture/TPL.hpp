@@ -85,7 +85,7 @@ namespace TPL {
 
         std::vector<unsigned char> data;
 
-        std::vector<uint32_t> palette; 
+        std::vector<uint32_t> palette;
 
         TPLWrapMode wrapS;
         TPLWrapMode wrapT;

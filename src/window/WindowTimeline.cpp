@@ -40,7 +40,7 @@ void WindowTimeline::Update() {
         ImGui::PopStyleColor();
 
         ImGui::Dummy(ImVec2(0, 0.5f));
-        
+
         ImGui::Dummy(ImVec2(2, 0));
         ImGui::SameLine();
 
@@ -67,7 +67,7 @@ void WindowTimeline::Update() {
 
                             playerManager.ResetTimer();
                             playerManager.setAnimating(!playerManager.playing);
-                        } 
+                        }
                         ImGui::SameLine();
 
                         ImGui::Dummy(ImVec2(2, 0));
@@ -87,7 +87,7 @@ void WindowTimeline::Update() {
                         } ImGui::SameLine();
 
                         ImGui::SetItemTooltip("Step back a key");
-                        
+
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
                         if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", ImVec2(32-6, 32-6))) {
                             playerManager.setAnimating(false);
@@ -104,7 +104,7 @@ void WindowTimeline::Update() {
                         } ImGui::SameLine();
 
                         ImGui::SetItemTooltip("Step forward a key");
-                        
+
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
                         if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", ImVec2(32-6, 32-6))) {
                             playerManager.setCurrentKeyIndex(playerManager.getKeyCount() - 1);
@@ -213,7 +213,7 @@ void WindowTimeline::Update() {
         const ImVec2 buttonDimensions(22.f, 30.f);
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(15, 0));
-        
+
         if (ImGui::BeginTable("TimelineFrameTable", 2,
                                                         ImGuiTableFlags_RowBg |
                                                         ImGuiTableFlags_BordersInnerV |
@@ -252,7 +252,7 @@ void WindowTimeline::Update() {
                             DeleteKeyMode_None,
 
                             DeleteKeyMode_Current,
-                            
+
                             DeleteKeyMode_ToRight,
                             DeleteKeyMode_ToLeft
                         } deleteKeyMode{ DeleteKeyMode_None };
@@ -328,7 +328,7 @@ void WindowTimeline::Update() {
                                             arrangementB->parts.at(j).opacity
                                         ) / 2.f);
                                     }
-                                
+
                                     globalAnimatable->cellanim->arrangements.push_back(newArrangement);
 
                                     {
@@ -443,7 +443,7 @@ void WindowTimeline::Update() {
                                 ));
 
                                 playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() + 1);
-                            } 
+                            }
                             ImGui::EndDisabled();
 
                             ImGui::BeginDisabled(i == 0);
@@ -480,7 +480,7 @@ void WindowTimeline::Update() {
                             ImGui::BeginDisabled(i == playerManager.getKeyCount() - 1);
                             if (ImGui::Selectable("Delete key(s) to right", false))
                                 deleteKeyMode = DeleteKeyMode_ToRight;
-                            ImGui::EndDisabled();        
+                            ImGui::EndDisabled();
 
                             ImGui::EndPopup();
                         }
@@ -555,7 +555,7 @@ void WindowTimeline::Update() {
                                         i + 1, keys.size()
                                     ));
                                 } break;
-                                
+
                                 default:
                                     break;
                             }
@@ -612,7 +612,7 @@ void WindowTimeline::Update() {
                     ImGui::PopStyleVar(3);
                 }
             }
-        
+
             if (appState.onionSkinState.enabled) {
                 ImGui::TableNextRow();
                 { // Onion Skin
