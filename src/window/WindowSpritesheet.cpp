@@ -316,6 +316,8 @@ void WindowSpritesheet::Update() {
     ImGui::Begin("Spritesheet", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar);
     ImGui::PopStyleVar();
 
+    ImVec2 windowSize = ImGui::GetContentRegionAvail();
+
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Grid")) {
             if (ImGui::MenuItem("None", nullptr, gridType == GridType_None))
@@ -448,7 +450,7 @@ void WindowSpritesheet::Update() {
             sprintf(textBuffer, "Double-click to %s", this->sheetZoomEnabled ? "un-zoom" : "zoom");
 
             ImGui::SetCursorPosX(
-                ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(textBuffer).x -
+                windowSize.x - ImGui::CalcTextSize(textBuffer).x -
                 ImGui::GetStyle().FramePadding.x
             );
             ImGui::TextUnformatted(textBuffer);

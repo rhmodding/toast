@@ -61,6 +61,8 @@ void WindowInspector::Update() {
             ImGuiWindowFlags_None
     ));
 
+    this->windowSize = ImGui::GetContentRegionAvail();
+
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Level")) {
             if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation)) {

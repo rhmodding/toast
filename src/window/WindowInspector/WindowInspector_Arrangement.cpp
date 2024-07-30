@@ -524,7 +524,7 @@ void WindowInspector::Level_Arrangement() {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6, ImGui::GetStyle().ItemSpacing.y });
 
             float firstButtonWidth = ImGui::CalcTextSize((char*) ICON_FA_ARROW_DOWN "").x + (ImGui::GetStyle().FramePadding.x * 2);
-            float basePositionX = ImGui::GetWindowContentRegionMax().x - ImGui::GetStyle().WindowPadding.x - 10.f;
+            float basePositionX = this->windowSize.x - ImGui::GetStyle().WindowPadding.x - 10.f;
 
             ImGui::SameLine();
             ImGui::SetCursorPosX(basePositionX - firstButtonWidth - ImGui::GetStyle().ItemSpacing.x);
