@@ -347,9 +347,7 @@ namespace TPL {
                     (sizeof(TPLHeader) * this->textures.size())
                 ) + i)->dataOffset = BYTESWAP_32(writeOffset);
 
-                uint32_t imageSize = ImageConvert::getImageByteSize(texture);
-
-                std::vector<unsigned char> imageData(imageSize);
+                std::vector<unsigned char> imageData;
                 ImageConvert::fromRGBA32(
                     imageData,
                     texture.format,
@@ -358,10 +356,10 @@ namespace TPL {
                     &texture.palette
                 );
 
-                result.resize(writeOffset + imageSize);
-                memcpy(result.data() + writeOffset, imageData.data(), imageSize);
+                result.resize(writeOffset + imageData.size());
+                memcpy(result.data() + writeOffset, imageData.data(), imageData.size());
 
-                writeOffset += imageSize;
+                writeOffset += imageData.size();
             }
         }
 
