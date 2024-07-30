@@ -66,11 +66,17 @@ struct CreditsLine {
     { CreditsLine::CLC_DrawString, "github:TheAlternateDoctor" },
 };
 
-WindowAbout::WindowAbout() {
-    this->image.LoadFromMem(toastIcon_title_png, toastIcon_title_png_size);
-}
-
 void WindowAbout::Update() {
+    if (!this->open)
+        return;
+
+    static bool imageLoaded{ false };
+
+    if (!imageLoaded) {
+        image.LoadFromMem(toastIcon_title_png, toastIcon_title_png_size);
+        imageLoaded = true;
+    }
+
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(),
         ImGuiCond_Appearing,

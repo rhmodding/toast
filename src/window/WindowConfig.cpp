@@ -57,6 +57,9 @@ bool CppInputText(const char* label, std::string* str, ImGuiInputTextFlags flags
 }
 
 void WindowConfig::Update() {
+    if (!this->open)
+        return;
+
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(),
         ImGuiCond_Appearing,

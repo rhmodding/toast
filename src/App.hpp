@@ -7,6 +7,9 @@
 #include <GLFW/glfw3.h>
 
 #include "common.hpp"
+
+#include "window/BaseWindow.hpp"
+
 #include "window/WindowCanvas.hpp"
 #include "window/WindowHybridList.hpp"
 #include "window/WindowInspector.hpp"
@@ -85,14 +88,32 @@ private: // Methods
     void HandleShortcuts();
 
 private: // Windows
-    WindowCanvas* windowCanvas;
-    WindowHybridList* windowHybridList;
-    WindowInspector* windowInspector;
-    WindowTimeline* windowTimeline;
-    WindowSpritesheet* windowSpritesheet;
+    template <typename T>
+    struct AppWindow {
+        bool shy{ false };
+        std::unique_ptr<BaseWindow> window;
 
-    WindowConfig* windowConfig;
-    WindowAbout* windowAbout;
+        void Update() {
+            if (shy || UNLIKELY(!this->window))
+                return;
+
+            window->Update();
+        }
+
+        AppWindow() {
+            static_assert(std::is_base_of<BaseWindow, T>::value, "T must be derived from BaseWindow");
+            this->window = std::make_unique<T>();
+        }
+    };
+
+    AppWindow<WindowCanvas> windowCanvas;
+    AppWindow<WindowHybridList> windowHybridList;
+    AppWindow<WindowInspector> windowInspector;
+    AppWindow<WindowTimeline> windowTimeline;
+    AppWindow<WindowSpritesheet> windowSpritesheet;
+
+    AppWindow<WindowConfig> windowConfig;
+    AppWindow<WindowAbout> windowAbout;
 
     GLFWwindow* window{ nullptr };
 

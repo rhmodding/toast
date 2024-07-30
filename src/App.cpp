@@ -1,10 +1,9 @@
 #include "App.hpp"
 
-#include "command/CommandDeleteArrangementPart.hpp"
 #include "font/SegoeUI.h"
 #include "font/FontAwesome.h"
 
-#include "imgui.h"
+#include <imgui.h>
 #include <imgui_internal.h>
 
 #include <chrono>
@@ -32,6 +31,7 @@
 #include "command/CommandSwitchCellanim.hpp"
 #include "command/CommandModifyArrangement.hpp"
 #include "command/CommandModifyArrangementPart.hpp"
+#include "command/CommandDeleteArrangementPart.hpp"
 
 #include "task/AsyncTaskManager.hpp"
 #include "task/AsyncTask_ExportSessionTask.hpp"
@@ -350,15 +350,6 @@ App::App() {
     ImGui_ImplOpenGL3_Init(glslVersion);
 
     this->SetupFonts();
-
-    this->windowCanvas = new WindowCanvas;
-    this->windowHybridList = new WindowHybridList;
-    this->windowInspector = new WindowInspector;
-    this->windowTimeline = new WindowTimeline;
-    this->windowSpritesheet = new WindowSpritesheet;
-
-    this->windowConfig = new WindowConfig;
-    this->windowAbout = new WindowAbout;
 }
 
 App::~App() {
@@ -374,14 +365,6 @@ App::~App() {
     SessionManager::getInstance().FreeAllSessions();
 
     Common::deleteIfNotNullptr(AppState::getInstance().globalAnimatable, false);
-
-    Common::deleteIfNotNullptr(this->windowCanvas, false);
-    Common::deleteIfNotNullptr(this->windowHybridList, false);
-    Common::deleteIfNotNullptr(this->windowInspector, false);
-    Common::deleteIfNotNullptr(this->windowTimeline, false);
-    Common::deleteIfNotNullptr(this->windowSpritesheet, false);
-    Common::deleteIfNotNullptr(this->windowConfig, false);
-    Common::deleteIfNotNullptr(this->windowAbout, false);
 }
 
 void App::SetupFonts() {
@@ -424,14 +407,15 @@ void App::Menubar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
             if (ImGui::MenuItem((char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
-                this->windowAbout->open = true;
+                // TODO: not sure how to feel about this
+                ((WindowAbout*)this->windowAbout.window.get())->open = true;
                 ImGui::SetWindowFocus("About");
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem((char*)ICON_FA_WRENCH " Config", "", nullptr)) {
-                this->windowConfig->open = true;
+                ((WindowConfig*)this->windowConfig.window.get())->open = true;
                 ImGui::SetWindowFocus("Config");
             }
 
@@ -651,40 +635,20 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("Windows")) {
-            if (ImGui::MenuItem("Canvas", "", !!this->windowCanvas)) {
-                if (this->windowCanvas)
-                    Common::deleteIfNotNullptr(this->windowCanvas);
-                else
-                    this->windowCanvas = new WindowCanvas;
-            }
+            if (ImGui::MenuItem("Canvas", "", !this->windowCanvas.shy))
+                this->windowCanvas.shy ^= true;
 
-            if (ImGui::MenuItem("Animation- / Arrangement List", "", !!this->windowHybridList)) {
-                if (this->windowHybridList)
-                    Common::deleteIfNotNullptr(this->windowHybridList);
-                else
-                    this->windowHybridList = new WindowHybridList;
-            }
+            if (ImGui::MenuItem("Animation- / Arrangement List", "", !this->windowHybridList.shy))
+                this->windowHybridList.shy ^= true;
 
-            if (ImGui::MenuItem("Inspector", "", !!this->windowInspector)) {
-                if (this->windowInspector)
-                    Common::deleteIfNotNullptr(this->windowInspector);
-                else
-                    this->windowInspector = new WindowInspector;
-            }
+            if (ImGui::MenuItem("Inspector", "", !this->windowInspector.shy))
+                this->windowInspector.shy ^= true;
 
-            if (ImGui::MenuItem("Spritesheet", "", !!this->windowSpritesheet)) {
-                if (this->windowSpritesheet)
-                    Common::deleteIfNotNullptr(this->windowSpritesheet);
-                else
-                    this->windowSpritesheet = new WindowSpritesheet;
-            }
+            if (ImGui::MenuItem("Spritesheet", "", !this->windowSpritesheet.shy))
+                this->windowSpritesheet.shy ^= true;
 
-            if (ImGui::MenuItem("Timeline", "", !!this->windowTimeline)) {
-                if (this->windowTimeline)
-                    Common::deleteIfNotNullptr(this->windowTimeline);
-                else
-                    this->windowTimeline = new WindowTimeline;
-            }
+            if (ImGui::MenuItem("Timeline", "", !this->windowTimeline.shy))
+                this->windowTimeline.shy ^= true;
 
             ImGui::Separator();
 
@@ -1400,22 +1364,15 @@ void App::Update() {
         PlayerManager::getInstance().Update();
 
         // Windows
-        if (this->windowCanvas)
-            this->windowCanvas->Update();
-        if (this->windowHybridList)
-            this->windowHybridList->Update();
-        if (this->windowInspector)
-            this->windowInspector->Update();
-        if (this->windowTimeline)
-            this->windowTimeline->Update();
-        if (this->windowSpritesheet)
-            this->windowSpritesheet->Update();
+        this->windowCanvas.Update();
+        this->windowHybridList.Update();
+        this->windowInspector.Update();
+        this->windowTimeline.Update();
+        this->windowSpritesheet.Update();
     }
 
-    if (this->windowConfig->open)
-        this->windowConfig->Update();
-    if (this->windowAbout->open)
-        this->windowAbout->Update();
+    this->windowConfig.Update();
+    this->windowAbout.Update();
 
     if (this->dialog_warnExitWithUnsavedChanges) {
         ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
