@@ -124,7 +124,7 @@ void WindowInspector::Level_Arrangement() {
                     ));
                 }
             }
-            
+
             //ImGui::PopStyleVar();
         }
         ImGui::EndChild();
@@ -143,15 +143,15 @@ void WindowInspector::Level_Arrangement() {
                 {
                     static int oldPosition[2]{ 0, 0 }; // Does not apply realPosition offset
                     int positionValues[2] = {
-                        partPtr->positionX - (this->realPosition ? 0 : 512),
-                        partPtr->positionY - (this->realPosition ? 0 : 512)
+                        partPtr->positionX - (this->realPosition ? 0 : CANVAS_ORIGIN),
+                        partPtr->positionY - (this->realPosition ? 0 : CANVAS_ORIGIN)
                     };
                     if (ImGui::DragInt2("Position XY##World", positionValues, 1.f, INT16_MIN, INT16_MAX)) {
                         partPtr->positionX = static_cast<int16_t>(
-                            positionValues[0] + (this->realPosition ? 0 : 512)
+                            positionValues[0] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );
                         partPtr->positionY = static_cast<int16_t>(
-                            positionValues[1] + (this->realPosition ? 0 : 512)
+                            positionValues[1] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );
                     }
 
@@ -167,10 +167,10 @@ void WindowInspector::Level_Arrangement() {
                         originalPart.positionY = oldPosition[1];
 
                         newPart.positionX = static_cast<int16_t>(
-                            positionValues[0] + (this->realPosition ? 0 : 512)
+                            positionValues[0] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );
                         newPart.positionY = static_cast<int16_t>(
-                            positionValues[1] + (this->realPosition ? 0 : 512)
+                            positionValues[1] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );
                     }
                 }
@@ -573,7 +573,7 @@ void WindowInspector::Level_Arrangement() {
                 ));
             }
         }
-    
+
         if (
             (arrangementPtr->parts.size() == 0) &&
             ImGui::Selectable("Click here to create a new part.")
