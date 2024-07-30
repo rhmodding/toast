@@ -5,7 +5,6 @@
 
 #include "../anim/RvlCellAnim.hpp"
 
-#include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
 class CommandInsertArrangement : public BaseCommand {

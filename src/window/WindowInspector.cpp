@@ -2,21 +2,10 @@
 
 #include <imgui.h>
 
-#include "../font/FontAwesome.h"
+#include "../command/CommandSetArrangementMode.hpp"
 
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
-
-#include "../command/CommandModifyArrangementPart.hpp"
-#include "../command/CommandMoveArrangementPart.hpp"
-#include "../command/CommandDeleteArrangementPart.hpp"
-#include "../command/CommandInsertArrangementPart.hpp"
-
-#include "../command/CommandModifyAnimationKey.hpp"
-
-#include "../command/CommandInsertArrangement.hpp"
-
-#include "../command/CommandSetArrangementMode.hpp"
 
 void WindowInspector::DrawPreview(Animatable* animatable) {
     GET_APP_STATE;
@@ -133,7 +122,7 @@ void WindowInspector::Update() {
         case InspectorLevel_Animation:
             this->Level_Animation();
             break;
-    
+
         case InspectorLevel_Key:
             this->Level_Key();
             break;
