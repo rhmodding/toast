@@ -1,7 +1,5 @@
 #include "WindowInspector.hpp"
 
-#include <imgui.h>
-
 #include "../command/CommandSetArrangementMode.hpp"
 
 #include "../AppState.hpp"

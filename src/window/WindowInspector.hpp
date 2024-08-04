@@ -5,6 +5,8 @@
 
 #include "../anim/Animatable.hpp"
 
+#include <imgui.h>
+
 class WindowInspector : public BaseWindow {
 public:
     void Update() override;
