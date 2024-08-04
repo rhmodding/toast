@@ -38,6 +38,7 @@ namespace RvlCellAnim {
         uint8_t opacity{ 0xFFu };
 
         bool editorVisible{ true };
+        bool editorLocked{ false };
 
         bool operator==(const ArrangementPart& other) const {
             return

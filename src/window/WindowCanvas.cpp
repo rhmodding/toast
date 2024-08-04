@@ -295,6 +295,13 @@ void WindowCanvas::Update() {
 
     RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
+    const bool partLocked = appState.selectedPart >= 0 ?
+        arrangementPtr->parts.at(appState.selectedPart).editorLocked :
+        false;
+    const bool partVisible = appState.selectedPart >= 0 ?
+        arrangementPtr->parts.at(appState.selectedPart).editorVisible :
+        true;
+
     {
         globalAnimatable->offset = origin;
 
@@ -426,8 +433,8 @@ void WindowCanvas::Update() {
                     ((bounding[2].y - bounding[0].y)*(bounding[2].y - bounding[0].y))
                 );
 
-                // If quad is too small, only draw the bounding.
-                if (thrLength >= 35.f) {
+                // If quad is too small or the part is locked, only draw the bounding.
+                if (thrLength >= 35.f && !partLocked) {
                     float angle =
                         globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart).angle +
                         globalAnimatable->getCurrentKey()->angle;
@@ -474,11 +481,24 @@ void WindowCanvas::Update() {
         this->DrawCanvasText();
 
         // Set tooltip
-        if (hoveringOverSelectedPart && ImGui::IsWindowHovered() && !draggingCanvas)
+        if (hoveringOverSelectedPart && ImGui::IsWindowHovered() && !draggingCanvas) {
+            std::ostringstream fmtStream;
+
+            fmtStream << "Part no. %u\n";
+
+            if (!partLocked)
+                fmtStream << "You can drag this part to change it's position.";
+            else
+                fmtStream << "This part is locked.";
+
+            if (!partVisible)
+                fmtStream << "\nThis part is invisible.";
+
             ImGui::SetTooltip(
-                "Part no. %u\nYou can drag this part to change it's position.",
+                fmtStream.str().c_str(),
                 appState.selectedPart + 1
             );
+        }
     }
 
     // set hoveringOverSelectedPart
@@ -499,7 +519,7 @@ void WindowCanvas::Update() {
         hoveringOverSelectedPart = isPointInPolygon(io.MousePos, polygon, 5);
     }
 
-    if (hoveringOverSelectedPart && draggingLeft && !draggingPart) {
+    if (hoveringOverSelectedPart && draggingLeft && !draggingPart && !partLocked) {
         draggingPart = true;
 
         dragPartOffset = ImVec2(

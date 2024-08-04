@@ -137,6 +137,8 @@ void WindowInspector::Level_Arrangement() {
             RvlCellAnim::ArrangementPart newPart = *partPtr;
             RvlCellAnim::ArrangementPart originalPart = *partPtr;
 
+            ImGui::BeginDisabled(partPtr->editorLocked);
+
             ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
             {
                 // Position XY
@@ -331,6 +333,8 @@ void WindowInspector::Level_Arrangement() {
                     std::make_shared<CommandModifyArrangementPart>(newPart)
                 );
             }
+
+            ImGui::EndDisabled();
         } else {
             ImGui::Text("No part selected.");
         }
@@ -357,13 +361,84 @@ void WindowInspector::Level_Arrangement() {
             sprintf(buffer, "Part no. %u", n+1);
 
             ImGui::SetNextItemAllowOverlap();
-            if (ImGui::Selectable(buffer, appState.selectedPart == n, ImGuiSelectableFlags_SelectOnNav))
+            if (ImGui::Selectable("###PartSelectable", appState.selectedPart == n, ImGuiSelectableFlags_SelectOnNav))
                 appState.selectedPart = n;
+
+            auto partToggle = [](const char* label, bool& condition, bool flip) {
+                ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+                const ImGuiID id = window->GetID(label);
+                const ImVec2 labelSize = ImGui::CalcTextSize(label, nullptr, true);
+
+                const ImGuiStyle& style = ImGui::GetStyle();
+
+                ImVec2 pos = window->DC.CursorPos;
+
+                if (0.f < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+                    pos.y += window->DC.CurrLineTextBaseOffset;
+
+                ImVec2 size = ImGui::CalcItemSize(
+                    { 0, 0 },
+                    labelSize.x,
+                    labelSize.y
+                );
+
+                const ImRect bb(pos, { pos.x + size.x, pos.y + size.y });
+
+                ImGui::ItemSize(size, 0.f);
+                if (!ImGui::ItemAdd(bb, id))
+                    return;
+
+                bool hovered{ false }, held{ false };
+                bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
+
+                if (pressed)
+                    condition ^= true;
+
+                uint32_t textColor{ 0xFFFFFFFF };
+
+                ImVec4 color = (flip ? condition : !condition) ?
+                    style.Colors[ImGuiCol_Text] :
+                    ImVec4(1.f, 0.f, 0.f, 1.f);
+                color.w *= style.Alpha * (hovered ? 1.f : .5f);
+
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertFloat4ToU32(color));
+                ImGui::RenderTextClipped(
+                    bb.Min,
+                    bb.Max,
+                    label, nullptr,
+                    &labelSize,
+                    { .5f, .5f },
+
+                    &bb
+                );
+                ImGui::PopStyleColor();
+            };
+
+            ImGui::SameLine(0.f, 0.f);
+            partToggle((char*)ICON_FA_EYE "##Visible", arrangementPtr->parts.at(n).editorVisible, true);
+
+            ImGui::SameLine();
+            partToggle((char*)ICON_FA_LOCK "##Locked", arrangementPtr->parts.at(n).editorLocked, false);
+
+            ImGui::SameLine();
+
+            ImGui::BeginDisabled(arrangementPtr->parts.at(n).editorLocked);
+            ImGui::TextUnformatted(buffer);
+            ImGui::EndDisabled();
 
             bool deletePart{ false };
             if (ImGui::BeginPopupContextItem()) {
                 ImGui::TextUnformatted(buffer);
+
+                bool visible = arrangementPtr->parts.at(n).editorVisible;
+                bool locked = arrangementPtr->parts.at(n).editorLocked;
+
+                ImGui::BulletText("Visible: %s", visible ? "yes" : "no");
+                ImGui::BulletText("Locked: %s", locked ? "yes" : "no");
                 ImGui::Separator();
+
+                ImGui::BeginDisabled(locked);
 
                 if (ImGui::Selectable("Insert new part above")) {
                     sessionManager.getCurrentSession()->executeCommand(
@@ -520,6 +595,8 @@ void WindowInspector::Level_Arrangement() {
                 if (ImGui::Selectable("Delete part", false, ImGuiSelectableFlags_DontClosePopups))
                     deletePart = true;
 
+                ImGui::EndDisabled();
+
                 ImGui::EndPopup();
             }
 
@@ -530,6 +607,8 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::SameLine();
             ImGui::SetCursorPosX(basePositionX - firstButtonWidth - ImGui::GetStyle().ItemSpacing.x);
+
+            ImGui::BeginDisabled(arrangementPtr->parts.at(n).editorLocked);
 
             ImGui::BeginDisabled(n == arrangementPtr->parts.size() - 1);
             if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
@@ -560,6 +639,8 @@ void WindowInspector::Level_Arrangement() {
 
                 changed = true;
             }
+            ImGui::EndDisabled();
+
             ImGui::EndDisabled();
 
             ImGui::PopStyleVar();
