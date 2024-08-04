@@ -163,6 +163,17 @@ namespace Common {
         return 1 - (1 - t) * (1 - t);
     }
 
+    bool IsMouseInRegion(const ImVec2 point, float radius) {
+        const ImVec2 mousePos = ImGui::GetMousePos();
+
+        const float distance = sqrtf(
+            powf(mousePos.x - point.x, 2) +
+            powf(mousePos.y - point.y, 2)
+        );
+
+        return distance <= radius;
+    }
+
     std::optional<TPL::TPLTexture> Image::ExportToTPLTexture() {
         if (!(
             this->width != 0 &&

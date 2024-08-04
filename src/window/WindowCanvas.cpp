@@ -284,11 +284,16 @@ void WindowCanvas::Update() {
         )
     );
 
+    hoveredPartHandle = PartHandle_None;
+
+    static PartHandle activePartHandle{ PartHandle_None };
+
+    static RvlCellAnim::ArrangementPart partBeforeInteraction;
+
     static bool panningCanvas{ false };
 
-    static bool    draggingPart{ false };
     static ImVec2  dragPartOffset{ 0, 0 };
-    static int16_t dragPartBeginOffset[2];
+    static ImVec2 newPartSize{ 0, 0 };
 
     static bool hoveringOverSelectedPart{ false };
 
@@ -311,7 +316,7 @@ void WindowCanvas::Update() {
         globalAnimatable->scaleY = this->canvasZoom + 1;
     }
 
-    // All drawing operations
+    // All drawing operations (and handle calculation)
     {
         drawList->PushClipRect(this->canvasTopLeft, canvasBottomRight, true);
         {
@@ -441,19 +446,37 @@ void WindowCanvas::Update() {
                         globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart).angle +
                         globalAnimatable->getCurrentKey()->angle;
 
+                    ImVec2 point;
+
                     // Side boxes
                     for (uint8_t i = 0; i < 4; i++) {
-                        DrawRotatedBox(drawList, {
+                        point = {
                             IM_ROUND((bounding[i].x + bounding[(i+1) % 4].x) / 2.f),
                             IM_ROUND((bounding[i].y + bounding[(i+1) % 4].y) / 2.f)
-                        }, 4.f, angle, color);
+                        };
+
+                        if (Common::IsMouseInRegion(point))
+                            *(short*)&hoveredPartHandle = PartHandle_Top + i;
+
+                        DrawRotatedBox(drawList, point, 4.f, angle, color);
                     }
 
-                    // Center box
-                    DrawRotatedBox(drawList, {
+                    for (uint8_t i = 0; i < 4; i++) {
+                        point = roundVec2(bounding[i]);
+
+                        if (Common::IsMouseInRegion(point))
+                            *(short*)&hoveredPartHandle = PartHandle_TopLeft + i;
+
+                        DrawRotatedBox(drawList, point, 4.f, angle, color);
+                    }
+
+                    point = {
                         IM_ROUND((bounding[0].x + bounding[2].x) / 2.f),
                         IM_ROUND((bounding[0].y + bounding[2].y) / 2.f)
-                    }, 3.f, angle, color);
+                    };
+
+                    // Center box
+                    DrawRotatedBox(drawList, point, 3.f, angle, color);
                 }
             }
 
@@ -479,6 +502,12 @@ void WindowCanvas::Update() {
                 }
         }
         drawList->PopClipRect();
+
+        if (hoveredPartHandle == PartHandle_None && hoveringOverSelectedPart)
+            hoveredPartHandle = PartHandle_Whole;
+
+        if (partLocked || panningCanvas)
+            hoveredPartHandle = PartHandle_None;
 
         this->DrawCanvasText();
 
@@ -522,32 +551,116 @@ void WindowCanvas::Update() {
     }
 
     if (
-        hoveringOverSelectedPart &&
-        !partLocked &&
-        !panningCanvas &&
-        draggingLeft &&
-        !draggingPart
+        hoveredPartHandle != PartHandle_None &&
+        activePartHandle == PartHandle_None &&
+        draggingLeft
     ) {
-        draggingPart = true;
+        activePartHandle = hoveredPartHandle;
 
-        dragPartOffset = ImVec2(
-            arrangementPtr->parts.at(appState.selectedPart).positionX,
-            arrangementPtr->parts.at(appState.selectedPart).positionY
+        partBeforeInteraction = arrangementPtr->parts.at(appState.selectedPart);
+
+        newPartSize = ImVec2(
+            arrangementPtr->parts.at(appState.selectedPart).regionW,
+            arrangementPtr->parts.at(appState.selectedPart).regionH
         );
 
-        dragPartBeginOffset[0] = arrangementPtr->parts.at(appState.selectedPart).positionX;
-        dragPartBeginOffset[1] = arrangementPtr->parts.at(appState.selectedPart).positionY;
+        if (hoveredPartHandle == PartHandle_Whole) {
+            dragPartOffset = ImVec2(
+                arrangementPtr->parts.at(appState.selectedPart).positionX,
+                arrangementPtr->parts.at(appState.selectedPart).positionY
+            );
+        }
     }
 
-    if (draggingCanvas && !draggingPart)
+    if (draggingCanvas && activePartHandle == PartHandle_None)
         panningCanvas = true;
 
-    if (draggingPart) {
-        dragPartOffset.x += io.MouseDelta.x / ((canvasZoom) + 1.f) / globalAnimatable->getCurrentKey()->scaleX;
-        dragPartOffset.y += io.MouseDelta.y / ((canvasZoom) + 1.f) / globalAnimatable->getCurrentKey()->scaleY;
+    if (activePartHandle == PartHandle_Whole) {
+        dragPartOffset.x +=
+            io.MouseDelta.x / ((canvasZoom) + 1.f) /
+            globalAnimatable->getCurrentKey()->scaleX;
+        dragPartOffset.y +=
+            io.MouseDelta.y / ((canvasZoom) + 1.f) /
+            globalAnimatable->getCurrentKey()->scaleY;
 
-        arrangementPtr->parts.at(appState.selectedPart).positionX = static_cast<int16_t>(dragPartOffset.x);
-        arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
+        arrangementPtr->parts.at(appState.selectedPart).positionX =
+            static_cast<int16_t>(dragPartOffset.x);
+        arrangementPtr->parts.at(appState.selectedPart).positionY =
+            static_cast<int16_t>(dragPartOffset.y);
+    }
+
+    if (
+        activePartHandle == PartHandle_Bottom ||
+        activePartHandle == PartHandle_BottomLeft ||
+        activePartHandle == PartHandle_BottomRight
+    ) {
+        newPartSize.y +=
+            io.MouseDelta.y / (canvasZoom + 1.f) /
+            globalAnimatable->getCurrentKey()->scaleY;
+
+        arrangementPtr->parts.at(appState.selectedPart).scaleY = (
+            newPartSize.y /
+            arrangementPtr->parts.at(appState.selectedPart).regionH
+        ) + partBeforeInteraction.scaleY - 1.f;
+    }
+
+    if (
+        activePartHandle == PartHandle_Right ||
+        activePartHandle == PartHandle_BottomRight ||
+        activePartHandle == PartHandle_TopRight
+    ) {
+        newPartSize.x +=
+            io.MouseDelta.x / (canvasZoom + 1.f) /
+            globalAnimatable->getCurrentKey()->scaleX;
+
+        arrangementPtr->parts.at(appState.selectedPart).scaleX = (
+            newPartSize.x /
+            arrangementPtr->parts.at(appState.selectedPart).regionW
+        ) + partBeforeInteraction.scaleX - 1.f;
+    }
+
+    if (
+        activePartHandle == PartHandle_Top ||
+        activePartHandle == PartHandle_TopLeft ||
+        activePartHandle == PartHandle_TopRight
+    ) {
+        newPartSize.y -=
+            io.MouseDelta.y / (canvasZoom + 1.f) /
+            globalAnimatable->getCurrentKey()->scaleY;
+
+        arrangementPtr->parts.at(appState.selectedPart).scaleY = (
+            newPartSize.y /
+            arrangementPtr->parts.at(appState.selectedPart).regionH
+        ) + partBeforeInteraction.scaleY - 1.f;
+
+        arrangementPtr->parts.at(appState.selectedPart).positionY = (
+            partBeforeInteraction.positionY - (
+                newPartSize.y -
+                arrangementPtr->parts.at(appState.selectedPart).regionH
+            )
+        );
+    }
+
+    if (
+        activePartHandle == PartHandle_Left ||
+        activePartHandle == PartHandle_BottomLeft ||
+        activePartHandle == PartHandle_TopLeft
+    ) {
+        newPartSize.x -=
+            io.MouseDelta.x / (canvasZoom + 1.f) /
+            globalAnimatable->getCurrentKey()->scaleX;
+
+        arrangementPtr->parts.at(appState.selectedPart).scaleX = (
+            newPartSize.x /
+            arrangementPtr->parts.at(appState.selectedPart).regionW
+        ) + partBeforeInteraction.scaleX - 1.f;
+
+        arrangementPtr->parts.at(appState.selectedPart).positionX = (
+            partBeforeInteraction.positionX - (
+                newPartSize.x -
+                arrangementPtr->parts.at(appState.selectedPart).regionW
+            )
+        );
     }
 
     if (panningCanvas) {
@@ -558,24 +671,20 @@ void WindowCanvas::Update() {
     if (interactionDeactivated && panningCanvas)
         panningCanvas = false;
 
-    if (interactionDeactivated && draggingPart) { // Submit command
+    if (interactionDeactivated && activePartHandle != PartHandle_None) { // Submit command
         changed = true;
 
         GET_SESSION_MANAGER;
         GET_ANIMATABLE;
 
-        arrangementPtr->parts.at(appState.selectedPart).positionX = dragPartBeginOffset[0];
-        arrangementPtr->parts.at(appState.selectedPart).positionY = dragPartBeginOffset[1];
-
         RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(appState.selectedPart);
-        newPart.positionX = static_cast<int16_t>(dragPartOffset.x);
-        newPart.positionY = static_cast<int16_t>(dragPartOffset.y);
+        arrangementPtr->parts.at(appState.selectedPart) = partBeforeInteraction;
 
         sessionManager.getCurrentSession()->executeCommand(
             std::make_shared<CommandModifyArrangementPart>(newPart)
         );
 
-        draggingPart = false;
+        activePartHandle = PartHandle_None;
     }
 
     // Canvas zooming
@@ -682,4 +791,20 @@ void WindowCanvas::DrawCanvasText() {
 
         textDrawHeight += 3.f + ImGui::CalcTextSize(text).y;
     }
+
+    /*
+
+    char text[64];
+
+    sprintf(text, "Current handle: %i", hoveredPartHandle);
+
+    drawList->AddText(
+        ImVec2(
+            this->canvasTopLeft.x + 10,
+            textDrawHeight
+        ),
+        textColor, text
+    );
+
+    */
 }
