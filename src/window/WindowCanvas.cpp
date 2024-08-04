@@ -284,6 +284,8 @@ void WindowCanvas::Update() {
         )
     );
 
+    static bool panningCanvas{ false };
+
     static bool    draggingPart{ false };
     static ImVec2  dragPartOffset{ 0, 0 };
     static int16_t dragPartBeginOffset[2];
@@ -519,7 +521,13 @@ void WindowCanvas::Update() {
         hoveringOverSelectedPart = isPointInPolygon(io.MousePos, polygon, 5);
     }
 
-    if (hoveringOverSelectedPart && draggingLeft && !draggingPart && !partLocked) {
+    if (
+        hoveringOverSelectedPart &&
+        !partLocked &&
+        !panningCanvas &&
+        draggingLeft &&
+        !draggingPart
+    ) {
         draggingPart = true;
 
         dragPartOffset = ImVec2(
@@ -531,6 +539,9 @@ void WindowCanvas::Update() {
         dragPartBeginOffset[1] = arrangementPtr->parts.at(appState.selectedPart).positionY;
     }
 
+    if (draggingCanvas && !draggingPart)
+        panningCanvas = true;
+
     if (draggingPart) {
         dragPartOffset.x += io.MouseDelta.x / ((canvasZoom) + 1.f) / globalAnimatable->getCurrentKey()->scaleX;
         dragPartOffset.y += io.MouseDelta.y / ((canvasZoom) + 1.f) / globalAnimatable->getCurrentKey()->scaleY;
@@ -539,10 +550,13 @@ void WindowCanvas::Update() {
         arrangementPtr->parts.at(appState.selectedPart).positionY = static_cast<int16_t>(dragPartOffset.y);
     }
 
-    if (draggingCanvas && !draggingPart) {
+    if (panningCanvas) {
         this->canvasOffset.x += io.MouseDelta.x;
         this->canvasOffset.y += io.MouseDelta.y;
     }
+
+    if (interactionDeactivated && panningCanvas)
+        panningCanvas = false;
 
     if (interactionDeactivated && draggingPart) { // Submit command
         changed = true;
