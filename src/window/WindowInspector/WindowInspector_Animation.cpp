@@ -73,7 +73,7 @@ void WindowInspector::Level_Animation() {
 
     ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 
-    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    CENTER_NEXT_WINDOW;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
     if (ImGui::BeginPopupModal("Edit macro name###EditMacroNamePopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -117,7 +117,7 @@ void WindowInspector::Level_Animation() {
     }
     ImGui::PopStyleVar();
 
-    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    CENTER_NEXT_WINDOW;
     if (ImGui::BeginPopupModal("Swap animation index###SwapIndexPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         static float animationBegin{ static_cast<float>(ImGui::GetTime()) };
         const static float animationTime{ .25f };

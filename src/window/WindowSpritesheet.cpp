@@ -136,7 +136,7 @@ void WindowSpritesheet::PaletteWindow() {
 void WindowSpritesheet::FormatPopup() {
     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
 
-    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    CENTER_NEXT_WINDOW;
 
     if (ImGui::BeginPopupModal("Re-encode image..###ReencodePopup", nullptr)) {
         GET_SESSION_MANAGER;

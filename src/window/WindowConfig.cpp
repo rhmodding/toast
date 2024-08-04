@@ -60,11 +60,7 @@ void WindowConfig::Update() {
     if (!this->open)
         return;
 
-    ImGui::SetNextWindowPos(
-        ImGui::GetMainViewport()->GetCenter(),
-        ImGuiCond_Appearing,
-        ImVec2(0.5f, 0.5f)
-    );
+    CENTER_NEXT_WINDOW;
 
     ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Config", &this->open, ImGuiWindowFlags_MenuBar)) {

@@ -970,8 +970,6 @@ void App::Menubar() {
 }
 
 void App::UpdatePopups() {
-    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-
     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
 
     // ###SessionOpenErr
@@ -981,7 +979,7 @@ void App::UpdatePopups() {
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
 
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        CENTER_NEXT_WINDOW;
         if (ImGui::BeginPopupModal((
             "There was an error opening the session. (" +
             std::to_string(errorCode) +
@@ -1030,7 +1028,7 @@ void App::UpdatePopups() {
         }
 
 
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        CENTER_NEXT_WINDOW;
         if (ImGui::BeginPopupModal((
             "There was an error exporting the session. (" +
             std::to_string(errorCode) +
@@ -1068,7 +1066,7 @@ void App::UpdatePopups() {
 
     // ###DialogWaitForModifiedPNG
     {
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        CENTER_NEXT_WINDOW;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
         if (ImGui::BeginPopupModal("Modifying texture via image editor###DialogWaitForModifiedPNG", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -1143,7 +1141,7 @@ void App::UpdatePopups() {
 
     // ###DialogPNGExportFailed
     {
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        CENTER_NEXT_WINDOW;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
         if (ImGui::BeginPopupModal("There was an error exporting the texture.###DialogPNGExportFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -1162,7 +1160,7 @@ void App::UpdatePopups() {
 
     // ###DialogModifiedPNGSizeDiff
     {
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        CENTER_NEXT_WINDOW;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
         if (ImGui::BeginPopupModal("Texture size mismatch###DialogModifiedPNGSizeDiff", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -1232,7 +1230,7 @@ void App::UpdatePopups() {
             sessionManager.sessionList.at(sessionManager.sessionClosing).mainPath :
             "Confirm";
 
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        CENTER_NEXT_WINDOW;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
         if (ImGui::BeginPopupModal((
@@ -1268,7 +1266,7 @@ void App::UpdatePopups() {
 
     // ###AttemptExitWhileUnsavedChanges
     {
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        CENTER_NEXT_WINDOW;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
         if (ImGui::BeginPopupModal("Exit with unsaved changes###AttemptExitWhileUnsavedChanges", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {

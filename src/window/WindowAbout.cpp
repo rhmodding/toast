@@ -77,11 +77,7 @@ void WindowAbout::Update() {
         imageLoaded = true;
     }
 
-    ImGui::SetNextWindowPos(
-        ImGui::GetMainViewport()->GetCenter(),
-        ImGuiCond_Appearing,
-        ImVec2(0.5f, 0.5f)
-    );
+    CENTER_NEXT_WINDOW;
     ImGui::SetNextWindowSize({ 820, 520 });
 
     ImGui::Begin("About", &this->open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking);
