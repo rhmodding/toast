@@ -5,16 +5,13 @@
 
 #include <unordered_set>
 
+#include "../MtCommandManager.hpp"
+
 #include "ImageConvert.hpp"
 
 #include "PaletteUtils.hpp"
 
 #include "../common.hpp"
-
-#include <thread>
-#include <memory>
-
-#include "../MtCommandManager.hpp"
 
 #define TPL_VERSION_NUMBER 0x30AF2000
 

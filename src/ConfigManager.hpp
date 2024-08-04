@@ -2,15 +2,17 @@
 #define CONFIGMANAGER_HPP
 
 #include "Singleton.hpp"
-#include "common.hpp"
 
 #include <cstdint>
-#include <string>
 
-#include <nlohmann/json.hpp>
+#include <string>
 
 #include <iostream>
 #include <fstream>
+
+#include <nlohmann/json.hpp>
+
+#include "common.hpp"
 
 using json = nlohmann::json;
 

@@ -1,8 +1,10 @@
 #ifndef CTRCELLANIM_HPP
 #define CTRCELLANIM_HPP
 
-#include <vector>
 #include <cstdint>
+
+#include <vector>
+
 #include <string>
 
 namespace CtrCellAnim {
@@ -66,7 +68,7 @@ namespace CtrCellAnim {
         bool isInterpolated;
         std::vector<AnimationKey> keys;
     };
-    
+
     class CtrCellAnimObject {
     public:
         uint16_t sheetIndex;

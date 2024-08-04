@@ -9,11 +9,11 @@
 
 #include <string>
 
-#include <tinyfiledialogs.h>
-
 #include <filesystem>
 
 #include <thread>
+
+#include <tinyfiledialogs.h>
 
 #include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"

@@ -5,10 +5,10 @@
 
 #include "../anim/RvlCellAnim.hpp"
 
-#include "../AppState.hpp"
 #include "../SessionManager.hpp"
-
 #include "../PlayerManager.hpp"
+
+#include "../AppState.hpp"
 
 class CommandSwapAnimations : public BaseCommand {
 public:
@@ -54,7 +54,7 @@ private:
     uint16_t cellanimIndex;
     uint16_t animationIndexA;
     uint16_t animationIndexB;
-    
+
     bool swapNames;
 
     void updateAnimationState() {

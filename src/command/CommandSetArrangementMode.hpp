@@ -4,7 +4,6 @@
 #include "BaseCommand.hpp"
 
 #include "../SessionManager.hpp"
-
 #include "../PlayerManager.hpp"
 
 class CommandSetArrangementMode : public BaseCommand {

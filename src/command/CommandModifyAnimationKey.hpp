@@ -5,10 +5,9 @@
 
 #include "../anim/RvlCellAnim.hpp"
 
-#include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
-#include <algorithm>
+#include "../AppState.hpp"
 
 class CommandModifyAnimationKey : public BaseCommand {
 public:

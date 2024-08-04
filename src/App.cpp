@@ -1,8 +1,5 @@
 #include "App.hpp"
 
-#include "font/SegoeUI.h"
-#include "font/FontAwesome.h"
-
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -13,14 +10,15 @@
 #include <string>
 #include <sstream>
 
-#include "common.hpp"
-
-#include <tinyfiledialogs.h>
-
 //#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#include <tinyfiledialogs.h>
+
 #include "anim/RvlCellAnim.hpp"
+
+#include "font/SegoeUI.h"
+#include "font/FontAwesome.h"
 
 #include "AppState.hpp"
 
@@ -38,6 +36,8 @@
 #include "task/AsyncTask_PushSessionTask.hpp"
 
 #include "MtCommandManager.hpp"
+
+#include "common.hpp"
 
 #if !defined(__APPLE__)
 #include "_binary/images/toastIcon.png.h"

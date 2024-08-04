@@ -8,8 +8,6 @@
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
-#include <algorithm>
-
 class CommandDeleteArrangementPart : public BaseCommand {
 public:
     // Constructor: Delete part by cellanimIndex, arrangementIndex and partIndex.

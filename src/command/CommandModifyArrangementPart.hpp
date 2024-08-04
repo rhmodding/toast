@@ -5,8 +5,9 @@
 
 #include "../anim/RvlCellAnim.hpp"
 
-#include "../AppState.hpp"
 #include "../SessionManager.hpp"
+
+#include "../AppState.hpp"
 
 class CommandModifyArrangementPart : public BaseCommand {
 public:

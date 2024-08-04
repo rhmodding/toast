@@ -9,11 +9,11 @@
 
 #include "Yaz0.hpp"
 
-#include <iostream>
-
 #include <bitset>
 
 #include <algorithm>
+
+#include <iostream>
 
 #include <zlib-ng.h>
 

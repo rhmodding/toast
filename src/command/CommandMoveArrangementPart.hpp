@@ -3,12 +3,13 @@
 
 #include "BaseCommand.hpp"
 
+#include <algorithm>
+
 #include "../anim/RvlCellAnim.hpp"
 
-#include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
-#include <algorithm>
+#include "../AppState.hpp"
 
 class CommandMoveArrangementPart : public BaseCommand {
 public:

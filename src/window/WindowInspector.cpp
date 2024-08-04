@@ -1,9 +1,9 @@
 #include "WindowInspector.hpp"
 
-#include "../command/CommandSetArrangementMode.hpp"
-
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
+
+#include "../command/CommandSetArrangementMode.hpp"
 
 void WindowInspector::DrawPreview(Animatable* animatable) {
     GET_APP_STATE;

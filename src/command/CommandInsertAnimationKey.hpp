@@ -5,12 +5,8 @@
 
 #include "../anim/RvlCellAnim.hpp"
 
-#include "../AppState.hpp"
 #include "../SessionManager.hpp"
-
 #include "../PlayerManager.hpp"
-
-#include <algorithm>
 
 class CommandInsertAnimationKey : public BaseCommand {
 public:

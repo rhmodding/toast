@@ -1,16 +1,17 @@
 #include "../WindowInspector.hpp"
 
-#include "../../font/FontAwesome.h"
+#include <sstream>
 
 #include "../../SessionManager.hpp"
 
-#include "../../AppState.hpp"
 #include "../../anim/Animatable.hpp"
 
 #include "../../command/CommandModifyAnimationName.hpp"
 #include "../../command/CommandSwapAnimations.hpp"
 
-#include <sstream>
+#include "../../font/FontAwesome.h"
+
+#include "../../AppState.hpp"
 
 void WindowInspector::Level_Animation() {
     GET_APP_STATE;

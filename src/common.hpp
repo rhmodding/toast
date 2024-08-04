@@ -11,8 +11,6 @@
 
 #include <optional>
 
-#include <cmath>
-
 #include "texture/TPL.hpp"
 
 //#include "stb/stb_image_write.h"

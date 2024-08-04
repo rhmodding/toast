@@ -4,15 +4,20 @@
 #include "Singleton.hpp"
 
 #include "anim/Animatable.hpp"
+#include "anim/RvlCellAnim.hpp"
 
 #include "SessionManager.hpp"
 #include "ConfigManager.hpp"
-#include "common.hpp"
+
+#include <algorithm>
 
 #include <cstdint>
+#include <cstring>
 
 #include <imgui.h>
 #include <imgui_internal.h>
+
+#include "common.hpp"
 
 // Stores instance of AppState in local appState.
 #define GET_APP_STATE AppState& appState = AppState::getInstance()

@@ -5,17 +5,17 @@
 
 #include "texture/TPL.hpp"
 
-#include <sstream>
-#include <fstream>
-
 #include "AppState.hpp"
-
-#include "common.hpp"
-
-#include <filesystem>
 
 #include "ConfigManager.hpp"
 #include "PlayerManager.hpp"
+
+#include <sstream>
+#include <fstream>
+
+#include <filesystem>
+
+#include "common.hpp"
 
 int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;

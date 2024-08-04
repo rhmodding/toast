@@ -1,14 +1,15 @@
 #include "../WindowInspector.hpp"
 
-#include "../../font/FontAwesome.h"
-
 #include "../../SessionManager.hpp"
+
+#include "../../anim/Animatable.hpp"
 
 #include "../../command/CommandInsertArrangement.hpp"
 #include "../../command/CommandModifyAnimationKey.hpp"
 
+#include "../../font/FontAwesome.h"
+
 #include "../../AppState.hpp"
-#include "../../anim/Animatable.hpp"
 
 const uint16_t uint16_one = 1;
 

@@ -9,8 +9,8 @@
 #include <cmath>
 
 #include "../AppState.hpp"
-#include "../SessionManager.hpp"
 
+#include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
 
 #include "../command/CommandDeleteArrangement.hpp"

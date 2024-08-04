@@ -3,11 +3,11 @@
 
 #include "AsyncTask.hpp"
 
+#include <string>
+
 #include "../SessionManager.hpp"
 
 #include "../AppState.hpp"
-
-#include <string>
 
 class ExportSessionTask : public AsyncTask {
 public:

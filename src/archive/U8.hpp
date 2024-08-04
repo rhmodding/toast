@@ -1,8 +1,10 @@
 #ifndef U8_HPP
 #define U8_HPP
 
-#include <string>
 #include <vector>
+
+#include <string>
+
 #include <optional>
 
 namespace U8 {

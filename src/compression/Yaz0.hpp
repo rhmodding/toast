@@ -2,7 +2,9 @@
 #define YAZ0_HPP
 
 #include <cstdint>
+
 #include <vector>
+
 #include <optional>
 
 namespace Yaz0 {

@@ -1,11 +1,11 @@
 #include "Animatable.hpp"
 
-#include "../common.hpp"
-
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 #include <array>
+
+#include "../common.hpp"
 
 void Animatable::setAnimationFromIndex(uint16_t animIndex) {
     SAFE_ASSERT(this->cellanim, true);

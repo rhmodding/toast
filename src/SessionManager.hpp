@@ -3,21 +3,22 @@
 
 #include "Singleton.hpp"
 
-#include <cstdint>
-
 #include "anim/RvlCellAnim.hpp"
 
-#include "common.hpp"
+#include "command/BaseCommand.hpp"
+
+#include <cstdint>
+
+#include <mutex>
+
+#include <string>
 
 #include <unordered_map>
-#include <string>
 #include <deque>
 
 #include <memory>
 
-#include <mutex>
-
-#include "command/BaseCommand.hpp"
+#include "common.hpp"
 
 #define SESSION_MAX_COMMANDS 128
 

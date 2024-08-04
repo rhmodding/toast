@@ -8,6 +8,8 @@
 
 #include <fstream>
 
+#include <cmath>
+
 #include "MtCommandManager.hpp"
 
 namespace Common {

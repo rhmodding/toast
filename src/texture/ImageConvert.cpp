@@ -1,7 +1,5 @@
 #include "ImageConvert.hpp"
 
-#include "TPL.hpp"
-
 #include <unordered_map>
 
 #include <iostream>

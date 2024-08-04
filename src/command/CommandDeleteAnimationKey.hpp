@@ -6,7 +6,6 @@
 #include "../anim/RvlCellAnim.hpp"
 
 #include "../SessionManager.hpp"
-
 #include "../PlayerManager.hpp"
 
 class CommandDeleteAnimationKey : public BaseCommand {

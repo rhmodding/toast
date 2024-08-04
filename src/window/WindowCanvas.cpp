@@ -3,11 +3,10 @@
 #include <sstream>
 #include <string>
 
-#include <math.h>
+#include <cmath>
 
 #include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"
-
 #include "../PlayerManager.hpp"
 
 #include "../command/CommandModifyArrangementPart.hpp"

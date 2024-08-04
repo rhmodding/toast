@@ -1,16 +1,16 @@
 #ifndef ANIMATABLE_HPP
 #define ANIMATABLE_HPP
 
+#include <imgui.h>
+#include <imgui_internal.h>
+
 #include <cstdint>
+
+#include <memory>
 
 #include "RvlCellAnim.hpp"
 
 #include "../common.hpp"
-
-#include <imgui.h>
-#include <imgui_internal.h>
-
-#include <memory>
 
 class Animatable {
 private:

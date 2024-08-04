@@ -2,8 +2,6 @@
 
 #include <imgui.h>
 
-#include "../_binary/images/toastIcon_title.png.h"
-
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -12,6 +10,8 @@
 #include "../AppState.hpp"
 
 #include "../font/FontAwesome.h"
+
+#include "../_binary/images/toastIcon_title.png.h"
 
 const char* mainStrings[] = {
     "toast",

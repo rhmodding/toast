@@ -9,9 +9,9 @@
 
 #include <stack>
 
-#include "../common.hpp"
-
 #include "../compression/Yaz0.hpp"
+
+#include "../common.hpp"
 
 #pragma pack(push, 1) // Pack struct members tightly without padding
 

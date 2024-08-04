@@ -1,9 +1,9 @@
 #include "../WindowInspector.hpp"
 
-#include "../../font/FontAwesome.h"
-
 #include "../../ConfigManager.hpp"
 #include "../../SessionManager.hpp"
+
+#include "../../anim/Animatable.hpp"
 
 #include "../../command/CommandModifyArrangementPart.hpp"
 #include "../../command/CommandInsertArrangementPart.hpp"
@@ -12,8 +12,9 @@
 
 #include "../../command/CommandModifyAnimationKey.hpp"
 
+#include "../../font/FontAwesome.h"
+
 #include "../../AppState.hpp"
-#include "../../anim/Animatable.hpp"
 
 const uint8_t uint8_one = 1;
 const uint16_t uint16_one = 1;

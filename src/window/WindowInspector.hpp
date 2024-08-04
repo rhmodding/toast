@@ -3,9 +3,9 @@
 
 #include "BaseWindow.hpp"
 
-#include "../anim/Animatable.hpp"
-
 #include <imgui.h>
+
+#include "../anim/Animatable.hpp"
 
 class WindowInspector : public BaseWindow {
 public:

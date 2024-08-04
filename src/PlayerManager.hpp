@@ -3,9 +3,9 @@
 
 #include "Singleton.hpp"
 
-#include "AppState.hpp"
-
 #include <algorithm>
+
+#include "AppState.hpp"
 
 // Stores instance of PlayerManager in local playerManager.
 #define GET_PLAYER_MANAGER PlayerManager& playerManager = PlayerManager::getInstance()
