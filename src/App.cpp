@@ -600,7 +600,7 @@ void App::Menubar() {
 
             ImGui::Text(
                 "Selected part (no. %u)",
-                appState.selectedPart
+                appState.selectedPart + 1
             );
 
             ImGui::Separator();
