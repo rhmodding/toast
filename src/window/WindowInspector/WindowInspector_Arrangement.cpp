@@ -342,6 +342,8 @@ void WindowInspector::Level_Arrangement() {
     ImGui::BeginChild("ArrangementParts", { 0, 0 }, ImGuiChildFlags_Border);
     ImGui::PopStyleVar();
     {
+        ImVec2 childSize = ImGui::GetContentRegionAvail();
+
         ImGui::SeparatorText((char*)ICON_FA_IMAGE " Parts");
 
         RvlCellAnim::Arrangement* arrangementPtr =
@@ -524,7 +526,7 @@ void WindowInspector::Level_Arrangement() {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6, ImGui::GetStyle().ItemSpacing.y });
 
             float firstButtonWidth = ImGui::CalcTextSize((char*) ICON_FA_ARROW_DOWN "").x + (ImGui::GetStyle().FramePadding.x * 2);
-            float basePositionX = this->windowSize.x - ImGui::GetStyle().WindowPadding.x - 10.f;
+            float basePositionX = childSize.x - (ImGui::GetStyle().FramePadding.x * 2);
 
             ImGui::SameLine();
             ImGui::SetCursorPosX(basePositionX - firstButtonWidth - ImGui::GetStyle().ItemSpacing.x);
