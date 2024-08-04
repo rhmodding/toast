@@ -284,8 +284,8 @@ void WindowSpritesheet::FormatPopup() {
             Common::fitRectangle(imageRect, ImGui::GetContentRegionAvail(), scale);
 
             ImVec2 imagePosition = ImVec2(
-                ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * 0.5f,
-                ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - imageRect.y) * 0.5f
+                ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * .5f,
+                ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - imageRect.y) * .5f
             );
 
             ImGui::GetWindowDrawList()->AddRectFilled(
@@ -577,8 +577,8 @@ void WindowSpritesheet::Update() {
     }
 
     ImVec2 imagePosition = ImVec2(
-        (canvasTopLeft.x + (canvasSize.x - imageRect.x) * 0.5f) + canvasOffset.x,
-        (canvasTopLeft.y + (canvasSize.y - imageRect.y) * 0.5f) + canvasOffset.y
+        (canvasTopLeft.x + (canvasSize.x - imageRect.x) * .5f) + canvasOffset.x,
+        (canvasTopLeft.y + (canvasSize.y - imageRect.y) * .5f) + canvasOffset.y
     );
 
     drawList->AddImage(

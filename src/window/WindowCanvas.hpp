@@ -9,8 +9,8 @@
 
 #include "../AppState.hpp"
 
-#define CANVAS_ZOOM_SPEED 0.04f
-#define CANVAS_ZOOM_SPEED_FAST 0.08f
+#define CANVAS_ZOOM_SPEED .04f
+#define CANVAS_ZOOM_SPEED_FAST .08f
 
 class WindowCanvas : public BaseWindow {
 public:

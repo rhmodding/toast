@@ -159,7 +159,7 @@ void WindowCanvas::Menubar() {
                 float scale;
                 Common::fitRectangle(rect, this->canvasSize, scale);
 
-                this->canvasZoom = scale - 1.f - 0.1f;
+                this->canvasZoom = scale - 1.f - .1f;
             }
 
             ImGui::EndMenu();
@@ -547,7 +547,7 @@ void WindowCanvas::Update() {
     // Canvas zooming
     {
         const float maxZoom = 9.f;
-        const float minZoom = -0.90f;
+        const float minZoom = -.90f;
 
         if (interactionHovered) {
             GET_IMGUI_IO;
@@ -584,8 +584,8 @@ void WindowCanvas::DrawCanvasText() {
             break;
 
         case GridType_Custom: {
-            float lumi = 0.2126f * customGridColor.x + 0.7152f * customGridColor.y + 0.0722f * customGridColor.z;
-            if (lumi > 0.5f)
+            float lumi = .2126f * customGridColor.x + .7152f * customGridColor.y + .0722f * customGridColor.z;
+            if (lumi > .5f)
                 textColor = IM_COL32_BLACK;
             else
                 textColor = IM_COL32_WHITE;

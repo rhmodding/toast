@@ -342,8 +342,8 @@ App::App() {
     style.ItemSpacing.x = 9;
     style.ItemSpacing.y = 4;
 
-    style.WindowTitleAlign.x = 0.5f;
-    style.WindowTitleAlign.y = 0.5f;
+    style.WindowTitleAlign.x = .5f;
+    style.WindowTitleAlign.y = .5f;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(this->window, true);
@@ -693,7 +693,7 @@ void App::Menubar() {
             static float scale[2] = { 1.f, 1.f };
 
             ImGui::DragInt2("Offset XY", offset, 1.f);
-            ImGui::DragFloat2("Scale XY", scale, 0.01f);
+            ImGui::DragFloat2("Scale XY", scale, .01f);
 
             ImGui::Separator();
 

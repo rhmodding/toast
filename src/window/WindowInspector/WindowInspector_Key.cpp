@@ -238,7 +238,7 @@ void WindowInspector::Level_Key() {
     {
         static float oldScale[2]{ 0.f, 0.f };
         float scaleValues[2] = { animKey->scaleX, animKey->scaleY };
-        if (ImGui::DragFloat2("Scale XY", scaleValues, 0.01f)) {
+        if (ImGui::DragFloat2("Scale XY", scaleValues, .01f)) {
             animKey->scaleX = scaleValues[0];
             animKey->scaleY = scaleValues[1];
         }

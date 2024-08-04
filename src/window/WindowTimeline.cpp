@@ -39,7 +39,7 @@ void WindowTimeline::Update() {
     {
         ImGui::PopStyleColor();
 
-        ImGui::Dummy(ImVec2(0, 0.5f));
+        ImGui::Dummy(ImVec2(0, .5f));
 
         ImGui::Dummy(ImVec2(2, 0));
         ImGui::SameLine();
@@ -204,7 +204,7 @@ void WindowTimeline::Update() {
 
         ImGui::PopStyleVar();
 
-        ImGui::Dummy(ImVec2(0, 0.5f));
+        ImGui::Dummy(ImVec2(0, .5f));
     }
     ImGui::EndChild();
 
@@ -594,7 +594,7 @@ void WindowTimeline::Update() {
                                     ((holdFrames - playerManager.getHoldFramesLeft()) / (float)holdFrames) :
                                 playerManager.getCurrentKeyIndex() > i ?
                                     1.f : 0.f,
-                                0.5f
+                                .5f
                             ));
 
                             ImGui::BeginDisabled();

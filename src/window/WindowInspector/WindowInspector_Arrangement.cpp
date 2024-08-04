@@ -179,7 +179,7 @@ void WindowInspector::Level_Arrangement() {
                 {
                     static float oldScale[2]{ 0.f, 0.f };
                     float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
-                    if (ImGui::DragFloat2("Scale XY##World", scaleValues, 0.01f)) {
+                    if (ImGui::DragFloat2("Scale XY##World", scaleValues, .01f)) {
                         partPtr->scaleX = scaleValues[0];
                         partPtr->scaleY = scaleValues[1];
                     }
