@@ -589,11 +589,30 @@ void WindowCanvas::Update() {
             static_cast<int16_t>(dragPartOffset.y);
     }
 
-    if (
+    bool caseBottom =
         activePartHandle == PartHandle_Bottom ||
         activePartHandle == PartHandle_BottomLeft ||
-        activePartHandle == PartHandle_BottomRight
-    ) {
+        activePartHandle == PartHandle_BottomRight;
+    bool caseRight =
+        activePartHandle == PartHandle_Right ||
+        activePartHandle == PartHandle_BottomRight ||
+        activePartHandle == PartHandle_TopRight;
+    bool caseTop =
+        activePartHandle == PartHandle_Top ||
+        activePartHandle == PartHandle_TopLeft ||
+        activePartHandle == PartHandle_TopRight;
+    bool caseLeft =
+        activePartHandle == PartHandle_Left ||
+        activePartHandle == PartHandle_BottomLeft ||
+        activePartHandle == PartHandle_TopLeft;
+
+    bool flippedX{ false }, flippedY{ false };
+    if (appState.selectedPart >= 0) {
+        flippedX = arrangementPtr->parts.at(appState.selectedPart).flipX;
+        flippedY = arrangementPtr->parts.at(appState.selectedPart).flipY;
+    }
+
+    if (flippedY ? caseTop : caseBottom) {
         newPartSize.y +=
             io.MouseDelta.y / (canvasZoom + 1.f) /
             globalAnimatable->getCurrentKey()->scaleY;
@@ -604,11 +623,7 @@ void WindowCanvas::Update() {
         ) + partBeforeInteraction.scaleY - 1.f;
     }
 
-    if (
-        activePartHandle == PartHandle_Right ||
-        activePartHandle == PartHandle_BottomRight ||
-        activePartHandle == PartHandle_TopRight
-    ) {
+    if (flippedX ? caseLeft : caseRight) {
         newPartSize.x +=
             io.MouseDelta.x / (canvasZoom + 1.f) /
             globalAnimatable->getCurrentKey()->scaleX;
@@ -619,11 +634,7 @@ void WindowCanvas::Update() {
         ) + partBeforeInteraction.scaleX - 1.f;
     }
 
-    if (
-        activePartHandle == PartHandle_Top ||
-        activePartHandle == PartHandle_TopLeft ||
-        activePartHandle == PartHandle_TopRight
-    ) {
+    if (flippedY ? caseBottom : caseTop) {
         newPartSize.y -=
             io.MouseDelta.y / (canvasZoom + 1.f) /
             globalAnimatable->getCurrentKey()->scaleY;
@@ -641,11 +652,7 @@ void WindowCanvas::Update() {
         );
     }
 
-    if (
-        activePartHandle == PartHandle_Left ||
-        activePartHandle == PartHandle_BottomLeft ||
-        activePartHandle == PartHandle_TopLeft
-    ) {
+    if (flippedX ? caseRight : caseLeft) {
         newPartSize.x -=
             io.MouseDelta.x / (canvasZoom + 1.f) /
             globalAnimatable->getCurrentKey()->scaleX;
