@@ -29,10 +29,18 @@ void WindowSpritesheet::RunEditor() {
     std::string imagePath = std::filesystem::absolute(configManager.getConfig().textureEditPath.c_str()).string();
 
     std::ostringstream commandStream;
+
+#ifdef __WIN32__
     commandStream <<
         "cmd.exe /c \"\"" <<
         configManager.getConfig().imageEditorPath <<
         "\" \"" << imagePath << "\"\"";
+#else
+    commandStream <<
+        "\"" <<
+        configManager.getConfig().imageEditorPath <<
+        "\" \"" << imagePath << "\"";
+#endif
 
     std::string command = commandStream.str();
     std::cout << "[WindowSpritesheet::RunEditor] Running command: " << command << std::endl;
