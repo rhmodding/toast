@@ -116,6 +116,11 @@ public:
         bool canRedo() {
             return !this->redoStack.empty();
         }
+
+        void clearUndoRedoStack() {
+            this->undoStack.clear();
+            this->redoStack.clear();
+        }
     };
     std::deque<Session> sessionList;
 
