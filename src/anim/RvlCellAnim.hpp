@@ -73,6 +73,10 @@ namespace RvlCellAnim {
 
         int tempOffset[2]{ 0, 0 };
         float tempScale[2]{ 1.f, 1.f };
+
+        bool operator==(const Arrangement& other) const {
+            return other.parts == this->parts;
+        }
     };
 
     struct AnimationKey {
