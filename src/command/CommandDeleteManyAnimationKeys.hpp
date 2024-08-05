@@ -8,6 +8,8 @@
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
 
+// TODO: Replace with CommandModifyAnimation
+
 class CommandDeleteManyAnimationKeys : public BaseCommand {
 public:
     // Constructor: Delete keys by cellanimIndex, animationIndex, keyIndexStart and keyIndexEnd.
