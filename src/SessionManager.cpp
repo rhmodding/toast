@@ -247,9 +247,13 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
 
         // Header files
         for (uint32_t i = 0; i < session->cellanims.size(); i++) {
-            std::stringstream stream;
-
             const auto& map = session->cellanims.at(i).animNames;
+
+            if (map.empty())
+                continue; // Don't bother writing the header if there's no
+                          // definitions avaliable.
+
+            std::stringstream stream;
             for (auto it = map.begin(); it != map.end(); ++it) {
                 stream << "#define " << it->second << " " << std::to_string(it->first);
 
