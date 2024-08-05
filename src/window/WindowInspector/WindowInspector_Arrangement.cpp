@@ -1,6 +1,6 @@
 #include "../WindowInspector.hpp"
 
-#include "../../ConfigManager.hpp"
+// #include "../../ConfigManager.hpp"
 #include "../../SessionManager.hpp"
 
 #include "../../anim/Animatable.hpp"
@@ -307,6 +307,7 @@ void WindowInspector::Level_Arrangement() {
                 }
             }
 
+            /*
             if (ConfigManager::getInstance().getConfig().showUnknownValues) {
                 ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
 
@@ -326,6 +327,7 @@ void WindowInspector::Level_Arrangement() {
                     changed |= ImGui::InputScalar(" D##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[3], &uint8_one, nullptr, "%u");
                 }
             }
+             */
 
             if (newPart != originalPart) {
                 *partPtr = originalPart;

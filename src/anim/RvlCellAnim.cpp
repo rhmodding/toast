@@ -149,6 +149,14 @@ namespace RvlCellAnim {
 
                 arrangementPart.unknown.u32 = BYTESWAP_32(arrangementPartRaw->unknown_1);
 
+                if (UNLIKELY(arrangementPart.unknown.u32 != 0)) {
+                    std::cout <<
+                        "[RvlCellAnimObject::RvlCellAnimObject] Arrangement Part has nonzero unknown value!:\n" <<
+                        "   - Arrangement No.: " << i + 1 << "\n" <<
+                        "   - Part No.: " << j + 1 << "\n" <<
+                        "   - Value: " << arrangementPart.unknown.u32 << "\n";
+                }
+
                 arrangement.parts[j] = arrangementPart;
             }
 
