@@ -140,6 +140,10 @@ public:
         return this->getCurrentSession()->modified;
     }
 
+    inline bool getSessionAvaliable() {
+        return this->currentSession >= 0;
+    }
+
     void SessionChanged();
 
     enum SessionError: int16_t {

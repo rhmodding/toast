@@ -175,7 +175,7 @@ void A_LD_SaveCurrentSessionAsSzs() {
     GET_ASYNC_TASK_MANAGER;
 
     if (
-        !sessionManager.getCurrentSession() ||
+        !sessionManager.getSessionAvaliable() ||
         asyncTaskManager.HasTaskOfType<ExportSessionTask>()
     )
         return;
@@ -200,7 +200,7 @@ void A_SaveCurrentSessionSzs() {
     GET_ASYNC_TASK_MANAGER;
 
     if (
-        !sessionManager.getCurrentSession() ||
+        !sessionManager.getSessionAvaliable() ||
         sessionManager.getCurrentSession()->traditionalMethod ||
 
         asyncTaskManager.HasTaskOfType<ExportSessionTask>()
@@ -447,14 +447,14 @@ void App::Menubar() {
 
             if (ImGui::MenuItem(
                 (char*)ICON_FA_FILE_EXPORT " Save (szs)", SCS_SAVE_CURRENT_SESSION_SZS, false,
-                    !!sessionManager.getCurrentSession() &&
+                    sessionManager.getSessionAvaliable() &&
                     !sessionManager.getCurrentSession()->traditionalMethod
             ))
                 A_SaveCurrentSessionSzs();
 
             if (ImGui::MenuItem(
                 (char*)ICON_FA_FILE_EXPORT " Save as (szs)...", SCS_LAUNCH_SAVE_AS_SZS_DIALOG, false,
-                !!sessionManager.getCurrentSession()
+                sessionManager.getSessionAvaliable()
             ))
                 A_LD_SaveCurrentSessionAsSzs();
 
@@ -464,14 +464,14 @@ void App::Menubar() {
         if (ImGui::BeginMenu("Edit")) {
             if (ImGui::MenuItem(
                 (char*)ICON_FA_ARROW_ROTATE_LEFT " Undo", SCS_UNDO, false,
-                    !!sessionManager.getCurrentSession() &&
+                    sessionManager.getSessionAvaliable() &&
                     sessionManager.getCurrentSession()->canUndo()
             ))
                 sessionManager.getCurrentSession()->undo();
 
             if (ImGui::MenuItem(
                 (char*)ICON_FA_ARROW_ROTATE_RIGHT " Redo", SCS_REDO, false,
-                    !!sessionManager.getCurrentSession() &&
+                    sessionManager.getSessionAvaliable() &&
                     sessionManager.getCurrentSession()->canRedo()
             ))
                 sessionManager.getCurrentSession()->redo();
@@ -483,7 +483,7 @@ void App::Menubar() {
 
         if (ImGui::BeginMenu("Cellanim", sessionAvaliable)) {
             if (ImGui::BeginMenu("Select")) {
-                for (uint16_t i = 0; i < sessionManager.getCurrentSession()->cellanims.size(); i++) {
+                for (uint32_t i = 0; i < sessionManager.getCurrentSession()->cellanims.size(); i++) {
                     const std::string& str = sessionManager.getCurrentSession()->cellanims.at(i).name;
 
                     std::ostringstream fmtStream;
@@ -978,7 +978,7 @@ void App::Menubar() {
                     if (ImGui::BeginPopupContextItem()) {
                         ImGui::Text("Select a Cellanim:");
                         ImGui::Separator();
-                        for (uint16_t i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
+                        for (uint32_t i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
                             const std::string& str = sessionManager.sessionList.at(n).cellanims.at(i).name;
 
                             std::ostringstream fmtStream;
@@ -1376,7 +1376,7 @@ void App::HandleShortcuts() {
 
     GET_SESSION_MANAGER;
 
-    if (sessionManager.getCurrentSession()) {
+    if (sessionManager.getSessionAvaliable()) {
         if (SC_UNDO)
             sessionManager.getCurrentSession()->undo();
         if (SC_REDO)
@@ -1426,7 +1426,7 @@ void App::Update() {
     if (appState.enableDemoWindow)
         ImGui::ShowDemoWindow(&appState.enableDemoWindow);
 
-    if (!!SessionManager::getInstance().getCurrentSession()) {
+    if (SessionManager::getInstance().getSessionAvaliable()) {
         PlayerManager::getInstance().Update();
 
         // Windows
