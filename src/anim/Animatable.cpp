@@ -253,7 +253,8 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
                 return true;
                 break;
             }
-        } else
+        }
+        else
             return true;
     }
 

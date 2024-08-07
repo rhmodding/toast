@@ -343,7 +343,8 @@ void WindowInspector::Level_Arrangement() {
             }
 
             ImGui::EndDisabled();
-        } else {
+        }
+        else {
             ImGui::Text("No part selected.");
         }
     }

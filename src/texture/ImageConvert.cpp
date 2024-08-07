@@ -376,7 +376,8 @@ void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint16_t srcWidth, uint16_t
 
                         *(pixel + 0) = 0x0080 | ((readPixel[0] & 0xF8) >> 1) | (readPixel[1] >> 6);
                         *(pixel + 1) = ((readPixel[1] & 0x38) << 2) | (readPixel[2] >> 3);
-                    } else { // Transparent, write RGBA4443
+                    }
+                    else { // Transparent, write RGBA4443
                         // Bits:
                         // 0    AAA   RRRRGGGG  BBBB
                         // ^    ^     ^   ^     ^

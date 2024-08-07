@@ -120,7 +120,8 @@ namespace PaletteUtils {
 
                         *(pixel + 0) = 0x0080 | ((r & 0xF8) >> 1) | (g >> 6);
                         *(pixel + 1) = ((g & 0x38) << 2) | (b >> 3);
-                    } else { // Transparent, write RGBA4443
+                    }
+                    else { // Transparent, write RGBA4443
                         // Bits:
                         // 0    AAA   RRRRGGGG  BBBB
                         // ^    ^     ^   ^     ^

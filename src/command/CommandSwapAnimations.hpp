@@ -34,10 +34,12 @@ public:
 
             if (map.find(animationIndexA) != map.end() && map.find(animationIndexB) != map.end()) {
                 std::swap(map[animationIndexA], map[animationIndexB]);
-            } else if (map.find(animationIndexA) != map.end()) {
+            }
+            else if (map.find(animationIndexA) != map.end()) {
                 map[animationIndexB] = map[animationIndexA];
                 map.erase(animationIndexA);
-            } else if (map.find(animationIndexB) != map.end()) {
+            }
+            else if (map.find(animationIndexB) != map.end()) {
                 map[animationIndexA] = map[animationIndexB];
                 map.erase(animationIndexB);
             }

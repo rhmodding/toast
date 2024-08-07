@@ -397,7 +397,8 @@ void WindowSpritesheet::Update() {
                     ImGui::PopID();
 
                     this->RunEditor();
-                } else {
+                }
+                else {
                     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
                     ImGui::OpenPopup("###DialogPNGExportFailed");
                     ImGui::PopID();
@@ -589,7 +590,8 @@ void WindowSpritesheet::Update() {
 
         canvasOffset.x = this->sheetZoomedOffset.x * (rScale - 1.f);
         canvasOffset.y = this->sheetZoomedOffset.y * (rScale - 1.f);
-    } else {
+    }
+    else {
         float rScale = this->sheetZoomEnabled ? 2.f : 1.f;
 
         scale *= rScale;
