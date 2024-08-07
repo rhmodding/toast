@@ -356,7 +356,6 @@ void WindowInspector::Level_Arrangement() {
         RvlCellAnim::Arrangement* arrangementPtr =
             &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
-        // Use a signed 32-bit integer since n will eventually be a negative value
         for (int n = static_cast<int>(arrangementPtr->parts.size()) - 1; n >= 0; n--) {
             ImGui::PushID(n);
 
@@ -366,69 +365,6 @@ void WindowInspector::Level_Arrangement() {
             ImGui::SetNextItemAllowOverlap();
             if (ImGui::Selectable("###PartSelectable", appState.selectedPart == n, ImGuiSelectableFlags_SelectOnNav))
                 appState.selectedPart = n;
-
-            auto partToggle = [](const char* label, bool& condition, bool flip) {
-                ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-                const ImGuiID id = window->GetID(label);
-                const ImVec2 labelSize = ImGui::CalcTextSize(label, nullptr, true);
-
-                const ImGuiStyle& style = ImGui::GetStyle();
-
-                ImVec2 pos = window->DC.CursorPos;
-
-                if (0.f < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
-                    pos.y += window->DC.CurrLineTextBaseOffset;
-
-                ImVec2 size = ImGui::CalcItemSize(
-                    { 0, 0 },
-                    labelSize.x,
-                    labelSize.y
-                );
-
-                const ImRect bb(pos, { pos.x + size.x, pos.y + size.y });
-
-                ImGui::ItemSize(size, 0.f);
-                if (!ImGui::ItemAdd(bb, id))
-                    return;
-
-                bool hovered{ false }, held{ false };
-                bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
-
-                if (pressed)
-                    condition ^= true;
-
-                uint32_t textColor{ 0xFFFFFFFF };
-
-                ImVec4 color = (flip ? condition : !condition) ?
-                    style.Colors[ImGuiCol_Text] :
-                    ImVec4(1.f, 0.f, 0.f, 1.f);
-                color.w *= style.Alpha * (hovered ? 1.f : .5f);
-
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertFloat4ToU32(color));
-                ImGui::RenderTextClipped(
-                    bb.Min,
-                    bb.Max,
-                    label, nullptr,
-                    &labelSize,
-                    { .5f, .5f },
-
-                    &bb
-                );
-                ImGui::PopStyleColor();
-            };
-
-            ImGui::SameLine(0.f, 0.f);
-            partToggle((char*)ICON_FA_EYE "##Visible", arrangementPtr->parts.at(n).editorVisible, true);
-
-            ImGui::SameLine();
-            partToggle((char*)ICON_FA_LOCK "##Locked", arrangementPtr->parts.at(n).editorLocked, false);
-
-            ImGui::SameLine();
-
-            ImGui::BeginDisabled(arrangementPtr->parts.at(n).editorLocked);
-            ImGui::TextUnformatted(buffer);
-            ImGui::EndDisabled();
 
             bool deletePart{ false };
             if (ImGui::BeginPopupContextItem()) {
@@ -602,6 +538,69 @@ void WindowInspector::Level_Arrangement() {
 
                 ImGui::EndPopup();
             }
+
+            auto partToggle = [](const char* label, bool& condition, bool flip) {
+                ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+                const ImGuiID id = window->GetID(label);
+                const ImVec2 labelSize = ImGui::CalcTextSize(label, nullptr, true);
+
+                const ImGuiStyle& style = ImGui::GetStyle();
+
+                ImVec2 pos = window->DC.CursorPos;
+
+                if (0.f < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+                    pos.y += window->DC.CurrLineTextBaseOffset;
+
+                ImVec2 size = ImGui::CalcItemSize(
+                    { 0, 0 },
+                    labelSize.x,
+                    labelSize.y
+                );
+
+                const ImRect bb(pos, { pos.x + size.x, pos.y + size.y });
+
+                ImGui::ItemSize(size, 0.f);
+                if (!ImGui::ItemAdd(bb, id))
+                    return;
+
+                bool hovered{ false }, held{ false };
+                bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
+
+                if (pressed)
+                    condition ^= true;
+
+                uint32_t textColor{ 0xFFFFFFFF };
+
+                ImVec4 color = (flip ? condition : !condition) ?
+                    style.Colors[ImGuiCol_Text] :
+                    ImVec4(1.f, 0.f, 0.f, 1.f);
+                color.w *= style.Alpha * (hovered ? 1.f : .5f);
+
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertFloat4ToU32(color));
+                ImGui::RenderTextClipped(
+                    bb.Min,
+                    bb.Max,
+                    label, nullptr,
+                    &labelSize,
+                    { .5f, .5f },
+
+                    &bb
+                );
+                ImGui::PopStyleColor();
+            };
+
+            ImGui::SameLine(0.f, 0.f);
+            partToggle((char*)ICON_FA_EYE "##Visible", arrangementPtr->parts.at(n).editorVisible, true);
+
+            ImGui::SameLine();
+            partToggle((char*)ICON_FA_LOCK "##Locked", arrangementPtr->parts.at(n).editorLocked, false);
+
+            ImGui::SameLine();
+
+            ImGui::BeginDisabled(arrangementPtr->parts.at(n).editorLocked);
+            ImGui::TextUnformatted(buffer);
+            ImGui::EndDisabled();
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6, ImGui::GetStyle().ItemSpacing.y });
 
