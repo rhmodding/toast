@@ -69,6 +69,8 @@ void WindowSpritesheet::PaletteWindow() {
         // Left
         {
             ImGui::BeginChild("ColorList", ImVec2(250, 0), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
+
+            // There will never be more than 65535 colors
             for (uint16_t i = 0; i < colors.size(); i++) {
                 const uint32_t& color = colors.at(i);
 

@@ -13,14 +13,14 @@
 
 #include "../common.hpp"
 
-bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
+bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint32_t numVertices) {
     float x = point.x, y = point.y;
     bool inside{ false };
 
     ImVec2 p1 = polygon[0];
     ImVec2 p2;
 
-    for (uint16_t i = 1; i <= numVertices; i++) {
+    for (uint32_t i = 1; i <= numVertices; i++) {
         p2 = polygon[i % numVertices];
 
         // Point is above the minimum y

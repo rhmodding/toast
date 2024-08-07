@@ -107,7 +107,7 @@ namespace TPL {
         }
 
         uint32_t descriptorCount = BYTESWAP_32(palette->descriptorCount);
-        for (uint16_t i = 0; i < descriptorCount; i++) {
+        for (uint32_t i = 0; i < descriptorCount; i++) {
             const TPLDescriptor* descriptor = reinterpret_cast<const TPLDescriptor*>(
                 tplData + BYTESWAP_32(palette->descriptorsOffset) +
                 (sizeof(TPLDescriptor) * i)
