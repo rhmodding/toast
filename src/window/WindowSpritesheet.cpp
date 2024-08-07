@@ -181,7 +181,11 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::SeparatorText("Image Info");
                 ImGui::PopFont();
 
-                if (ImGui::BeginChild("ImageInfoChild", ImVec2(-FLT_MIN, 0.f), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
+                if (ImGui::BeginChild(
+                    "ImageInfoChild",
+                    ImVec2(-(std::numeric_limits<float>::max()), 0.f),
+                    ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY
+                )) {
                     ImGui::BulletText(
                         "Size: %ux%u",
                         sessionManager.getCurrentSession()->getCellanimSheet()->width,
@@ -228,7 +232,11 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::SeparatorText("Format Info");
                 ImGui::PopFont();
 
-                if (ImGui::BeginChild("FormatInfoChild", ImVec2(-FLT_MIN, 0.f), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
+                if (ImGui::BeginChild(
+                    "FormatInfoChild",
+                    ImVec2(-(std::numeric_limits<float>::max()), 0.f),
+                    ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY
+                )) {
                     const char* colorDesc;
                     const char* alphaDesc;
 
@@ -277,7 +285,13 @@ void WindowSpritesheet::FormatPopup() {
 
         // Right
         {
-            ImGui::SetNextWindowSizeConstraints({ 256.f, 0.f }, { FLT_MAX, FLT_MAX });
+            ImGui::SetNextWindowSizeConstraints(
+                { 256.f, 0.f },
+                {
+                    std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::max()
+                }
+            );
             ImGui::BeginChild("ImageView");
 
             static float bgScale{ .215f };

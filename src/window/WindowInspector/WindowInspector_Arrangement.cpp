@@ -149,7 +149,12 @@ void WindowInspector::Level_Arrangement() {
                         partPtr->positionX - (this->realPosition ? 0 : CANVAS_ORIGIN),
                         partPtr->positionY - (this->realPosition ? 0 : CANVAS_ORIGIN)
                     };
-                    if (ImGui::DragInt2("Position XY##World", positionValues, 1.f, INT16_MIN, INT16_MAX)) {
+                    if (ImGui::DragInt2(
+                        "Position XY##World",
+                        positionValues, 1.f,
+                        std::numeric_limits<int16_t>::min(),
+                        std::numeric_limits<int16_t>::max()
+                    )) {
                         partPtr->positionX = static_cast<int16_t>(
                             positionValues[0] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );

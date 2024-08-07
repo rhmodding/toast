@@ -214,7 +214,12 @@ void WindowInspector::Level_Key() {
             animKey->positionX,
             animKey->positionY
         };
-        if (ImGui::DragInt2("Position XY", positionValues, 1.f, -INT16_MAX, INT16_MAX)) {
+        if (ImGui::DragInt2(
+            "Position XY",
+            positionValues, 1.f,
+            std::numeric_limits<int16_t>::min(),
+            std::numeric_limits<int16_t>::max()
+        )) {
             animKey->positionX = positionValues[0];
             animKey->positionY = positionValues[1];
         }

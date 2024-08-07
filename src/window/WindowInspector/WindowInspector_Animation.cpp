@@ -167,7 +167,13 @@ void WindowInspector::Level_Animation() {
 
         // Right
         {
-            ImGui::SetNextWindowSizeConstraints({ 400.f, 380.f }, { FLT_MAX, FLT_MAX });
+            ImGui::SetNextWindowSizeConstraints(
+                { 400.f, 380.f },
+                {
+                    std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::max()
+                }
+            );
             ImGui::BeginChild("Visualization", { 0, 0 }, ImGuiChildFlags_Border);
 
             float beginCursorY = ImGui::GetCursorPosY();
