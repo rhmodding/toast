@@ -114,20 +114,22 @@ namespace RvlCellAnim {
         uint16_t arrangementCount = BYTESWAP_16(header->arrangementCount);
         this->arrangements.resize(arrangementCount);
 
-        for (uint16_t i = 0; i < arrangementCount; i++) {
-            const ArrangementRaw* arrangementRaw = reinterpret_cast<const ArrangementRaw*>(RvlCellAnimData + readOffset);
+        for (uint32_t i = 0; i < arrangementCount; i++) {
+            const ArrangementRaw* arrangementRaw =
+                reinterpret_cast<const ArrangementRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(ArrangementRaw);
 
-            Arrangement arrangement;
+            Arrangement& arrangement = this->arrangements[i];
 
             uint16_t arrangementPartCount = BYTESWAP_16(arrangementRaw->partsCount);
             arrangement.parts.resize(arrangementPartCount);
 
             for (uint16_t j = 0; j < arrangementPartCount; j++) {
-                const ArrangementPartRaw* arrangementPartRaw = reinterpret_cast<const ArrangementPartRaw*>(RvlCellAnimData + readOffset);
+                const ArrangementPartRaw* arrangementPartRaw =
+                    reinterpret_cast<const ArrangementPartRaw*>(RvlCellAnimData + readOffset);
                 readOffset += sizeof(ArrangementPartRaw);
 
-                ArrangementPart arrangementPart;
+                ArrangementPart& arrangementPart = arrangement.parts[j];
 
                 arrangementPart.regionX = BYTESWAP_16(arrangementPartRaw->regionX);
                 arrangementPart.regionY = BYTESWAP_16(arrangementPartRaw->regionY);
@@ -156,11 +158,7 @@ namespace RvlCellAnim {
                         "   - Part No.: " << j + 1 << "\n" <<
                         "   - Value: " << arrangementPart.unknown.u32 << "\n";
                 }
-
-                arrangement.parts[j] = arrangementPart;
             }
-
-            this->arrangements[i] = arrangement;
         }
 
         uint16_t animationCount = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(RvlCellAnimData + readOffset));
@@ -170,11 +168,11 @@ namespace RvlCellAnim {
 
         this->animations.resize(animationCount);
 
-        for (uint16_t i = 0; i < animationCount; i++) {
+        for (uint32_t i = 0; i < animationCount; i++) {
             const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(AnimationRaw);
 
-            Animation animation;
+            Animation& animation = this->animations[i];
 
             uint16_t keyCount = BYTESWAP_16(animationRaw->keyCount);
             animation.keys.resize(keyCount);
@@ -183,7 +181,7 @@ namespace RvlCellAnim {
                 const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(RvlCellAnimData + readOffset);
                 readOffset += sizeof(AnimationKeyRaw);
 
-                AnimationKey key;
+                AnimationKey& key = animation.keys[j];
 
                 key.arrangementIndex = BYTESWAP_16(keyRaw->arrangementIndex);
 
@@ -198,11 +196,7 @@ namespace RvlCellAnim {
                 key.angle = Common::byteswapFloat(keyRaw->angle);
 
                 key.opacity = keyRaw->opacity;
-
-                animation.keys[j] = key;
             }
-
-            this->animations[i] = animation;
         }
 
         this->ok = true;
