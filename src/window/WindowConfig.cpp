@@ -78,7 +78,7 @@ void WindowConfig::Update() {
         static uint8_t selected{ 0 };
         {
             ImGui::BeginChild("Categories", ImVec2(150, 0), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
-            for (uint8_t i = 0; i < Categories_End; i++) {
+            for (uint32_t i = 0; i < Categories_End; i++) {
                 if (ImGui::Selectable(categoryNames[i], selected == i))
                     selected = i;
             }
