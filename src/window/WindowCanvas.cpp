@@ -11,9 +11,7 @@
 
 #include "../command/CommandModifyArrangementPart.hpp"
 
-inline ImVec2 roundVec2(const ImVec2& point) {
-    return { IM_ROUND(point.x), IM_ROUND(point.y) };
-}
+#include "../common.hpp"
 
 bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint16_t numVertices) {
     float x = point.x, y = point.y;
@@ -429,8 +427,8 @@ void WindowCanvas::Update() {
 
                 auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), appState.selectedPart);
                 drawList->AddQuad(
-                    roundVec2(bounding[0]), roundVec2(bounding[1]),
-                    roundVec2(bounding[2]), roundVec2(bounding[3]),
+                    ROUND_IMVEC2(bounding[0]), ROUND_IMVEC2(bounding[1]),
+                    ROUND_IMVEC2(bounding[2]), ROUND_IMVEC2(bounding[3]),
                     color
                 );
 
@@ -448,11 +446,8 @@ void WindowCanvas::Update() {
                     ImVec2 point;
 
                     // Side boxes
-                    for (uint8_t i = 0; i < 4; i++) {
-                        point = {
-                            IM_ROUND((bounding[i].x + bounding[(i+1) % 4].x) / 2.f),
-                            IM_ROUND((bounding[i].y + bounding[(i+1) % 4].y) / 2.f)
-                        };
+                    for (uint32_t i = 0; i < 4; i++) {
+                        point = AVERAGE_IMVEC2_ROUND(bounding[i], bounding[(i+1) % 4]);
 
                         if (Common::IsMouseInRegion(point))
                             *(short*)&hoveredPartHandle = PartHandle_Top + i;
@@ -460,8 +455,8 @@ void WindowCanvas::Update() {
                         DrawRotatedBox(drawList, point, 4.f, angle, color);
                     }
 
-                    for (uint8_t i = 0; i < 4; i++) {
-                        point = roundVec2(bounding[i]);
+                    for (uint32_t i = 0; i < 4; i++) {
+                        point = ROUND_IMVEC2(bounding[i]);
 
                         if (Common::IsMouseInRegion(point))
                             *(short*)&hoveredPartHandle = PartHandle_TopLeft + i;
@@ -469,10 +464,7 @@ void WindowCanvas::Update() {
                         DrawRotatedBox(drawList, point, 4.f, angle, color);
                     }
 
-                    point = {
-                        IM_ROUND((bounding[0].x + bounding[2].x) / 2.f),
-                        IM_ROUND((bounding[0].y + bounding[2].y) / 2.f)
-                    };
+                    point = AVERAGE_IMVEC2_ROUND(bounding[0], bounding[2]);
 
                     // Center box
                     DrawRotatedBox(drawList, point, 3.f, angle, color);
@@ -494,8 +486,8 @@ void WindowCanvas::Update() {
 
                     auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
                     drawList->AddQuad(
-                        roundVec2(bounding[0]), roundVec2(bounding[1]),
-                        roundVec2(bounding[2]), roundVec2(bounding[3]),
+                        ROUND_IMVEC2(bounding[0]), ROUND_IMVEC2(bounding[1]),
+                        ROUND_IMVEC2(bounding[2]), ROUND_IMVEC2(bounding[3]),
                         color
                     );
                 }

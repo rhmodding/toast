@@ -299,33 +299,33 @@ void WindowTimeline::Update() {
                                     RvlCellAnim::Arrangement newArrangement = *arrangementA;
 
                                     for (uint16_t j = 0; j < newArrangement.parts.size(); j++) {
-                                        newArrangement.parts.at(j).angle = (
-                                            arrangementA->parts.at(j).angle +
+                                        newArrangement.parts.at(j).angle = AVERAGE_FLOATS(
+                                            arrangementA->parts.at(j).angle,
                                             arrangementB->parts.at(j).angle
-                                        ) / 2.f;
+                                        );
 
-                                        newArrangement.parts.at(j).positionX = static_cast<int32_t>((
-                                            arrangementA->parts.at(j).positionX +
+                                        newArrangement.parts.at(j).positionX = AVERAGE_INTS(
+                                            arrangementA->parts.at(j).positionX,
                                             arrangementB->parts.at(j).positionX
-                                        ) / 2);
-                                        newArrangement.parts.at(j).positionY = static_cast<int32_t>((
-                                            arrangementA->parts.at(j).positionY +
+                                        );
+                                        newArrangement.parts.at(j).positionY = AVERAGE_INTS(
+                                            arrangementA->parts.at(j).positionY,
                                             arrangementB->parts.at(j).positionY
-                                        ) / 2);
+                                        );
 
-                                        newArrangement.parts.at(j).scaleX = (
-                                            arrangementA->parts.at(j).scaleX +
+                                        newArrangement.parts.at(j).scaleX = AVERAGE_FLOATS(
+                                            arrangementA->parts.at(j).scaleX,
                                             arrangementB->parts.at(j).scaleX
-                                        ) / 2.f;
-                                        newArrangement.parts.at(j).scaleY = (
-                                            arrangementA->parts.at(j).scaleY +
+                                        );
+                                        newArrangement.parts.at(j).scaleY = AVERAGE_FLOATS(
+                                            arrangementA->parts.at(j).scaleY,
                                             arrangementB->parts.at(j).scaleY
-                                        ) / 2.f;
+                                        );
 
-                                        newArrangement.parts.at(j).opacity = static_cast<uint16_t>((
-                                            arrangementA->parts.at(j).opacity +
+                                        newArrangement.parts.at(j).opacity = AVERAGE_UCHARS(
+                                            arrangementA->parts.at(j).opacity,
                                             arrangementB->parts.at(j).opacity
-                                        ) / 2.f);
+                                        );
                                     }
 
                                     globalAnimatable->cellanim->arrangements.push_back(newArrangement);
@@ -333,39 +333,21 @@ void WindowTimeline::Update() {
                                     {
                                         newKey.arrangementIndex = globalAnimatable->cellanim->arrangements.size() - 1;
 
-                                        newKey.angle = (
-                                            globalAnimatable->getCurrentAnimation()->keys.at(i).angle +
-                                            globalAnimatable->getCurrentAnimation()->keys.at(i+1).angle
-                                        ) / 2.f;
+                                        const auto& keyA = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                                        const auto& keyB = globalAnimatable->getCurrentAnimation()->keys.at(i+1);
 
-                                        newKey.scaleX = (
-                                            globalAnimatable->getCurrentAnimation()->keys.at(i).scaleX +
-                                            globalAnimatable->getCurrentAnimation()->keys.at(i+1).scaleX
-                                        ) / 2.f;
-                                        newKey.scaleY = (
-                                            globalAnimatable->getCurrentAnimation()->keys.at(i).scaleY +
-                                            globalAnimatable->getCurrentAnimation()->keys.at(i+1).scaleY
-                                        ) / 2.f;
+                                        newKey.angle = AVERAGE_FLOATS(keyA.angle, keyB.angle);
 
-                                        // Offset
-                                        {
-                                            newKey.positionX = (
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i).positionX +
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i+1).positionX
-                                            ) / 2;
+                                        newKey.scaleX = AVERAGE_FLOATS(keyA.scaleX, keyB.scaleX);
+                                        newKey.scaleY = AVERAGE_FLOATS(keyA.scaleY, keyB.scaleY);
 
-                                            newKey.positionY = (
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i).positionY +
-                                                globalAnimatable->getCurrentAnimation()->keys.at(i+1).positionY
-                                            ) / 2;
-                                        }
+                                        newKey.positionX = AVERAGE_INTS(keyA.positionX, keyB.positionX);
+                                        newKey.positionY = AVERAGE_INTS(keyA.positionY, keyB.positionY);
 
-                                        newKey.opacity = static_cast<uint16_t>((
-                                            globalAnimatable->getCurrentAnimation()->keys.at(i).opacity +
-                                            globalAnimatable->getCurrentAnimation()->keys.at(i+1).opacity
-                                        ) / 2);
+                                        newKey.opacity = AVERAGE_UCHARS(keyA.opacity, keyB.opacity);
 
-                                        newKey.holdFrames /= 2;
+                                        newKey.holdFrames = (newKey.holdFrames / 2) - 1;
+
                                         if (newKey.holdFrames < 1)
                                             newKey.holdFrames = 1;
                                     }
@@ -401,8 +383,6 @@ void WindowTimeline::Update() {
                             if (ImGui::Selectable(!io.KeyAlt ? "Push key after" : "Duplicate key after")) {
                                 changed = true;
 
-                                playerManager.setCurrentKeyIndex(i + 1);
-
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandInsertAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
@@ -410,12 +390,12 @@ void WindowTimeline::Update() {
                                     i + 1,
                                     io.KeyAlt ? globalAnimatable->getCurrentAnimation()->keys.at(i) : RvlCellAnim::AnimationKey()
                                 ));
+
+                                playerManager.setCurrentKeyIndex(i + 1);
                             }
 
                             if (ImGui::Selectable(!io.KeyAlt ? "Push key before" : "Duplicate key before")) {
                                 changed = true;
-
-                                playerManager.setCurrentKeyIndex(i);
 
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandInsertAnimationKey>(
@@ -424,6 +404,8 @@ void WindowTimeline::Update() {
                                     i,
                                     io.KeyAlt ? globalAnimatable->getCurrentAnimation()->keys.at(i) : RvlCellAnim::AnimationKey()
                                 ));
+
+                                playerManager.setCurrentKeyIndex(i);
                             }
 
                             ImGui::Separator();

@@ -27,6 +27,24 @@
 
 #define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
+#define AVERAGE_FLOATS(a, b) ((float)(a + b) / 2.f)
+#define AVERAGE_INTS(a, b) ((int32_t)(a + b) / 2)
+#define AVERAGE_UINTS(a, b) ((uint32_t)(a + b) / 2)
+
+#define AVERAGE_UCHARS(a, b) ( \
+    ((uint8_t)a / 2) + ((uint8_t)b / 2) + \
+    (((uint8_t)a & 1) & ((uint8_t)b & 1)) \
+)
+
+#define AVERAGE_IMVEC2(vecA, vecB) ( ImVec2( (vecA.x + vecB.x) / 2.f, (vecA.y + vecB.y) / 2.f ) )
+
+#define AVERAGE_IMVEC2_ROUND(vecA, vecB) (ImVec2( \
+    (float)(int)(((vecA.x + vecB.x) / 2.f) + .5f), \
+    (float)(int)(((vecA.y + vecB.y) / 2.f) + .5f) \
+))
+
+#define ROUND_IMVEC2(vec) ( ImVec2( (float)(int)(vec.x + .5f), (float)(int)(vec.y + .5f) ) )
+
 #define GET_IMGUI_IO ImGuiIO& io = ImGui::GetIO()
 #define GET_WINDOW_DRAWLIST ImDrawList* drawList = ImGui::GetWindowDrawList()
 

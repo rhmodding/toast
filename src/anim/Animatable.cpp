@@ -182,10 +182,7 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
         { topLeftOffset.x, bottomRightOffset.y },
     };
 
-    ImVec2 center = {
-        (topLeftOffset.x + bottomRightOffset.x) / 2.f,
-        (topLeftOffset.y + bottomRightOffset.y) / 2.f
-    };
+    ImVec2 center = AVERAGE_IMVEC2(topLeftOffset, bottomRightOffset);
 
     // Transformations
     {
@@ -232,7 +229,7 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
         }
 
         // Key offset addition
-        for (uint8_t i = 0; i < 4; i++) {
+        for (uint32_t i = 0; i < 4; i++) {
             transformedQuad[i].x += (key->positionX) * this->scaleX;
             transformedQuad[i].y += (key->positionY) * this->scaleY;
         }
