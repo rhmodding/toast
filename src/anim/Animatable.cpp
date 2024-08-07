@@ -363,7 +363,7 @@ void Animatable::DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_
     if (!this->visible)
         return;
 
-    uint16_t i;
+    uint16_t i{ 0 };
 
     if (backCount) {
         i = this->currentKeyIndex;
@@ -396,37 +396,3 @@ void Animatable::DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_
         }
     }
 }
-
-/*
-void Animatable::DrawOrigins(ImDrawList* drawList, float radius, uint32_t color) {
-    assert(this->cellanim);
-    assert(this->currentAnimation);
-
-    if (!this->visible)
-        return;
-
-    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
-
-    for (auto part : arrangement->parts) {
-        float totalScaleX = this->currentKey->scaleX * this->scaleX;
-        float totalScaleY = this->currentKey->scaleY * this->scaleY;
-
-        ImVec2 topLeftOffset = {
-            CANVAS_ORIGIN + ((part.positionX - CANVAS_ORIGIN) * totalScaleX) + (this->offset.x - 512),
-            CANVAS_ORIGIN + ((part.positionY - CANVAS_ORIGIN) * totalScaleY) + (this->offset.y - 512),
-        };
-
-        ImVec2 bottomRightOffset = {
-            topLeftOffset.x + ((part.regionW * part.scaleX) * totalScaleX),
-            topLeftOffset.y + ((part.regionH * part.scaleY) * totalScaleY)
-        };
-
-        ImVec2 center = {
-            (topLeftOffset.x + bottomRightOffset.x) / 2.0f,
-            (topLeftOffset.y + bottomRightOffset.y) / 2.0f
-        };
-
-        drawList->AddCircleFilled(center, radius, color);
-    }
-}
-*/
