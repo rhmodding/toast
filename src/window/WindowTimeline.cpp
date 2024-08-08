@@ -13,9 +13,9 @@
 
 #include "../command/CommandMoveAnimationKey.hpp"
 #include "../command/CommandDeleteAnimationKey.hpp"
-#include "../command/CommandDeleteManyAnimationKeys.hpp"
 #include "../command/CommandInsertAnimationKey.hpp"
 #include "../command/CommandModifyAnimationKey.hpp"
+#include "../command/CommandModifyAnimation.hpp"
 
 void WindowTimeline::Update() {
     GET_APP_STATE;
@@ -505,8 +505,6 @@ void WindowTimeline::Update() {
                         if (deleteKeyMode) {
                             changed = true;
 
-                            std::vector<RvlCellAnim::AnimationKey>& keys = globalAnimatable->getCurrentAnimation()->keys;
-
                             switch (deleteKeyMode) {
                                 case DeleteKeyMode_Current: {
                                     sessionManager.getCurrentSession()->executeCommand(
@@ -518,22 +516,29 @@ void WindowTimeline::Update() {
                                 } break;
 
                                 case DeleteKeyMode_ToLeft: {
-                                    if (playerManager.getCurrentKeyIndex() == i)
-                                        playerManager.setCurrentKeyIndex(0);
+                                    RvlCellAnim::Animation newAnimation{
+                                        .keys = globalAnimatable->getCurrentAnimation()->keys
+                                    };
+                                    newAnimation.keys.erase(newAnimation.keys.begin(), newAnimation.keys.begin() + i);
 
                                     sessionManager.getCurrentSession()->executeCommand(
-                                    std::make_shared<CommandDeleteManyAnimationKeys>(
+                                    std::make_shared<CommandModifyAnimation>(
                                         sessionManager.getCurrentSession()->currentCellanim,
                                         appState.globalAnimatable->getCurrentAnimationIndex(),
-                                        0, i
+                                        newAnimation
                                     ));
                                 } break;
                                 case DeleteKeyMode_ToRight: {
+                                    RvlCellAnim::Animation newAnimation{
+                                        .keys = globalAnimatable->getCurrentAnimation()->keys
+                                    };
+                                    newAnimation.keys.erase(newAnimation.keys.begin() + i + 1, newAnimation.keys.end());
+
                                     sessionManager.getCurrentSession()->executeCommand(
-                                    std::make_shared<CommandDeleteManyAnimationKeys>(
+                                    std::make_shared<CommandModifyAnimation>(
                                         sessionManager.getCurrentSession()->currentCellanim,
                                         appState.globalAnimatable->getCurrentAnimationIndex(),
-                                        i + 1, keys.size()
+                                        newAnimation
                                     ));
                                 } break;
 
