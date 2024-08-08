@@ -15,6 +15,8 @@
 
 #include <tinyfiledialogs.h>
 
+#include "../AppState.hpp"
+
 #include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"
 
@@ -334,6 +336,14 @@ void WindowSpritesheet::FormatPopup() {
 }
 
 void WindowSpritesheet::Update() {
+    static bool firstOpen{ true };
+    if (UNLIKELY(firstOpen)) {
+        this->gridType = AppState::getInstance().getDarkThemeEnabled() ?
+            GridType_Dark : GridType_Light;
+
+        firstOpen = false;
+    }
+
     GET_SESSION_MANAGER;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });

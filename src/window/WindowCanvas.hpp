@@ -7,8 +7,6 @@
 
 #include <cstdint>
 
-#include "../AppState.hpp"
-
 #define CANVAS_ZOOM_SPEED .04f
 #define CANVAS_ZOOM_SPEED_FAST .08f
 
@@ -32,10 +30,9 @@ public:
         GridType_Light,
 
         GridType_Custom
-    } gridType{ AppState::getInstance().getDarkThemeEnabled() ? GridType_Dark : GridType_Light };
+    } gridType;
     ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
     bool   enableGridLines{ true };
-
 
     bool    visualizeSafeArea{ false };
     uint8_t safeAreaAlpha{ 255 };

@@ -9,6 +9,8 @@
 #include "../ConfigManager.hpp"
 #include "../PlayerManager.hpp"
 
+#include "../AppState.hpp"
+
 #include "../command/CommandModifyArrangementPart.hpp"
 
 #include "../common.hpp"
@@ -201,6 +203,14 @@ void WindowCanvas::Menubar() {
 }
 
 void WindowCanvas::Update() {
+    static bool firstOpen{ true };
+    if (UNLIKELY(firstOpen)) {
+        this->gridType = AppState::getInstance().getDarkThemeEnabled() ?
+            GridType_Dark : GridType_Light;
+
+        firstOpen = false;
+    }
+
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });

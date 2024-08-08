@@ -3,19 +3,21 @@
 
 #include "BaseWindow.hpp"
 
-#include "../AppState.hpp"
+#include <imgui.h>
+
+#include <cstdint>
 
 class WindowSpritesheet : public BaseWindow {
 public:
     void Update() override;
 
-    enum GridType : uint8_t {
+    enum GridType : uint16_t {
         GridType_None,
         GridType_Dark,
         GridType_Light,
 
         GridType_Custom
-    } gridType{ AppState::getInstance().getDarkThemeEnabled() ? GridType_Dark : GridType_Light };
+    } gridType;
     ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
 
     bool drawBounding{ true };
