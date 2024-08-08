@@ -143,12 +143,14 @@ void WindowTimeline::Update() {
 
                         ImGui::SameLine();
 
-                        uint32_t holdFramesLeft = playerManager.getHoldFramesLeft();
+                        int32_t holdFramesLeft = playerManager.getHoldFramesLeft();
+
+                        ImGui::BeginDisabled(true);
 
                         ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-                        ImGui::InputScalar("Hold Frames Left", ImGuiDataType_U16, &holdFramesLeft, nullptr, nullptr, "%u", ImGuiInputTextFlags_ReadOnly);
-                        ImGui::PopItemFlag();
+                        ImGui::InputInt("Hold Frames Left", &holdFramesLeft, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+                        ImGui::EndDisabled();
 
                         ImGui::SameLine();
 
