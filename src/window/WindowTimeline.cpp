@@ -3,6 +3,9 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <algorithm>
+#include <limits>
+
 #include <cstdint>
 
 #include "../font/FontAwesome.h"
@@ -134,11 +137,13 @@ void WindowTimeline::Update() {
                     case 1: {
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
 
-                        uint16_t keyIndex = playerManager.getCurrentKeyIndex();
+                        uint16_t keyNo = playerManager.getCurrentKeyIndex() + 1;
 
                         ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                        if (ImGui::InputScalar("Key Index", ImGuiDataType_U16, &keyIndex, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
-                            playerManager.setCurrentKeyIndex(keyIndex);
+                        if (ImGui::InputScalar("Key No.", ImGuiDataType_U16, &keyNo, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                            playerManager.setCurrentKeyIndex(std::clamp<uint16_t>(
+                                keyNo - 1, 1, std::numeric_limits<uint16_t>::max()
+                            ));
                         }
 
                         ImGui::SameLine();
