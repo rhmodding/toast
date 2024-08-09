@@ -195,14 +195,9 @@ namespace U8 {
 
         //////////////////////////////////////////////////////////////////
 
-        enum FlatType : uint8_t {
-            FlatType_File,
-            FlatType_Directory,
-            FlatType_Root
-        };
-
         struct FlatEntry {
-            FlatType type;
+            // 0x02 for Root Node, 0x01 for Directory* and 0x00 for File*
+            uint8_t type;
 
             void* ptr;
 
@@ -212,7 +207,7 @@ namespace U8 {
         };
 
         std::vector<FlatEntry> flattenedArchive;
-        flattenedArchive.push_back({ FlatType_Root, nullptr, 0, 0 });
+        flattenedArchive.push_back({ 0x02, nullptr, 0, 0 });
 
         std::stack<std::pair<Directory*, uint32_t>> directoryStack;
         directoryStack.push({ &this->structure, 0 });
@@ -225,28 +220,17 @@ namespace U8 {
             uint32_t& index = directoryStack.top().second;
 
             if (index < currentDir->files.size()) {
-                flattenedArchive.push_back({
-                    FlatType_File,
-                    &currentDir->files[index++],
-                    parentList.back(),
-                    0
-                });
+                flattenedArchive.push_back({ 0x00, &currentDir->files[index++], parentList.back(), 0 });
             }
             else if (index < currentDir->files.size() + currentDir->subdirectories.size()) {
                 index -= static_cast<uint32_t>(currentDir->files.size());
                 Directory* subDir = &currentDir->subdirectories[index];
 
-                flattenedArchive.push_back({
-                    FlatType_Directory,
-                    subDir,
-                    parentList.back(),
-                    0
-                });
+                flattenedArchive.push_back({ 0x01, subDir, parentList.back(), 0 });
 
                 parentList.push_back(static_cast<uint32_t>(flattenedArchive.size() - 1));
-                directoryStack.push({ subDir, 0 });
-
-                index++;
+                directoryStack.push({ subDir, 0});
+                ++index;
             }
             else {
                 for (uint32_t parentIndex : parentList)
@@ -265,22 +249,16 @@ namespace U8 {
 
         // String offsets
         for (const FlatEntry& entry : flattenedArchive) {
-            switch (entry.type) {
-                case FlatType_File:
-                    stringOffsets.push_back(stringPoolSize);
-                    stringPoolSize += static_cast<uint32_t>(
-                        reinterpret_cast<File*>(entry.ptr)->name.size() + 1
-                    );
-                    break;
-                case FlatType_Directory:
-                    stringOffsets.push_back(stringPoolSize);
-                    stringPoolSize += static_cast<uint32_t>(
-                        reinterpret_cast<Directory*>(entry.ptr)->name.size() + 1
-                    );
-
-                default:
-                    stringOffsets.push_back(0);
+            if (entry.type == 0x01) {
+                stringOffsets.push_back(stringPoolSize);
+                stringPoolSize += static_cast<uint32_t>(reinterpret_cast<Directory*>(entry.ptr)->name.size() + 1);
             }
+            else if (entry.type == 0x00) {
+                stringOffsets.push_back(stringPoolSize);
+                stringPoolSize += static_cast<uint32_t>(reinterpret_cast<File*>(entry.ptr)->name.size() + 1);
+            }
+            else
+                stringOffsets.push_back(0);
         }
 
         uint32_t dataOffset = static_cast<uint32_t>(
@@ -297,12 +275,10 @@ namespace U8 {
 
             if (entry.type == 0x00) {
                 dataOffsets.push_back(dataOffset + dataSize);
-                dataSize += static_cast<uint32_t>(
-                    reinterpret_cast<File*>(entry.ptr)->data.size()
-                );
+                dataSize += static_cast<uint32_t>(reinterpret_cast<File*>(entry.ptr)->data.size());
 
                 if (i+1 != flattenedArchive.size())
-                    dataSize = (dataSize + 31) & ~31; // Align to 32
+                    dataSize = (dataSize + 31) & ~31;
             }
             else
                 dataOffsets.push_back(0);
