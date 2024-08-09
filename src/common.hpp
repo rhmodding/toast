@@ -25,6 +25,11 @@
     #define BYTESWAP_16 __builtin_bswap16
 #endif
 
+#define IDENTIFIER_TO_U32(char1, char2, char3, char4) ( \
+    ((uint32_t)char4 << 24) | ((uint32_t)char3 << 16) | \
+    ((uint32_t)char2 <<  8) | ((uint32_t)char1 <<  0) \
+)
+
 #define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
 #define AVERAGE_FLOATS(a, b) ((float)(a + b) / 2.f)
