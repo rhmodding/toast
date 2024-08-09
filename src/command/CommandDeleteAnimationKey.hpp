@@ -26,6 +26,7 @@ public:
         animation.keys.erase(it);
 
         PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedPart();
     }
 
     void Rollback() override {
@@ -35,6 +36,7 @@ public:
         animation.keys.insert(it, this->key);
 
         PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedPart();
     }
 
 private:
