@@ -1,5 +1,10 @@
 #include "App.hpp"
 
+#include <algorithm>
+#include <array>
+#include <cmath>
+
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -28,8 +33,13 @@
 
 #include "command/CommandSwitchCellanim.hpp"
 #include "command/CommandModifyArrangement.hpp"
+#include "command/CommandDeleteArrangement.hpp"
 #include "command/CommandModifyArrangementPart.hpp"
 #include "command/CommandDeleteArrangementPart.hpp"
+#include "command/CommandModifyAnimationKey.hpp"
+#include "command/CommandDeleteAnimationKey.hpp"
+
+#include "anim/CellanimHelpers.hpp"
 
 #include "task/AsyncTaskManager.hpp"
 #include "task/AsyncTask_ExportSessionTask.hpp"
@@ -401,6 +411,248 @@ void App::SetupFonts() {
     }
 }
 
+// TODO: Move all of this outside of App.cpp
+
+namespace ImGui {
+    void EvalBezier(const float P[4], ImVec2* results, unsigned int stepCount) {
+        const float step = 1.f / stepCount;
+
+        float t = step;
+        for (unsigned int i = 1; i <= stepCount; i++, t += step) {
+            float u = 1.f - t;
+
+            float t2 = t * t;
+
+            float t3 = t2 * t;
+            float b1 = 3.f * u * u * t;
+            float b2 = 3.f * u * t2;
+
+            results[i] = {
+                b1 * P[0] + b2 * P[2] + t3,
+                b1 * P[1] + b2 * P[3] + t3
+            };
+        }
+    }
+
+    ImVec2 BezierValue(const float x, const float P[4]) {
+        const int STEPS = 256;
+
+        ImVec2 closestPoint = { 0, 0 };
+        float closestDistance = fabsf(x);
+
+        const float step = 1.f / STEPS;
+
+        float t = step;
+        for (unsigned int i = 1; i <= STEPS; i++, t += step) {
+            float u = 1.f - t;
+
+            float t2 = t * t;
+
+            float t3 = t2 * t;
+            float b1 = 3.f * u * u * t;
+            float b2 = 3.f * u * t2;
+
+            ImVec2 point = {
+                b1 * P[0] + b2 * P[2] + t3,
+                b1 * P[1] + b2 * P[3] + t3
+            };
+
+            float distance = fabsf(x - point.x);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestPoint = point;
+            }
+            else
+                break;
+        }
+
+        return closestPoint;
+    }
+
+    bool Bezier(const char* label, float P[4], bool handlesEnabled = true) {
+        const int LINE_SEGMENTS = 32; // Line segments in rendered curve
+        const int CURVE_WIDTH = 4; // Curve line width
+
+        const int LINE_WIDTH = 1; // Handles: connecting line width
+        const int GRAB_RADIUS = 6; // Handles: circle radius
+        const int GRAB_BORDER = 2; // Handles: circle border width
+
+        const ImGuiStyle& style = GetStyle();
+        const ImGuiIO& IO = GetIO();
+
+        ImDrawList* drawList = GetWindowDrawList();
+        ImGuiWindow* window = GetCurrentWindow();
+
+        if (window->SkipItems)
+            return false;
+
+        bool changed{ false };
+
+        const float avail = ImGui::GetContentRegionAvail().x;
+
+        const float padX = 32.f;
+        const float padY = 144.f;
+
+        ImRect outerBb = {
+            window->DC.CursorPos,
+            {
+                window->DC.CursorPos.x + ImMin(avail, 256.f + padX),
+                window->DC.CursorPos.y + ImMin(avail, 192.f + padY)
+            }
+        };
+
+        ImRect bb = outerBb;
+        bb.Expand({ -(padX / 2.f), -(padY / 2.f) });
+
+        char buf[128];
+        sprintf(buf, "%s##bInteract", label);
+
+        ImGui::InvisibleButton(buf, outerBb.GetSize(),
+            ImGuiButtonFlags_MouseButtonLeft
+        );
+
+        const bool interactionHovered     = ImGui::IsItemHovered();
+        const bool interactionActive      = ImGui::IsItemActive();      // Held
+        const bool interactionDeactivated = ImGui::IsItemDeactivated(); // Un-held
+
+        // Dragging
+        bool draggingLeft = interactionActive &&
+            ImGui::IsMouseDragging(ImGuiMouseButton_Left, 2.f);
+
+        RenderFrame( // Outer frame
+            outerBb.Min, outerBb.Max,
+            GetColorU32(ImGuiCol_FrameBg, .75f), true,
+            style.FrameRounding
+        );
+        RenderFrame( // Inner frame
+            bb.Min, bb.Max,
+            GetColorU32(ImGuiCol_FrameBg, 1.f), true,
+            style.FrameRounding
+        );
+
+        // Draw grid
+        for (int i = 0; i <= bb.GetWidth(); i += IM_ROUND(bb.GetWidth() / 4)) {
+            drawList->AddLine(
+                ImVec2(bb.Min.x + i, outerBb.Min.y),
+                ImVec2(bb.Min.x + i, outerBb.Max.y),
+                GetColorU32(ImGuiCol_TextDisabled)
+            );
+        }
+        for (int i = 0; i <= bb.GetHeight(); i += IM_ROUND(bb.GetHeight() / 4)) {
+            drawList->AddLine(
+                ImVec2(outerBb.Min.x, bb.Min.y + i),
+                ImVec2(outerBb.Max.x, bb.Min.y + i),
+                GetColorU32(ImGuiCol_TextDisabled)
+            );
+        }
+
+        // Evaluate curve
+        std::array<ImVec2, LINE_SEGMENTS + 1> results;
+        EvalBezier(P, results.data(), LINE_SEGMENTS);
+
+        // Drawing & handle drag behaviour
+        {
+            bool hoveredHandle[2]{ false };
+            static int handleBeingDragged{ -1 };
+
+            // Handle drag behaviour
+            if (handlesEnabled) {
+                for (int i = 0; i < 2; i++) {
+                    ImVec2 pos = ImVec2(
+                        (P[i*2+0]) * bb.GetWidth() + bb.Min.x,
+                        (1 - P[i*2+1]) * bb.GetHeight() + bb.Min.y
+                    );
+
+                    hoveredHandle[i] =
+                        Common::IsMouseInRegion(pos, GRAB_RADIUS);
+
+                    if (hoveredHandle[i] || handleBeingDragged == i)
+                        SetTooltip("(%4.3f, %4.3f)", P[i*2+0], P[i*2+1]);
+
+                    if (
+                        draggingLeft &&
+                        handleBeingDragged < 0 &&
+                        hoveredHandle[i] != 0
+                    )
+                        handleBeingDragged = i;
+
+                    if (handleBeingDragged == i) {
+                        P[i*2+0] += GetIO().MouseDelta.x / bb.GetWidth();
+                        P[i*2+1] -= GetIO().MouseDelta.y / bb.GetHeight();
+
+                        P[i*2+0] = std::clamp<float>(P[i*2+0], 0.f, 1.f);
+
+                        changed = true;
+                    }
+                }
+
+                if (interactionDeactivated)
+                    handleBeingDragged = -1;
+            }
+
+            // Draw curve
+            {
+                ImVec2 points[LINE_SEGMENTS + 1];
+                for (uint32_t i = 0; i < LINE_SEGMENTS + 1; ++i ) {
+                    points[i] = {
+                        results[i+0].x * bb.GetWidth() + bb.Min.x,
+                        (1 - results[i+0].y) * bb.GetHeight() + bb.Min.y
+                    };
+                }
+
+                const ImColor color = GetStyle().Colors[ImGuiCol_PlotLines];
+                drawList->AddPolyline(
+                    points, LINE_SEGMENTS + 1,
+                    color,
+                    ImDrawFlags_RoundCornersAll,
+                    CURVE_WIDTH
+                );
+            }
+
+            // Draw handles
+            if (handlesEnabled) {
+                float lumaA =
+                    (hoveredHandle[0] || handleBeingDragged == 0) ?
+                    .5f : 1.f;
+                float lumaB =
+                    (hoveredHandle[1] || handleBeingDragged == 1) ?
+                    .5f : 1.f;
+
+                const uint32_t
+                    handleColA (ColorConvertFloat4ToU32({
+                        1.00f, 0.00f, 0.75f, lumaA
+                    })),
+                    handleColB (ColorConvertFloat4ToU32({
+                        0.00f, 0.75f, 1.00f, lumaB
+                    }));
+
+                ImVec2 p1 = ImVec2(
+                    P[0] * bb.GetWidth() + bb.Min.x,
+                    (1.f - P[1]) * bb.GetHeight() + bb.Min.y
+                );
+                ImVec2 p2 = ImVec2(
+                    P[2] * bb.GetWidth() + bb.Min.x,
+                    (1.f - P[3]) * bb.GetHeight() + bb.Min.y
+                );
+
+                drawList->PushClipRect(outerBb.Min, outerBb.Max);
+
+                drawList->AddLine(bb.GetBL(), p1, IM_COL32_WHITE, LINE_WIDTH);
+                drawList->AddLine(bb.GetTR(), p2, IM_COL32_WHITE, LINE_WIDTH);
+
+                drawList->AddCircleFilled(p1, GRAB_RADIUS, IM_COL32_WHITE);
+                drawList->AddCircleFilled(p1, GRAB_RADIUS-GRAB_BORDER, handleColA);
+                drawList->AddCircleFilled(p2, GRAB_RADIUS, IM_COL32_WHITE);
+                drawList->AddCircleFilled(p2, GRAB_RADIUS-GRAB_BORDER, handleColB);
+
+                drawList->PopClipRect();
+            }
+        }
+
+        return changed;
+    }
+}
+
 void App::Menubar() {
     GET_APP_STATE;
     GET_SESSION_MANAGER;
@@ -547,7 +799,8 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Interpolate ..");
+            if (ImGui::MenuItem("Interpolate .."))
+                appState.OpenGlobalPopup("MInterpolateKeys");
 
             ImGui::Separator();
 
@@ -870,6 +1123,149 @@ void App::Menubar() {
             else {
                 part->positionX = origPosition[0];
                 part->positionY = origPosition[1];
+            }
+
+            ImGui::EndPopup();
+        }
+
+        ImGui::PopStyleVar();
+    }
+
+    { // MInterpolateKeys
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
+
+        static bool lateOpen{ false };
+        const bool active = ImGui::BeginPopup("MInterpolateKeys");
+
+        const bool animatableActive = true;
+
+        if (!active && lateOpen && animatableActive) {
+
+
+            lateOpen = false;
+        }
+
+        if (active && animatableActive) {
+            if (!lateOpen) {
+
+            }
+
+            lateOpen = true;
+
+            ImGui::SeparatorText("Interpolate keys");
+
+            {
+                static std::array<float, 4> v = { 0.f, 0.f, 1.f, 1.f };
+                static bool customEasing{ false };
+
+                static const char* easeNames[] = {
+                    "Linear",
+                    "Ease In (Sine)",
+                    "Ease Out (Sine)",
+                    "Ease In-Out (Sine)",
+                    "Ease In (Quad)",
+                    "Ease Out (Quad)",
+                    "Ease In-Out (Quad)",
+                    "Ease In (Cubic)",
+                    "Ease Out (Cubic)",
+                    "Ease In-Out (Cubic)",
+                    "Ease In (Quart)",
+                    "Ease Out (Quart)",
+                    "Ease In-Out (Quart)",
+                    "Ease In (Quint)",
+                    "Ease Out (Quint)",
+                    "Ease In-Out (Quint)",
+                    "Ease In (Expo)",
+                    "Ease Out (Expo)",
+                    "Ease In-Out (Expo)",
+                    "Ease In (Circ)",
+                    "Ease Out (Circ)",
+                    "Ease In-Out (Circ)",
+                    "Ease In (Back)",
+                    "Ease Out (Back)",
+                    "Ease In-Out (Back)",
+                    "Custom"
+                };
+                static const std::array<float, 4> easePresets[] = {
+                    { 0.000f, 0.000f, 1.000f, 1.000f },
+                    { 0.470f, 0.000f, 0.745f, 0.715f },
+                    { 0.390f, 0.575f, 0.565f, 1.000f },
+                    { 0.445f, 0.050f, 0.550f, 0.950f },
+                    { 0.550f, 0.085f, 0.680f, 0.530f },
+                    { 0.250f, 0.460f, 0.450f, 0.940f },
+                    { 0.455f, 0.030f, 0.515f, 0.955f },
+                    { 0.550f, 0.055f, 0.675f, 0.190f },
+                    { 0.215f, 0.610f, 0.355f, 1.000f },
+                    { 0.645f, 0.045f, 0.355f, 1.000f },
+                    { 0.895f, 0.030f, 0.685f, 0.220f },
+                    { 0.165f, 0.840f, 0.440f, 1.000f },
+                    { 0.770f, 0.000f, 0.175f, 1.000f },
+                    { 0.755f, 0.050f, 0.855f, 0.060f },
+                    { 0.230f, 1.000f, 0.320f, 1.000f },
+                    { 0.860f, 0.000f, 0.070f, 1.000f },
+                    { 0.950f, 0.050f, 0.795f, 0.035f },
+                    { 0.190f, 1.000f, 0.220f, 1.000f },
+                    { 1.000f, 0.000f, 0.000f, 1.000f },
+                    { 0.600f, 0.040f, 0.980f, 0.335f },
+                    { 0.075f, 0.820f, 0.165f, 1.000f },
+                    { 0.785f, 0.135f, 0.150f, 0.860f },
+                    { 0.600f, -0.28f, 0.735f, 0.045f },
+                    { 0.175f, 0.885f, 0.320f, 1.275f },
+                    { 0.680f, -0.55f, 0.265f, 1.550f },
+                    { 0.445f, 0.050f, 0.550f, 0.950f },
+                };
+
+                int selectedEaseIndex{ 0 };
+                if (customEasing)
+                    selectedEaseIndex = ARRAY_LENGTH(easePresets) - 1;
+                else {
+                    const std::array<float, 4>* easeSearch =
+                        std::find(easePresets, easePresets + ARRAY_LENGTH(easePresets) - 1, v);
+                    selectedEaseIndex = easeSearch - easePresets;
+                }
+
+                ImGui::Bezier("CurveView", v.data(), customEasing);
+
+                ImGui::SameLine();
+
+                ImGui::BeginGroup();
+
+                if (ImGui::SliderFloat4("Curve", v.data(), 0, 1))
+                    customEasing = true;
+                ImGui::Dummy({ 0.f, 6.f });
+
+                ImGui::Separator();
+
+                if (ImGui::Combo("Easing Preset", &selectedEaseIndex, easeNames, ARRAY_LENGTH(easeNames))) {
+                    customEasing = selectedEaseIndex == ARRAY_LENGTH(easePresets) - 1;
+
+                    if (!customEasing)
+                        v = easePresets[selectedEaseIndex];
+                }
+
+                ImGui::EndGroup();
+
+                float progression = fmodf((float)ImGui::GetTime(), 1.f);
+                ImVec2 vec = ImGui::BezierValue(progression, v.data());
+
+                ImGui::ProgressBar(vec.y);
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::Button("Apply")) {
+
+
+                SessionManager::getInstance().getCurrentSessionModified() = true;
+
+                ImGui::CloseCurrentPopup();
+                lateOpen = false;
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                ImGui::CloseCurrentPopup();
+                lateOpen = false;
             }
 
             ImGui::EndPopup();
