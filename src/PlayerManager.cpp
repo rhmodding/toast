@@ -1,3 +1,5 @@
+#include "anim/RvlCellAnim.hpp"
+
 #include "PlayerManager.hpp"
 
 void PlayerManager::setCurrentKeyIndex(uint16_t index) {
@@ -20,24 +22,24 @@ void PlayerManager::setAnimating(bool animating) {
     globalAnimatable->setAnimating(animating);
 }
 
-uint16_t PlayerManager::getTotalPseudoFrames() {
+uint32_t PlayerManager::getTotalPseudoFrames() {
     GET_ANIMATABLE;
 
-    uint16_t pseudoFrames{ 0 };
+    uint32_t pseudoFrames{ 0 };
     for (const auto& key : globalAnimatable->getCurrentAnimation()->keys)
         pseudoFrames += key.holdFrames;
 
     return pseudoFrames;
 }
 
-uint16_t PlayerManager::getCurrentPseudoFrames() {
+uint32_t PlayerManager::getElapsedPseudoFrames() {
     GET_ANIMATABLE;
 
     if (!this->playing && this->currentFrame == 0 && globalAnimatable->getHoldFramesLeft() < 1)
         return 0;
 
-    uint16_t result{ 0 };
-    for (uint32_t keyIndex = 0; keyIndex < this->currentFrame; keyIndex++)
+    uint32_t result{ 0 };
+    for (uint16_t keyIndex = 0; keyIndex < this->currentFrame; keyIndex++)
         result += globalAnimatable->getCurrentAnimation()->keys.at(keyIndex).holdFrames;
 
     result += globalAnimatable->getCurrentKey()->holdFrames - globalAnimatable->getHoldFramesLeft();

@@ -31,24 +31,31 @@ public:
     void ResetTimer();
 
     inline uint16_t getCurrentKeyIndex() {
-        return AppState::getInstance().globalAnimatable->getCurrentKeyIndex();
+        return AppState::getInstance().globalAnimatable->
+            getCurrentKeyIndex();
     }
     inline uint16_t getKeyCount() {
-        return AppState::getInstance().globalAnimatable->getCurrentAnimation()->keys.size();
+        return AppState::getInstance().globalAnimatable->
+            getCurrentAnimation()->keys.size();
     }
     inline int32_t getHoldFramesLeft() {
-        return AppState::getInstance().globalAnimatable->getHoldFramesLeft();
+        return AppState::getInstance().globalAnimatable->
+            getHoldFramesLeft();
     }
 
     void setCurrentKeyIndex(uint16_t index);
 
     void setAnimating(bool animating);
 
-    uint16_t getTotalPseudoFrames();
-    uint16_t getCurrentPseudoFrames();
+    // Pseudoframes are animation keys + their hold time.
+    uint32_t getTotalPseudoFrames();
+    uint32_t getElapsedPseudoFrames();
 
+    // 0.f - 1.f
     inline float getAnimationProgression() {
-        return this->getCurrentPseudoFrames() / static_cast<float>(this->getTotalPseudoFrames());
+        return
+            this->getElapsedPseudoFrames() /
+            static_cast<float>(this->getTotalPseudoFrames());
     }
 
     inline void clampCurrentKeyIndex() {
