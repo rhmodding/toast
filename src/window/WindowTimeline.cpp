@@ -36,10 +36,12 @@ void WindowTimeline::Update() {
     ImGui::BeginDisabled(appState.getArrangementMode());
 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.f);
 
     ImGui::BeginChild("TimelineToolbar", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
     {
         ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
 
         ImGui::Dummy(ImVec2(0, .5f));
 
