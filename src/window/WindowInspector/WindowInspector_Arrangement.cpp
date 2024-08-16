@@ -140,6 +140,11 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::BeginDisabled(partPtr->editorLocked);
 
+            ImGui::SeparatorText((char*)ICON_FA_PENCIL " Part Name (editor)");
+            {
+                ImGui::InputText("Name", partPtr->editorName, 32);
+            }
+
             ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
             {
                 // Position XY

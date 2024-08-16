@@ -2,10 +2,31 @@
 
 #include "PlayerManager.hpp"
 
+#include "AppState.hpp"
+
 void PlayerManager::setCurrentKeyIndex(uint16_t index) {
     GET_APP_STATE;
 
+    RvlCellAnim::ArrangementPart* part{ nullptr };
+    if (
+        appState.selectedPart >= 0 &&
+        appState.selectedPart <
+            appState.globalAnimatable->getCurrentArrangement()->parts.size()
+    )
+        part = &appState.globalAnimatable->getCurrentArrangement()->
+            parts.at(appState.selectedPart);
+
     appState.globalAnimatable->setAnimationKeyFromIndex(index);
+
+    if (part) {
+        int32_t p = appState.getMatchingNamePartIndex(
+            *part,
+            *appState.globalAnimatable->getCurrentArrangement()
+        );
+
+        if (p >= 0)
+            appState.selectedPart = p;
+    }
 
     appState.correctSelectedPart();
 }
@@ -48,6 +69,7 @@ uint32_t PlayerManager::getElapsedPseudoFrames() {
 }
 
 void PlayerManager::Update() {
+    GET_APP_STATE;
     GET_ANIMATABLE;
 
     if (!this->playing || !globalAnimatable)
@@ -59,6 +81,11 @@ void PlayerManager::Update() {
     this->previous = now;
 
     while (delta >= this->timeLeft) {
+        RvlCellAnim::ArrangementPart* part{ nullptr };
+        if (appState.selectedPart >= 0)
+            part = &appState.globalAnimatable->getCurrentArrangement()->
+                parts.at(appState.selectedPart);
+
         globalAnimatable->Update();
 
         delta -= this->timeLeft;
@@ -72,7 +99,17 @@ void PlayerManager::Update() {
         this->playing = globalAnimatable->getAnimating();
         this->currentFrame = globalAnimatable->getCurrentKeyIndex();
 
-        AppState::getInstance().correctSelectedPart();
+        if (part) {
+            int32_t p = appState.getMatchingNamePartIndex(
+                *part,
+                *appState.globalAnimatable->getCurrentArrangement()
+            );
+
+            if (p >= 0)
+                appState.selectedPart = p;
+        }
+
+        appState.correctSelectedPart();
     }
 
     this->timeLeft -= delta;

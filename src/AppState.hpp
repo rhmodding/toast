@@ -89,6 +89,25 @@ public:
     uint16_t selectedAnimation{ 0 };
     int32_t selectedPart{ -1 };
 
+    int32_t getMatchingNamePartIndex(
+        RvlCellAnim::ArrangementPart& part,
+        RvlCellAnim::Arrangement& arrangement
+    ) {
+        if (part.editorName[0] == '\0')
+            return -1;
+
+        for (uint32_t i = 0; i < arrangement.parts.size(); i++) {
+            const auto& lPart = arrangement.parts.at(i);
+            if (
+                lPart.editorName[0] != '\0' &&
+                (strncmp(lPart.editorName, part.editorName, 32) == 0)
+            )
+                return i;
+        }
+
+        return -1;
+    }
+
     inline void correctSelectedPart() {
         this->selectedPart = std::clamp<int32_t>(
             this->selectedPart,
