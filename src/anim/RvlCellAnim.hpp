@@ -40,6 +40,8 @@ namespace RvlCellAnim {
         bool editorVisible{ true };
         bool editorLocked{ false };
 
+        char editorName[32]{ '\0' };
+
         bool operator==(const ArrangementPart& other) const {
             return
                 this->regionX == other.regionX &&
@@ -130,6 +132,11 @@ namespace RvlCellAnim {
 
         std::vector<Arrangement> arrangements;
         std::vector<Animation> animations;
+
+        // The supplemental editor data (TOAST.DAT) is expected.
+        // The end of the cellanim binary will contain EXPECTDT
+        // if this is true.
+        bool expectEditorData{ true };
 
         std::vector<unsigned char> Reserialize();
 

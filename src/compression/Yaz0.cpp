@@ -175,7 +175,7 @@ namespace Yaz0 {
                 // Usually this means the file is invalid.
 
                 std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the read offset is larger than the data size!\n";
-                std::cout << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
+                std::cerr << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
                 return std::nullopt; // return nothing (std::optional)
             }
 
@@ -196,7 +196,7 @@ namespace Yaz0 {
                 uint32_t dist = ((byteA & 0xF) << 8) | byteB;
                 if (UNLIKELY((destOffset - (dist + 1)) < 0)) {
                     std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the destination offset is out of bounds (negative)!\n";
-                    std::cout << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
+                    std::cerr << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
                     return std::nullopt; // return nothing (std::optional)
                 }
 

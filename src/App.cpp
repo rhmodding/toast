@@ -1288,6 +1288,25 @@ void App::UpdatePopups() {
         ImGui::PopStyleVar();
     }
 
+    // ###DialogEditorDataExpected
+    {
+        CENTER_NEXT_WINDOW;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+        if (ImGui::BeginPopupModal("Data not found###DialogEditorDataExpected", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::TextUnformatted("The supplemental editor data for this file (TOAST.DAT) has not been found.\nSome data may be incorrect / inaccurate.");
+
+            ImGui::Dummy({0, 5});
+
+            if (ImGui::Button("Alright", ImVec2(120, 0)))
+                ImGui::CloseCurrentPopup();
+            ImGui::SetItemDefaultFocus();
+
+            ImGui::EndPopup();
+        }
+        ImGui::PopStyleVar();
+    }
+
     // ###ConfirmFreeModifiedSession
     {
         GET_SESSION_MANAGER;

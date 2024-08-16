@@ -1,5 +1,6 @@
 #include "RvlCellAnim.hpp"
 
+#include <cstring>
 #include <iostream>
 #include <fstream>
 
@@ -89,6 +90,8 @@ struct AnimationKeyRaw {
     // 24-byte padding
     uint8_t pad24[3];
 };
+
+#define EXPECT_DATA_FOOTER "EXPECTDT"
 
 #pragma pack(pop) // Reset packing alignment to default
 
@@ -199,11 +202,14 @@ namespace RvlCellAnim {
             }
         }
 
+        this->expectEditorData =
+            memcmp(RvlCellAnimData + dataSize - 8, EXPECT_DATA_FOOTER, 8) == 0;
+
         this->ok = true;
     }
 
     std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
-        // Allocate header now
+        // Allocate header & footer size now
         std::vector<unsigned char> result(sizeof(RvlCellAnimHeader) + 8);
 
         RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
@@ -256,7 +262,10 @@ namespace RvlCellAnim {
                 arrangementPartRaw->flipX = part.flipX ? 0x01 : 0x00;
                 arrangementPartRaw->flipY = part.flipY ? 0x01 : 0x00;
 
-                arrangementPartRaw->opacity = part.opacity;
+                if (!part.editorVisible)
+                    arrangementPartRaw->opacity = 0;
+                else
+                    arrangementPartRaw->opacity = part.opacity;
 
                 arrangementPartRaw->unknown_1 = BYTESWAP_32(part.unknown.u32);
                 arrangementPartRaw->unknown_2 = 0x00;
@@ -313,7 +322,10 @@ namespace RvlCellAnim {
             }
         }
 
-        strcpy(reinterpret_cast<char*>(result.data() + result.size() - 8), "MWTOAST");
+        sprintf(
+            reinterpret_cast<char*>(result.data() + result.size() - 8),
+            "%.8s", EXPECT_DATA_FOOTER
+        );
 
         return result;
     }
