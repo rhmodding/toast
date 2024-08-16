@@ -12,8 +12,6 @@ public:
     bool open{ false };
 
     ConfigManager::Config selfConfig;
-
-    WindowConfig() { selfConfig = ConfigManager::getInstance().getConfig(); }
 };
 
 #endif // WINDOWCONFIG_HPP

@@ -57,8 +57,16 @@ bool CppInputText(const char* label, std::string* str, ImGuiInputTextFlags flags
 }
 
 void WindowConfig::Update() {
+    static bool firstOpen{ true };
+
     if (!this->open)
         return;
+
+    if (UNLIKELY(firstOpen)) {
+        this->selfConfig = ConfigManager::getInstance().getConfig();
+
+        firstOpen = false;
+    }
 
     CENTER_NEXT_WINDOW;
 
