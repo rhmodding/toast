@@ -92,7 +92,7 @@ private: // Windows
     template <typename T>
     struct AppWindow {
         bool shy{ false };
-        std::unique_ptr<BaseWindow> window;
+        std::unique_ptr<T> window;
 
         void Update() {
             if (shy || UNLIKELY(!this->window))

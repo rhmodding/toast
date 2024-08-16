@@ -408,15 +408,14 @@ void App::Menubar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
             if (ImGui::MenuItem((char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
-                // TODO: not sure how to feel about this
-                ((WindowAbout*)this->windowAbout.window.get())->open = true;
+                this->windowAbout.window.get()->open = true;
                 ImGui::SetWindowFocus("About");
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem((char*)ICON_FA_WRENCH " Config", "", nullptr)) {
-                ((WindowConfig*)this->windowConfig.window.get())->open = true;
+                this->windowConfig.window.get()->open = true;
                 ImGui::SetWindowFocus("Config");
             }
 
