@@ -465,6 +465,7 @@ void WindowCanvas::Update() {
                         DrawRotatedBox(drawList, point, 4.f, angle, color);
                     }
 
+                    // Corner boxes
                     for (uint32_t i = 0; i < 4; i++) {
                         point = ROUND_IMVEC2(bounding[i]);
 
