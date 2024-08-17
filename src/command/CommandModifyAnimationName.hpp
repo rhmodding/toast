@@ -3,8 +3,6 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
-
 #include "../SessionManager.hpp"
 
 class CommandModifyAnimationName : public BaseCommand {
