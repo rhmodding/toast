@@ -33,8 +33,8 @@ void IMPLEMENTATION_FROM_I4(unsigned char* result, uint16_t srcWidth, uint16_t s
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 8); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
 
-            for (uint8_t pY = 0; pY < 8; pY++) {
-                for (uint8_t pX = 0; pX < 8; pX += 2) {
+            for (unsigned pY = 0; pY < 8; pY++) {
+                for (unsigned pX = 0; pX < 8; pX += 2) {
                     if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 8 + pY >= srcHeight))
                         continue;
 
@@ -65,8 +65,8 @@ void IMPLEMENTATION_FROM_I8(unsigned char* result, uint16_t srcWidth, uint16_t s
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
 
-            for (uint8_t pY = 0; pY < 4; pY++) {
-                for (uint8_t pX = 0; pX < 8; pX++) {
+            for (unsigned pY = 0; pY < 4; pY++) {
+                for (unsigned pX = 0; pX < 8; pX++) {
                     if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
                         continue;
 
@@ -90,8 +90,8 @@ void IMPLEMENTATION_FROM_IA4(unsigned char* result, uint16_t srcWidth, uint16_t 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
 
-            for (uint8_t pY = 0; pY < 4; pY++) {
-                for (uint8_t pX = 0; pX < 8; pX++) {
+            for (unsigned pY = 0; pY < 4; pY++) {
+                for (unsigned pX = 0; pX < 8; pX++) {
                     if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
                         continue;
 
@@ -118,8 +118,8 @@ void IMPLEMENTATION_FROM_IA8(unsigned char* result, uint16_t srcWidth, uint16_t 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
 
-            for (uint8_t pY = 0; pY < 4; pY++) {
-                for (uint8_t pX = 0; pX < 4; pX++) {
+            for (unsigned pY = 0; pY < 4; pY++) {
+                for (unsigned pX = 0; pX < 4; pX++) {
                     if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
                         continue;
 
@@ -148,8 +148,8 @@ void IMPLEMENTATION_FROM_RGB565(unsigned char* result, uint16_t srcWidth, uint16
     for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
         for (uint16_t xx = 0; xx < srcWidth; xx += 4) {
 
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 4; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 4; x++) {
                     if (xx + x >= srcWidth || yy + y >= srcHeight)
                         continue;
 
@@ -174,12 +174,12 @@ void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, uint16_t srcWidth, uint16
     for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
         for (uint16_t xx = 0; xx < srcWidth; xx += 4) {
 
-            for (uint8_t y = 0; y < 4; y++) {
+            for (unsigned y = 0; y < 4; y++) {
                 if (yy + y >= srcHeight) break;
 
                 const uint32_t rowBase = srcWidth * (yy + y);
 
-                for (uint8_t x = 0; x < 4; x++) {
+                for (unsigned x = 0; x < 4; x++) {
                     if (xx + x >= srcWidth) break;
 
                     const uint32_t writeOffset = (rowBase + xx + x) * 4;
@@ -219,8 +219,8 @@ void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, uint16_t srcWidth, uint16
             //    Subblock B: Green and Blue channel
 
             // Subblock A
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 4; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 4; x++) {
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
@@ -232,8 +232,8 @@ void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, uint16_t srcWidth, uint16
             }
 
             // Subblock B
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 4; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 4; x++) {
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
@@ -257,8 +257,8 @@ void IMPLEMENTATION_FROM_C8(unsigned char* result, uint16_t srcWidth, uint16_t s
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
 
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 8; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 8; x++) {
                     if ((xBlock * 8 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
@@ -321,8 +321,8 @@ void IMPLEMENTATION_FROM_CMPR(unsigned char* result, uint16_t srcWidth, uint16_t
                 table[3][3] = 0x00u;
             }
 
-            for (uint8_t iy = 0; iy < 4; ++iy) {
-                for (uint8_t ix = 0; ix < 4; ++ix) {
+            for (unsigned iy = 0; iy < 4; ++iy) {
+                for (unsigned ix = 0; ix < 4; ++ix) {
                     if (((x + ix) < srcWidth) && ((y + iy) < srcHeight)) {
                         uint32_t di = 4 * ((y + iy) * srcWidth + x + ix);
                         uint32_t si = bits & 0x3;
@@ -356,8 +356,8 @@ void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint16_t srcWidth, uint16_t
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
 
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 4; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 4; x++) {
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
@@ -402,8 +402,8 @@ void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint16_t srcWidth, uint16_t
             //    Subblock B: Green and Blue channel
 
             // Subblock A
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 4; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 4; x++) {
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
@@ -415,8 +415,8 @@ void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint16_t srcWidth, uint16_t
             }
 
             // Subblock B
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 4; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 4; x++) {
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
@@ -438,7 +438,7 @@ void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint16_t srcWidth, uint16_t
 void IMPLEMENTATION_TO_C8(unsigned char* result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
                        // Color  // Index
     std::unordered_map<uint32_t, uint8_t> indexMap;
-    for (uint32_t i = 0; i < colors.size(); i++)
+    for (unsigned i = 0; i < colors.size(); i++)
         indexMap[colors.at(i)] = static_cast<uint8_t>(i);
 
     uint32_t writeOffset{ 0 };
@@ -446,8 +446,8 @@ void IMPLEMENTATION_TO_C8(unsigned char* result, std::vector<uint32_t>& colors, 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
 
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 8; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 8; x++) {
                     if ((xBlock * 8 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 
@@ -471,7 +471,7 @@ void IMPLEMENTATION_TO_C8(unsigned char* result, std::vector<uint32_t>& colors, 
 void IMPLEMENTATION_TO_C14X2(unsigned char* result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
                        // Color  // Index (byteswapped)
     std::unordered_map<uint32_t, uint16_t> indexMap;
-    for (uint32_t i = 0; i < colors.size(); i++)
+    for (unsigned i = 0; i < colors.size(); i++)
         indexMap[colors.at(i)] = BYTESWAP_16(static_cast<uint16_t>(i));
 
     uint32_t writeOffset{ 0 };
@@ -479,8 +479,8 @@ void IMPLEMENTATION_TO_C14X2(unsigned char* result, std::vector<uint32_t>& color
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
 
-            for (uint8_t y = 0; y < 4; y++) {
-                for (uint8_t x = 0; x < 4; x++) {
+            for (unsigned y = 0; y < 4; y++) {
+                for (unsigned x = 0; x < 4; x++) {
                     if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
                         continue;
 

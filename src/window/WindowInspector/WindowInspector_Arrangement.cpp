@@ -367,7 +367,7 @@ void WindowInspector::Level_Arrangement() {
         RvlCellAnim::Arrangement* arrangementPtr =
             &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
-        for (int n = static_cast<int>(arrangementPtr->parts.size()) - 1; n >= 0; n--) {
+        for (int n = arrangementPtr->parts.size() - 1; n >= 0; n--) {
             ImGui::PushID(n);
 
             char buffer[16];

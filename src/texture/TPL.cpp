@@ -172,7 +172,7 @@ namespace TPL {
         // Precompute size required & texture indexes for color palettes
         uint32_t paletteEntriesSize{ 0 };
         std::unordered_set<uint32_t> paletteTextures;
-        for (uint32_t i = 0; i < this->textures.size(); i++) {
+        for (unsigned i = 0; i < this->textures.size(); i++) {
             if (
                 this->textures.at(i).format == TPL_IMAGE_FORMAT_C4 ||
                 this->textures.at(i).format == TPL_IMAGE_FORMAT_C8 ||
@@ -226,7 +226,7 @@ namespace TPL {
         );
 
         // Texture Descriptors
-        for (uint32_t textureIndex = 0, clutIndex = 0; textureIndex < this->textures.size(); textureIndex++) {
+        for (unsigned textureIndex = 0, clutIndex = 0; textureIndex < this->textures.size(); textureIndex++) {
             TPLDescriptor* descriptor = reinterpret_cast<TPLDescriptor*>(
                 result.data() +
                 sizeof(TPLPalette) +
@@ -257,7 +257,7 @@ namespace TPL {
         }
 
         // Palette Descriptors & Data
-        for (uint32_t textureIndex = 0, clutIndex = 0; textureIndex < this->textures.size(); textureIndex++) {
+        for (unsigned textureIndex = 0, clutIndex = 0; textureIndex < this->textures.size(); textureIndex++) {
             if (paletteTextures.find(textureIndex) == paletteTextures.end()) // No need to write a palette descriptor.
                 continue;
 
@@ -294,7 +294,7 @@ namespace TPL {
         }
 
         // Texture Headers
-        for (uint32_t i = 0; i < this->textures.size(); i++) {
+        for (unsigned i = 0; i < this->textures.size(); i++) {
             TPL::TPLTexture& texture = this->textures.at(i);
 
             TPLHeader* header = reinterpret_cast<TPLHeader*>(
@@ -331,7 +331,7 @@ namespace TPL {
         {
             uint32_t writeOffset = static_cast<uint32_t>(result.size());
 
-            for (uint32_t i = 0; i < this->textures.size(); i++) {
+            for (unsigned i = 0; i < this->textures.size(); i++) {
                 TPL::TPLTexture& texture = this->textures.at(i);
 
                 // Align writeOffset to 64 bytes

@@ -72,8 +72,7 @@ void WindowSpritesheet::PaletteWindow() {
         {
             ImGui::BeginChild("ColorList", ImVec2(250, 0), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
 
-            // There will never be more than 65535 colors
-            for (uint16_t i = 0; i < colors.size(); i++) {
+            for (unsigned i = 0; i < colors.size(); i++) {
                 const uint32_t& color = colors.at(i);
 
                 const uint8_t r = (color >> 24) & 0xFF;
@@ -630,7 +629,7 @@ void WindowSpritesheet::Update() {
 
         RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
-        for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
+        for (unsigned i = 0; i < arrangementPtr->parts.size(); i++) {
             if (appState.focusOnSelectedPart && i != appState.selectedPart)
                 continue;
 

@@ -270,7 +270,7 @@ namespace U8 {
         dataOffset += 0x20 - (dataOffset % 0x20);
 
         // Data offsets
-        for (uint32_t i = 0; i < flattenedArchive.size(); i++) {
+        for (unsigned i = 0; i < flattenedArchive.size(); i++) {
             const FlatEntry& entry = flattenedArchive.at(i);
 
             if (entry.type == 0x00) {
@@ -292,7 +292,7 @@ namespace U8 {
         result.resize(dataOffset + dataSize);
 
         // Write all data
-        for (uint32_t i = 0; i < flattenedArchive.size(); i++) {
+        for (unsigned i = 0; i < flattenedArchive.size(); i++) {
             FlatEntry& entry = flattenedArchive.at(i);
 
             U8ArchiveNode* node = reinterpret_cast<U8ArchiveNode*>(

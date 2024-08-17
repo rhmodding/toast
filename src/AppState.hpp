@@ -96,7 +96,7 @@ public:
         if (part.editorName[0] == '\0')
             return -1;
 
-        for (uint32_t i = 0; i < arrangement.parts.size(); i++) {
+        for (unsigned i = 0; i < arrangement.parts.size(); i++) {
             const auto& lPart = arrangement.parts.at(i);
             if (
                 lPart.editorName[0] != '\0' &&

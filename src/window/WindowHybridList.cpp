@@ -90,7 +90,7 @@ void WindowHybridList::Update() {
         GET_ANIMATABLE;
 
         if (!appState.getArrangementMode())
-            for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
+            for (unsigned n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
                 std::ostringstream fmtStream;
 
                 auto query = sessionManager.getCurrentSession()->getAnimationNames().find(n);
@@ -149,7 +149,7 @@ void WindowHybridList::Update() {
                 }
             }
         else
-            for (uint16_t n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
+            for (unsigned n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
                 char buffer[32];
                 sprintf(buffer, "Arrangement no. %d", n+1);
 

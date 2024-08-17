@@ -52,7 +52,7 @@ void WindowTimeline::Update() {
 
         if (ImGui::BeginTable("TimelineToolbarTable", 3, ImGuiTableFlags_BordersInnerV)) {
             ImGui::TableNextRow();
-            for (uint16_t column = 0; column < 3; column++) {
+            for (unsigned column = 0; column < 3; column++) {
                 ImGui::TableSetColumnIndex(column);
 
                 switch (column) {

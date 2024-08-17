@@ -159,7 +159,7 @@ void WindowAbout::Update() {
     float totalLineWidth{ 0 };
     float additiveLineX{ 0 };
 
-    for (uint32_t i = 0; i < ARRAY_LENGTH(creditStrings); i++) {
+    for (unsigned i = 0; i < ARRAY_LENGTH(creditStrings); i++) {
         switch (creditStrings[i].command) {
             case CreditsLine::CLC_Separator: {
                 textPosition.y += ImGui::GetTextLineHeight();

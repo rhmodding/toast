@@ -6,7 +6,7 @@
 
 #include "../AppState.hpp"
 
-enum Categories: uint8_t {
+enum Categories {
     Category_General,
     Category_Theming,
     Category_Paths,
@@ -86,7 +86,7 @@ void WindowConfig::Update() {
         static uint8_t selected{ 0 };
         {
             ImGui::BeginChild("Categories", ImVec2(150, 0), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
-            for (uint32_t i = 0; i < Categories_End; i++) {
+            for (unsigned i = 0; i < Categories_End; i++) {
                 if (ImGui::Selectable(categoryNames[i], selected == i))
                     selected = i;
             }

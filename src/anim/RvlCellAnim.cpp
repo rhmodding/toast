@@ -117,7 +117,7 @@ namespace RvlCellAnim {
         uint16_t arrangementCount = BYTESWAP_16(header->arrangementCount);
         this->arrangements.resize(arrangementCount);
 
-        for (uint32_t i = 0; i < arrangementCount; i++) {
+        for (uint16_t i = 0; i < arrangementCount; i++) {
             const ArrangementRaw* arrangementRaw =
                 reinterpret_cast<const ArrangementRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(ArrangementRaw);
@@ -171,7 +171,7 @@ namespace RvlCellAnim {
 
         this->animations.resize(animationCount);
 
-        for (uint32_t i = 0; i < animationCount; i++) {
+        for (uint16_t i = 0; i < animationCount; i++) {
             const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(AnimationRaw);
 

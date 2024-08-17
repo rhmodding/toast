@@ -369,7 +369,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     newSession.sheets.resize(tplObject.textures.size());
 
     // cellanims
-    for (uint32_t i = 0; i < brcadFiles.size(); i++) {
+    for (unsigned i = 0; i < brcadFiles.size(); i++) {
         auto& cellanim = newSession.cellanims.at(i);
 
         cellanim.name = brcadFiles.at(i)->name;
@@ -388,7 +388,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     }
 
     // animation names
-    for (uint32_t i = 0; i < brcadFiles.size(); i++) {
+    for (unsigned i = 0; i < brcadFiles.size(); i++) {
         // Find header file
         const U8::File* headerFile{ nullptr };
         std::string targetHeaderName =
@@ -429,7 +429,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     }
 
     // sheets
-    for (uint32_t i = 0; i < tplObject.textures.size(); i++) {
+    for (unsigned i = 0; i < tplObject.textures.size(); i++) {
         auto& sheet = newSession.sheets.at(i);
 
         sheet = std::make_shared<Common::Image>(
@@ -562,7 +562,7 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
         U8::Directory directory(".");
 
         // BRCAD files
-        for (uint32_t i = 0; i < session->cellanims.size(); i++) {
+        for (unsigned i = 0; i < session->cellanims.size(); i++) {
             U8::File file(session->cellanims.at(i).name);
             file.data = session->cellanims.at(i).object->Reserialize();
 
@@ -570,7 +570,7 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
         }
 
         // Header files
-        for (uint32_t i = 0; i < session->cellanims.size(); i++) {
+        for (unsigned i = 0; i < session->cellanims.size(); i++) {
             const auto& map = session->cellanims.at(i).animNames;
 
             if (map.empty())
@@ -607,7 +607,7 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
 
             TPL::TPLObject tplObject;
 
-            for (uint32_t i = 0; i < session->sheets.size(); i++) {
+            for (unsigned i = 0; i < session->sheets.size(); i++) {
                 auto tplTexture = session->sheets.at(i)->ExportToTPLTexture();
 
                 if (UNLIKELY(!tplTexture.has_value())) {

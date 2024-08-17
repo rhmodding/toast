@@ -105,7 +105,7 @@ ImRect getBoundingBox(const std::array<ImVec2, 4>* quads, unsigned quadCount) {
     float maxX = std::numeric_limits<float>::lowest();
     float maxY = std::numeric_limits<float>::lowest();
 
-    for (uint32_t i = 0; i < quadCount; ++i) {
+    for (unsigned i = 0; i < quadCount; ++i) {
         for (const ImVec2& vertex : quads[i]) {
             if (vertex.x < minX) minX = vertex.x;
             if (vertex.y < minY) minY = vertex.y;
@@ -122,7 +122,7 @@ ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
 
     std::vector<std::array<ImVec2, 4>> quads(arrangement.parts.size());
 
-    for (uint16_t i = 0; i < arrangement.parts.size(); i++)
+    for (unsigned i = 0; i < arrangement.parts.size(); i++)
         quads[i] = this->getPartWorldQuad(key, i);
 
     return getBoundingBox(quads.data(), quads.size());
@@ -279,7 +279,7 @@ void Animatable::DrawKey(
 ) {
     RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
 
-    for (uint16_t i = 0; i < arrangement->parts.size(); i++) {
+    for (unsigned i = 0; i < arrangement->parts.size(); i++) {
         if (partIndex != -1 && partIndex != i)
             continue;
 

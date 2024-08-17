@@ -15,14 +15,14 @@
 
 #include "../common.hpp"
 
-bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, uint32_t numVertices) {
+bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, unsigned numVertices) {
     float x = point.x, y = point.y;
     bool inside{ false };
 
     ImVec2 p1 = polygon[0];
     ImVec2 p2;
 
-    for (uint32_t i = 1; i <= numVertices; i++) {
+    for (unsigned i = 1; i <= numVertices; i++) {
         p2 = polygon[i % numVertices];
 
         // Point is above the minimum y
@@ -456,7 +456,7 @@ void WindowCanvas::Update() {
                     ImVec2 point;
 
                     // Side boxes
-                    for (uint32_t i = 0; i < 4; i++) {
+                    for (unsigned i = 0; i < 4; i++) {
                         point = AVERAGE_IMVEC2_ROUND(bounding[i], bounding[(i+1) % 4]);
 
                         if (Common::IsMouseInRegion(point))
@@ -466,7 +466,7 @@ void WindowCanvas::Update() {
                     }
 
                     // Corner boxes
-                    for (uint32_t i = 0; i < 4; i++) {
+                    for (unsigned i = 0; i < 4; i++) {
                         point = ROUND_IMVEC2(bounding[i]);
 
                         if (Common::IsMouseInRegion(point))
@@ -484,7 +484,7 @@ void WindowCanvas::Update() {
 
             // Draw all part bounds if enabled
             if (this->drawAllBounding)
-                for (uint16_t i = 0; i < arrangementPtr->parts.size(); i++) {
+                for (unsigned i = 0; i < arrangementPtr->parts.size(); i++) {
                     if (appState.focusOnSelectedPart && appState.selectedPart == i)
                         continue; // Skip over part if bounds are already drawn
 

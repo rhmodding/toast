@@ -67,9 +67,9 @@ protected:
 
             auto& arrangements = cellanim->arrangements;
 
-            for (uint32_t i = 0; i < arrangements.size(); i++) {
+            for (unsigned i = 0; i < arrangements.size(); i++) {
                 auto& arrangement = arrangements.at(i);
-                for (uint32_t j = 0; j < arrangement.parts.size(); j++) {
+                for (unsigned j = 0; j < arrangement.parts.size(); j++) {
                     const auto& part = arrangement.parts.at(j);
 
                     // Skip if it might be a templating part
@@ -81,7 +81,7 @@ protected:
                             !part.editorVisible : false ||
                         this->options.removeInvisibleParts ? (
                             part.opacity == 0 ||
-                            (part.scaleX == 0.f && part.scaleY == 0.f)
+                            (part.transform.scaleX == 0.f && part.transform.scaleY == 0.f)
                         ) : false
                     ) {
                         toErase.push_back({ i, j });
@@ -116,7 +116,7 @@ protected:
                     usedIndices.insert(key.arrangementIndex);
             }
 
-            for (uint32_t i = 0; i < cellanim->arrangements.size(); i++) {
+            for (unsigned i = 0; i < cellanim->arrangements.size(); i++) {
                 if (usedIndices.find(i) == usedIndices.end())
                     toErase.push_back(i);
             }
@@ -126,13 +126,13 @@ protected:
 
             std::future<void> future = mtCommandManager.enqueueCommand(
             [&arrangements, &toErase, &animations]() {
-                for (uint32_t i = 0; i < toErase.size(); i++) {
+                for (unsigned i = 0; i < toErase.size(); i++) {
                     uint32_t index = toErase.at(i);
 
                     auto it = arrangements.begin() + index;
                     arrangements.erase(it);
 
-                    for (uint32_t j = i; j < toErase.size(); j++) {
+                    for (unsigned j = i; j < toErase.size(); j++) {
                         if (toErase.at(j) > index)
                             toErase.at(j)--;
                     }

@@ -55,7 +55,7 @@ namespace Common {
         return true;
     }
 
-    std::string randomString(const uint32_t length) {
+    std::string randomString(const unsigned length) {
         static const char characters[] =
             "0123456789"
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -64,7 +64,7 @@ namespace Common {
         std::string string;
         string.resize(length);
 
-        for (uint32_t i = 0; i < length; i++)
+        for (unsigned i = 0; i < length; i++)
             string.at(i) =
                 characters[rand() % (sizeof(characters) - 1)];
 

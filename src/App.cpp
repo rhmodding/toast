@@ -229,7 +229,7 @@ void App::AttemptExit(bool force) {
     GET_SESSION_MANAGER;
 
     if (!force)
-        for (uint32_t i = 0; i < sessionManager.sessionList.size(); i++) {
+        for (unsigned i = 0; i < sessionManager.sessionList.size(); i++) {
             if (sessionManager.sessionList.at(i).modified) {
                 this->dialog_warnExitWithUnsavedChanges = true;
                 return; // Cancel
@@ -414,11 +414,11 @@ void App::SetupFonts() {
 // TODO: Move all of this outside of App.cpp
 
 namespace ImGui {
-    void EvalBezier(const float P[4], ImVec2* results, unsigned int stepCount) {
+    void EvalBezier(const float P[4], ImVec2* results, unsigned stepCount) {
         const float step = 1.f / stepCount;
 
         float t = step;
-        for (unsigned int i = 1; i <= stepCount; i++, t += step) {
+        for (unsigned i = 1; i <= stepCount; i++, t += step) {
             float u = 1.f - t;
 
             float t2 = t * t;
@@ -443,7 +443,7 @@ namespace ImGui {
         const float step = 1.f / STEPS;
 
         float t = step;
-        for (unsigned int i = 1; i <= STEPS; i++, t += step) {
+        for (unsigned i = 1; i <= STEPS; i++, t += step) {
             float u = 1.f - t;
 
             float t2 = t * t;
@@ -531,14 +531,14 @@ namespace ImGui {
         );
 
         // Draw grid
-        for (int i = 0; i <= bb.GetWidth(); i += IM_ROUND(bb.GetWidth() / 4)) {
+        for (unsigned i = 0; i <= bb.GetWidth(); i += IM_ROUND(bb.GetWidth() / 4)) {
             drawList->AddLine(
                 ImVec2(bb.Min.x + i, outerBb.Min.y),
                 ImVec2(bb.Min.x + i, outerBb.Max.y),
                 GetColorU32(ImGuiCol_TextDisabled)
             );
         }
-        for (int i = 0; i <= bb.GetHeight(); i += IM_ROUND(bb.GetHeight() / 4)) {
+        for (unsigned i = 0; i <= bb.GetHeight(); i += IM_ROUND(bb.GetHeight() / 4)) {
             drawList->AddLine(
                 ImVec2(outerBb.Min.x, bb.Min.y + i),
                 ImVec2(outerBb.Max.x, bb.Min.y + i),
@@ -557,7 +557,7 @@ namespace ImGui {
 
             // Handle drag behaviour
             if (handlesEnabled) {
-                for (int i = 0; i < 2; i++) {
+                for (unsigned i = 0; i < 2; i++) {
                     ImVec2 pos = ImVec2(
                         (P[i*2+0]) * bb.GetWidth() + bb.Min.x,
                         (1 - P[i*2+1]) * bb.GetHeight() + bb.Min.y
@@ -593,7 +593,7 @@ namespace ImGui {
             // Draw curve
             {
                 ImVec2 points[LINE_SEGMENTS + 1];
-                for (uint32_t i = 0; i < LINE_SEGMENTS + 1; ++i ) {
+                for (unsigned i = 0; i < LINE_SEGMENTS + 1; ++i ) {
                     points[i] = {
                         results[i+0].x * bb.GetWidth() + bb.Min.x,
                         (1 - results[i+0].y) * bb.GetHeight() + bb.Min.y
@@ -734,7 +734,7 @@ void App::Menubar() {
 
         if (ImGui::BeginMenu("Cellanim", sessionAvaliable)) {
             if (ImGui::BeginMenu("Select")) {
-                for (uint32_t i = 0; i < sessionManager.getCurrentSession()->cellanims.size(); i++) {
+                for (unsigned i = 0; i < sessionManager.getCurrentSession()->cellanims.size(); i++) {
                     const std::string& str = sessionManager.getCurrentSession()->cellanims.at(i).name;
 
                     std::ostringstream fmtStream;
@@ -1349,7 +1349,7 @@ void App::Menubar() {
         GET_SESSION_MANAGER;
 
         if (ImGui::BeginTabBar("FileTabBar", tabBarFlags)) {
-            for (int n = 0; n < sessionManager.sessionList.size(); n++) {
+            for (unsigned n = 0; n < sessionManager.sessionList.size(); n++) {
                 ImGui::PushID(n);
 
                 bool sessionOpen{ true };
@@ -1373,7 +1373,7 @@ void App::Menubar() {
                     if (ImGui::BeginPopupContextItem()) {
                         ImGui::Text("Select a Cellanim:");
                         ImGui::Separator();
-                        for (uint32_t i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
+                        for (unsigned i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
                             const std::string& str = sessionManager.sessionList.at(n).cellanims.at(i).name;
 
                             std::ostringstream fmtStream;
