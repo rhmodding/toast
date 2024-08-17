@@ -96,8 +96,8 @@ ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
     return { x + origin.x, y + origin.y };
 }
 
-ImRect getBoundingBox(const std::array<ImVec2, 4>* quads, uint32_t quadCount) {
-    if (UNLIKELY(quadCount == 0 || quads == nullptr))
+ImRect getBoundingBox(const std::array<ImVec2, 4>* quads, unsigned quadCount) {
+    if (UNLIKELY(quadCount == 0))
         return ImRect{{0, 0}, {0, 0}};
 
     float minX = std::numeric_limits<float>::max();
