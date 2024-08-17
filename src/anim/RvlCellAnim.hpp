@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#include "../common.hpp"
+
 #define CANVAS_ORIGIN 512
 
 namespace RvlCellAnim {
@@ -21,17 +23,66 @@ namespace RvlCellAnim {
         }
     };
 
+    // Do not change this structure!!
+    struct TransformValues {
+        int16_t positionX{ 0 }, positionY{ 0 };
+        float scaleX{ 1.f }, scaleY{ 1.f };
+        float angle{ 0.f }; // Angle in degrees
+
+        TransformValues getByteswapped() const {
+            TransformValues transform;
+
+            transform.positionX = BYTESWAP_16(this->positionX);
+            transform.positionY = BYTESWAP_16(this->positionY);
+
+            transform.scaleX = Common::byteswapFloat(this->scaleX);
+            transform.scaleY = Common::byteswapFloat(this->scaleY);
+
+            transform.angle = Common::byteswapFloat(this->angle);
+
+            return transform;
+        }
+
+        TransformValues average(const TransformValues& other) const {
+            TransformValues transform{
+                .positionX = (int16_t)AVERAGE_INTS(this->positionX, other.positionX),
+                .positionY = (int16_t)AVERAGE_INTS(this->positionY, other.positionY),
+
+                .scaleX = AVERAGE_FLOATS(this->scaleX, other.scaleX),
+                .scaleY = AVERAGE_FLOATS(this->scaleY, other.scaleY),
+
+                .angle = AVERAGE_FLOATS(this->angle, other.angle)
+            };
+
+            return transform;
+        }
+
+        bool operator==(const TransformValues& other) const {
+            return
+                this->positionX == other.positionX &&
+                this->positionY == other.positionY &&
+
+                this->scaleX == other.scaleX &&
+                this->scaleY == other.scaleY &&
+
+                this->angle == other.angle;
+        }
+
+        bool operator!=(const TransformValues& other) const {
+            return !(*this == other);
+        }
+    };
+
     struct ArrangementPart {
         uint16_t regionX{ 8 }, regionY{ 8 };
         uint16_t regionW{ 32 }, regionH{ 32 };
 
-        Unknown32 unknown;
+        uint16_t unknown;
 
-        int16_t positionX{ CANVAS_ORIGIN }, positionY{ CANVAS_ORIGIN };
-
-        float scaleX{ 1.f }, scaleY{ 1.f };
-
-        float angle{ 0.f };
+        TransformValues transform{
+            .positionX = CANVAS_ORIGIN,
+            .positionY = CANVAS_ORIGIN
+        };
 
         bool flipX{ false }, flipY{ false };
 
@@ -51,13 +102,7 @@ namespace RvlCellAnim {
 
                 this->unknown == other.unknown &&
 
-                this->positionX == other.positionX &&
-                this->positionY == other.positionY &&
-
-                this->scaleX == other.scaleX &&
-                this->scaleY == other.scaleY &&
-
-                this->angle == other.angle &&
+                this->transform == other.transform &&
 
                 this->flipX == other.flipX &&
                 this->flipY == other.flipY &&
@@ -86,13 +131,9 @@ namespace RvlCellAnim {
 
         uint16_t holdFrames{ 1 };
 
-        float scaleX{ 1.f }, scaleY{ 1.f };
-
-        float angle{ 0.f };
+        TransformValues transform;
 
         uint8_t opacity{ 0xFFu };
-
-        int16_t positionX{ 0 }, positionY{ 0 };
 
         bool operator==(const AnimationKey& other) const {
             return
@@ -100,15 +141,9 @@ namespace RvlCellAnim {
 
                 this->holdFrames == other.holdFrames &&
 
-                this->scaleX == other.scaleX &&
-                this->scaleY == other.scaleY &&
+                this->transform == other.transform &&
 
-                this->angle == other.angle &&
-
-                this->opacity == other.opacity &&
-
-                this->positionX == other.positionX &&
-                this->positionY == other.positionY;
+                this->opacity == other.opacity;
         }
 
         bool operator!=(const AnimationKey& other) const {

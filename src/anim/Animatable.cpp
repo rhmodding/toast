@@ -156,13 +156,13 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
     };
 
     ImVec2 topLeftOffset = {
-        (static_cast<float>(part.positionX) - CANVAS_ORIGIN),
-        (static_cast<float>(part.positionY) - CANVAS_ORIGIN)
+        (static_cast<float>(part.transform.positionX) - CANVAS_ORIGIN),
+        (static_cast<float>(part.transform.positionY) - CANVAS_ORIGIN)
     };
 
     ImVec2 bottomRightOffset = {
-        (topLeftOffset.x + (part.regionW * part.scaleX)),
-        (topLeftOffset.y + (part.regionH * part.scaleY))
+        (topLeftOffset.x + (part.regionW * part.transform.scaleX)),
+        (topLeftOffset.y + (part.regionH * part.transform.scaleY))
     };
 
     topLeftOffset.x *= arrngScale[0];
@@ -198,40 +198,40 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
         }
 
         // Rotation
-        if (fmod(part.angle, 360)) {
-            transformedQuad[0] = rotateVec2(transformedQuad[0], part.angle, center);
-            transformedQuad[1] = rotateVec2(transformedQuad[1], part.angle, center);
-            transformedQuad[2] = rotateVec2(transformedQuad[2], part.angle, center);
-            transformedQuad[3] = rotateVec2(transformedQuad[3], part.angle, center);
+        if (fmod(part.transform.angle, 360)) {
+            transformedQuad[0] = rotateVec2(transformedQuad[0], part.transform.angle, center);
+            transformedQuad[1] = rotateVec2(transformedQuad[1], part.transform.angle, center);
+            transformedQuad[2] = rotateVec2(transformedQuad[2], part.transform.angle, center);
+            transformedQuad[3] = rotateVec2(transformedQuad[3], part.transform.angle, center);
         }
 
         // Key & animatable scale
         {
-            transformedQuad[0].x = (transformedQuad[0].x * key->scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[0].y = (transformedQuad[0].y * key->scaleY * this->scaleY) + keyCenter.y;
+            transformedQuad[0].x = (transformedQuad[0].x * key->transform.scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[0].y = (transformedQuad[0].y * key->transform.scaleY * this->scaleY) + keyCenter.y;
 
-            transformedQuad[1].x = (transformedQuad[1].x * key->scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[1].y = (transformedQuad[1].y * key->scaleY * this->scaleY) + keyCenter.y;
+            transformedQuad[1].x = (transformedQuad[1].x * key->transform.scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[1].y = (transformedQuad[1].y * key->transform.scaleY * this->scaleY) + keyCenter.y;
 
-            transformedQuad[2].x = (transformedQuad[2].x * key->scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[2].y = (transformedQuad[2].y * key->scaleY * this->scaleY) + keyCenter.y;
+            transformedQuad[2].x = (transformedQuad[2].x * key->transform.scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[2].y = (transformedQuad[2].y * key->transform.scaleY * this->scaleY) + keyCenter.y;
 
-            transformedQuad[3].x = (transformedQuad[3].x * key->scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[3].y = (transformedQuad[3].y * key->scaleY * this->scaleY) + keyCenter.y;
+            transformedQuad[3].x = (transformedQuad[3].x * key->transform.scaleX * this->scaleX) + keyCenter.x;
+            transformedQuad[3].y = (transformedQuad[3].y * key->transform.scaleY * this->scaleY) + keyCenter.y;
         }
 
         // Key rotation
-        if (fmod(key->angle, 360)) {
-            transformedQuad[0] = rotateVec2(transformedQuad[0], key->angle, keyCenter);
-            transformedQuad[1] = rotateVec2(transformedQuad[1], key->angle, keyCenter);
-            transformedQuad[2] = rotateVec2(transformedQuad[2], key->angle, keyCenter);
-            transformedQuad[3] = rotateVec2(transformedQuad[3], key->angle, keyCenter);
+        if (fmod(key->transform.angle, 360)) {
+            transformedQuad[0] = rotateVec2(transformedQuad[0], key->transform.angle, keyCenter);
+            transformedQuad[1] = rotateVec2(transformedQuad[1], key->transform.angle, keyCenter);
+            transformedQuad[2] = rotateVec2(transformedQuad[2], key->transform.angle, keyCenter);
+            transformedQuad[3] = rotateVec2(transformedQuad[3], key->transform.angle, keyCenter);
         }
 
         // Key offset addition
-        for (uint32_t i = 0; i < 4; i++) {
-            transformedQuad[i].x += (key->positionX) * this->scaleX;
-            transformedQuad[i].y += (key->positionY) * this->scaleY;
+        for (unsigned i = 0; i < 4; i++) {
+            transformedQuad[i].x += key->transform.positionX * this->scaleX;
+            transformedQuad[i].y += key->transform.positionY * this->scaleY;
         }
     }
 

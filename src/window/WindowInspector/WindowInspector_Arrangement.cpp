@@ -151,8 +151,8 @@ void WindowInspector::Level_Arrangement() {
                 {
                     static int oldPosition[2]{ 0, 0 }; // Does not apply realPosition offset
                     int positionValues[2] = {
-                        partPtr->positionX - (this->realPosition ? 0 : CANVAS_ORIGIN),
-                        partPtr->positionY - (this->realPosition ? 0 : CANVAS_ORIGIN)
+                        partPtr->transform.positionX - (this->realPosition ? 0 : CANVAS_ORIGIN),
+                        partPtr->transform.positionY - (this->realPosition ? 0 : CANVAS_ORIGIN)
                     };
                     if (ImGui::DragInt2(
                         "Position XY##World",
@@ -160,29 +160,29 @@ void WindowInspector::Level_Arrangement() {
                         std::numeric_limits<int16_t>::min(),
                         std::numeric_limits<int16_t>::max()
                     )) {
-                        partPtr->positionX = static_cast<int16_t>(
+                        partPtr->transform.positionX = static_cast<int16_t>(
                             positionValues[0] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );
-                        partPtr->positionY = static_cast<int16_t>(
+                        partPtr->transform.positionY = static_cast<int16_t>(
                             positionValues[1] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );
                     }
 
                     if (ImGui::IsItemActivated()) {
-                        oldPosition[0] = originalPart.positionX;
-                        oldPosition[1] = originalPart.positionY;
+                        oldPosition[0] = originalPart.transform.positionX;
+                        oldPosition[1] = originalPart.transform.positionY;
                     }
 
                     if (ImGui::IsItemDeactivated()) {
                         changed = true;
 
-                        originalPart.positionX = oldPosition[0];
-                        originalPart.positionY = oldPosition[1];
+                        originalPart.transform.positionX = oldPosition[0];
+                        originalPart.transform.positionY = oldPosition[1];
 
-                        newPart.positionX = static_cast<int16_t>(
+                        newPart.transform.positionX = static_cast<int16_t>(
                             positionValues[0] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );
-                        newPart.positionY = static_cast<int16_t>(
+                        newPart.transform.positionY = static_cast<int16_t>(
                             positionValues[1] + (this->realPosition ? 0 : CANVAS_ORIGIN)
                         );
                     }
@@ -191,25 +191,25 @@ void WindowInspector::Level_Arrangement() {
                 // Scale XY
                 {
                     static float oldScale[2]{ 0.f, 0.f };
-                    float scaleValues[2] = { partPtr->scaleX, partPtr->scaleY };
+                    float scaleValues[2] = { partPtr->transform.scaleX, partPtr->transform.scaleY };
                     if (ImGui::DragFloat2("Scale XY##World", scaleValues, .01f)) {
-                        partPtr->scaleX = scaleValues[0];
-                        partPtr->scaleY = scaleValues[1];
+                        partPtr->transform.scaleX = scaleValues[0];
+                        partPtr->transform.scaleY = scaleValues[1];
                     }
 
                     if (ImGui::IsItemActivated()) {
-                        oldScale[0] = originalPart.scaleX;
-                        oldScale[1] = originalPart.scaleY;
+                        oldScale[0] = originalPart.transform.scaleX;
+                        oldScale[1] = originalPart.transform.scaleY;
                     }
 
                     if (ImGui::IsItemDeactivated()) {
                         changed = true;
 
-                        originalPart.scaleX = oldScale[0];
-                        originalPart.scaleY = oldScale[1];
+                        originalPart.transform.scaleX = oldScale[0];
+                        originalPart.transform.scaleY = oldScale[1];
 
-                        newPart.scaleX = scaleValues[0];
-                        newPart.scaleY = scaleValues[1];
+                        newPart.transform.scaleX = scaleValues[0];
+                        newPart.transform.scaleY = scaleValues[1];
                     }
                 }
             }
@@ -217,18 +217,18 @@ void WindowInspector::Level_Arrangement() {
             // Angle Z slider
             {
                 static float oldAngle{ 0.f };
-                float newAngle = partPtr->angle;
+                float newAngle = partPtr->transform.angle;
                 if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
-                    partPtr->angle = newAngle;
+                    partPtr->transform.angle = newAngle;
 
                 if (ImGui::IsItemActivated())
-                    oldAngle = originalPart.angle;
+                    oldAngle = originalPart.transform.angle;
 
                 if (ImGui::IsItemDeactivated()) {
                     changed = true;
 
-                    originalPart.angle = oldAngle;
-                    newPart.angle = newAngle;
+                    originalPart.transform.angle = oldAngle;
+                    newPart.transform.angle = newAngle;
                 }
             }
 
@@ -469,13 +469,7 @@ void WindowInspector::Level_Arrangement() {
                     if (ImGui::MenuItem("..transform")) {
                         RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(n);
 
-                        newPart.positionX = copyPart.positionX;
-                        newPart.positionY = copyPart.positionY;
-
-                        newPart.scaleX = copyPart.scaleX;
-                        newPart.scaleY = copyPart.scaleY;
-
-                        newPart.angle = copyPart.angle;
+                        newPart.transform = copyPart.transform;
 
                         newPart.flipX = copyPart.flipX;
                         newPart.flipY = copyPart.flipY;

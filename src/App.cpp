@@ -957,15 +957,15 @@ void App::Menubar() {
 
                 auto newArrangement = *arrangement;
                 for (auto& part : newArrangement.parts) {
-                    part.positionX = static_cast<int16_t>(
-                        ((part.positionX - CANVAS_ORIGIN) * scale[0]) + offset[0] + CANVAS_ORIGIN
+                    part.transform.positionX = static_cast<int16_t>(
+                        ((part.transform.positionX - CANVAS_ORIGIN) * scale[0]) + offset[0] + CANVAS_ORIGIN
                     );
-                    part.positionY = static_cast<int16_t>(
-                        ((part.positionY - CANVAS_ORIGIN) * scale[1]) + offset[1] + CANVAS_ORIGIN
+                    part.transform.positionY = static_cast<int16_t>(
+                        ((part.transform.positionY - CANVAS_ORIGIN) * scale[1]) + offset[1] + CANVAS_ORIGIN
                     );
 
-                    part.scaleX *= scale[0];
-                    part.scaleY *= scale[1];
+                    part.transform.scaleX *= scale[0];
+                    part.transform.scaleY *= scale[1];
                 }
 
                 SessionManager::getInstance().getCurrentSession()->executeCommand(
@@ -1030,8 +1030,8 @@ void App::Menubar() {
             part->regionW = origSize[0];
             part->regionH = origSize[0];
 
-            part->positionX = origPosition[0];
-            part->positionY = origPosition[1];
+            part->transform.positionX = origPosition[0];
+            part->transform.positionY = origPosition[1];
 
             lateOpen = false;
         }
@@ -1044,8 +1044,8 @@ void App::Menubar() {
                 origSize[0] = part->regionW;
                 origSize[1] = part->regionH;
 
-                origPosition[0] = part->positionX;
-                origPosition[1] = part->positionY;
+                origPosition[0] = part->transform.positionX;
+                origPosition[1] = part->transform.positionY;
             }
 
             lateOpen = true;
@@ -1071,8 +1071,8 @@ void App::Menubar() {
                 newPart.regionY = origOffset[1] - (padBy[1] / 2);
 
                 if (centerPart) {
-                    newPart.positionX = origPosition[0] - (padBy[0] / 2);
-                    newPart.positionY = origPosition[1] - (padBy[1] / 2);
+                    newPart.transform.positionX = origPosition[0] - (padBy[0] / 2);
+                    newPart.transform.positionY = origPosition[1] - (padBy[1] / 2);
                 }
 
                 part->regionX = origOffset[0];
@@ -1081,8 +1081,8 @@ void App::Menubar() {
                 part->regionW = origSize[0];
                 part->regionH = origSize[1];
 
-                part->positionX = origPosition[0];
-                part->positionY = origPosition[1];
+                part->transform.positionX = origPosition[0];
+                part->transform.positionY = origPosition[1];
 
                 SessionManager::getInstance().getCurrentSession()->executeCommand(
                 std::make_shared<CommandModifyArrangementPart>(
@@ -1117,12 +1117,12 @@ void App::Menubar() {
             part->regionY = origOffset[1] - (padBy[1] / 2);
 
             if (centerPart) {
-                part->positionX = origPosition[0] - (padBy[0] / 2);
-                part->positionY = origPosition[1] - (padBy[1] / 2);
+                part->transform.positionX = origPosition[0] - (padBy[0] / 2);
+                part->transform.positionY = origPosition[1] - (padBy[1] / 2);
             }
             else {
-                part->positionX = origPosition[0];
-                part->positionY = origPosition[1];
+                part->transform.positionX = origPosition[0];
+                part->transform.positionY = origPosition[1];
             }
 
             ImGui::EndPopup();
@@ -1665,8 +1665,8 @@ void App::UpdatePopups() {
                         part.regionY *= scaleY;
                         part.regionH *= scaleY;
 
-                        part.scaleX /= scaleX;
-                        part.scaleY /= scaleY;
+                        part.transform.scaleX /= scaleX;
+                        part.transform.scaleY /= scaleY;
                     }
 
                 currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->width;

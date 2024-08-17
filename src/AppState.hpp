@@ -84,7 +84,7 @@ public:
     }
 
     // This key object is meant for the arrangement mode to control the state of the key.
-    RvlCellAnim::AnimationKey controlKey{ 0, 1, 1.f, 1.f, 0.f, 255 };
+    RvlCellAnim::AnimationKey controlKey;
 
     uint16_t selectedAnimation{ 0 };
     int32_t selectedPart{ -1 };

@@ -211,8 +211,8 @@ void WindowInspector::Level_Key() {
     {
         static int oldPosition[2]{ 0, 0 };
         int positionValues[2] = {
-            animKey->positionX,
-            animKey->positionY
+            animKey->transform.positionX,
+            animKey->transform.positionY
         };
         if (ImGui::DragInt2(
             "Position XY",
@@ -220,66 +220,66 @@ void WindowInspector::Level_Key() {
             std::numeric_limits<int16_t>::min(),
             std::numeric_limits<int16_t>::max()
         )) {
-            animKey->positionX = positionValues[0];
-            animKey->positionY = positionValues[1];
+            animKey->transform.positionX = positionValues[0];
+            animKey->transform.positionY = positionValues[1];
         }
 
         if (ImGui::IsItemActivated()) {
-            oldPosition[0] = originalKey.positionX;
-            oldPosition[1] = originalKey.positionY;
+            oldPosition[0] = originalKey.transform.positionX;
+            oldPosition[1] = originalKey.transform.positionY;
         }
 
         if (ImGui::IsItemDeactivated()) {
             changed = true;
 
-            originalKey.positionX = oldPosition[0];
-            originalKey.positionY = oldPosition[1];
+            originalKey.transform.positionX = oldPosition[0];
+            originalKey.transform.positionY = oldPosition[1];
 
-            newKey.positionX = positionValues[0];
-            newKey.positionY = positionValues[1];
+            newKey.transform.positionX = positionValues[0];
+            newKey.transform.positionY = positionValues[1];
         }
     }
 
     // Scale XY
     {
         static float oldScale[2]{ 0.f, 0.f };
-        float scaleValues[2] = { animKey->scaleX, animKey->scaleY };
+        float scaleValues[2] = { animKey->transform.scaleX, animKey->transform.scaleY };
         if (ImGui::DragFloat2("Scale XY", scaleValues, .01f)) {
-            animKey->scaleX = scaleValues[0];
-            animKey->scaleY = scaleValues[1];
+            animKey->transform.scaleX = scaleValues[0];
+            animKey->transform.scaleY = scaleValues[1];
         }
 
         if (ImGui::IsItemActivated()) {
-            oldScale[0] = originalKey.scaleX;
-            oldScale[1] = originalKey.scaleY;
+            oldScale[0] = originalKey.transform.scaleX;
+            oldScale[1] = originalKey.transform.scaleY;
         }
 
         if (ImGui::IsItemDeactivated()) {
             changed = true;
 
-            originalKey.scaleX = oldScale[0];
-            originalKey.scaleY = oldScale[1];
+            originalKey.transform.scaleX = oldScale[0];
+            originalKey.transform.scaleY = oldScale[1];
 
-            newKey.scaleX = scaleValues[0];
-            newKey.scaleY = scaleValues[1];
+            newKey.transform.scaleX = scaleValues[0];
+            newKey.transform.scaleY = scaleValues[1];
         }
     }
 
     // Angle Z slider
     {
         static float oldAngle{ 0.f };
-        float newAngle = animKey->angle;
+        float newAngle = animKey->transform.angle;
         if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
-            animKey->angle = newAngle;
+            animKey->transform.angle = newAngle;
 
         if (ImGui::IsItemActivated())
-            oldAngle = originalKey.angle;
+            oldAngle = originalKey.transform.angle;
 
         if (ImGui::IsItemDeactivated()) {
             changed = true;
 
-            originalKey.angle = oldAngle;
-            newKey.angle = newAngle;
+            originalKey.transform.angle = oldAngle;
+            newKey.transform.angle = newAngle;
         }
     }
 

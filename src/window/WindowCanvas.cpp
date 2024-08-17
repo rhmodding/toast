@@ -450,8 +450,8 @@ void WindowCanvas::Update() {
                 // If quad is too small or the part is locked, only draw the bounding.
                 if (thrLength >= 35.f && !partLocked) {
                     float angle =
-                        globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart).angle +
-                        globalAnimatable->getCurrentKey()->angle;
+                        globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart).transform.angle +
+                        globalAnimatable->getCurrentKey()->transform.angle;
 
                     ImVec2 point;
 
@@ -568,8 +568,8 @@ void WindowCanvas::Update() {
 
         if (hoveredPartHandle == PartHandle_Whole) {
             dragPartOffset = ImVec2(
-                arrangementPtr->parts.at(appState.selectedPart).positionX,
-                arrangementPtr->parts.at(appState.selectedPart).positionY
+                arrangementPtr->parts.at(appState.selectedPart).transform.positionX,
+                arrangementPtr->parts.at(appState.selectedPart).transform.positionY
             );
         }
     }
@@ -580,14 +580,14 @@ void WindowCanvas::Update() {
     if (activePartHandle == PartHandle_Whole) {
         dragPartOffset.x +=
             io.MouseDelta.x / ((canvasZoom) + 1.f) /
-            globalAnimatable->getCurrentKey()->scaleX;
+            globalAnimatable->getCurrentKey()->transform.scaleX;
         dragPartOffset.y +=
             io.MouseDelta.y / ((canvasZoom) + 1.f) /
-            globalAnimatable->getCurrentKey()->scaleY;
+            globalAnimatable->getCurrentKey()->transform.scaleY;
 
-        arrangementPtr->parts.at(appState.selectedPart).positionX =
+        arrangementPtr->parts.at(appState.selectedPart).transform.positionX =
             static_cast<int16_t>(dragPartOffset.x);
-        arrangementPtr->parts.at(appState.selectedPart).positionY =
+        arrangementPtr->parts.at(appState.selectedPart).transform.positionY =
             static_cast<int16_t>(dragPartOffset.y);
     }
 
@@ -617,37 +617,37 @@ void WindowCanvas::Update() {
     if (flippedY ? caseTop : caseBottom) {
         newPartSize.y +=
             io.MouseDelta.y / (canvasZoom + 1.f) /
-            globalAnimatable->getCurrentKey()->scaleY;
+            globalAnimatable->getCurrentKey()->transform.scaleY;
 
-        arrangementPtr->parts.at(appState.selectedPart).scaleY = (
+        arrangementPtr->parts.at(appState.selectedPart).transform.scaleY = (
             newPartSize.y /
             arrangementPtr->parts.at(appState.selectedPart).regionH
-        ) + partBeforeInteraction.scaleY - 1.f;
+        ) + partBeforeInteraction.transform.scaleY - 1.f;
     }
 
     if (flippedX ? caseLeft : caseRight) {
         newPartSize.x +=
             io.MouseDelta.x / (canvasZoom + 1.f) /
-            globalAnimatable->getCurrentKey()->scaleX;
+            globalAnimatable->getCurrentKey()->transform.scaleX;
 
-        arrangementPtr->parts.at(appState.selectedPart).scaleX = (
+        arrangementPtr->parts.at(appState.selectedPart).transform.scaleX = (
             newPartSize.x /
             arrangementPtr->parts.at(appState.selectedPart).regionW
-        ) + partBeforeInteraction.scaleX - 1.f;
+        ) + partBeforeInteraction.transform.scaleX - 1.f;
     }
 
     if (flippedY ? caseBottom : caseTop) {
         newPartSize.y -=
             io.MouseDelta.y / (canvasZoom + 1.f) /
-            globalAnimatable->getCurrentKey()->scaleY;
+            globalAnimatable->getCurrentKey()->transform.scaleY;
 
-        arrangementPtr->parts.at(appState.selectedPart).scaleY = (
+        arrangementPtr->parts.at(appState.selectedPart).transform.scaleY = (
             newPartSize.y /
             arrangementPtr->parts.at(appState.selectedPart).regionH
-        ) + partBeforeInteraction.scaleY - 1.f;
+        ) + partBeforeInteraction.transform.scaleY - 1.f;
 
-        arrangementPtr->parts.at(appState.selectedPart).positionY = (
-            partBeforeInteraction.positionY - (
+        arrangementPtr->parts.at(appState.selectedPart).transform.positionY = (
+            partBeforeInteraction.transform.positionY - (
                 newPartSize.y -
                 arrangementPtr->parts.at(appState.selectedPart).regionH
             )
@@ -657,15 +657,15 @@ void WindowCanvas::Update() {
     if (flippedX ? caseRight : caseLeft) {
         newPartSize.x -=
             io.MouseDelta.x / (canvasZoom + 1.f) /
-            globalAnimatable->getCurrentKey()->scaleX;
+            globalAnimatable->getCurrentKey()->transform.scaleX;
 
-        arrangementPtr->parts.at(appState.selectedPart).scaleX = (
+        arrangementPtr->parts.at(appState.selectedPart).transform.scaleX = (
             newPartSize.x /
             arrangementPtr->parts.at(appState.selectedPart).regionW
-        ) + partBeforeInteraction.scaleX - 1.f;
+        ) + partBeforeInteraction.transform.scaleX - 1.f;
 
-        arrangementPtr->parts.at(appState.selectedPart).positionX = (
-            partBeforeInteraction.positionX - (
+        arrangementPtr->parts.at(appState.selectedPart).transform.positionX = (
+            partBeforeInteraction.transform.positionX - (
                 newPartSize.x -
                 arrangementPtr->parts.at(appState.selectedPart).regionW
             )

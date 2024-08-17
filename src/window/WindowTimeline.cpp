@@ -307,29 +307,11 @@ void WindowTimeline::Update() {
                                     RvlCellAnim::AnimationKey newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
                                     RvlCellAnim::Arrangement newArrangement = *arrangementA;
 
-                                    for (uint16_t j = 0; j < newArrangement.parts.size(); j++) {
-                                        newArrangement.parts.at(j).angle = AVERAGE_FLOATS(
-                                            arrangementA->parts.at(j).angle,
-                                            arrangementB->parts.at(j).angle
-                                        );
-
-                                        newArrangement.parts.at(j).positionX = AVERAGE_INTS(
-                                            arrangementA->parts.at(j).positionX,
-                                            arrangementB->parts.at(j).positionX
-                                        );
-                                        newArrangement.parts.at(j).positionY = AVERAGE_INTS(
-                                            arrangementA->parts.at(j).positionY,
-                                            arrangementB->parts.at(j).positionY
-                                        );
-
-                                        newArrangement.parts.at(j).scaleX = AVERAGE_FLOATS(
-                                            arrangementA->parts.at(j).scaleX,
-                                            arrangementB->parts.at(j).scaleX
-                                        );
-                                        newArrangement.parts.at(j).scaleY = AVERAGE_FLOATS(
-                                            arrangementA->parts.at(j).scaleY,
-                                            arrangementB->parts.at(j).scaleY
-                                        );
+                                    for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
+                                        newArrangement.parts.at(j).transform =
+                                            arrangementA->parts.at(j).transform.average(
+                                                arrangementB->parts.at(j).transform
+                                            );
 
                                         newArrangement.parts.at(j).opacity = AVERAGE_UCHARS(
                                             arrangementA->parts.at(j).opacity,
@@ -339,40 +321,36 @@ void WindowTimeline::Update() {
 
                                     globalAnimatable->cellanim->arrangements.push_back(newArrangement);
 
+                                    RvlCellAnim::AnimationKey modKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+
                                     {
                                         newKey.arrangementIndex = globalAnimatable->cellanim->arrangements.size() - 1;
 
                                         const auto& keyA = globalAnimatable->getCurrentAnimation()->keys.at(i);
                                         const auto& keyB = globalAnimatable->getCurrentAnimation()->keys.at(i+1);
 
-                                        newKey.angle = AVERAGE_FLOATS(keyA.angle, keyB.angle);
-
-                                        newKey.scaleX = AVERAGE_FLOATS(keyA.scaleX, keyB.scaleX);
-                                        newKey.scaleY = AVERAGE_FLOATS(keyA.scaleY, keyB.scaleY);
-
-                                        newKey.positionX = AVERAGE_INTS(keyA.positionX, keyB.positionX);
-                                        newKey.positionY = AVERAGE_INTS(keyA.positionY, keyB.positionY);
+                                        newKey.transform = keyA.transform.average(keyB.transform);
 
                                         newKey.opacity = AVERAGE_UCHARS(keyA.opacity, keyB.opacity);
 
-                                        newKey.holdFrames = (newKey.holdFrames / 2) - 1;
+                                        uint16_t base = keyA.holdFrames - 1;
 
-                                        if (newKey.holdFrames < 1)
-                                            newKey.holdFrames = 1;
+                                        uint16_t first = base / 2;
+                                        uint16_t second = base - first;
+
+                                        modKey.holdFrames =
+                                            std::clamp<uint16_t>(first, 1, std::numeric_limits<uint16_t>::max());
+                                        newKey.holdFrames =
+                                            std::clamp<uint16_t>(second, 1, std::numeric_limits<uint16_t>::max());
                                     }
 
-                                    {
-                                        RvlCellAnim::AnimationKey modKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
-                                        modKey.holdFrames -= newKey.holdFrames;
-
-                                        sessionManager.getCurrentSession()->executeCommand(
-                                        std::make_shared<CommandModifyAnimationKey>(
-                                            sessionManager.getCurrentSession()->currentCellanim,
-                                            appState.globalAnimatable->getCurrentAnimationIndex(),
-                                            i,
-                                            modKey
-                                        ));
-                                    }
+                                    sessionManager.getCurrentSession()->executeCommand(
+                                    std::make_shared<CommandModifyAnimationKey>(
+                                        sessionManager.getCurrentSession()->currentCellanim,
+                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        i,
+                                        modKey
+                                    ));
 
                                     playerManager.setCurrentKeyIndex(i + 1);
 
@@ -487,9 +465,9 @@ void WindowTimeline::Update() {
                             ImGui::Dummy(ImVec2(0, 10));
                             ImGui::BulletText("Held for: %u frame(s)", key->holdFrames);
                             ImGui::Dummy(ImVec2(0, 10));
-                            ImGui::BulletText("Scale X: %f", key->scaleX);
-                            ImGui::BulletText("Scale Y: %f", key->scaleY);
-                            ImGui::BulletText("Angle: %f", key->angle);
+                            ImGui::BulletText("Scale X: %f", key->transform.scaleX);
+                            ImGui::BulletText("Scale Y: %f", key->transform.scaleY);
+                            ImGui::BulletText("Angle: %f", key->transform.angle);
                             ImGui::Dummy(ImVec2(0, 10));
                             ImGui::BulletText("Opacity: %u/255", key->opacity);
 
