@@ -832,7 +832,14 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Delete selected key");
+            if (ImGui::MenuItem("Delete selected key")) {
+                sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandDeleteAnimationKey>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                    appState.globalAnimatable->getCurrentKeyIndex()
+                ));
+            }
 
             ImGui::EndMenu();
         }
