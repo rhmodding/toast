@@ -793,9 +793,23 @@ void App::Menubar() {
                 appState.globalAnimatable->getCurrentKeyIndex()
             );
 
+            auto* key = appState.globalAnimatable->getCurrentKey();
+
             ImGui::Separator();
 
-            ImGui::Text("Make arrangent unique (duplicate)");
+            if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
+                auto newKey = *key;
+                newKey.arrangementIndex =
+                    CellanimHelpers::DuplicateArrangement(key->arrangementIndex);
+
+                sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandModifyAnimationKey>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                    appState.globalAnimatable->getCurrentKeyIndex(),
+                    newKey
+                ));
+            }
 
             ImGui::Separator();
 

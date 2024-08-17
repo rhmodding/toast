@@ -7,6 +7,8 @@
 #include "../../command/CommandInsertArrangement.hpp"
 #include "../../command/CommandModifyAnimationKey.hpp"
 
+#include "../../anim/CellanimHelpers.hpp"
+
 #include "../../font/FontAwesome.h"
 
 #include "../../AppState.hpp"
@@ -139,17 +141,9 @@ void WindowInspector::Level_Key() {
     bool arrangementUnique = getArrangementUnique(globalAnimatable->getCurrentKey()->arrangementIndex);
     ImGui::BeginDisabled(arrangementUnique);
 
-    if (ImGui::Button("Make arrangement unique (duplicate)")) {
-        SessionManager::getInstance().getCurrentSession()->executeCommand(
-        std::make_shared<CommandInsertArrangement>(
-            sessionManager.getCurrentSession()->currentCellanim,
-            sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size(),
-            sessionManager.getCurrentSession()->getCellanimObject()->arrangements.at(animKey->arrangementIndex)
-        ));
-
+    if (ImGui::Button("Make arrangement unique (duplicate)"))
         newKey.arrangementIndex =
-            sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
-    }
+            CellanimHelpers::DuplicateArrangement(animKey->arrangementIndex);
 
     ImGui::EndDisabled();
 
