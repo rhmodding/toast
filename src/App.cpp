@@ -590,6 +590,8 @@ namespace ImGui {
                     handleBeingDragged = -1;
             }
 
+            drawList->PushClipRect(outerBb.Min, outerBb.Max);
+
             // Draw curve
             {
                 ImVec2 points[LINE_SEGMENTS + 1];
@@ -635,8 +637,6 @@ namespace ImGui {
                     (1.f - P[3]) * bb.GetHeight() + bb.Min.y
                 );
 
-                drawList->PushClipRect(outerBb.Min, outerBb.Max);
-
                 drawList->AddLine(bb.GetBL(), p1, IM_COL32_WHITE, LINE_WIDTH);
                 drawList->AddLine(bb.GetTR(), p2, IM_COL32_WHITE, LINE_WIDTH);
 
@@ -644,9 +644,9 @@ namespace ImGui {
                 drawList->AddCircleFilled(p1, GRAB_RADIUS-GRAB_BORDER, handleColA);
                 drawList->AddCircleFilled(p2, GRAB_RADIUS, IM_COL32_WHITE);
                 drawList->AddCircleFilled(p2, GRAB_RADIUS-GRAB_BORDER, handleColB);
-
-                drawList->PopClipRect();
             }
+
+            drawList->PopClipRect();
         }
 
         return changed;
