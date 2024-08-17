@@ -845,9 +845,11 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("Arrangement", sessionAvaliable)) {
+            uint16_t arrangementIndex =
+                appState.globalAnimatable->getCurrentKey()->arrangementIndex;
+
             ImGui::Text(
-                "Current arrangement (no. %u)",
-                appState.globalAnimatable->getCurrentKey()->arrangementIndex
+                "Current arrangement (no. %u)", arrangementIndex + 1
             );
 
             ImGui::Separator();
@@ -857,10 +859,12 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::BeginMenu("Region")) {
-                ImGui::MenuItem("Pad (Expand/Contract) ..");
-
-                ImGui::EndMenu();
+            if (ImGui::MenuItem("Delete")) {
+                sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandDeleteArrangement>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    arrangementIndex
+                ));
             }
 
             ImGui::EndMenu();
