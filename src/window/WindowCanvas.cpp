@@ -55,7 +55,7 @@ bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, unsigned numVe
     return inside;
 }
 
-void DrawRotatedBox(ImDrawList* draw_list, ImVec2 center, float radius, float rotation, ImU32 color) {
+void DrawRotatedBox(ImDrawList* drawList, ImVec2 center, float radius, float rotation, ImU32 color, bool fill = false) {
     float radiusInv = -radius;
 
     auto rotatePoint = [](ImVec2 point, ImVec2 center, float rotation) -> ImVec2 {
@@ -79,7 +79,29 @@ void DrawRotatedBox(ImDrawList* draw_list, ImVec2 center, float radius, float ro
         return point;
     };
 
-    draw_list->AddQuad(
+    auto addQuad = [fill, drawList](ImVec2 p1, ImVec2 p2, ImVec2 p3, ImVec2 p4, ImU32 col) {
+        if (fill) {
+            float addFactor = 1.f;
+
+            p1.x -= addFactor;
+            p1.y -= addFactor;
+
+            p2.x += addFactor;
+            p2.y -= addFactor;
+
+            p3.x += addFactor;
+            p3.y += addFactor;
+
+            p4.x -= addFactor;
+            p4.y += addFactor;
+
+            drawList->AddQuadFilled(p1, p2, p3, p4, col);
+        }
+        else
+            drawList->AddQuad(p1, p2, p3, p4, col, 1.f);
+    };
+
+    addQuad(
         rotatePoint({
             radiusInv + center.x,
             radiusInv + center.y
@@ -462,7 +484,11 @@ void WindowCanvas::Update() {
                         if (Common::IsMouseInRegion(point))
                             *(short*)&hoveredPartHandle = PartHandle_Top + i;
 
-                        DrawRotatedBox(drawList, point, 4.f, angle, color);
+                        DrawRotatedBox(
+                            drawList, point, 4.f, angle, color,
+                            hoveredPartHandle == PartHandle_Top + i ||
+                            activePartHandle == PartHandle_Top + i
+                        );
                     }
 
                     // Corner boxes
@@ -472,7 +498,11 @@ void WindowCanvas::Update() {
                         if (Common::IsMouseInRegion(point))
                             *(short*)&hoveredPartHandle = PartHandle_TopLeft + i;
 
-                        DrawRotatedBox(drawList, point, 4.f, angle, color);
+                        DrawRotatedBox(
+                            drawList, point, 4.f, angle, color,
+                            hoveredPartHandle == PartHandle_TopLeft + i ||
+                            activePartHandle == PartHandle_TopLeft + i
+                        );
                     }
 
                     point = AVERAGE_IMVEC2_ROUND(bounding[0], bounding[2]);
