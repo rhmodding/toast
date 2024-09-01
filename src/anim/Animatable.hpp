@@ -25,13 +25,13 @@ private:
     uint16_t currentKeyIndex{ 0 };
 
     void DrawKey(
-        RvlCellAnim::AnimationKey* key __attribute__((nonnull)),
-        ImDrawList* drawList __attribute__((nonnull)),
+        RvlCellAnim::AnimationKey* key,
+        ImDrawList* drawList,
 
         int32_t partIndex = -1,
         uint32_t colorMod = 0xFFFFFFFFu,
         bool allowOpacity = true
-    );
+    ) __attribute__((nonnull));
 
 public:
     std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim;
