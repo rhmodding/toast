@@ -95,6 +95,13 @@ ELSEIF (WIN32) # Windows
     ENDIF()
 ENDIF()
 
+# Link directory for Linux
+IF (UNIX AND NOT APPLE) # Linux
+    target_link_directories(toast PRIVATE
+        /usr/lib/x86_64-linux-gnu/
+    )
+ENDIF()
+
 # Link libraries
 IF (WIN32) # Windows
     target_link_libraries(toast PRIVATE
@@ -118,15 +125,6 @@ ELSE() # Generic
     target_link_libraries(toast PRIVATE
         GL
         glfw
-
-        -static
-    )
-ENDIF()
-
-# Link directory for Linux
-IF (UNIX AND NOT APPLE) # Linux
-    link_directories(toast PRIVATE
-        /usr/lib/x86_64-linux-gnu/
     )
 ENDIF()
 
