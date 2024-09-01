@@ -164,7 +164,7 @@ namespace EditorData {
                         );
 
                         if (LIKELY(!!part))
-                            strlcpy(part->editorName, currentEntry->name, 32);
+                            strncpy(part->editorName, currentEntry->name, 32);
                         else
                             return;
 
@@ -214,7 +214,7 @@ namespace EditorData {
 
                     if (part.editorName[0] != '\0') {
                         NamedPartEntry entry { i, j, n };
-                        strlcpy(entry.name, part.editorName, 32);
+                        strncpy(entry.name, part.editorName, 32);
 
                         namedParts.push_back(entry);
                     }
