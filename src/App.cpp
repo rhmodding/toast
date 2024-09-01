@@ -125,13 +125,20 @@ void A_LD_CreateCompressedArcSession() {
 void A_LD_CreateTraditionalSession() {
     char* pathList[3];
 
-    const char* filterPatterns[] = { "*.brcad", "*.png", "*.h" };
+    const char* vFiltersBrcad[] { "*.brcad" };
+    const char* tFiltersBrcad = "Binary Revolution CellAnim Data file (.brcad)";
+
+    const char* vFiltersImage[]  { "*.png", "*.tga", "*.bmp", "*.psd", "*.jpg" };
+    const char* tFiltersImage =  "Image files (.png, .tga, .bmp, .psd, .jpg)";
+
+    const char* vFiltersHeader[] { "*.h" };
+    const char* tFiltersHeader = "Header file (.h)";
 
     char* brcadDialog = tinyfd_openFileDialog(
         "Select the BRCAD file",
         nullptr,
-        1, filterPatterns + 0,
-        "Binary Revolution CellAnim Data file (.brcad)",
+        ARRAY_LENGTH(vFiltersBrcad), vFiltersBrcad,
+        tFiltersBrcad,
         false
     );
     if (!brcadDialog)
@@ -143,8 +150,8 @@ void A_LD_CreateTraditionalSession() {
     char* imageDialog = tinyfd_openFileDialog(
         "Select the image file",
         nullptr,
-        1, filterPatterns + 1,
-        "Image file (.png)",
+        ARRAY_LENGTH(vFiltersImage), vFiltersImage,
+        tFiltersImage,
         false
     );
     if (!imageDialog)
@@ -156,8 +163,8 @@ void A_LD_CreateTraditionalSession() {
     char* headerDialog = tinyfd_openFileDialog(
         "Select the header file",
         nullptr,
-        1, filterPatterns + 2,
-        "Header file (.h)",
+        ARRAY_LENGTH(vFiltersHeader), vFiltersHeader,
+        tFiltersHeader,
         false
     );
     if (!headerDialog)
