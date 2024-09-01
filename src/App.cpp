@@ -503,8 +503,8 @@ namespace ImGui {
         ImRect outerBb = {
             window->DC.CursorPos,
             {
-                window->DC.CursorPos.x + ImMin(avail, 256.f + padX),
-                window->DC.CursorPos.y + ImMin(avail, 192.f + padY)
+                window->DC.CursorPos.x + ImMin(avail + 1.f, 256.f + padX),
+                window->DC.CursorPos.y + ImMin(avail + 1.f, 192.f + padY)
             }
         };
 
