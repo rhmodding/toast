@@ -476,6 +476,10 @@ namespace ImGui {
         return closestPoint;
     }
 
+    float BezierValueY(const float x, const float P[4]) {
+        return BezierValue(x, P).y;
+    }
+
     bool Bezier(const char* label, float P[4], bool handlesEnabled = true) {
         const int LINE_SEGMENTS = 32; // Line segments in rendered curve
         const int CURVE_WIDTH = 4; // Curve line width
@@ -1277,10 +1281,9 @@ void App::Menubar() {
 
                 ImGui::EndGroup();
 
-                float progression = fmodf((float)ImGui::GetTime(), 1.f);
-                ImVec2 vec = ImGui::BezierValue(progression, v.data());
+                float t = fmodf((float)ImGui::GetTime(), 1.f);
 
-                ImGui::ProgressBar(vec.y);
+                ImGui::ProgressBar(ImGui::BezierValueY(t, v.data()));
             }
 
             ImGui::Separator();
