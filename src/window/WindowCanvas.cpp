@@ -638,68 +638,47 @@ void WindowCanvas::Update() {
         activePartHandle == PartHandle_BottomLeft ||
         activePartHandle == PartHandle_TopLeft;
 
-    bool flippedX{ false }, flippedY{ false };
+    float mouseDeltaX = io.MouseDelta.x;
+    float mouseDeltaY = io.MouseDelta.y;
+
+    bool flippedX = false, flippedY = false;
     if (appState.selectedPart >= 0) {
-        flippedX = arrangementPtr->parts.at(appState.selectedPart).flipX;
-        flippedY = arrangementPtr->parts.at(appState.selectedPart).flipY;
+        const auto& selectedPart = arrangementPtr->parts.at(appState.selectedPart);
+        flippedX = selectedPart.flipX;
+        flippedY = selectedPart.flipY;
     }
 
-    if (flippedY ? caseTop : caseBottom) {
-        newPartSize.y +=
-            io.MouseDelta.y / (canvasZoom + 1.f) /
-            globalAnimatable->getCurrentKey()->transform.scaleY;
+    float lCanvasZoom = this->canvasZoom;
+    auto adjustPartSize = [
+        lCanvasZoom,
+        globalAnimatable
+    ](
+        float& size, float mouseDelta,
+        bool flipped, bool positiveCase,
+        uint16_t regionSize, float& scale,
+        float partBeforeScale,
+        int16_t& position, float partBeforePosition
+    ) {
+        if (flipped ? !positiveCase : positiveCase) {
+            size += mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable->getCurrentKey()->transform.scaleY;
+            scale = (size / regionSize) + partBeforeScale - 1.f;
+        } else {
+            size -= mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable->getCurrentKey()->transform.scaleY;
+            scale = (size / regionSize) + partBeforeScale - 1.f;
+            position = partBeforePosition - (size - regionSize);
+        }
+    };
 
-        arrangementPtr->parts.at(appState.selectedPart).transform.scaleY = (
-            newPartSize.y /
-            arrangementPtr->parts.at(appState.selectedPart).regionH
-        ) + partBeforeInteraction.transform.scaleY - 1.f;
+    if (caseBottom || caseTop) {
+        adjustPartSize(newPartSize.y, mouseDeltaY, flippedY, caseBottom, arrangementPtr->parts.at(appState.selectedPart).regionH,
+            arrangementPtr->parts.at(appState.selectedPart).transform.scaleY, partBeforeInteraction.transform.scaleY,
+            arrangementPtr->parts.at(appState.selectedPart).transform.positionY, partBeforeInteraction.transform.positionY);
     }
 
-    if (flippedX ? caseLeft : caseRight) {
-        newPartSize.x +=
-            io.MouseDelta.x / (canvasZoom + 1.f) /
-            globalAnimatable->getCurrentKey()->transform.scaleX;
-
-        arrangementPtr->parts.at(appState.selectedPart).transform.scaleX = (
-            newPartSize.x /
-            arrangementPtr->parts.at(appState.selectedPart).regionW
-        ) + partBeforeInteraction.transform.scaleX - 1.f;
-    }
-
-    if (flippedY ? caseBottom : caseTop) {
-        newPartSize.y -=
-            io.MouseDelta.y / (canvasZoom + 1.f) /
-            globalAnimatable->getCurrentKey()->transform.scaleY;
-
-        arrangementPtr->parts.at(appState.selectedPart).transform.scaleY = (
-            newPartSize.y /
-            arrangementPtr->parts.at(appState.selectedPart).regionH
-        ) + partBeforeInteraction.transform.scaleY - 1.f;
-
-        arrangementPtr->parts.at(appState.selectedPart).transform.positionY = (
-            partBeforeInteraction.transform.positionY - (
-                newPartSize.y -
-                arrangementPtr->parts.at(appState.selectedPart).regionH
-            )
-        );
-    }
-
-    if (flippedX ? caseRight : caseLeft) {
-        newPartSize.x -=
-            io.MouseDelta.x / (canvasZoom + 1.f) /
-            globalAnimatable->getCurrentKey()->transform.scaleX;
-
-        arrangementPtr->parts.at(appState.selectedPart).transform.scaleX = (
-            newPartSize.x /
-            arrangementPtr->parts.at(appState.selectedPart).regionW
-        ) + partBeforeInteraction.transform.scaleX - 1.f;
-
-        arrangementPtr->parts.at(appState.selectedPart).transform.positionX = (
-            partBeforeInteraction.transform.positionX - (
-                newPartSize.x -
-                arrangementPtr->parts.at(appState.selectedPart).regionW
-            )
-        );
+    if (caseRight || caseLeft) {
+        adjustPartSize(newPartSize.x, mouseDeltaX, flippedX, caseRight, arrangementPtr->parts.at(appState.selectedPart).regionW,
+            arrangementPtr->parts.at(appState.selectedPart).transform.scaleX, partBeforeInteraction.transform.scaleX,
+            arrangementPtr->parts.at(appState.selectedPart).transform.positionX, partBeforeInteraction.transform.positionX);
     }
 
     if (panningCanvas) {
