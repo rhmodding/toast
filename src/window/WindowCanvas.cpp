@@ -300,16 +300,16 @@ void WindowCanvas::Update() {
     );
 
     // Dragging
-    const float mousePanThreshold = -1.f;
+    const float mouseDragThreshold = 1.f;
     bool draggingLeft = interactionActive &&
-        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold);
+        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mouseDragThreshold);
 
     bool draggingCanvas = interactionActive && (
-        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Right, mouseDragThreshold) ||
+        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mouseDragThreshold) ||
         (
             ConfigManager::getInstance().getConfig().canvasLMBPanEnabled &&
-            ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
+            ImGui::IsMouseDragging(ImGuiMouseButton_Left, mouseDragThreshold)
         )
     );
 
