@@ -25,3 +25,11 @@ ROADMAP.txt
 *.brcad
 *.u8
 *.tpl
+
+*.7z
+*.zip
+
+*.temp.png
+*.sai2
+
+*.config.json
