@@ -103,15 +103,15 @@ public:
         };
     }
     friend void from_json(const nlohmann::json& j, ConfigManager::Config& config) {
-        j.at("theme").get_to(config.theme);
-        j.at("imageEditorPath").get_to(config.imageEditorPath);
-        j.at("textureEditPath").get_to(config.textureEditPath);
-        j.at("showUnknownValues").get_to(config.showUnknownValues);
-        j.at("lastWindowWidth").get_to(config.lastWindowWidth);
-        j.at("lastWindowHeight").get_to(config.lastWindowHeight);
-        j.at("canvasLMBPanEnabled").get_to(config.canvasLMBPanEnabled);
-        j.at("updateRate").get_to(config.updateRate);
-        j.at("backupBehaviour").get_to(config.backupBehaviour);
+        config.theme = j.value("theme", config.theme);
+        config.imageEditorPath = j.value("imageEditorPath", config.imageEditorPath);
+        config.textureEditPath = j.value("textureEditPath", config.textureEditPath);
+        config.showUnknownValues = j.value("showUnknownValues", config.showUnknownValues);
+        config.lastWindowWidth = j.value("lastWindowWidth", config.lastWindowWidth);
+        config.lastWindowHeight = j.value("lastWindowHeight", config.lastWindowHeight);
+        config.canvasLMBPanEnabled = j.value("canvasLMBPanEnabled", config.canvasLMBPanEnabled);
+        config.updateRate = j.value("updateRate", config.updateRate);
+        config.backupBehaviour = j.value("backupBehaviour", config.backupBehaviour);
     }
 
 public:
