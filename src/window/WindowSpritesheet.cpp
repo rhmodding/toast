@@ -149,10 +149,12 @@ void WindowSpritesheet::FormatPopup() {
 
     CENTER_NEXT_WINDOW;
 
+    ImGui::SetNextWindowSize({ 800.f, 550.f }, ImGuiCond_Appearing);
+
     if (ImGui::BeginPopupModal("Re-encode image..###ReencodePopup", nullptr)) {
         GET_SESSION_MANAGER;
 
-        const char* formatList[] = {
+        static const char* formatList[] = {
             "RGBA32",
             "RGB5A3",
         };
@@ -175,6 +177,14 @@ void WindowSpritesheet::FormatPopup() {
         // Left
         {
             ImGui::BeginGroup();
+            
+            ImGui::SetNextWindowSizeConstraints(
+                { 270.f, 0.f },
+                {
+                    std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::max()
+                }
+            );
             ImGui::BeginChild("Properties", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
 
             {
@@ -184,7 +194,7 @@ void WindowSpritesheet::FormatPopup() {
 
                 if (ImGui::BeginChild(
                     "ImageInfoChild",
-                    ImVec2(-(std::numeric_limits<float>::max()), 0.f),
+                    { 0.f, 0.f },
                     ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY
                 )) {
                     ImGui::BulletText(
@@ -235,7 +245,7 @@ void WindowSpritesheet::FormatPopup() {
 
                 if (ImGui::BeginChild(
                     "FormatInfoChild",
-                    ImVec2(-(std::numeric_limits<float>::max()), 0.f),
+                    { 0.f, 0.f },
                     ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY
                 )) {
                     const char* colorDesc;
