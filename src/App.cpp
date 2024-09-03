@@ -1903,9 +1903,6 @@ void App::Update() {
 
     this->UpdatePopups();
 
-    // TODO: Implement timeline auto-scroll
-    // static bool autoScrollTimeline{ false };
-
     // End main window
     ImGui::End();
 
