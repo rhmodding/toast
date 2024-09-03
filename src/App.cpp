@@ -1912,17 +1912,14 @@ void App::Update() {
     // Render
     ImGui::Render();
 
-    int fbSize[2];
-    glfwGetFramebufferSize(window, fbSize, fbSize + 1);
-    glViewport(0, 0, fbSize[0], fbSize[1]);
+    int framebufferSize[2];
+    glfwGetFramebufferSize(this->window, framebufferSize + 0, framebufferSize + 1);
 
-    const ImVec4 clearColor = appState.getWindowClearColor();
-    glClearColor(
-        clearColor.x * clearColor.w,
-        clearColor.y * clearColor.w,
-        clearColor.z * clearColor.w,
-        clearColor.w
-    );
+    glViewport(0, 0, framebufferSize[0], framebufferSize[1]);
+
+    const auto clearColor = appState.getWindowClearColor();
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+
     glClear(GL_COLOR_BUFFER_BIT);
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -1939,5 +1936,5 @@ void App::Update() {
         glfwMakeContextCurrent(backupCurrentContext);
     }
 
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(this->window);
 }

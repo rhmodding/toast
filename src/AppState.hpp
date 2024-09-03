@@ -32,7 +32,7 @@ class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>; // Allow access to base class constructor
 
 private:
-    ImVec4 windowClearColor{ Common::RGBAtoImVec4(24, 24, 24, 255) };
+    std::array<float, 4> windowClearColor;
 public:
     bool enableDemoWindow{ false };
 
@@ -43,18 +43,18 @@ public:
     void applyTheming() {
         if (this->getDarkThemeEnabled()) {
             ImGui::StyleColorsDark();
-            this->windowClearColor = Common::RGBAtoImVec4(24, 24, 24, 255);
+            this->windowClearColor = std::array<float, 4>{ 24 / 255.f, 24 / 255.f, 24 / 255.f, 1.f };
         }
         else {
             ImGui::StyleColorsLight();
-            this->windowClearColor = Common::RGBAtoImVec4(248, 248, 248, 255);
+            this->windowClearColor = std::array<float, 4>{ 248 / 255.f, 248 / 255.f, 248 / 255.f, 1.f };
         }
 
         ImGui::GetStyle().Colors[ImGuiCol_TabSelectedOverline] = ImVec4();
         ImGui::GetStyle().Colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4();
     }
 
-    inline ImVec4 getWindowClearColor() {
+    inline std::array<float, 4> getWindowClearColor() {
         return this->windowClearColor;
     }
 
