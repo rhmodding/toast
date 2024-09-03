@@ -896,7 +896,7 @@ void App::Menubar() {
             ImGui::Separator();
 
             ImGui::MenuItem("Visible", nullptr, &part->editorVisible);
-            ImGui::MenuItem("Locked");
+            ImGui::MenuItem("Locked", nullptr, &part->editorLocked);
 
             ImGui::Separator();
 
