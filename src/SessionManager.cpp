@@ -462,7 +462,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         std::cerr << "[SessionManager::PushSessionFromCompressedArc] Supplemental editor data is expected but was not found!\n";
 
         MtCommandManager::getInstance().enqueueCommand([]() {
-            AppState::getInstance().OpenGlobalPopup("###DialogEditorDataExpected");
+            AppState::getInstance().OpenGlobalPopup("###EditorDataExpected");
         }).get();
     }
 

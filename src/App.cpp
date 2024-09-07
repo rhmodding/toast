@@ -48,6 +48,11 @@
 
 #include "MtCommandManager.hpp"
 
+#include "App/Actions.hpp"
+#include "App/Shortcuts.hpp"
+
+#include "App/Popups.hpp"
+
 #include "common.hpp"
 
 #if !defined(__APPLE__)
@@ -56,189 +61,14 @@
 
 App* gAppPtr{ nullptr };
 
-#if defined(__APPLE__)
-    #define SCS_EXIT "Cmd+Q"
-    #define SCST_CTRL "Cmd"
-#else
-    #define SCS_EXIT "Alt+F4"
-    #define SCST_CTRL "Ctrl"
-#endif
-
-#define SCT_CTRL ImGui::GetIO().KeyCtrl
-
-#define SCS_LAUNCH_OPEN_SZS_DIALOG SCST_CTRL "+O"
-#define SC_LAUNCH_OPEN_SZS_DIALOG \
-            SCT_CTRL && \
-            !ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_O)
-
-#define SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG SCST_CTRL "+Shift+O"
-#define SC_LAUNCH_OPEN_TRADITIONAL_DIALOG \
-            SCT_CTRL && \
-            ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_O)
-
-#define SCS_SAVE_CURRENT_SESSION_SZS SCST_CTRL "+S"
-#define SC_SAVE_CURRENT_SESSION_SZS \
-            SCT_CTRL && \
-            !ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_S)
-
-#define SCS_LAUNCH_SAVE_AS_SZS_DIALOG SCST_CTRL "+Shift+S"
-#define SC_LAUNCH_SAVE_AS_SZS_DIALOG \
-            SCT_CTRL && \
-            ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_S)
-
-#define SCS_UNDO SCST_CTRL "+Z"
-#define SC_UNDO \
-            SCT_CTRL && \
-            !ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_Z)
-
-#define SCS_REDO SCST_CTRL "+Shift+Z"
-#define SC_REDO \
-            SCT_CTRL && \
-            ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_Z)
-
-#pragma region Actions
-
-void A_LD_CreateCompressedArcSession() {
-    const char* filterPatterns[] = { "*.szs" };
-    char* openFileDialog = tinyfd_openFileDialog(
-        "Select a cellanim file",
-        nullptr,
-        ARRAY_LENGTH(filterPatterns), filterPatterns,
-        "Compressed Arc File (.szs)",
-        false
-    );
-
-    if (!openFileDialog)
-        return;
-
-    AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
-        std::string(openFileDialog)
-    );
-}
-
-void A_LD_CreateTraditionalSession() {
-    char* pathList[3];
-
-    const char* vFiltersBrcad[] { "*.brcad" };
-    const char* tFiltersBrcad = "Binary Revolution CellAnim Data file (.brcad)";
-
-    const char* vFiltersImage[]  { "*.png", "*.tga", "*.bmp", "*.psd", "*.jpg" };
-    const char* tFiltersImage =  "Image files (.png, .tga, .bmp, .psd, .jpg)";
-
-    const char* vFiltersHeader[] { "*.h" };
-    const char* tFiltersHeader = "Header file (.h)";
-
-    char* brcadDialog = tinyfd_openFileDialog(
-        "Select the BRCAD file",
-        nullptr,
-        ARRAY_LENGTH(vFiltersBrcad), vFiltersBrcad,
-        tFiltersBrcad,
-        false
-    );
-    if (!brcadDialog)
-        return;
-
-    pathList[0] = new char[strlen(brcadDialog) + 1];
-    strcpy(pathList[0], brcadDialog);
-
-    char* imageDialog = tinyfd_openFileDialog(
-        "Select the image file",
-        nullptr,
-        ARRAY_LENGTH(vFiltersImage), vFiltersImage,
-        tFiltersImage,
-        false
-    );
-    if (!imageDialog)
-        return;
-
-    pathList[1] = new char[strlen(imageDialog) + 1];
-    strcpy(pathList[1], imageDialog);
-
-    char* headerDialog = tinyfd_openFileDialog(
-        "Select the header file",
-        nullptr,
-        ARRAY_LENGTH(vFiltersHeader), vFiltersHeader,
-        tFiltersHeader,
-        false
-    );
-    if (!headerDialog)
-        return;
-
-    pathList[2] = new char[strlen(headerDialog) + 1];
-    strcpy(pathList[2], headerDialog);
-
-    GET_SESSION_MANAGER;
-
-    int32_t result = sessionManager.PushSessionTraditional((const char **)pathList);
-    if (result < 0) {
-        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-        ImGui::OpenPopup("###SessionOpenErr");
-        ImGui::PopID();
-    }
-    else {
-        sessionManager.currentSession = result;
-        sessionManager.SessionChanged();
-    }
-}
-
-void A_LD_SaveCurrentSessionAsSzs() {
-    GET_SESSION_MANAGER;
-    GET_ASYNC_TASK_MANAGER;
-
-    if (
-        !sessionManager.getSessionAvaliable() ||
-        asyncTaskManager.HasTaskOfType<ExportSessionTask>()
-    )
-        return;
-
-    const char* filterPatterns[] = { "*.szs" };
-    char* saveFileDialog = tinyfd_saveFileDialog(
-        "Select a file to save to",
-        nullptr,
-        ARRAY_LENGTH(filterPatterns), filterPatterns,
-        "Compressed Arc File (.szs)"
-    );
-
-    if (saveFileDialog)
-        asyncTaskManager.StartTask<ExportSessionTask>(
-            sessionManager.getCurrentSession(),
-            std::string(saveFileDialog)
-        );
-}
-
-void A_SaveCurrentSessionSzs() {
-    GET_SESSION_MANAGER;
-    GET_ASYNC_TASK_MANAGER;
-
-    if (
-        !sessionManager.getSessionAvaliable() ||
-        sessionManager.getCurrentSession()->traditionalMethod ||
-
-        asyncTaskManager.HasTaskOfType<ExportSessionTask>()
-    )
-        return;
-
-    asyncTaskManager.StartTask<ExportSessionTask>(
-        sessionManager.getCurrentSession(),
-        sessionManager.getCurrentSession()->mainPath
-    );
-}
-
-#pragma endregion
-
 void App::AttemptExit(bool force) {
     GET_SESSION_MANAGER;
 
     if (!force)
         for (unsigned i = 0; i < sessionManager.sessionList.size(); i++) {
             if (sessionManager.sessionList.at(i).modified) {
-                this->dialog_warnExitWithUnsavedChanges = true;
+                Popups::_openExitWithChangesPopup = true;
+
                 return; // Cancel
             }
         }
@@ -345,20 +175,20 @@ App::App() {
         style.Colors[ImGuiCol_WindowBg].w = 1.f;
     }
 
-    style.WindowPadding.x = 10;
-    style.WindowPadding.y = 10;
+    style.WindowPadding.x = 10.f;
+    style.WindowPadding.y = 10.f;
 
-    style.FrameRounding = 5;
-    style.WindowRounding = 5;
-    style.ChildRounding = 5;
-    style.GrabRounding = 5;
-    style.PopupRounding = 5;
+    style.FrameRounding = 5.f;
+    style.WindowRounding = 5.f;
+    style.ChildRounding = 5.f;
+    style.GrabRounding = 5.f;
+    style.PopupRounding = 5.f;
 
-    style.FramePadding.x = 5;
-    style.FramePadding.y = 3;
+    style.FramePadding.x = 5.f;
+    style.FramePadding.y = 3.f;
 
-    style.ItemSpacing.x = 9;
-    style.ItemSpacing.y = 4;
+    style.ItemSpacing.x = 9.f;
+    style.ItemSpacing.y = 4.f;
 
     style.WindowTitleAlign.x = .5f;
     style.WindowTitleAlign.y = .5f;
@@ -379,23 +209,19 @@ App::~App() {
 
     glfwDestroyWindow(window);
     glfwTerminate();
-
-    SessionManager::getInstance().FreeAllSessions();
-
-    Common::deleteIfNotNullptr(AppState::getInstance().globalAnimatable, false);
 }
 
 void App::SetupFonts() {
     GET_IMGUI_IO;
     GET_APP_STATE;
 
-    {
+    { // SegoeUI (18px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
     }
 
-    {
+    { // Font Awesome
         static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
         ImFontConfig fontConfig;
@@ -405,17 +231,48 @@ void App::SetupFonts() {
         appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, icons_ranges);
     }
 
-    {
+    { // SegoeUI (24px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
     }
 
-    {
+    { // SegoeUI (52px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
     }
+}
+
+void App::BeginMainWindow() {
+    ImGuiDockNodeFlags dockspaceFlags =
+        ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode |
+        ImGuiWindowFlags_NoBackground;
+    ImGuiWindowFlags windowFlags =
+        ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+        ImGuiWindowFlags_NoBackground;
+
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.f });
+
+    ImGui::Begin(WINDOW_TITLE "###AppWindow", nullptr, windowFlags);
+
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor();
+
+    // Submit the Dockspace
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
+        ImGui::DockSpace(ImGui::GetID("mainDockspace"), { 0.f, 0.f }, dockspaceFlags);
 }
 
 // TODO: Move all of this outside of App.cpp
@@ -696,14 +553,14 @@ void App::Menubar() {
                 SCS_LAUNCH_OPEN_SZS_DIALOG,
                 nullptr
             ))
-                A_LD_CreateCompressedArcSession();
+                Actions::Dialog_CreateCompressedArcSession();
 
             if (ImGui::MenuItem(
                 (char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
                 SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG,
                 nullptr
             ))
-                A_LD_CreateTraditionalSession();
+                Actions::Dialog_CreateTraditionalSession();
 
             ImGui::Separator();
 
@@ -712,13 +569,13 @@ void App::Menubar() {
                     sessionManager.getSessionAvaliable() &&
                     !sessionManager.getCurrentSession()->traditionalMethod
             ))
-                A_SaveCurrentSessionSzs();
+                Actions::SaveCurrentSessionSzs();
 
             if (ImGui::MenuItem(
                 (char*)ICON_FA_FILE_EXPORT " Save as (szs)...", SCS_LAUNCH_SAVE_AS_SZS_DIALOG, false,
                 sessionManager.getSessionAvaliable()
             ))
-                A_LD_SaveCurrentSessionAsSzs();
+                Actions::Dialog_SaveCurrentSessionAsSzs();
 
             ImGui::EndMenu();
         }
@@ -824,7 +681,13 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Interpolate .."))
+            if (ImGui::MenuItem(
+                "Interpolate ..",
+                nullptr, nullptr,
+
+                appState.globalAnimatable->getCurrentKeyIndex() + 1 <
+                appState.globalAnimatable->getCurrentAnimation()->keys.size()
+            ))
                 appState.OpenGlobalPopup("MInterpolateKeys");
 
             ImGui::Separator();
@@ -951,239 +814,41 @@ void App::Menubar() {
     }
 
     BEGIN_GLOBAL_POPUP;
-    { // MTransformArrangement
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
-
-        static bool lateOpen{ false };
-        const bool active = ImGui::BeginPopup("MTransformArrangement");
-
-        GET_ANIMATABLE;
-
-        RvlCellAnim::Arrangement* arrangement{ nullptr };
-
-        if (globalAnimatable && globalAnimatable->cellanim)
-            arrangement = globalAnimatable->getCurrentArrangement();
-
-        static const int noOffset[2] = { 0, 0 };
-        static const float noScale[2] = { 1.f, 1.f };
-
-        if (!active && lateOpen && arrangement) {
-            memcpy(arrangement->tempOffset, noOffset, sizeof(int)*2);
-            memcpy(arrangement->tempScale, noScale, sizeof(float)*2);
-
-            lateOpen = false;
-        }
-
-        if (active) {
-            lateOpen = true;
-
-            ImGui::SeparatorText("Transform Arrangement");
-
-            static int offset[2] = { 0, 0 };
-            static float scale[2] = { 1.f, 1.f };
-
-            ImGui::DragInt2("Offset XY", offset, 1.f);
-            ImGui::DragFloat2("Scale XY", scale, .01f);
-
-            ImGui::Separator();
-
-            if (ImGui::Button("Apply")) {
-                memcpy(arrangement->tempOffset, noOffset, sizeof(int)*2);
-                memcpy(arrangement->tempScale, noScale, sizeof(float)*2);
-
-                auto newArrangement = *arrangement;
-                for (auto& part : newArrangement.parts) {
-                    part.transform.positionX = static_cast<int16_t>(
-                        ((part.transform.positionX - CANVAS_ORIGIN) * scale[0]) + offset[0] + CANVAS_ORIGIN
-                    );
-                    part.transform.positionY = static_cast<int16_t>(
-                        ((part.transform.positionY - CANVAS_ORIGIN) * scale[1]) + offset[1] + CANVAS_ORIGIN
-                    );
-
-                    part.transform.scaleX *= scale[0];
-                    part.transform.scaleY *= scale[1];
-                }
-
-                SessionManager::getInstance().getCurrentSession()->executeCommand(
-                std::make_shared<CommandModifyArrangement>(
-                    sessionManager.getCurrentSession()->currentCellanim,
-                    globalAnimatable->getCurrentKey()->arrangementIndex,
-                    newArrangement
-                ));
-
-                SessionManager::getInstance().getCurrentSessionModified() = true;
-
-                offset[0] = 0; offset[1] = 0;
-                scale[0] = 1.f; scale[1] = 1.f;
-
-                ImGui::CloseCurrentPopup();
-                lateOpen = false;
-            }
-
-            ImGui::SameLine();
-            if (ImGui::Button("Cancel")) {
-                offset[0] = 0; offset[1] = 0;
-                scale[0] = 1.f; scale[1] = 1.f;
-
-                ImGui::CloseCurrentPopup();
-                lateOpen = false;
-            }
-
-            memcpy(arrangement->tempOffset, offset, sizeof(int)*2);
-            memcpy(arrangement->tempScale, scale, sizeof(float)*2);
-
-            ImGui::EndPopup();
-        }
-
-        ImGui::PopStyleVar();
-    }
-
-    { // MPadRegion
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
-
-        static bool lateOpen{ false };
-        const bool active = ImGui::BeginPopup("MPadRegion");
-
-        GET_ANIMATABLE;
-
-        RvlCellAnim::ArrangementPart* part{ nullptr };
-
-        if (
-            globalAnimatable && globalAnimatable->cellanim &&
-            appState.selectedPart != -1
-        )
-            part = &globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart);
-
-        static uint16_t origOffset[2]{ 8, 8 };
-        static uint16_t origSize[2]{ 32, 32 };
-
-        static int16_t origPosition[2]{ CANVAS_ORIGIN, CANVAS_ORIGIN };
-
-        if (!active && lateOpen && part) {
-            part->regionX = origOffset[0];
-            part->regionY = origOffset[1];
-
-            part->regionW = origSize[0];
-            part->regionH = origSize[0];
-
-            part->transform.positionX = origPosition[0];
-            part->transform.positionY = origPosition[1];
-
-            lateOpen = false;
-        }
-
-        if (active && part) {
-            if (!lateOpen) {
-                origOffset[0] = part->regionX;
-                origOffset[1] = part->regionY;
-
-                origSize[0] = part->regionW;
-                origSize[1] = part->regionH;
-
-                origPosition[0] = part->transform.positionX;
-                origPosition[1] = part->transform.positionY;
-            }
-
-            lateOpen = true;
-
-            ImGui::SeparatorText("Part Region Padding");
-
-            static int padBy[2] = { 0, 0 };
-            static bool centerPart{ true };
-
-            ImGui::DragInt2("Padding (pixels)", padBy, .5f);
-
-            ImGui::Checkbox("Center part", &centerPart);
-
-            ImGui::Separator();
-
-            if (ImGui::Button("Apply")) {
-                auto newPart = *part;
-
-                newPart.regionW = origSize[0] + padBy[0];
-                newPart.regionH = origSize[1] + padBy[1];
-
-                newPart.regionX = origOffset[0] - (padBy[0] / 2);
-                newPart.regionY = origOffset[1] - (padBy[1] / 2);
-
-                if (centerPart) {
-                    newPart.transform.positionX = origPosition[0] - (padBy[0] / 2);
-                    newPart.transform.positionY = origPosition[1] - (padBy[1] / 2);
-                }
-
-                part->regionX = origOffset[0];
-                part->regionY = origOffset[1];
-
-                part->regionW = origSize[0];
-                part->regionH = origSize[1];
-
-                part->transform.positionX = origPosition[0];
-                part->transform.positionY = origPosition[1];
-
-                SessionManager::getInstance().getCurrentSession()->executeCommand(
-                std::make_shared<CommandModifyArrangementPart>(
-                    sessionManager.getCurrentSession()->currentCellanim,
-                    globalAnimatable->getCurrentKey()->arrangementIndex,
-                    appState.selectedPart,
-                    newPart
-                ));
-
-                SessionManager::getInstance().getCurrentSessionModified() = true;
-
-                padBy[0] = 0;
-                padBy[1] = 0;
-
-                ImGui::CloseCurrentPopup();
-                lateOpen = false;
-            }
-
-            ImGui::SameLine();
-            if (ImGui::Button("Cancel")) {
-                padBy[0] = 0;
-                padBy[1] = 0;
-
-                ImGui::CloseCurrentPopup();
-                lateOpen = false;
-            }
-
-            part->regionW = origSize[0] + padBy[0];
-            part->regionH = origSize[1] + padBy[1];
-
-            part->regionX = origOffset[0] - (padBy[0] / 2);
-            part->regionY = origOffset[1] - (padBy[1] / 2);
-
-            if (centerPart) {
-                part->transform.positionX = origPosition[0] - (padBy[0] / 2);
-                part->transform.positionY = origPosition[1] - (padBy[1] / 2);
-            }
-            else {
-                part->transform.positionX = origPosition[0];
-                part->transform.positionY = origPosition[1];
-            }
-
-            ImGui::EndPopup();
-        }
-
-        ImGui::PopStyleVar();
-    }
-
     { // MInterpolateKeys
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
         static bool lateOpen{ false };
         const bool active = ImGui::BeginPopup("MInterpolateKeys");
 
-        const bool animatableActive = true;
+        GET_ANIMATABLE;
 
-        if (!active && lateOpen && animatableActive) {
+        bool condition = globalAnimatable && globalAnimatable->cellanim.get();
 
+        static auto animationBackup{ RvlCellAnim::Animation{} };
+        RvlCellAnim::Animation* currentAnimation{ nullptr };
+        RvlCellAnim::AnimationKey* currentKey{ nullptr };
+        RvlCellAnim::AnimationKey* nextKey{ nullptr };
+
+        if (condition) {
+            currentAnimation = globalAnimatable->getCurrentAnimation();
+            currentKey = globalAnimatable->getCurrentKey();
+            nextKey = currentKey + 1;
+
+            // Does next key exist?
+            condition =
+                globalAnimatable->getCurrentKeyIndex() + 1 < currentAnimation->keys.size();
+        }
+
+        if (!active && lateOpen && condition) {
+            *currentAnimation = animationBackup;
+            PlayerManager::getInstance().clampCurrentKeyIndex();
 
             lateOpen = false;
         }
 
-        if (active && animatableActive) {
+        if (active && condition) {
             if (!lateOpen) {
-
+                animationBackup = *currentAnimation;
             }
 
             lateOpen = true;
@@ -1302,76 +967,11 @@ void App::Menubar() {
                 ImGui::CloseCurrentPopup();
                 lateOpen = false;
             }
-
-            ImGui::EndPopup();
         }
 
-        ImGui::PopStyleVar();
-    }
-
-    { // ###MOptimizeGlobal
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-        if (ImGui::BeginPopupModal("Optimize Cellanim###MOptimizeGlobal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::TextUnformatted("Optimize the current Cellanim:");
-            ImGui::BulletText("%u. \"%s\"",
-                sessionManager.getCurrentSession()->currentCellanim + 1,
-                sessionManager.getCurrentSession()->getCellanimName().c_str()
-            );
-
-            sessionManager.getCurrentSession()->getCellanimObject();
-
-            ImGui::Dummy({ 0, 5 });
-            ImGui::Separator();
-            ImGui::Dummy({ 0, 10 });
-
-            static OptimizeCellanimOptions options;
-
-            const char* downscaleComboItems[] = {
-                "Don't downscale (1x)",
-                "Downscale Low (0.875x)",
-                "Downscale Medium (0.75x)",
-                "Downscale High (0.5x)",
-            };
-            static int downscaleOption{ 0 };
-
-            ImGui::Checkbox("Remove all animation name macros", &options.removeAnimationNames);
-            ImGui::Checkbox("Remove all hidden parts (editor hidden)", &options.removeHiddenPartsEditor);
-            ImGui::Checkbox("Remove all invisible parts (zero-opacity or zero-scale)", &options.removeInvisibleParts);
-            ImGui::Checkbox("Remove all unused arrangements", &options.removeUnusedArrangements);
-
-            ImGui::Dummy({ 0, 5 });
-
-            ImGui::PopStyleVar();
-            ImGui::Combo(
-                "Downscale Spritesheet",
-                reinterpret_cast<int*>(&options.downscaleSpritesheet),
-                downscaleComboItems, ARRAY_LENGTH(downscaleComboItems)
-            );
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-
-            ImGui::Dummy({ 0, 12 });
-
-            ImGui::TextUnformatted("This action is irreversible; You won't be able to undo this\naction or any action before it.");
-
-            ImGui::Dummy({ 0, 3 });
-            ImGui::Separator();
-            ImGui::Dummy({ 0, 5 });
-
-            if (ImGui::Button("OK", ImVec2(120, 0))) {
-                ImGui::CloseCurrentPopup();
-
-                AsyncTaskManager::getInstance().StartTask<OptimizeCellanimTask>(
-                    sessionManager.getCurrentSession(), options
-                );
-            } ImGui::SetItemDefaultFocus();
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("Nevermind", ImVec2(120, 0)))
-                ImGui::CloseCurrentPopup();
-
+        if (active)
             ImGui::EndPopup();
-        }
+
         ImGui::PopStyleVar();
     }
     END_GLOBAL_POPUP;
@@ -1447,11 +1047,8 @@ void App::Menubar() {
                 if (!sessionOpen) {
                     sessionManager.sessionClosing = n;
 
-                    if (sessionManager.sessionList.at(n).modified) {
-                        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                        ImGui::OpenPopup("###ConfirmFreeModifiedSession");
-                        ImGui::PopID();
-                    }
+                    if (sessionManager.sessionList.at(n).modified)
+                        AppState::getInstance().OpenGlobalPopup("###CloseModifiedSession");
                     else {
                         sessionManager.FreeSessionIndex(n);
                         sessionManager.SessionChanged();
@@ -1464,372 +1061,6 @@ void App::Menubar() {
         }
 
         ImGui::EndMenuBar();
-    }
-}
-
-void App::UpdatePopups() {
-    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-
-    // ###SessionOpenErr
-    // ###SessionOutErr
-    {
-        SessionManager::SessionError errorCode = SessionManager::getInstance().lastSessionError;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-
-        CENTER_NEXT_WINDOW;
-        if (ImGui::BeginPopupModal((
-            "There was an error opening the session. (" +
-            std::to_string(errorCode) +
-            ")###SessionOpenErr"
-        ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            std::string errorMessage;
-            switch (errorCode) {
-                case SessionManager::SessionOpenError_FailOpenArchive:
-                    errorMessage = "The archive file could not be opened.";
-                    break;
-                case SessionManager::SessionOpenError_FailFindTPL:
-                    errorMessage = "The archive does not contain the cellanim.tpl file.";
-                    break;
-                case SessionManager::SessionOpenError_RootDirNotFound:
-                    errorMessage = "The archive does not contain a root directory.";
-                    break;
-                case SessionManager::SessionOpenError_NoBXCADsFound:
-                    errorMessage = "The archive does not contain any brcad/bccad files.";
-                    break;
-                case SessionManager::SessionOpenError_FailOpenBXCAD:
-                    errorMessage = "The brcad/bccad file could not be opened.";
-                    break;
-                case SessionManager::SessionOpenError_FailOpenPNG:
-                    errorMessage = "The image file (.png) could not be opened.";
-                    break;
-                case SessionManager::SessionOpenError_FailOpenHFile:
-                    errorMessage = "The header file (.h) could not be opened.";
-                    break;
-                case SessionManager::SessionOpenError_SessionsFull:
-                    errorMessage = "The maximum amount of sessions are already open.";
-                    break;
-                default:
-                    errorMessage = "An unknown error has occurred (" + std::to_string(errorCode) + ").";
-                    break;
-            }
-
-            ImGui::TextUnformatted(errorMessage.c_str());
-
-            ImGui::Dummy({0, 5});
-
-            if (ImGui::Button("Alright", ImVec2(120, 0)))
-                ImGui::CloseCurrentPopup();
-            ImGui::SetItemDefaultFocus();
-
-            ImGui::EndPopup();
-        }
-
-
-        CENTER_NEXT_WINDOW;
-        if (ImGui::BeginPopupModal((
-            "There was an error exporting the session. (" +
-            std::to_string(errorCode) +
-            ")###SessionOutErr"
-        ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            std::string errorMessage;
-            switch (errorCode) {
-                case SessionManager::SessionOutError_FailOpenFile:
-                    errorMessage = "The destination file could not be opened for reading.";
-                    break;
-                case SessionManager::SessionOutError_ZlibError:
-                    errorMessage = "Zlib raised an error while compressing the file.";
-                    break;
-                case SessionManager::SessionOutError_FailTPLTextureExport:
-                    errorMessage = "There was an error exporting a texture.";
-                    break;
-                default:
-                    errorMessage = "An unknown error has occurred (" + std::to_string(errorCode) + ").";
-                    break;
-            }
-
-            ImGui::TextUnformatted(errorMessage.c_str());
-
-            ImGui::Dummy({0, 5});
-
-            if (ImGui::Button("Alright", ImVec2(120, 0)))
-                ImGui::CloseCurrentPopup();
-            ImGui::SetItemDefaultFocus();
-
-            ImGui::EndPopup();
-        }
-
-        ImGui::PopStyleVar();
-    }
-
-    // ###DialogWaitForModifiedPNG
-    {
-        CENTER_NEXT_WINDOW;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-        if (ImGui::BeginPopupModal("Modifying texture via image editor###DialogWaitForModifiedPNG", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("Once the modified texture is ready, select the \"Ready\" option.\n To cancel, select \"Nevermind\".");
-
-            ImGui::Dummy({ 0, 15 });
-            ImGui::Separator();
-            ImGui::Dummy({ 0, 5 });
-
-            const char* formatList[] = {
-                "RGBA32 (full-depth color)",
-                "RGB5A3 (variable color depth)",
-            };
-            static int selectedFormatIndex{ 0 };
-            ImGui::Combo("Image Format", &selectedFormatIndex, formatList, ARRAY_LENGTH(formatList));
-
-            ImGui::Dummy({ 0, 5 });
-
-            if (ImGui::Button("Ready", ImVec2(120, 0))) {
-                GET_SESSION_MANAGER;
-
-                std::shared_ptr<Common::Image> newImage =
-                    std::make_shared<Common::Image>(Common::Image());
-                newImage->LoadFromFile(ConfigManager::getInstance().getConfig().textureEditPath.c_str());
-
-                if (newImage->texture) {
-                    auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
-
-                    bool diffSize =
-                        newImage->width  != cellanimSheet->width ||
-                        newImage->height != cellanimSheet->height;
-
-                    cellanimSheet = newImage;
-
-                    switch (selectedFormatIndex) {
-                        case 0:
-                            cellanimSheet->tplOutFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
-                            break;
-
-                        case 1:
-                            cellanimSheet->tplOutFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
-                            break;
-
-                        default:
-                            break;
-                    }
-
-                    ImGui::CloseCurrentPopup();
-
-                    if (diffSize) {
-                        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                        ImGui::OpenPopup("###DialogModifiedPNGSizeDiff");
-                        ImGui::PopID();
-                    }
-
-                    sessionManager.SessionChanged();
-                    sessionManager.getCurrentSessionModified() = true;
-                }
-                else
-                    ImGui::CloseCurrentPopup();
-            } ImGui::SetItemDefaultFocus();
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("Nevermind", ImVec2(120, 0)))
-                ImGui::CloseCurrentPopup();
-
-            ImGui::EndPopup();
-        }
-        ImGui::PopStyleVar();
-    }
-
-    // ###DialogPNGExportFailed
-    {
-        CENTER_NEXT_WINDOW;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-        if (ImGui::BeginPopupModal("There was an error exporting the texture.###DialogPNGExportFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::TextUnformatted("The texture could not be written to the PNG file.\nPlease check the path set in the config.");
-
-            ImGui::Dummy({0, 5});
-
-            if (ImGui::Button("Alright", ImVec2(120, 0)))
-                ImGui::CloseCurrentPopup();
-            ImGui::SetItemDefaultFocus();
-
-            ImGui::EndPopup();
-        }
-        ImGui::PopStyleVar();
-    }
-
-    // ###DialogModifiedPNGSizeDiff
-    {
-        CENTER_NEXT_WINDOW;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-        if (ImGui::BeginPopupModal("Texture size mismatch###DialogModifiedPNGSizeDiff", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::TextUnformatted("The new texture's size is different from the existing texture.\nPlease select the wanted behavior:");
-
-            ImGui::Dummy({ 0, 15 });
-            ImGui::Separator();
-            ImGui::Dummy({ 0, 5 });
-
-            ImGui::PopStyleVar();
-
-            if (ImGui::Button("No region scaling")) {
-                SessionManager::Session* currentSession = SessionManager::getInstance().getCurrentSession();
-
-                currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->width;
-                currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->height;
-
-                ImGui::CloseCurrentPopup();
-            }
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-                ImGui::SetTooltip("Select this option for texture extensions.");
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("Apply region scaling")) {
-                SessionManager::Session* currentSession = SessionManager::getInstance().getCurrentSession();
-
-                float scaleX =
-                    static_cast<float>(currentSession->getCellanimSheet()->width) /
-                    currentSession->getCellanimObject()->textureW;
-                float scaleY =
-                    static_cast<float>(currentSession->getCellanimSheet()->height) /
-                    currentSession->getCellanimObject()->textureH;
-
-                for (auto& arrangement : currentSession->getCellanimObject()->arrangements)
-                    for (auto& part : arrangement.parts) {
-                        part.regionX *= scaleX;
-                        part.regionW *= scaleX;
-                        part.regionY *= scaleY;
-                        part.regionH *= scaleY;
-
-                        part.transform.scaleX /= scaleX;
-                        part.transform.scaleY /= scaleY;
-                    }
-
-                currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->width;
-                currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->height;
-
-                ImGui::CloseCurrentPopup();
-            } ImGui::SetItemDefaultFocus();
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-                ImGui::SetTooltip("Select this option for texture upscales.");
-
-            ImGui::EndPopup();
-
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 }); // sigh
-        }
-        ImGui::PopStyleVar();
-    }
-
-    // ###DialogEditorDataExpected
-    {
-        CENTER_NEXT_WINDOW;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-        if (ImGui::BeginPopupModal("Data not found###DialogEditorDataExpected", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::TextUnformatted("The supplemental editor data for this file (TOAST.DAT) has not been found.\nSome data may be incorrect / inaccurate.");
-
-            ImGui::Dummy({0, 5});
-
-            if (ImGui::Button("Alright", ImVec2(120, 0)))
-                ImGui::CloseCurrentPopup();
-            ImGui::SetItemDefaultFocus();
-
-            ImGui::EndPopup();
-        }
-        ImGui::PopStyleVar();
-    }
-
-    // ###ConfirmFreeModifiedSession
-    {
-        GET_SESSION_MANAGER;
-
-        std::string popupTitle =
-            sessionManager.sessionClosing < sessionManager.sessionList.size() ?
-            sessionManager.sessionList.at(sessionManager.sessionClosing).mainPath :
-            "Confirm";
-
-        CENTER_NEXT_WINDOW;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-        if (ImGui::BeginPopupModal((
-            popupTitle +
-            "###ConfirmFreeModifiedSession"
-        ).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            // -50 to account for window padding
-            ImGui::Dummy({ ImGui::CalcTextSize(popupTitle.c_str()).x - 40, 0 });
-
-            ImGui::Text("Are you sure you want to close this session?\nYour changes will be lost.");
-
-            ImGui::Dummy({ 0, 15 });
-            ImGui::Separator();
-            ImGui::Dummy({ 0, 5 });
-
-            if (ImGui::Button("Cancel"))
-                ImGui::CloseCurrentPopup();
-            ImGui::SetItemDefaultFocus();
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("Close without saving")) {
-                sessionManager.FreeSessionIndex(sessionManager.sessionClosing);
-                sessionManager.SessionChanged();
-
-                ImGui::CloseCurrentPopup();
-            }
-
-            ImGui::EndPopup();
-        }
-        ImGui::PopStyleVar();
-    }
-
-    // ###AttemptExitWhileUnsavedChanges
-    {
-        CENTER_NEXT_WINDOW;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
-        if (ImGui::BeginPopupModal("Exit with unsaved changes###AttemptExitWhileUnsavedChanges", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::TextUnformatted("There are still unsaved changes in one or more sessions.\nAre you sure you want to close the app?");
-
-            ImGui::Dummy({ 0, 15 });
-            ImGui::Separator();
-            ImGui::Dummy({ 0, 5 });
-
-            if (ImGui::Button("Cancel"))
-                ImGui::CloseCurrentPopup();
-            ImGui::SetItemDefaultFocus();
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("Exit without saving")) {
-                ImGui::CloseCurrentPopup();
-
-                this->AttemptExit(true);
-            }
-
-            ImGui::EndPopup();
-        }
-        ImGui::PopStyleVar();
-    }
-
-    ImGui::PopID();
-}
-
-void App::HandleShortcuts() {
-    if (SC_LAUNCH_OPEN_SZS_DIALOG)
-        A_LD_CreateCompressedArcSession();
-    if (SC_LAUNCH_OPEN_TRADITIONAL_DIALOG)
-        A_LD_CreateTraditionalSession();
-    if (SC_SAVE_CURRENT_SESSION_SZS)
-        A_SaveCurrentSessionSzs();
-    if (SC_LAUNCH_SAVE_AS_SZS_DIALOG)
-        A_LD_SaveCurrentSessionAsSzs();
-
-    GET_SESSION_MANAGER;
-
-    if (sessionManager.getSessionAvaliable()) {
-        if (SC_UNDO)
-            sessionManager.getCurrentSession()->undo();
-        if (SC_REDO)
-            sessionManager.getCurrentSession()->redo();
     }
 }
 
@@ -1870,7 +1101,7 @@ void App::Update() {
     this->BeginMainWindow();
     this->Menubar();
 
-    this->HandleShortcuts();
+    Shortcuts::Handle();
 
     if (appState.enableDemoWindow)
         ImGui::ShowDemoWindow(&appState.enableDemoWindow);
@@ -1889,19 +1120,11 @@ void App::Update() {
     this->windowConfig.Update();
     this->windowAbout.Update();
 
-    if (this->dialog_warnExitWithUnsavedChanges) {
-        ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-        ImGui::OpenPopup("###AttemptExitWhileUnsavedChanges");
-        ImGui::PopID();
-
-        this->dialog_warnExitWithUnsavedChanges = false;
-    }
-
     AsyncTaskManager::getInstance().UpdateTasks();
 
     MtCommandManager::getInstance().Update();
 
-    this->UpdatePopups();
+    Popups::Update();
 
     // End main window
     ImGui::End();
@@ -1922,8 +1145,6 @@ void App::Update() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     // Update and Render additional Platform Windows
-    // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-    //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         GLFWwindow* backupCurrentContext = glfwGetCurrentContext();
 

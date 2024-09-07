@@ -412,14 +412,14 @@ void WindowSpritesheet::Update() {
 
                 if (sessionManager.getCurrentSession()->getCellanimSheet()->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
                     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                    ImGui::OpenPopup("###DialogWaitForModifiedPNG");
+                    ImGui::OpenPopup("###WaitForModifiedTexture");
                     ImGui::PopID();
 
                     this->RunEditor();
                 }
                 else {
                     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                    ImGui::OpenPopup("###DialogPNGExportFailed");
+                    ImGui::OpenPopup("###TextureExportFailed");
                     ImGui::PopID();
                 }
             }

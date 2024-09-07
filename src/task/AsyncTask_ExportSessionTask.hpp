@@ -29,9 +29,9 @@ protected:
 
     void Effect() override {
         if (UNLIKELY(this->result < 0)) {
-            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-            ImGui::OpenPopup("###SessionOutErr");
-            ImGui::PopID();
+            AppState::getInstance().OpenGlobalPopup("###SessionErr");
+
+            return;
         }
 
         this->session->traditionalMethod = false;

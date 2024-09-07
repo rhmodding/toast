@@ -48,45 +48,9 @@ public:
 private: // Methods
     void SetupFonts();
 
-    void BeginMainWindow() {
-        ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode;
-        ImGuiWindowFlags windowFlags =
-            ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
-            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
-            ImGuiWindowFlags_NoBackground;
-
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-        ImGui::SetNextWindowPos(viewport->WorkPos);
-        ImGui::SetNextWindowSize(viewport->WorkSize);
-        ImGui::SetNextWindowViewport(viewport->ID);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.f, 0.f, 0.f, 0.f));
-
-        if (dockspaceFlags & ImGuiDockNodeFlags_PassthruCentralNode)
-            windowFlags |= ImGuiWindowFlags_NoBackground;
-
-        ImGui::Begin(WINDOW_TITLE "###AppWindow", nullptr, windowFlags);
-
-        ImGui::PopStyleVar(3);
-        ImGui::PopStyleColor();
-
-        // Submit the Dockspace
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
-            ImGui::DockSpace(ImGui::GetID("mainDockspace"), ImVec2(0.f, 0.f), dockspaceFlags);
-    }
+    void BeginMainWindow();
 
     void Menubar();
-
-    void UpdatePopups();
-
-    void UpdateFileDialogs();
-
-    void HandleShortcuts();
 
 private: // Windows
     template <typename T>
@@ -121,10 +85,8 @@ private: // Windows
 private: // Flags
     bool running{ true };
 
-    // Launch dialog ###AttemptExitWhileUnsavedChanges
-    bool dialog_warnExitWithUnsavedChanges{ false };
-    // Exit even if there are unsaved changes.
-    bool exitWithUnsavedChanges{ false };
+    // Open ExitWithChanges popup
+    bool _exitWithChangesPopup{ false };
 
 private:
     std::thread::id windowThreadID;

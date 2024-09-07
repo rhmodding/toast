@@ -142,6 +142,9 @@ public:
     } lastCopyPasteContext{ CopyPasteContext_None };
 private:
     AppState() {} // Private constructor to prevent instantiation
+    ~AppState() {
+        Common::deleteIfNotNullptr(this->globalAnimatable, false);
+    }
 };
 
 #endif // APPSTATE_HPP

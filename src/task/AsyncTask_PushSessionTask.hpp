@@ -31,9 +31,7 @@ protected:
         GET_SESSION_MANAGER;
 
         if (UNLIKELY(this->result < 0)) {
-            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-            ImGui::OpenPopup("###SessionOpenErr");
-            ImGui::PopID();
+            AppState::getInstance().OpenGlobalPopup("###SessionErr");
 
             return;
         }
