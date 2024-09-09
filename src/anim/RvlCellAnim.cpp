@@ -15,8 +15,8 @@ struct RvlCellAnimHeader {
     // Could be a format revision timestamp? (2010/03/12)
     uint32_t magic;
 
-    // Unknown value, bool
-    uint32_t unknown_0;
+    // Flock Step
+    uint32_t usePalette;
 
     // Index into cellanim.tpl for the associated sheet
     uint16_t sheetIndex;
@@ -112,13 +112,10 @@ namespace RvlCellAnim {
         this->textureW = BYTESWAP_16(header->sheetW);
         this->textureH = BYTESWAP_16(header->sheetH);
 
-        this->unknown.u32 = BYTESWAP_32(header->unknown_0);
-
-        if (header->unknown_0 != 0x00000000)
-            std::cout << "TRUE HEADER VALUE !!\n";
+        this->usePalette = header->usePalette != 0;
 
         if (header->unknown_1 != 0x0000)
-            std::cout << "NONZERO 2ND HEADER VALUE !!\n";
+            std::cout << "[RvlCellAnimObject::RvlCellAnimObject] header->unknown_1 is nonzero (" << header->unknown_1 << ").";
 
         uint32_t readOffset{ sizeof(RvlCellAnimHeader) };
 
@@ -223,13 +220,14 @@ namespace RvlCellAnim {
         RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
         header->magic = HEADER_MAGIC;
 
-        header->unknown_0 = 0x00000000;
-        header->unknown_1 = 0x0000;
+        header->usePalette = this->usePalette ? 0x01000000 : 0x00000000;
 
         header->sheetIndex = BYTESWAP_16(this->sheetIndex);
 
         header->sheetW = BYTESWAP_16(this->textureW);
         header->sheetH = BYTESWAP_16(this->textureH);
+
+        header->unknown_1 = 0x0000;
 
         uint32_t writeOffset{ sizeof(RvlCellAnimHeader) };
 

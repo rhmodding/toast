@@ -2,6 +2,7 @@
 #define RVLCELLANIM_HPP
 
 #include <vector>
+
 #include <cstdint>
 
 #include <memory>
@@ -162,8 +163,8 @@ namespace RvlCellAnim {
         uint16_t sheetIndex;
 
         uint16_t textureW, textureH;
-
-        Unknown32 unknown;
+        
+        bool usePalette;
 
         std::vector<Arrangement> arrangements;
         std::vector<Animation> animations;
