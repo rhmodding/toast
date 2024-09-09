@@ -71,6 +71,10 @@ public:
     RvlCellAnim::Animation* getCurrentAnimation() const;
     RvlCellAnim::Arrangement* getCurrentArrangement() const;
 
+    // animation and key are pointers to a vector elements which can be remapped,
+    // so when one of the vectors is modified this must be called.
+    void refreshPointers();
+
     void Update();
 
     void Draw(ImDrawList* drawList, bool allowOpacity = true)

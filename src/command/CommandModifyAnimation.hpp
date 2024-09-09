@@ -24,17 +24,25 @@ public:
     }
 
     void Execute() override {
+        GET_APP_STATE;
+
         this->getAnimation() = this->newAnimation;
 
+        appState.globalAnimatable->refreshPointers();
+
         PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedPart();
+        appState.correctSelectedPart();
     }
 
     void Rollback() override {
+        GET_APP_STATE;
+
         this->getAnimation() = this->oldAnimation;
 
+        appState.globalAnimatable->refreshPointers();
+
         PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedPart();
+        appState.correctSelectedPart();
     }
 
 private:
