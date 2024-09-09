@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <cstdint>
+#include <cmath>
 
 #include <memory>
 
@@ -53,6 +54,20 @@ namespace RvlCellAnim {
                 .scaleY = AVERAGE_FLOATS(this->scaleY, other.scaleY),
 
                 .angle = AVERAGE_FLOATS(this->angle, other.angle)
+            };
+
+            return transform;
+        }
+
+        TransformValues lerp(const TransformValues& other, float t) const {
+            TransformValues transform{
+                .positionX = (int16_t)std::lerp(this->positionX, other.positionX, t),
+                .positionY = (int16_t)std::lerp(this->positionY, other.positionY, t),
+
+                .scaleX = std::lerp(this->scaleX, other.scaleX, t),
+                .scaleY = std::lerp(this->scaleY, other.scaleY, t),
+
+                .angle = std::lerp(this->angle, other.angle, t)
             };
 
             return transform;
