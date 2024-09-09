@@ -10,7 +10,10 @@
 void Popup_CloseModifiedSession() {
     GET_SESSION_MANAGER;
 
-    if (sessionManager.sessionClosing < sessionManager.sessionList.size())
+    if (
+        sessionManager.sessionClosing < 0 || 
+        sessionManager.sessionClosing >= sessionManager.sessionList.size()
+    )
         return;
 
     const std::string& sessionPath =
