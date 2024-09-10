@@ -25,8 +25,6 @@
 #define MAX_MATCH_LENGTH 0xFF + 0x12
 #define ZLIB_MIN_MATCH 3
 
-#pragma pack(push, 1) // Pack struct members tightly without padding
-
 struct Yaz0Header {
     // Magic string (should always equal to "Yaz0" if valid)
     char magic[4];
@@ -37,9 +35,7 @@ struct Yaz0Header {
     // Reserved bytes. reserved[0] in newer Yaz0 files is used for data alignment but
     // Rhythm Heaven Fever doesn't use the newer revision.
     uint32_t reserved[2];
-};
-
-#pragma pack(pop) // Reset packing alignment to default
+} __attribute__((packed));
 
 namespace Yaz0 {
     std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {

@@ -13,8 +13,6 @@
 
 #include "../common.hpp"
 
-#pragma pack(push, 1) // Pack struct members tightly without padding
-
 #define HEADER_MAGIC 0x2D38AA55
 
 struct U8ArchiveHeader {
@@ -32,7 +30,7 @@ struct U8ArchiveHeader {
 
     // Reserved bytes. These are always present in the header
     uint32_t reserved[4];
-};
+} __attribute__((packed));
 
 struct U8ArchiveNode {
     uint32_t attributes{ 0x00000000 }; // uint8: type, uint24: nameOffset
@@ -59,9 +57,7 @@ struct U8ArchiveNode {
     // File: Size of data
     // Directory: Index of the first node that is not part of this directory
     uint32_t size;
-};
-
-#pragma pack(pop) // Reset packing alignment to default
+} __attribute__((packed));
 
 namespace U8 {
     File::File(const std::string& n) : name(n) {}

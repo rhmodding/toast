@@ -1,14 +1,13 @@
 #include "RvlCellAnim.hpp"
 
 #include <cstring>
+
 #include <iostream>
 #include <fstream>
 
 #include "../common.hpp"
 
 #define HEADER_MAGIC 0xD8B43201
-
-#pragma pack(push, 1) // Pack struct members tightly without padding
 
 struct RvlCellAnimHeader {
     // Magic value (should always equal to 0x0132B4D8 [20100312] if valid)
@@ -26,14 +25,14 @@ struct RvlCellAnimHeader {
 
     uint16_t sheetW; // Sheet width in relation to UV regions
     uint16_t sheetH; // Sheet height in relation to UV regions
-};
+} __attribute__((packed));
 
 struct ArrangementsHeader {
     // Amount of arrangements (commonly referred to as sprites)
     uint16_t arrangementCount;
 
     uint16_t pad16{ 0x0000 };
-};
+} __attribute__((packed));
 
 // Same structure
 typedef RvlCellAnim::TransformValues TransformValuesRaw;
@@ -56,28 +55,28 @@ struct ArrangementPartRaw {
     uint8_t opacity;
 
     uint8_t pad8{ 0x00 };
-};
+} __attribute__((packed));
 
 struct ArrangementRaw {
     // Amout of parts in the arrangement (commonly referred to as a sprite)
     uint16_t partsCount;
 
     uint16_t pad16{ 0x0000 };
-};
+} __attribute__((packed));
 
 struct AnimationsHeader {
     // Amount of animations
     uint16_t animationCount;
 
     uint16_t pad16{ 0x0000 };
-};
+} __attribute__((packed));
 
 struct AnimationRaw {
     // Amount of keys the animation has
     uint16_t keyCount;
 
     uint16_t pad16{ 0x0000 };
-};
+} __attribute__((packed));
 
 struct AnimationKeyRaw {
     // Index of arrangement (commonly referred to as sprites)
@@ -92,11 +91,9 @@ struct AnimationKeyRaw {
 
     // 24-byte padding
     uint8_t pad24[3]{ 0x00, 0x00, 0x00 };
-};
+} __attribute__((packed));
 
 #define EXPECT_DATA_FOOTER "EXPECTDT"
-
-#pragma pack(pop) // Reset packing alignment to default
 
 namespace RvlCellAnim {
     RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {

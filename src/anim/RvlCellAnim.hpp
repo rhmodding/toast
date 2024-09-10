@@ -87,7 +87,7 @@ namespace RvlCellAnim {
         bool operator!=(const TransformValues& other) const {
             return !(*this == other);
         }
-    };
+    } __attribute__((packed));
 
     struct ArrangementPart {
         uint16_t regionX{ 8 }, regionY{ 8 };
