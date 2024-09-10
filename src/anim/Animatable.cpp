@@ -5,6 +5,8 @@
 
 #include <array>
 
+#include <algorithm>
+
 #include "../common.hpp"
 
 ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
@@ -91,7 +93,16 @@ RvlCellAnim::Arrangement* Animatable::getCurrentArrangement() const {
 }
 
 void Animatable::refreshPointers() {
+    this->currentAnimationIndex = std::clamp<uint16_t>(
+        this->currentAnimationIndex,
+        0, this->cellanim->animations.size() - 1
+    );
     this->currentAnimation = &this->cellanim->animations.at(this->currentAnimationIndex);
+
+    this->currentKeyIndex = std::clamp<uint16_t>(
+        this->currentKeyIndex,
+        0, this->currentAnimation->keys.size() - 1
+    );
     this->currentKey = &this->currentAnimation->keys.at(this->currentKeyIndex);
 }
 
