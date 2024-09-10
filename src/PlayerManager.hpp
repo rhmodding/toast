@@ -48,8 +48,8 @@ public:
     void setAnimating(bool animating);
 
     // Pseudoframes are animation keys + their hold time.
-    uint32_t getTotalPseudoFrames();
-    uint32_t getElapsedPseudoFrames();
+    unsigned getTotalPseudoFrames();
+    unsigned getElapsedPseudoFrames();
 
     // 0.f - 1.f
     inline float getAnimationProgression() {

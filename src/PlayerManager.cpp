@@ -4,6 +4,8 @@
 
 #include "AppState.hpp"
 
+#include <numeric>
+
 void PlayerManager::setCurrentKeyIndex(uint16_t index) {
     GET_APP_STATE;
 
@@ -43,25 +45,32 @@ void PlayerManager::setAnimating(bool animating) {
     globalAnimatable->setAnimating(animating);
 }
 
-uint32_t PlayerManager::getTotalPseudoFrames() {
-    GET_ANIMATABLE;
+unsigned PlayerManager::getTotalPseudoFrames() {
+    const auto& keys =
+        AppState::getInstance().globalAnimatable->getCurrentAnimation()->keys;
 
-    uint32_t pseudoFrames{ 0 };
-    for (const auto& key : globalAnimatable->getCurrentAnimation()->keys)
-        pseudoFrames += key.holdFrames;
-
-    return pseudoFrames;
+    return std::accumulate(
+        keys.begin(), keys.end(), 0u,
+        [](unsigned sum, const RvlCellAnim::AnimationKey& key) {
+            return sum + key.holdFrames;
+        }
+    );
 }
 
-uint32_t PlayerManager::getElapsedPseudoFrames() {
+unsigned PlayerManager::getElapsedPseudoFrames() {
     GET_ANIMATABLE;
 
     if (!this->playing && this->currentFrame == 0 && globalAnimatable->getHoldFramesLeft() < 1)
         return 0;
 
-    uint32_t result{ 0 };
-    for (uint16_t keyIndex = 0; keyIndex < this->currentFrame; keyIndex++)
-        result += globalAnimatable->getCurrentAnimation()->keys.at(keyIndex).holdFrames;
+    unsigned result = std::accumulate(
+        globalAnimatable->getCurrentAnimation()->keys.begin(),
+        globalAnimatable->getCurrentAnimation()->keys.begin() + this->currentFrame,
+        0u,
+        [](unsigned sum, const RvlCellAnim::AnimationKey& key) {
+            return sum + key.holdFrames;
+        }
+    );
 
     result += globalAnimatable->getCurrentKey()->holdFrames - globalAnimatable->getHoldFramesLeft();
 
