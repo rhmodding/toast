@@ -655,30 +655,30 @@ void WindowCanvas::Update() {
     ](
         float& size, float mouseDelta,
         bool flipped, bool positiveCase,
-        uint16_t regionSize, float& scale,
+        uint16_t regionSize, float* scale,
         float partBeforeScale,
-        int16_t& position, float partBeforePosition
+        int16_t* position, float partBeforePosition
     ) {
         if (flipped ? !positiveCase : positiveCase) {
             size += mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable->getCurrentKey()->transform.scaleY;
-            scale = (size / regionSize) + partBeforeScale - 1.f;
+            *scale = (size / regionSize) + partBeforeScale - 1.f;
         } else {
             size -= mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable->getCurrentKey()->transform.scaleY;
-            scale = (size / regionSize) + partBeforeScale - 1.f;
-            position = partBeforePosition - (size - regionSize);
+            *scale = (size / regionSize) + partBeforeScale - 1.f;
+            *position = partBeforePosition - (size - regionSize);
         }
     };
 
     if (caseBottom || caseTop) {
         adjustPartSize(newPartSize.y, mouseDeltaY, flippedY, caseBottom, arrangementPtr->parts.at(appState.selectedPart).regionH,
-            arrangementPtr->parts.at(appState.selectedPart).transform.scaleY, partBeforeInteraction.transform.scaleY,
-            arrangementPtr->parts.at(appState.selectedPart).transform.positionY, partBeforeInteraction.transform.positionY);
+            &arrangementPtr->parts.at(appState.selectedPart).transform.scaleY, partBeforeInteraction.transform.scaleY,
+            &arrangementPtr->parts.at(appState.selectedPart).transform.positionY, partBeforeInteraction.transform.positionY);
     }
 
     if (caseRight || caseLeft) {
         adjustPartSize(newPartSize.x, mouseDeltaX, flippedX, caseRight, arrangementPtr->parts.at(appState.selectedPart).regionW,
-            arrangementPtr->parts.at(appState.selectedPart).transform.scaleX, partBeforeInteraction.transform.scaleX,
-            arrangementPtr->parts.at(appState.selectedPart).transform.positionX, partBeforeInteraction.transform.positionX);
+            &arrangementPtr->parts.at(appState.selectedPart).transform.scaleX, partBeforeInteraction.transform.scaleX,
+            &arrangementPtr->parts.at(appState.selectedPart).transform.positionX, partBeforeInteraction.transform.positionX);
     }
 
     if (panningCanvas) {
