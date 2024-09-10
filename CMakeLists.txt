@@ -23,6 +23,8 @@ set(SOURCES
     src/main.cpp
     src/App.cpp
 
+    src/App/Popups.cpp
+
     src/anim/Animatable.cpp
     src/anim/RvlCellAnim.cpp
 
