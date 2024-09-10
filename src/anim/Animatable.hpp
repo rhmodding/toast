@@ -19,17 +19,17 @@ private:
     RvlCellAnim::Animation* currentAnimation{ nullptr };
     RvlCellAnim::AnimationKey* currentKey{ nullptr };
 
-    int32_t holdKey{ 0 };
+    int holdKey{ 0 };
 
     uint16_t currentAnimationIndex{ 0 };
     uint16_t currentKeyIndex{ 0 };
 
     void DrawKey(
-        RvlCellAnim::AnimationKey* key,
+        const RvlCellAnim::AnimationKey* key,
         ImDrawList* drawList,
 
-        int32_t partIndex = -1,
-        uint32_t colorMod = 0xFFFFFFFFu,
+        int partIndex = -1,
+        unsigned colorMod = 0xFFFFFFFFu,
         bool allowOpacity = true
     ) __attribute__((nonnull));
 
@@ -87,7 +87,7 @@ public:
     bool getDoesDraw(bool allowOpacity = true) const;
 
     std::array<ImVec2, 4> getPartWorldQuad(
-        RvlCellAnim::AnimationKey* key, uint16_t partIndex
+        const RvlCellAnim::AnimationKey* key, uint16_t partIndex
     ) const __attribute__((nonnull));
     ImRect getKeyWorldRect(RvlCellAnim::AnimationKey* key)
         const __attribute__((nonnull));

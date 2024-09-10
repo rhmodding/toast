@@ -7,6 +7,20 @@
 
 #include "../common.hpp"
 
+ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
+    const float s = sinf(angle * ((float)M_PI / 180.f));
+    const float c = cosf(angle * ((float)M_PI / 180.f));
+
+    v.x -= origin.x;
+    v.y -= origin.y;
+
+    float x = v.x * c - v.y * s;
+    float y = v.x * s + v.y * c;
+
+    return { x + origin.x, y + origin.y };
+}
+
+
 void Animatable::setAnimationFromIndex(uint16_t animIndex) {
     SAFE_ASSERT(this->cellanim, true);
     SAFE_ASSERT(this->cellanim->animations.size() >= animIndex, true);
@@ -43,10 +57,7 @@ void Animatable::Update() {
         return;
 
     if (this->holdKey < 1) {
-        if (
-            static_cast<uint32_t>(this->currentKeyIndex + 1) >=
-            static_cast<uint32_t>(this->currentAnimation->keys.size())
-        ) {
+        if (this->currentKeyIndex + 1 >= this->currentAnimation->keys.size()) {
             this->animating = false;
             return;
         }
@@ -88,29 +99,19 @@ int32_t Animatable::getHoldFramesLeft() const {
     return this->holdKey;
 }
 
-ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
-    float s = sinf(angle * ((float)M_PI / 180.f));
-    float c = cosf(angle * ((float)M_PI / 180.f));
+ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
+    const auto& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
-    v.x -= origin.x;
-    v.y -= origin.y;
-
-    float x = v.x * c - v.y * s;
-    float y = v.x * s + v.y * c;
-
-    return { x + origin.x, y + origin.y };
-}
-
-ImRect getBoundingBox(const std::array<ImVec2, 4>* quads, unsigned quadCount) {
-    if (UNLIKELY(quadCount == 0))
-        return ImRect{{0, 0}, {0, 0}};
+    std::vector<std::array<ImVec2, 4>> quads(arrangement.parts.size());
+    for (unsigned i = 0; i < arrangement.parts.size(); i++)
+        quads[i] = this->getPartWorldQuad(key, i);
 
     float minX = std::numeric_limits<float>::max();
     float minY = std::numeric_limits<float>::max();
     float maxX = std::numeric_limits<float>::lowest();
     float maxY = std::numeric_limits<float>::lowest();
 
-    for (unsigned i = 0; i < quadCount; ++i) {
+    for (unsigned i = 0; i < arrangement.parts.size(); ++i) {
         for (const ImVec2& vertex : quads[i]) {
             if (vertex.x < minX) minX = vertex.x;
             if (vertex.y < minY) minY = vertex.y;
@@ -122,38 +123,17 @@ ImRect getBoundingBox(const std::array<ImVec2, 4>* quads, unsigned quadCount) {
     return ImRect{{minX, minY}, {maxX, maxY}};
 }
 
-ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
-    const auto& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
-
-    std::vector<std::array<ImVec2, 4>> quads(arrangement.parts.size());
-
-    for (unsigned i = 0; i < arrangement.parts.size(); i++)
-        quads[i] = this->getPartWorldQuad(key, i);
-
-    return getBoundingBox(quads.data(), quads.size());
-}
-
 // Top-left, top-right, bottom-right, bottom-left
-std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
+std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
     SAFE_ASSERT_RET(this->cellanim, transformedQuad);
 
-    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
-    RvlCellAnim::ArrangementPart part = arrangement->parts.at(partIndex);
+    const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
+    const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
 
-    int* arrngOffset = arrangement->tempOffset;
-    float* arrngScale = arrangement->tempScale;
-
-    float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
-    float mismatchScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
-
-    uint16_t sourceRect[4] = {
-        static_cast<uint16_t>(part.regionX * mismatchScaleX),
-        static_cast<uint16_t>(part.regionY * mismatchScaleY),
-        static_cast<uint16_t>(part.regionW * mismatchScaleX),
-        static_cast<uint16_t>(part.regionH * mismatchScaleY)
-    };
+    const int*   arrngOffset = arrangement.tempOffset;
+    const float* arrngScale  = arrangement.tempScale;
 
     ImVec2 keyCenter = {
         this->offset.x,
@@ -170,15 +150,14 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
         (topLeftOffset.y + (part.regionH * part.transform.scaleY))
     };
 
-    topLeftOffset.x *= arrngScale[0];
-    topLeftOffset.x += arrngOffset[0];
-    topLeftOffset.y *= arrngScale[1];
-    topLeftOffset.y += arrngOffset[1];
-
-    bottomRightOffset.x *= arrngScale[0];
-    bottomRightOffset.x += arrngOffset[0];
-    bottomRightOffset.y *= arrngScale[1];
-    bottomRightOffset.y += arrngOffset[1];
+    topLeftOffset = {
+        (topLeftOffset.x * arrngScale[0]) + arrngOffset[0],
+        (topLeftOffset.y * arrngScale[1]) + arrngOffset[1]
+    };
+    bottomRightOffset = {
+        (bottomRightOffset.x * arrngScale[0]) + arrngOffset[0],
+        (bottomRightOffset.y * arrngScale[1]) + arrngOffset[1]
+    };
 
     transformedQuad = {
         topLeftOffset,
@@ -196,7 +175,6 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
             std::swap(transformedQuad[0], transformedQuad[1]);
             std::swap(transformedQuad[2], transformedQuad[3]);
         }
-
         if (part.flipY) {
             std::swap(transformedQuad[0], transformedQuad[3]);
             std::swap(transformedQuad[1], transformedQuad[2]);
@@ -204,39 +182,31 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(RvlCellAnim::AnimationKey* ke
 
         // Rotation
         if (fmod(part.transform.angle, 360)) {
-            transformedQuad[0] = rotateVec2(transformedQuad[0], part.transform.angle, center);
-            transformedQuad[1] = rotateVec2(transformedQuad[1], part.transform.angle, center);
-            transformedQuad[2] = rotateVec2(transformedQuad[2], part.transform.angle, center);
-            transformedQuad[3] = rotateVec2(transformedQuad[3], part.transform.angle, center);
+            float angle = part.transform.angle;
+
+            if (arrngScale[0] < 0.f) angle = -angle;
+            if (arrngScale[1] < 0.f) angle = -angle;
+
+            for (auto& point : transformedQuad)
+                point = rotateVec2(point, angle, center);
         }
 
         // Key & animatable scale
-        {
-            transformedQuad[0].x = (transformedQuad[0].x * key->transform.scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[0].y = (transformedQuad[0].y * key->transform.scaleY * this->scaleY) + keyCenter.y;
-
-            transformedQuad[1].x = (transformedQuad[1].x * key->transform.scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[1].y = (transformedQuad[1].y * key->transform.scaleY * this->scaleY) + keyCenter.y;
-
-            transformedQuad[2].x = (transformedQuad[2].x * key->transform.scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[2].y = (transformedQuad[2].y * key->transform.scaleY * this->scaleY) + keyCenter.y;
-
-            transformedQuad[3].x = (transformedQuad[3].x * key->transform.scaleX * this->scaleX) + keyCenter.x;
-            transformedQuad[3].y = (transformedQuad[3].y * key->transform.scaleY * this->scaleY) + keyCenter.y;
+        for (auto& point : transformedQuad) {
+            point.x = (point.x * key->transform.scaleX * this->scaleX) + keyCenter.x;
+            point.y = (point.y * key->transform.scaleY * this->scaleY) + keyCenter.y;
         }
 
         // Key rotation
         if (fmod(key->transform.angle, 360)) {
-            transformedQuad[0] = rotateVec2(transformedQuad[0], key->transform.angle, keyCenter);
-            transformedQuad[1] = rotateVec2(transformedQuad[1], key->transform.angle, keyCenter);
-            transformedQuad[2] = rotateVec2(transformedQuad[2], key->transform.angle, keyCenter);
-            transformedQuad[3] = rotateVec2(transformedQuad[3], key->transform.angle, keyCenter);
+            for (auto& point : transformedQuad)
+                point = rotateVec2(point, key->transform.angle, keyCenter);
         }
 
         // Key offset addition
-        for (unsigned i = 0; i < 4; i++) {
-            transformedQuad[i].x += key->transform.positionX * this->scaleX;
-            transformedQuad[i].y += key->transform.positionY * this->scaleY;
+        for (auto& point : transformedQuad) {
+            point.x += key->transform.positionX * this->scaleX;
+            point.y += key->transform.positionY * this->scaleY;
         }
     }
 
@@ -250,14 +220,12 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
     if (!this->visible)
         return false;
 
-    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
+    RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
 
-    for (auto part : arrangement->parts) {
+    for (auto part : arrangement.parts) {
         if (allowOpacity) {
-            if (part.opacity > 0) {
+            if (part.opacity > 0)
                 return true;
-                break;
-            }
         }
         else
             return true;
@@ -275,14 +243,20 @@ void Animatable::overrideAnimationKey(RvlCellAnim::AnimationKey* key) {
 }
 
 void Animatable::DrawKey(
-    RvlCellAnim::AnimationKey* key,
+    const RvlCellAnim::AnimationKey* key,
     ImDrawList* drawList,
 
-    int32_t partIndex,
-    uint32_t colorMod,
+    int partIndex,
+    unsigned colorMod,
     bool allowOpacity
 ) {
-    RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
+    SAFE_ASSERT(this->cellanim, true);
+    SAFE_ASSERT(this->currentAnimation, true);
+
+    const RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
+
+    const float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
+    const float mismatchScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
 
     for (unsigned i = 0; i < arrangement->parts.size(); i++) {
         if (partIndex != -1 && partIndex != i)
@@ -290,16 +264,11 @@ void Animatable::DrawKey(
 
         const RvlCellAnim::ArrangementPart& part = arrangement->parts.at(i);
 
-        if (
-            ((part.opacity == 0) && allowOpacity) ||
-            !part.editorVisible
-        )
-            continue; // Part not visible; don't bother drawing it.
+        // Skip invisible parts
+        if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)
+            continue;
 
-        float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
-        float mismatchScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
-
-        uint16_t sourceRect[4] = {
+        const uint16_t sourceRect[4] = {
             static_cast<uint16_t>(part.regionX * mismatchScaleX),
             static_cast<uint16_t>(part.regionY * mismatchScaleY),
             static_cast<uint16_t>(part.regionW * mismatchScaleX),
@@ -309,15 +278,15 @@ void Animatable::DrawKey(
         auto transformedQuad = this->getPartWorldQuad(key, i);
 
         ImVec2 uvTopLeft = {
-            sourceRect[0] / (float)this->texture->width,
-            sourceRect[1] / (float)this->texture->height
+            sourceRect[0] / static_cast<float>(this->texture->width),
+            sourceRect[1] / static_cast<float>(this->texture->height)
         };
         ImVec2 uvBottomRight = {
-            uvTopLeft.x + (sourceRect[2] / (float)this->texture->width),
-            uvTopLeft.y + (sourceRect[3] / (float)this->texture->height)
+            uvTopLeft.x + (sourceRect[2] / static_cast<float>(this->texture->width)),
+            uvTopLeft.y + (sourceRect[3] / static_cast<float>(this->texture->height))
         };
 
-        ImVec2 uvs[4] =  {
+        ImVec2 uvs[4] = {
             uvTopLeft,
             { uvBottomRight.x, uvTopLeft.y },
             uvBottomRight,
@@ -325,10 +294,8 @@ void Animatable::DrawKey(
         };
 
         uint8_t modAlpha = (colorMod >> 24) & 0xFF;
-        uint8_t baseAlpha =
-            allowOpacity ? (
-                (part.opacity * key->opacity) / 255
-            ) : 255;
+        uint8_t baseAlpha = allowOpacity ? 
+            static_cast<uint8_t>((static_cast<uint16_t>(part.opacity) * key->opacity) / 255) : 255;
 
         drawList->AddImageQuad(
             (void*)(intptr_t)this->texture->texture,
@@ -338,17 +305,9 @@ void Animatable::DrawKey(
                 (colorMod >>  0) & 0xFF,
                 (colorMod >>  8) & 0xFF,
                 (colorMod >> 16) & 0xFF,
-
-                static_cast<uint8_t>((static_cast<uint16_t>(baseAlpha) * modAlpha) / 255)
+                static_cast<uint8_t>((baseAlpha * static_cast<uint16_t>(modAlpha)) / 255)
             )
         );
-
-        /* // Draw bounding box
-        drawList->AddQuad(
-            transformedQuad[0], transformedQuad[1], transformedQuad[2], transformedQuad[3],
-            IM_COL32(255, 255, 255, 255)
-        );
-        */
     }
 }
 
@@ -366,39 +325,23 @@ void Animatable::DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_
     SAFE_ASSERT(this->cellanim, true);
     SAFE_ASSERT(this->currentAnimation, true);
 
-    if (!this->visible)
+    if (!this->visible || !drawList || !this->currentAnimation)
         return;
 
-    uint16_t i{ 0 };
+    const int keyIndex = this->currentKeyIndex;
 
-    if (backCount) {
-        i = this->currentKeyIndex;
-        while (true) {
-            i--;
-
-            if (
-                (i < 0) ||
-                (i >= this->currentAnimation->keys.size()) ||
-                (i < (this->currentKeyIndex - backCount))
-            )
+    auto _drawOnionSkin = [&](int startIndex, int endIndex, int step, ImU32 color) {
+        for (int i = startIndex; (step < 0) ? (i >= endIndex) : (i <= endIndex); i += step) {
+            if (i < 0 || i >= this->currentAnimation->keys.size())
                 break;
 
-            this->DrawKey(&this->currentAnimation->keys.at(i), drawList, -1, IM_COL32(255, 64, 64, opacity));
+            this->DrawKey(&this->currentAnimation->keys.at(i), drawList, -1, color);
         }
-    }
+    };
 
-    if (frontCount) {
-        i = this->currentKeyIndex;
-        while (true) {
-            i++;
+    if (backCount > 0)
+        _drawOnionSkin(keyIndex - 1, keyIndex - backCount, -1, IM_COL32(255, 64, 64, opacity));
 
-            if (
-                (i >= this->currentAnimation->keys.size()) ||
-                (i > (this->currentKeyIndex + frontCount))
-            )
-                break;
-
-            this->DrawKey(&this->currentAnimation->keys.at(i), drawList, -1, IM_COL32(64, 255, 64, opacity));
-        }
-    }
+    if (frontCount > 0)
+        _drawOnionSkin(keyIndex + 1, keyIndex + frontCount, 1, IM_COL32(64, 255, 64, opacity));
 }
