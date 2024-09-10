@@ -383,12 +383,13 @@ void WindowSpritesheet::Update() {
 
                 ImGui::SeparatorText("Color Picker");
 
-                ImGui::ColorPicker4(
+                if (ImGui::ColorPicker4(
                     "##ColorPicker",
                     (float*)&customGridColor,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
-                );
+                ))
+                    gridType = GridType_Custom;
 
                 ImGui::EndMenu();
             }
