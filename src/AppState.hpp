@@ -91,7 +91,7 @@ public:
 
     int32_t getMatchingNamePartIndex(
         RvlCellAnim::ArrangementPart& part,
-        RvlCellAnim::Arrangement& arrangement
+        const RvlCellAnim::Arrangement& arrangement
     ) {
         if (part.editorName[0] == '\0')
             return -1;
@@ -101,6 +101,24 @@ public:
             if (
                 lPart.editorName[0] != '\0' &&
                 (strncmp(lPart.editorName, part.editorName, 32) == 0)
+            )
+                return i;
+        }
+
+        return -1;
+    }
+
+    int32_t getMatchingRegionPartIndex(
+        RvlCellAnim::ArrangementPart& part,
+        const RvlCellAnim::Arrangement& arrangement
+    ) {
+        for (unsigned i = 0; i < arrangement.parts.size(); i++) {
+            const auto& lPart = arrangement.parts.at(i);
+            if (
+                lPart.regionX == part.regionX &&
+                lPart.regionY == part.regionY &&
+                lPart.regionW == part.regionW &&
+                lPart.regionH == part.regionH
             )
                 return i;
         }
