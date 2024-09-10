@@ -63,6 +63,8 @@ public:
 
         BackupBehaviour backupBehaviour{ BackupBehaviour_None };
 
+        unsigned compressionLevel{ 8 };
+
         bool operator==(const Config& other) const {
             return
                 this->theme == other.theme &&
@@ -73,7 +75,8 @@ public:
                 this->lastWindowHeight == other.lastWindowHeight &&
                 this->canvasLMBPanEnabled == other.canvasLMBPanEnabled &&
                 this->updateRate == other.updateRate &&
-                this->backupBehaviour == other.backupBehaviour;
+                this->backupBehaviour == other.backupBehaviour &&
+                this->compressionLevel == other.compressionLevel;
         }
     };
 
@@ -99,7 +102,8 @@ public:
             {"lastWindowHeight", config.lastWindowHeight},
             {"canvasLMBPanEnabled", config.canvasLMBPanEnabled},
             {"updateRate", config.updateRate},
-            {"backupBehaviour", config.backupBehaviour}
+            {"backupBehaviour", config.backupBehaviour},
+            {"compressionLevel", config.compressionLevel}
         };
     }
     friend void from_json(const nlohmann::json& j, ConfigManager::Config& config) {
@@ -112,6 +116,7 @@ public:
         config.canvasLMBPanEnabled = j.value("canvasLMBPanEnabled", config.canvasLMBPanEnabled);
         config.updateRate = j.value("updateRate", config.updateRate);
         config.backupBehaviour = j.value("backupBehaviour", config.backupBehaviour);
+        config.compressionLevel = j.value("compressionLevel", config.compressionLevel);
     }
 
 public:

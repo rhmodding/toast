@@ -638,14 +638,19 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
     }
 
     auto archiveRaw = archive.Reserialize();
-    auto compressedArchive = Yaz0::compress(archiveRaw.data(), archiveRaw.size());
+
+    GET_CONFIG_MANAGER;
+
+    auto compressedArchive = Yaz0::compress(
+        archiveRaw.data(), archiveRaw.size(),
+        configManager.getConfig().compressionLevel
+    );
 
     if (UNLIKELY(!compressedArchive.has_value())) {
         this->lastSessionError = SessionOutError_ZlibError;
         return -1;
     }
 
-    GET_CONFIG_MANAGER;
     if (
         configManager.getConfig().backupBehaviour != BackupBehaviour_None &&
         !Common::SaveBackupFile(

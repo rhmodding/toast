@@ -42,7 +42,7 @@ struct Yaz0Header {
 #pragma pack(pop) // Reset packing alignment to default
 
 namespace Yaz0 {
-    std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, uint8_t compressionLevel) {
+    std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
         std::vector<unsigned char> result(sizeof(Yaz0Header));
         result.reserve(dataSize);
 
@@ -77,7 +77,7 @@ namespace Yaz0 {
                 size_t dummySize = 8;
 
                 const int zlibRun = zng_compress2(
-                    dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, 6, 9),
+                    dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, -1, 9),
                     [](void* data, uint32_t dist, uint32_t lc) {
                         auto* compressionData = reinterpret_cast<CompressionData*>(data);
 
@@ -189,9 +189,6 @@ namespace Yaz0 {
             else { // MSB not set: RLE compression.
                 uint8_t byteA = *(dataSource + (readOffset++));
                 uint8_t byteB = *(dataSource + (readOffset++));
-
-                if (readOffset >= (size_t)(compressedData - sizeof(Yaz0Header)))
-                    return std::nullopt;
 
                 uint32_t dist = ((byteA & 0xF) << 8) | byteB;
                 if (UNLIKELY((destOffset - (dist + 1)) < 0)) {
