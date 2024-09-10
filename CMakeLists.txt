@@ -5,6 +5,10 @@ project(toast)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if (MSVC)
+    message(FATAL_ERROR "MSVC compiler is not supported. Please use GCC or Clang instead")
+endif()
+
 set(SOURCES
     ext/imgui/imgui.cpp
     ext/imgui/imgui_demo.cpp
@@ -47,15 +51,7 @@ set(SOURCES
     src/SessionManager.cpp
 
     src/PlayerManager.cpp
-
-    src/stb/stb_image.h
-    src/stb/stb_image_write.h
 )
-
-# Disable MSVC unsafe function warnings (strcpy, sprintf, etc..)
-IF (MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-ENDIF()
 
 IF (APPLE)
     add_executable (toast MACOSX_BUNDLE ${SOURCES} ${HEADERS})
@@ -140,8 +136,8 @@ add_subdirectory(ext/nlohmann.json)
 
 target_link_libraries(toast PRIVATE nlohmann_json::nlohmann_json)
 
-# Optimization flag
-set(CMAKE_CXX_FLAGS "-O2")
+# Flags
+target_compile_options(toast PRIVATE -O2 -Wno-address-of-packed-member -Wno-cast-align)
 
 # Apple "deprecated" OpenGL but never removed it lol
 IF (APPLE)
