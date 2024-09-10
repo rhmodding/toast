@@ -115,7 +115,7 @@ namespace RvlCellAnim {
         this->usePalette = header->usePalette != 0;
 
         if (header->unknown_1 != 0x0000)
-            std::cout << "[RvlCellAnimObject::RvlCellAnimObject] header->unknown_1 is nonzero (" << header->unknown_1 << ").";
+            std::cout << "[RvlCellAnimObject::RvlCellAnimObject] header->unknown_1 is nonzero (" << header->unknown_1 << ").\n";
 
         uint32_t readOffset{ sizeof(RvlCellAnimHeader) };
 
