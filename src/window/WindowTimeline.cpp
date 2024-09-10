@@ -120,18 +120,16 @@ void WindowTimeline::Update() {
                         ImGui::SameLine();
 
                         {
-                            bool popColor{ false }; // Use local boolean since state can be mutated by button
-                            if (playerManager.looping) {
-                                popColor = true;
+                            const bool lLooping = playerManager.looping;
+                            if (lLooping)
                                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                            }
 
                             if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", ImVec2(32, 32)))
                                 playerManager.looping ^= true;
 
                             ImGui::SetItemTooltip("Toggle looping");
 
-                            if (popColor)
+                            if (lLooping)
                                 ImGui::PopStyleColor();
                         }
                     } break;
@@ -201,9 +199,8 @@ void WindowTimeline::Update() {
                         }
                     } break;
 
-                    default: {
-
-                    } break;
+                    default:
+                        break;
                 }
             }
 
@@ -270,11 +267,11 @@ void WindowTimeline::Update() {
                             ImGui::Text(
                                 "Hold "
 
-                                #if defined(__APPLE__) // Can't believe I have to do this
+                            #if defined(__APPLE__)
                                 "[Option]"
-                                #else
+                            #else
                                 "[Alt]"
-                                #endif
+                            #endif
 
                                 " for variations."
                             );
