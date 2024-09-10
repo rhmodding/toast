@@ -318,7 +318,7 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
     if (!this->visible)
         return;
 
-    this->DrawKey(this->currentKey, drawList);
+    this->DrawKey(this->currentKey, drawList, -1, 0xFFFFFFFFu, allowOpacity);
 }
 
 void Animatable::DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_t frontCount, uint8_t opacity) {

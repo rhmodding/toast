@@ -215,7 +215,7 @@ void WindowCanvas::Menubar() {
             }
 
             if (ImGui::MenuItem("Enable part transparency", nullptr, allowOpacity))
-                allowOpacity = !allowOpacity;
+                this->allowOpacity ^= true;
 
             ImGui::EndMenu();
         }
@@ -398,7 +398,7 @@ void WindowCanvas::Update() {
                     );
                 }
 
-                globalAnimatable->Draw(drawList, allowOpacity);
+                globalAnimatable->Draw(drawList, this->allowOpacity);
 
                 if (drawOnionSkin && !drawUnder) {
                     globalAnimatable->DrawOnionSkin(
