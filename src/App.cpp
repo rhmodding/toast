@@ -5,9 +5,7 @@
 
 #include <cmath>
 
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
-#include <imgui_internal.h>
 
 #include <chrono>
 
@@ -515,6 +513,8 @@ void App::Menubar() {
                     appState.globalAnimatable->getCurrentAnimationIndex(),
                     appState.globalAnimatable->getCurrentKeyIndex()
                 ));
+
+                sessionManager.getCurrentSessionModified() = true;
             }
 
             ImGui::EndMenu();
@@ -545,6 +545,8 @@ void App::Menubar() {
                     sessionManager.getCurrentSession()->currentCellanim,
                     arrangementIndex
                 ));
+
+                sessionManager.getCurrentSessionModified() = true;
             }
 
             ImGui::EndMenu();
@@ -584,13 +586,16 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Delete"))
+            if (ImGui::MenuItem("Delete")) {
                 sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandDeleteArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     appState.globalAnimatable->getCurrentKey()->arrangementIndex,
                     appState.selectedPart
                 ));
+
+                sessionManager.getCurrentSessionModified() = true;
+            }
 
             ImGui::EndMenu();
         }

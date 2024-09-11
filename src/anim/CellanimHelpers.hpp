@@ -18,6 +18,8 @@ namespace CellanimHelpers {
             object->arrangements.at(arrangementIndex)
         ));
 
+        sessionManager.getCurrentSessionModified() = true;
+
         return object->arrangements.size() - 1;
     }
 }
