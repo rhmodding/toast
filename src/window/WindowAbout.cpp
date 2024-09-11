@@ -13,57 +13,57 @@
 
 #include "../_binary/images/toastIcon_title.png.h"
 
-const char* mainStrings[] = {
-    "toast",
-    "the ultimate cellanim modding tool for\nRhythm Heaven Fever / Beat the Beat: Rhythm Paradise",
+const static char* headerTitle = "toast";
+const static char* headerDesc  = "the ultimate cellanim modding tool for\nRhythm Heaven Fever / Beat the Beat: Rhythm Paradise";
 
-    (char*)ICON_FA_CODE "",
+const static char* githubButton  = (char*)ICON_FA_CODE "";
+const static char* githubTooltip = "Open GitHub page..";
+const static char* githubLink    = "https://github.com/conhlee/toast";
 
-    "https://github.com/conhlee/toast"
+enum CreditsLineCommand {
+    ClcEmptyLine,
+    ClcNextRow,
+    ClcNextColumn,
+
+    ClcAddString,
+
+    ClcSeparator
+};
+struct CreditsLine {
+    CreditsLineCommand command;
+    const char* string{ nullptr };
 };
 
-struct CreditsLine {
-    enum CreditsLineCommand {
-        CLC_EmptyLine,
-        CLC_NextRow,
-        CLC_NextColumn,
+static const CreditsLine creditStrings[] = {
+    { ClcSeparator },
 
-        CLC_DrawString,
+    { ClcAddString, (char*)ICON_FA_WRENCH "  Testing" },
+    { ClcEmptyLine },
 
-        CLC_Separator,
-    } command;
+    { ClcAddString, "Placeholder" },
+    { ClcAddString, "Placeholder Placeholder" },
+    { ClcAddString, "Placeholder" },
+    { ClcAddString, "Placeholder Placeholder" },
 
-    const char* string{ nullptr };
-} creditStrings[] = {
-    { CreditsLine::CLC_Separator },
+    { ClcNextRow },
 
-    { CreditsLine::CLC_DrawString, (char*)ICON_FA_WRENCH "  Testing" },
-    { CreditsLine::CLC_EmptyLine },
+    { ClcAddString, (char*)ICON_FA_FILE_CODE "  Open-source software used / referenced" },
+    { ClcEmptyLine },
 
-    { CreditsLine::CLC_DrawString, "Placeholder" },
-    { CreditsLine::CLC_DrawString, "Placeholder Placeholder" },
-    { CreditsLine::CLC_DrawString, "Placeholder" },
-    { CreditsLine::CLC_DrawString, "Placeholder Placeholder" },
+    { ClcAddString, "Dear ImGui (ocornut/imgui) [MIT]" },
+    { ClcAddString, "GLFW [Zlib]" },
+    { ClcAddString, "tinyfiledialogs [Zlib]" },
+    { ClcAddString, "json (nlohmann/json) [MIT]" },
+    { ClcAddString, "zlib-ng [Zlib]" },
+    { ClcAddString, "syaz0 (zeldamods/syaz0) [GPL-2.0]" },
 
-    { CreditsLine::CLC_NextRow },
+    { ClcNextColumn },
 
-    { CreditsLine::CLC_DrawString, (char*)ICON_FA_FILE_CODE "  Open-source software used / referenced" },
-    { CreditsLine::CLC_EmptyLine },
-
-    { CreditsLine::CLC_DrawString, "Dear ImGui (ocornut/imgui) [MIT]" },
-    { CreditsLine::CLC_DrawString, "GLFW [Zlib]" },
-    { CreditsLine::CLC_DrawString, "tinyfiledialogs [Zlib]" },
-    { CreditsLine::CLC_DrawString, "json (nlohmann/json) [MIT]" },
-    { CreditsLine::CLC_DrawString, "zlib-ng [Zlib]" },
-    { CreditsLine::CLC_DrawString, "syaz0 (zeldamods/syaz0) [GPL-2.0]" },
-
-    { CreditsLine::CLC_NextColumn },
-
-    { CreditsLine::CLC_DrawString, (char*)ICON_FA_STAR "  Special thanks" },
-    { CreditsLine::CLC_EmptyLine },
-    { CreditsLine::CLC_DrawString, "github:chrislo27" },
-    { CreditsLine::CLC_DrawString, "github:patataofcourse" },
-    { CreditsLine::CLC_DrawString, "github:TheAlternateDoctor" },
+    { ClcAddString, (char*)ICON_FA_STAR "  Special thanks" },
+    { ClcEmptyLine },
+    { ClcAddString, "github:chrislo27" },
+    { ClcAddString, "github:patataofcourse" },
+    { ClcAddString, "github:TheAlternateDoctor" },
 };
 
 void WindowAbout::Update() {
@@ -124,44 +124,44 @@ void WindowAbout::Update() {
 
     ImGui::PushFont(appState.fonts.giant);
 
-    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), mainStrings[0]);
+    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), headerTitle);
     textPosition.y += ImGui::GetTextLineHeight() + 5.f;
 
     ImGui::PopFont();
 
-    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), mainStrings[1]);
+    drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), headerDesc);
 
-    if (ImGui::Button(mainStrings[2], { 30.f, 30.f })) {
-        std::ostringstream cmdStream;
+    if (ImGui::Button(githubButton, { 30.f, 30.f })) {
+        char buf[256];
 
-        cmdStream <<
+        sprintf(buf, "%s %s",
     #ifdef _WIN32
-        "start ";
+            "start ",
     #elif __APPLE__
-        "open ";
+            "open ",
     #else
-        "xdg-open ";
+            "xdg-open ",
     #endif
+            githubLink
+        );
 
-        cmdStream << mainStrings[3];
-
-        std::system(cmdStream.str().c_str());
+        std::system(buf);
     }
 
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-        ImGui::SetTooltip("Open GitHub page..");
+        ImGui::SetTooltip(githubTooltip);
 
     textPosition.y += (ImGui::GetTextLineHeight() * 2) + 5.f;
 
     ///////////////////////////////////////////////////////////////
 
-    float additiveLineHeight{ 0 };
-    float totalLineWidth{ 0 };
-    float additiveLineX{ 0 };
+    float additiveLineHeight{ 0.f };
+    float totalLineWidth{ 0.f };
+    float additiveLineX{ 0.f };
 
     for (unsigned i = 0; i < ARRAY_LENGTH(creditStrings); i++) {
         switch (creditStrings[i].command) {
-            case CreditsLine::CLC_Separator: {
+            case ClcSeparator: {
                 textPosition.y += ImGui::GetTextLineHeight();
 
                 const ImRect bounding(
@@ -176,37 +176,38 @@ void WindowAbout::Update() {
                 );
 
                 drawList->AddRectFilled(bounding.Min, bounding.Max, ImGui::GetColorU32(ImGuiCol_Separator));
-            } continue;
+            } break;
 
-            case CreditsLine::CLC_NextRow:
+            case ClcNextRow: {
                 additiveLineX += totalLineWidth + 25.f;
                 totalLineWidth = 0.f;
 
                 additiveLineHeight = 0.f;
-                continue;
+            } break;
 
-            case CreditsLine::CLC_NextColumn:
+            case ClcNextColumn: {
                 textPosition.y += additiveLineHeight + ImGui::GetTextLineHeight() + 6.f;
                 additiveLineHeight = 0.f;
 
                 totalLineWidth = 0.f;
 
                 additiveLineX = 0.f;
-                continue;
+            } break;
+
+            case ClcAddString: {
+                drawList->AddText(
+                    { textPosition.x + additiveLineX, textPosition.y + additiveLineHeight },
+                    ImGui::GetColorU32(ImGuiCol_Text), creditStrings[i].string
+                );
+
+                additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;
+
+                totalLineWidth = std::max(totalLineWidth, ImGui::CalcTextSize(creditStrings[i].string).x);
+            } break;
 
             default:
                 break;
-        }
-
-        if (creditStrings[i].command == CreditsLine::CLC_DrawString)
-            drawList->AddText(
-                ImVec2(textPosition.x + additiveLineX, textPosition.y + additiveLineHeight),
-                ImGui::GetColorU32(ImGuiCol_Text), creditStrings[i].string
-            );
-
-        additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;
-
-        totalLineWidth = std::max(totalLineWidth, ImGui::CalcTextSize(creditStrings[i].string).x);
+        }  
     }
 
     ImGui::End();
