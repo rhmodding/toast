@@ -77,6 +77,9 @@ private:
             selectedDifferentAnimation = newSelectedAnimation != appState.selectedAnimation;
 
             appState.selectedAnimation = newSelectedAnimation;
+
+            appState.globalAnimatable->refreshPointers();
+
             appState.globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
 
             if (selectedDifferentAnimation)
