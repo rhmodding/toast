@@ -373,7 +373,7 @@ void App::Menubar() {
             const uint16_t animIndex =
                 appState.globalAnimatable->getCurrentAnimationIndex();
 
-            ImGui::Text("Selected animation (no. %u)", animIndex);
+            ImGui::Text("Selected animation (no. %u)", animIndex + 1);
 
             ImGui::Separator();
 
@@ -397,9 +397,12 @@ void App::Menubar() {
             !sessionManager.getInstance().getCurrentSession()->arrangementMode &&
             !playerManager.playing
         )) {
+            const uint16_t keyIndex =
+                appState.globalAnimatable->getCurrentKeyIndex();
+
             ImGui::Text(
                 "Selected key (no. %u)",
-                appState.globalAnimatable->getCurrentKeyIndex()
+                keyIndex + 1
             );
 
             auto* key = appState.globalAnimatable->getCurrentKey();
@@ -415,7 +418,7 @@ void App::Menubar() {
                 std::make_shared<CommandModifyAnimationKey>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     appState.globalAnimatable->getCurrentAnimationIndex(),
-                    appState.globalAnimatable->getCurrentKeyIndex(),
+                    keyIndex,
                     newKey
                 ));
             }
@@ -426,7 +429,7 @@ void App::Menubar() {
                 "Interpolate ..",
                 nullptr, nullptr,
 
-                appState.globalAnimatable->getCurrentKeyIndex() + 1 <
+                keyIndex + 1 <
                 appState.globalAnimatable->getCurrentAnimation()->keys.size()
             ))
                 appState.OpenGlobalPopup("MInterpolateKeys");
@@ -521,11 +524,12 @@ void App::Menubar() {
             sessionAvaliable &&
             !playerManager.playing
         )) {
-            uint16_t arrangementIndex =
+            const uint16_t arrangementIndex =
                 appState.globalAnimatable->getCurrentKey()->arrangementIndex;
 
             ImGui::Text(
-                "Current arrangement (no. %u)", arrangementIndex + 1
+                "Current arrangement (no. %u)",
+                arrangementIndex + 1
             );
 
             ImGui::Separator();
