@@ -62,7 +62,7 @@ public:
         return ConfigManager::getInstance().getConfig().updateRate;
     }
 
-    ImGuiID globalPopupID{ ImHashStr("GlobalPopupID") };
+    ImGuiID globalPopupID{ 0xBEEFBEEF }; // BEEEEEEFFFF
     inline void OpenGlobalPopup(const char* popupId) {
         ImGui::PushOverrideID(this->globalPopupID);
         ImGui::OpenPopup(popupId);
