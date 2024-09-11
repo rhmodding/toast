@@ -92,6 +92,8 @@ public:
             command->Rollback();
 
             redoStack.push_back(command);
+
+            this->modified = true;
         }
 
         void redo() {
@@ -107,6 +109,8 @@ public:
                 undoStack.pop_front();
 
             undoStack.push_back(command);
+
+            this->modified = true;
         }
 
         bool canUndo() {
