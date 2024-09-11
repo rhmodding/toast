@@ -48,8 +48,6 @@ public:
 private: // Methods
     void SetupFonts();
 
-    void BeginMainWindow();
-
     void Menubar();
 
 private: // Windows

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+
 #include <cmath>
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -242,37 +243,6 @@ void App::SetupFonts() {
         fontConfig.FontDataOwnedByAtlas = false;
         appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
     }
-}
-
-void App::BeginMainWindow() {
-    ImGuiDockNodeFlags dockspaceFlags =
-        ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode |
-        ImGuiWindowFlags_NoBackground;
-    ImGuiWindowFlags windowFlags =
-        ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
-        ImGuiWindowFlags_NoBackground;
-
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
-    ImGui::SetNextWindowViewport(viewport->ID);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.f });
-
-    ImGui::Begin(WINDOW_TITLE "###AppWindow", nullptr, windowFlags);
-
-    ImGui::PopStyleVar(3);
-    ImGui::PopStyleColor();
-
-    // Submit the Dockspace
-    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        ImGui::DockSpace(ImGui::GetID("mainDockspace"), { 0.f, 0.f }, dockspaceFlags);
 }
 
 // TODO: Move all of this outside of App.cpp
@@ -1098,7 +1068,39 @@ void App::Update() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    this->BeginMainWindow();
+    // Begin main window
+    {
+        static const ImGuiDockNodeFlags dockspaceFlags =
+            ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode |
+            ImGuiWindowFlags_NoBackground;
+        static const ImGuiWindowFlags windowFlags =
+            ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+            ImGuiWindowFlags_NoBackground;
+
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
+
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.f });
+
+        ImGui::Begin(WINDOW_TITLE "###AppWindow", nullptr, windowFlags);
+
+        ImGui::PopStyleVar(3);
+        ImGui::PopStyleColor();
+
+        // Submit the Dockspace
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
+            ImGui::DockSpace(ImGui::GetID("mainDockspace"), { 0.f, 0.f }, dockspaceFlags);
+    }
+
     this->Menubar();
 
     Shortcuts::Handle();
