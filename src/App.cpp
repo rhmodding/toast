@@ -39,6 +39,8 @@
 #include "command/CommandDeleteArrangementPart.hpp"
 #include "command/CommandModifyAnimationKey.hpp"
 #include "command/CommandDeleteAnimationKey.hpp"
+#include "command/CommandMoveAnimationKey.hpp"
+#include "command/CommandInsertAnimationKey.hpp"
 
 #include "anim/CellanimHelpers.hpp"
 
@@ -432,14 +434,72 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::BeginMenu("Move selected key ..")) {
-                ImGui::MenuItem(".. up");
-                ImGui::MenuItem(".. down");
+                ImGui::BeginDisabled(keyIndex == (playerManager.getKeyCount() - 1));
+                if (ImGui::MenuItem(".. up")) {
+                    sessionManager.getCurrentSession()->executeCommand(
+                    std::make_shared<CommandMoveAnimationKey>(
+                        sessionManager.getCurrentSession()->currentCellanim,
+                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        keyIndex,
+                        false,
+                        false
+                    ));
+
+                    sessionManager.getCurrentSessionModified() = true;
+
+                    playerManager.setCurrentKeyIndex(keyIndex + 1);
+                }
+                ImGui::EndDisabled();
+
+                ImGui::BeginDisabled(keyIndex == 0);
+                if (ImGui::MenuItem(".. down")) {
+                    sessionManager.getCurrentSession()->executeCommand(
+                    std::make_shared<CommandMoveAnimationKey>(
+                        sessionManager.getCurrentSession()->currentCellanim,
+                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        keyIndex,
+                        true,
+                        false
+                    ));
+
+                    sessionManager.getCurrentSessionModified() = true;
+
+                    playerManager.setCurrentKeyIndex(keyIndex - 1);
+                }
+                ImGui::EndDisabled();
+
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Duplicate selected key ..")) {
-                ImGui::MenuItem(".. before");
-                ImGui::MenuItem(".. after");
+                if (ImGui::MenuItem(".. after")) {
+                    sessionManager.getCurrentSession()->executeCommand(
+                    std::make_shared<CommandInsertAnimationKey>(
+                        sessionManager.getCurrentSession()->currentCellanim,
+                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        keyIndex + 1,
+                        *key
+                    ));
+
+                    playerManager.setCurrentKeyIndex(keyIndex + 1);
+
+                    sessionManager.getCurrentSessionModified() = true;
+                }
+
+                if (ImGui::MenuItem(".. before")) {
+                    sessionManager.getCurrentSession()->executeCommand(
+                    std::make_shared<CommandInsertAnimationKey>(
+                        sessionManager.getCurrentSession()->currentCellanim,
+                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        keyIndex,
+                        *key
+                    ));
+
+                    playerManager.setCurrentKeyIndex(keyIndex);
+
+                    sessionManager.getCurrentSessionModified() = true;
+                }
+                
                 ImGui::EndMenu();
             }
 
