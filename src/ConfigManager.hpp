@@ -59,7 +59,7 @@ public:
 
         bool canvasLMBPanEnabled{ true };
 
-        uint32_t updateRate{ 120 };
+        unsigned updateRate{ 120 };
 
         BackupBehaviour backupBehaviour{ BackupBehaviour_None };
 
