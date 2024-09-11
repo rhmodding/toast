@@ -3,15 +3,15 @@
 #include <imgui.h>
 
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 #include <sstream>
-
-#include "../AppState.hpp"
 
 #include "../font/FontAwesome.h"
 
 #include "../_binary/images/toastIcon_title.png.h"
+
+#include "../AppState.hpp"
 
 const static char* headerTitle = "toast";
 const static char* headerDesc  = "the ultimate cellanim modding tool for\nRhythm Heaven Fever / Beat the Beat: Rhythm Paradise";
