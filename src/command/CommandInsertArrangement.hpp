@@ -3,6 +3,8 @@
 
 #include "BaseCommand.hpp"
 
+#include "../AppState.hpp"
+
 #include "../anim/RvlCellAnim.hpp"
 
 #include "../SessionManager.hpp"
@@ -24,6 +26,8 @@ public:
 
         auto it = arrangements.begin() + this->arrangementIndex;
         arrangements.insert(it, this->arrangement);
+
+        AppState::getInstance().globalAnimatable->refreshPointers();
     }
 
     void Rollback() override {
@@ -31,6 +35,8 @@ public:
 
         auto it = arrangements.begin() + this->arrangementIndex;
         arrangements.erase(it);
+
+        AppState::getInstance().globalAnimatable->refreshPointers();
 
         for (auto& animation : this->getCellanim()->animations)
             for (auto& key : animation.keys) {

@@ -65,6 +65,8 @@ public:
                 );
         }
 
+       appState.globalAnimatable->refreshPointers();
+
         if (appState.selectedPart == nSwap)
             appState.selectedPart = this->keyIndex;
     }

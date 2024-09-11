@@ -25,13 +25,21 @@ public:
     void Execute() override {
         this->getArrangement() = this->newArrangement;
 
-        AppState::getInstance().correctSelectedPart();
+        GET_APP_STATE;
+
+        appState.globalAnimatable->refreshPointers();
+
+        appState.correctSelectedPart();
     }
 
     void Rollback() override {
         this->getArrangement() = this->oldArrangement;
 
-        AppState::getInstance().correctSelectedPart();
+        GET_APP_STATE;
+
+        appState.globalAnimatable->refreshPointers();
+
+        appState.correctSelectedPart();
     }
 
 private:
