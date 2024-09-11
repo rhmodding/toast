@@ -37,7 +37,7 @@ struct CreditsLine {
 static const CreditsLine creditStrings[] = {
     { ClcSeparator },
 
-    { ClcAddString, (char*)ICON_FA_WRENCH "  Testing" },
+    { ClcAddString, (char*)ICON_FA_WRENCH "  Initial testing" },
     { ClcEmptyLine },
 
     { ClcAddString, "Placeholder" },
@@ -176,14 +176,14 @@ void WindowAbout::Update() {
                 );
 
                 drawList->AddRectFilled(bounding.Min, bounding.Max, ImGui::GetColorU32(ImGuiCol_Separator));
-            } break;
+            } continue;
 
             case ClcNextRow: {
                 additiveLineX += totalLineWidth + 25.f;
                 totalLineWidth = 0.f;
 
                 additiveLineHeight = 0.f;
-            } break;
+            } continue;
 
             case ClcNextColumn: {
                 textPosition.y += additiveLineHeight + ImGui::GetTextLineHeight() + 6.f;
@@ -192,22 +192,22 @@ void WindowAbout::Update() {
                 totalLineWidth = 0.f;
 
                 additiveLineX = 0.f;
-            } break;
+            } continue;
 
             case ClcAddString: {
                 drawList->AddText(
                     { textPosition.x + additiveLineX, textPosition.y + additiveLineHeight },
                     ImGui::GetColorU32(ImGuiCol_Text), creditStrings[i].string
                 );
-
-                additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;
-
-                totalLineWidth = std::max(totalLineWidth, ImGui::CalcTextSize(creditStrings[i].string).x);
             } break;
 
             default:
                 break;
         }  
+
+        additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;
+
+        totalLineWidth = std::max(totalLineWidth, ImGui::CalcTextSize(creditStrings[i].string).x);
     }
 
     ImGui::End();
