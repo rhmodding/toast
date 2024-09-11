@@ -368,15 +368,24 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("Animation", sessionAvaliable)) {
+            const uint16_t animIndex =
+                appState.globalAnimatable->getCurrentAnimationIndex();
+
+            ImGui::Text("Selected animation (no. %u)", animIndex);
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Edit macro name ..")) {
-                Popups::_editAnimationNameIdx =
-                    appState.globalAnimatable->getCurrentAnimationIndex();
+                Popups::_editAnimationNameIdx = animIndex;
                 appState.OpenGlobalPopup("###EditAnimationName");
             }
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Swap index ..");
+            if (ImGui::MenuItem("Swap index ..")) {
+                Popups::_swapAnimationIdx = animIndex;
+                appState.OpenGlobalPopup("###SwapAnimation");
+            }
 
             ImGui::EndMenu();
         }
@@ -549,7 +558,7 @@ void App::Menubar() {
     }
 
     if (ImGui::BeginMenuBar()) {
-        ImGuiTabBarFlags tabBarFlags =
+        static const ImGuiTabBarFlags tabBarFlags =
             ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_TabListPopupButton |
             ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll;
 

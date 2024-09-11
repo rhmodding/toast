@@ -1,5 +1,14 @@
 #include "Popups.hpp"
 
+namespace Popups {
+
+bool _openExitWithChangesPopup{ false };
+
+int  _editAnimationNameIdx{ -1 };
+int  _swapAnimationIdx{ -1 };
+
+} // namespace Popups
+
 #include "../AppState.hpp"
 
 #include "popups/Popup_MTransformArrangement.hpp"
@@ -19,6 +28,9 @@
 #include "popups/Popup_EditorDataExpected.hpp"
 
 #include "popups/Popup_CloseModifiedSession.hpp"
+
+#include "popups/Popup_EditAnimationName.hpp"
+#include "popups/Popup_SwapAnimation.hpp"
 
 void Popups::Update() {
     BEGIN_GLOBAL_POPUP;
@@ -45,6 +57,9 @@ void Popups::Update() {
     Popup_EditorDataExpected();
 
     Popup_CloseModifiedSession();
+
+    Popup_EditAnimationName(_editAnimationNameIdx);
+    Popup_SwapAnimation(_swapAnimationIdx);
 
     END_GLOBAL_POPUP;
 }

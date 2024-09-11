@@ -3,7 +3,10 @@
 
 namespace Popups {
 
-static bool _openExitWithChangesPopup{ false };
+extern bool _openExitWithChangesPopup;
+
+extern int  _editAnimationNameIdx;
+extern int  _swapAnimationIdx;
 
 void Update();
 
