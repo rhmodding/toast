@@ -5,6 +5,7 @@
 #include "popups/Popup_MTransformArrangement.hpp"
 #include "popups/Popup_MPadRegion.hpp"
 #include "popups/Popup_MOptimizeGlobal.hpp"
+#include "popups/Popup_MInterpolateKeys.hpp"
 
 #include "popups/Popup_SessionErr.hpp"
 #include "popups/Popup_TextureExportFailed.hpp"
@@ -25,6 +26,7 @@ void Popups::Update() {
     Popup_MTransformArrangement();
     Popup_MPadRegion();
     Popup_MOptimizeGlobal();
+    Popup_MInterpolateKeys();
 
     Popup_SessionErr();
     Popup_TextureExportFailed();
