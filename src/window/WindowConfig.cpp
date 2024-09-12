@@ -167,7 +167,7 @@ void WindowConfig::Update() {
                         clName = buf;
                     }
                     
-                    if (ImGui::SliderInt("Compression Level", &selectedLevel, 0, CL_Count - 1, clName, ImGuiSliderFlags_NoInput)) {
+                    if (ImGui::SliderInt("Compression Level", &selectedLevel, CL_Count - 1, 0, clName, ImGuiSliderFlags_NoInput)) {
                         this->selfConfig.compressionLevel = levelMap[selectedLevel];
                     }
                 } break;
