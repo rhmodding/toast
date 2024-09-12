@@ -4,7 +4,6 @@
 
 #include "../../anim/Animatable.hpp"
 
-#include "../../command/CommandInsertArrangement.hpp"
 #include "../../command/CommandModifyAnimationKey.hpp"
 
 #include "../../anim/CellanimHelpers.hpp"
@@ -14,23 +13,6 @@
 #include "../../AppState.hpp"
 
 const uint16_t uint16_one = 1;
-
-bool getArrangementUnique(uint16_t index) {
-    uint8_t timesUsed{ 0 };
-
-    for (const auto& animation : SessionManager::getInstance().getCurrentSession()->getCellanimObject()->animations) {
-        for (const auto& key : animation.keys) {
-            if (key.arrangementIndex == index)
-                timesUsed++;
-
-            if (timesUsed > 1) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
 
 void WindowInspector::Level_Key() {
     GET_APP_STATE;
@@ -138,43 +120,38 @@ void WindowInspector::Level_Key() {
         ImGui::Text("Arrangement No.");
     }
 
-    bool arrangementUnique = getArrangementUnique(globalAnimatable->getCurrentKey()->arrangementIndex);
-    ImGui::BeginDisabled(arrangementUnique);
+    {
+        bool arrangementUnique = CellanimHelpers::getArrangementUnique(globalAnimatable->getCurrentKey()->arrangementIndex);
+        ImGui::BeginDisabled(arrangementUnique);
 
-    if (ImGui::Button("Make arrangement unique (duplicate)"))
-        newKey.arrangementIndex =
-            CellanimHelpers::DuplicateArrangement(animKey->arrangementIndex);
-
-    ImGui::EndDisabled();
-
-    if (
-        arrangementUnique &&
-        ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
-        ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)
-    )
-        ImGui::OpenPopup("DuplicateAnywayPopup");
-
-    if (ImGui::BeginPopup("DuplicateAnywayPopup")) {
-        ImGui::Text("Would you like to duplicate this\narrangement anyway?");
-        ImGui::Separator();
-        if (ImGui::Selectable("Ok")) {
-            SessionManager::getInstance().getCurrentSession()->executeCommand(
-            std::make_shared<CommandInsertArrangement>(
-                sessionManager.getCurrentSession()->currentCellanim,
-                sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size(),
-                sessionManager.getCurrentSession()->getCellanimObject()->arrangements.at(animKey->arrangementIndex)
-            ));
-
+        if (ImGui::Button("Make arrangement unique (duplicate)"))
             newKey.arrangementIndex =
-                sessionManager.getCurrentSession()->getCellanimObject()->arrangements.size() - 1;
+                CellanimHelpers::DuplicateArrangement(animKey->arrangementIndex);
+
+        ImGui::EndDisabled();
+
+        if (
+            arrangementUnique &&
+            ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
+            ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)
+        )
+            ImGui::OpenPopup("DuplicateAnywayPopup");
+
+        if (ImGui::BeginPopup("DuplicateAnywayPopup")) {
+            ImGui::Text("Would you like to duplicate this\narrangement anyway?");
+            ImGui::Separator();
+
+            if (ImGui::Selectable("Ok"))
+                newKey.arrangementIndex =
+                    CellanimHelpers::DuplicateArrangement(animKey->arrangementIndex);
+            ImGui::Selectable("Nevermind");
+
+            ImGui::EndPopup();
         }
-        ImGui::Selectable("Nevermind");
 
-        ImGui::EndPopup();
+        if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
+            ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
     }
-
-    if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
 
     ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
 

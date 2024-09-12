@@ -28,6 +28,8 @@ set(SOURCES
     src/anim/Animatable.cpp
     src/anim/RvlCellAnim.cpp
 
+    src/anim/CellanimHelpers.cpp
+
     src/archive/U8.cpp
 
     src/compression/Yaz0.cpp
