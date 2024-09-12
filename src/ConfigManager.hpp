@@ -14,7 +14,7 @@
 
 #include "common.hpp"
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 // Stores instance of ConfigManager in local configManager.
 #define GET_CONFIG_MANAGER ConfigManager& configManager = ConfigManager::getInstance()
@@ -89,8 +89,8 @@ public:
     }
 
     // Friend functions for JSON (de-)serialization
-    friend void to_json(nlohmann::json& j, const ConfigManager::Config& config) {
-        j = nlohmann::json{
+    friend void to_json(nlohmann::ordered_json& j, const ConfigManager::Config& config) {
+        j = nlohmann::ordered_json{
             {"theme", config.theme},
             {"imageEditorPath", config.imageEditorPath},
             {"textureEditPath", config.textureEditPath},
@@ -102,7 +102,7 @@ public:
             {"compressionLevel", config.compressionLevel}
         };
     }
-    friend void from_json(const nlohmann::json& j, ConfigManager::Config& config) {
+    friend void from_json(const nlohmann::ordered_json& j, ConfigManager::Config& config) {
         config.theme = j.value("theme", config.theme);
         config.imageEditorPath = j.value("imageEditorPath", config.imageEditorPath);
         config.textureEditPath = j.value("textureEditPath", config.textureEditPath);
@@ -129,7 +129,7 @@ public:
             return;
         }
 
-        nlohmann::json j;
+        nlohmann::ordered_json j;
         file >> j;
         file.close();
 
@@ -143,7 +143,7 @@ public:
             return;
         }
 
-        nlohmann::json j = config;
+        nlohmann::ordered_json j = config;
         file << j.dump(4);
 
         file.close();
