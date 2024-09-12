@@ -397,29 +397,12 @@ void App::Menubar() {
         )) {
             const uint16_t keyIndex =
                 appState.globalAnimatable->getCurrentKeyIndex();
+            auto* key = appState.globalAnimatable->getCurrentKey();
 
             ImGui::Text(
                 "Selected key (no. %u)",
                 keyIndex + 1
             );
-
-            auto* key = appState.globalAnimatable->getCurrentKey();
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
-                auto newKey = *key;
-                newKey.arrangementIndex =
-                    CellanimHelpers::DuplicateArrangement(key->arrangementIndex);
-
-                sessionManager.getCurrentSession()->executeCommand(
-                std::make_shared<CommandModifyAnimationKey>(
-                    sessionManager.getCurrentSession()->currentCellanim,
-                    appState.globalAnimatable->getCurrentAnimationIndex(),
-                    keyIndex,
-                    newKey
-                ));
-            }
 
             ImGui::Separator();
 
@@ -531,6 +514,42 @@ void App::Menubar() {
                 "Current arrangement (no. %u)",
                 arrangementIndex + 1
             );
+
+            ImGui::Separator();
+
+            // Duplicate option
+            {
+                const uint16_t keyIndex =
+                    appState.globalAnimatable->getCurrentKeyIndex();
+                auto* key = appState.globalAnimatable->getCurrentKey();
+
+                bool arrangementUnique = CellanimHelpers::getArrangementUnique(key->arrangementIndex);
+                ImGui::BeginDisabled(arrangementUnique);
+
+                if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
+                    uint16_t newIndex = CellanimHelpers::DuplicateArrangement(key->arrangementIndex);
+
+                    if (!appState.getArrangementMode()) {
+                        auto newKey = *key;
+                        newKey.arrangementIndex = newIndex;
+                            
+                        sessionManager.getCurrentSession()->executeCommand(
+                        std::make_shared<CommandModifyAnimationKey>(
+                            sessionManager.getCurrentSession()->currentCellanim,
+                            appState.globalAnimatable->getCurrentAnimationIndex(),
+                            keyIndex,
+                            newKey
+                        ));
+                    }
+                    else
+                        key->arrangementIndex = newIndex;
+                }
+
+                ImGui::EndDisabled();
+
+                if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("This arrangement is only used once.");
+            }
 
             ImGui::Separator();
 
