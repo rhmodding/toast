@@ -14,8 +14,6 @@
 
 #include "common.hpp"
 
-using json = nlohmann::ordered_json;
-
 // Stores instance of ConfigManager in local configManager.
 #define GET_CONFIG_MANAGER ConfigManager& configManager = ConfigManager::getInstance()
 
