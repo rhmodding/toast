@@ -73,7 +73,7 @@ namespace Yaz0 {
                 size_t dummySize = 8;
 
                 const int zlibRun = zng_compress2(
-                    dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, 1, 9),
+                    dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, 2, 9),
                     [](void* data, uint32_t dist, uint32_t lc) {
                         auto* compressionState = reinterpret_cast<CompressionState*>(data);
 
