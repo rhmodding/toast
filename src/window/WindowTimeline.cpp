@@ -635,12 +635,6 @@ void WindowTimeline::Update() {
         }
 
         ImGui::PopStyleVar();
-
-        /*
-        if (autoScrollTimeline && appState.playerState.playing) {
-            ImGui::SetScrollX(ImGui::GetScrollMaxX() * appState.playerState.getAnimationProgression());
-        }
-        */
     }
     ImGui::EndChild();
 

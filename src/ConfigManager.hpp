@@ -51,9 +51,7 @@ public:
         std::string imageEditorPath{ "" };
 
         std::string textureEditPath{ "./toastEditTexture.temp.png" };
-
-        bool showUnknownValues{ false };
-
+        
         int lastWindowWidth{ 1500 };
         int lastWindowHeight{ 780 };
 
@@ -70,7 +68,6 @@ public:
                 this->theme == other.theme &&
                 this->imageEditorPath == other.imageEditorPath &&
                 this->textureEditPath == other.textureEditPath &&
-                this->showUnknownValues == other.showUnknownValues &&
                 this->lastWindowWidth == other.lastWindowWidth &&
                 this->lastWindowHeight == other.lastWindowHeight &&
                 this->canvasLMBPanEnabled == other.canvasLMBPanEnabled &&
@@ -97,7 +94,6 @@ public:
             {"theme", config.theme},
             {"imageEditorPath", config.imageEditorPath},
             {"textureEditPath", config.textureEditPath},
-            {"showUnknownValues", config.showUnknownValues},
             {"lastWindowWidth", config.lastWindowWidth},
             {"lastWindowHeight", config.lastWindowHeight},
             {"canvasLMBPanEnabled", config.canvasLMBPanEnabled},
@@ -110,7 +106,6 @@ public:
         config.theme = j.value("theme", config.theme);
         config.imageEditorPath = j.value("imageEditorPath", config.imageEditorPath);
         config.textureEditPath = j.value("textureEditPath", config.textureEditPath);
-        config.showUnknownValues = j.value("showUnknownValues", config.showUnknownValues);
         config.lastWindowWidth = j.value("lastWindowWidth", config.lastWindowWidth);
         config.lastWindowHeight = j.value("lastWindowHeight", config.lastWindowHeight);
         config.canvasLMBPanEnabled = j.value("canvasLMBPanEnabled", config.canvasLMBPanEnabled);

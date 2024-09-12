@@ -662,7 +662,8 @@ void WindowCanvas::Update() {
         if (flipped ? !positiveCase : positiveCase) {
             size += mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable->getCurrentKey()->transform.scaleY;
             *scale = (size / regionSize) + partBeforeScale - 1.f;
-        } else {
+        }
+        else {
             size -= mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable->getCurrentKey()->transform.scaleY;
             *scale = (size / regionSize) + partBeforeScale - 1.f;
             *position = partBeforePosition - (size - regionSize);
@@ -809,20 +810,4 @@ void WindowCanvas::DrawCanvasText() {
 
         textDrawHeight += 3.f + ImGui::CalcTextSize(text).y;
     }
-
-    /*
-
-    char text[64];
-
-    sprintf(text, "Current handle: %i", hoveredPartHandle);
-
-    drawList->AddText(
-        ImVec2(
-            this->canvasTopLeft.x + 10,
-            textDrawHeight
-        ),
-        textColor, text
-    );
-
-    */
 }

@@ -115,10 +115,6 @@ void WindowConfig::Update() {
 
             switch (selected) {
                 case Category_General: {
-                    // ImGui::Checkbox("Show unknown fields/values", &this->selfConfig.showUnknownValues);
-
-                    // ImGui::Separator();
-
                     ImGui::Checkbox("Enable panning canvas with LMB", &this->selfConfig.canvasLMBPanEnabled);
 
                     ImGui::Separator();

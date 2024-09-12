@@ -300,32 +300,6 @@ void WindowInspector::Level_Key() {
         }
     }
 
-
-
-    /*
-
-    if (ConfigManager::getInstance().config.showUnknownValues) {
-        ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
-
-        if (ImGui::CollapsingHeader("..as Uint32", ImGuiTreeNodeFlags_None)) {
-            changed |= ImGui::InputScalar(" A", ImGuiDataType_U32, &animKey->unknown.u32, &uint32_one, nullptr, "%u");
-        }
-        ImGui::Separator();
-        if (ImGui::CollapsingHeader("..as Uint16", ImGuiTreeNodeFlags_None)) {
-            changed |= ImGui::InputScalar(" A", ImGuiDataType_U16, &animKey->unknown.u16[0], &uint16_one, nullptr, "%u");
-            changed |= ImGui::InputScalar(" B", ImGuiDataType_U16, &animKey->unknown.u16[1], &uint16_one, nullptr, "%u");
-        }
-        ImGui::Separator();
-        if (ImGui::CollapsingHeader("..as Uint8 (byte)", ImGuiTreeNodeFlags_None)) {
-            changed |= ImGui::InputScalar(" A", ImGuiDataType_U8, &animKey->unknown.u8[0], &uint8_one, nullptr, "%u");
-            changed |= ImGui::InputScalar(" B", ImGuiDataType_U8, &animKey->unknown.u8[1], &uint8_one, nullptr, "%u");
-            changed |= ImGui::InputScalar(" C", ImGuiDataType_U8, &animKey->unknown.u8[2], &uint8_one, nullptr, "%u");
-            changed |= ImGui::InputScalar(" D", ImGuiDataType_U8, &animKey->unknown.u8[3], &uint8_one, nullptr, "%u");
-        }
-    }
-
-    */
-
     if (newKey != originalKey) {
         *globalAnimatable->getCurrentKey() = originalKey;
 

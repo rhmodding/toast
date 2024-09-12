@@ -317,28 +317,6 @@ void WindowInspector::Level_Arrangement() {
                 }
             }
 
-            /*
-            if (ConfigManager::getInstance().getConfig().showUnknownValues) {
-                ImGui::SeparatorText((char*)ICON_FA_CIRCLE_QUESTION " Unknown value (byteswapped)..");
-
-                if (ImGui::CollapsingHeader("..as Uint32", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A##Unk_Uint32", ImGuiDataType_U32, &newPart.unknown.u32, &uint32_one, nullptr, "%u");
-                }
-                ImGui::Separator();
-                if (ImGui::CollapsingHeader("..as Uint16", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A##Unk_Uint16", ImGuiDataType_U16, &newPart.unknown.u16[0], &uint16_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" B##Unk_Uint16", ImGuiDataType_U16, &newPart.unknown.u16[1], &uint16_one, nullptr, "%u");
-                }
-                ImGui::Separator();
-                if (ImGui::CollapsingHeader("..as Uint8 (byte)", ImGuiTreeNodeFlags_None)) {
-                    changed |= ImGui::InputScalar(" A##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[0], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" B##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[1], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" C##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[2], &uint8_one, nullptr, "%u");
-                    changed |= ImGui::InputScalar(" D##Unk_Uint8", ImGuiDataType_U8, &newPart.unknown.u8[3], &uint8_one, nullptr, "%u");
-                }
-            }
-             */
-
             if (newPart != originalPart) {
                 *partPtr = originalPart;
 
