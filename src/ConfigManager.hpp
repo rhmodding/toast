@@ -61,7 +61,7 @@ public:
 
         BackupBehaviour backupBehaviour{ BackupBehaviour_None };
 
-        unsigned compressionLevel{ 8 };
+        unsigned compressionLevel{ 9 };
 
         bool operator==(const Config& other) const {
             return

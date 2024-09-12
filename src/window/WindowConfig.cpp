@@ -8,6 +8,7 @@
 
 enum Categories {
     Category_General,
+    Category_Export,
     Category_Theming,
     Category_Paths,
 
@@ -16,6 +17,7 @@ enum Categories {
 
 const char* categoryNames[] = {
     "General",
+    "Export",
     "Theming",
     "Paths"
 };
@@ -129,8 +131,49 @@ void WindowConfig::Update() {
                     ImGui::Combo("Backup behaviour", reinterpret_cast<int*>(&this->selfConfig.backupBehaviour), backupOptions, 3);
                 } break;
 
+                case Category_Export: {
+                    enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_Count };
+                    static const char* levelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low" };
+
+                    static const int levelMap[CL_Count] = { 9, 8, 7, 4, 2 };
+
+                    int selectedLevel;
+                    {
+                        static const int compressionLevels[] = {
+                            CL_Count, // 0
+                            CL_Count, // 1
+                            CL_VeryLow, // 2
+                            CL_Count, // 3
+                            CL_Low, // 4
+                            CL_Count, // 5
+                            CL_Count, // 6
+                            CL_Medium, // 7
+                            CL_High, // 8
+                            CL_Highest // 9
+                        };
+
+                        selectedLevel = compressionLevels[this->selfConfig.compressionLevel];
+                    }
+
+                    const char* clName = (selectedLevel >= 0 && selectedLevel < CL_Count) ?
+                        levelNames[selectedLevel] : "Other ";
+
+                    if (selectedLevel >= 0 && selectedLevel < CL_Count)
+                        clName = levelNames[selectedLevel];
+                    else {
+                        static char buf[64];
+                        sprintf(buf, "Other (lvl %i)", this->selfConfig.compressionLevel);
+    
+                        clName = buf;
+                    }
+                    
+                    if (ImGui::SliderInt("Compression Level", &selectedLevel, 0, CL_Count - 1, clName, ImGuiSliderFlags_NoInput)) {
+                        this->selfConfig.compressionLevel = levelMap[selectedLevel];
+                    }
+                } break;
+
                 case Category_Theming: {
-                    const char* themeOptions[] = { "Light", "Dark" };
+                    const static char* themeOptions[] = { "Light", "Dark" };
                     ImGui::Combo("Theme", reinterpret_cast<int*>(&this->selfConfig.theme), themeOptions, 2);
                 } break;
 
