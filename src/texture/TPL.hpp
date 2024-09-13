@@ -16,102 +16,104 @@
 #endif
 
 namespace TPL {
-    enum TPLWrapMode {
-        TPL_WRAP_MODE_CLAMP,
-        TPL_WRAP_MODE_REPEAT,
-        TPL_WRAP_MODE_MIRROR,
-        TPL_WRAP_MODE_NONE
-    };
 
-    enum TPLTexFilter {
-        TPL_TEX_FILTER_NEAR,
-        TPL_TEX_FILTER_LINEAR,
-        TPL_TEX_FILTER_NEAR_MIP_NEAR,
-        TPL_TEX_FILTER_LIN_MIP_NEAR,
-        TPL_TEX_FILTER_NEAR_MIP_LIN,
-        TPL_TEX_FILTER_LIN_MIP_LIN
-    };
+enum TPLWrapMode {
+    TPL_WRAP_MODE_CLAMP,
+    TPL_WRAP_MODE_REPEAT,
+    TPL_WRAP_MODE_MIRROR,
+    TPL_WRAP_MODE_NONE
+};
 
-    enum TPLImageFormat : uint32_t {
-        // Gray
-        TPL_IMAGE_FORMAT_I4,
+enum TPLTexFilter {
+    TPL_TEX_FILTER_NEAR,
+    TPL_TEX_FILTER_LINEAR,
+    TPL_TEX_FILTER_NEAR_MIP_NEAR,
+    TPL_TEX_FILTER_LIN_MIP_NEAR,
+    TPL_TEX_FILTER_NEAR_MIP_LIN,
+    TPL_TEX_FILTER_LIN_MIP_LIN
+};
 
-        // Gray
-        TPL_IMAGE_FORMAT_I8,
+enum TPLImageFormat : uint32_t {
+    // Gray
+    TPL_IMAGE_FORMAT_I4,
 
-        // Gray + Alpha
-        TPL_IMAGE_FORMAT_IA4,
+    // Gray
+    TPL_IMAGE_FORMAT_I8,
 
-        // Gray + Alpha
-        TPL_IMAGE_FORMAT_IA8,
+    // Gray + Alpha
+    TPL_IMAGE_FORMAT_IA4,
 
-        // Color
-        TPL_IMAGE_FORMAT_RGB565,
+    // Gray + Alpha
+    TPL_IMAGE_FORMAT_IA8,
 
-        // Color + Alpha
-        TPL_IMAGE_FORMAT_RGB5A3,
+    // Color
+    TPL_IMAGE_FORMAT_RGB565,
 
-        // Color + Alpha
-        TPL_IMAGE_FORMAT_RGBA32,
+    // Color + Alpha
+    TPL_IMAGE_FORMAT_RGB5A3,
 
-        // Palette (IA8, RGB565, RGB5A3)
-        TPL_IMAGE_FORMAT_C4 = 0x08,
+    // Color + Alpha
+    TPL_IMAGE_FORMAT_RGBA32,
 
-        // Palette (IA8, RGB565, RGB5A3)
-        TPL_IMAGE_FORMAT_C8,
+    // Palette (IA8, RGB565, RGB5A3)
+    TPL_IMAGE_FORMAT_C4 = 0x08,
 
-        // Palette (IA8, RGB565, RGB5A3)
-        TPL_IMAGE_FORMAT_C14X2,
+    // Palette (IA8, RGB565, RGB5A3)
+    TPL_IMAGE_FORMAT_C8,
 
-        // Color + optional Alpha (compressed)
-        TPL_IMAGE_FORMAT_CMPR = 0x0E,
+    // Palette (IA8, RGB565, RGB5A3)
+    TPL_IMAGE_FORMAT_C14X2,
 
-        TPL_IMAGE_FORMAT_COUNT
-    };
+    // Color + optional Alpha (compressed)
+    TPL_IMAGE_FORMAT_CMPR = 0x0E,
 
-    enum TPLClutFormat : uint32_t {
-        TPL_CLUT_FORMAT_IA8, // Gray + Alpha
-        TPL_CLUT_FORMAT_RGB565, // Color
-        TPL_CLUT_FORMAT_RGB5A3 // Color + Alpha
-    };
+    TPL_IMAGE_FORMAT_COUNT
+};
 
-    const char* getImageFormatName(TPLImageFormat format);
+enum TPLClutFormat : uint32_t {
+    TPL_CLUT_FORMAT_IA8, // Gray + Alpha
+    TPL_CLUT_FORMAT_RGB565, // Color
+    TPL_CLUT_FORMAT_RGB5A3 // Color + Alpha
+};
 
-    struct TPLTexture {
-        uint8_t valid; // Did the texture have a valid offset?
+const char* getImageFormatName(TPLImageFormat format);
 
-        uint16_t width;
-        uint16_t height;
+struct TPLTexture {
+    uint8_t valid; // Did the texture have a valid offset?
 
-        std::vector<unsigned char> data;
+    uint16_t width;
+    uint16_t height;
 
-        std::vector<uint32_t> palette;
+    std::vector<unsigned char> data;
 
-        TPLWrapMode wrapS;
-        TPLWrapMode wrapT;
+    std::vector<uint32_t> palette;
 
-        TPLTexFilter minFilter;
-        TPLTexFilter magFilter;
+    TPLWrapMode wrapS;
+    TPLWrapMode wrapT;
 
-        uint8_t mipMap;
+    TPLTexFilter minFilter;
+    TPLTexFilter magFilter;
 
-        TPLImageFormat format; // This is used when re-serializing the TPL.
-    };
+    uint8_t mipMap;
 
-    class TPLObject {
-    public:
-        std::vector<TPLTexture> textures;
+    TPLImageFormat format; // This is used when re-serializing the TPL.
+};
 
-        std::vector<unsigned char> Reserialize();
+class TPLObject {
+public:
+    std::vector<TPLTexture> textures;
 
-        TPLObject(const unsigned char* tplData, const size_t dataSize);
+    std::vector<unsigned char> Reserialize();
 
-        TPLObject() {};
-    };
+    TPLObject(const unsigned char* tplData, const size_t dataSize);
 
-    std::optional<TPLObject> readTPLFile(const std::string& filePath);
+    TPLObject() {};
+};
 
-    GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture);
-}
+std::optional<TPLObject> readTPLFile(const std::string& filePath);
+
+GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture);
+
+} // namespace TPL
 
 #endif // TPL_HPP

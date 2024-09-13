@@ -27,290 +27,292 @@
 #define EDITORDATA_RESOURCE_NAME "TOAST.DAT"
 
 namespace EditorData {
-    struct FileHeader {
-        char magic[6]{ 'T', 'O', 'A', 'S', 'T', 'D' };
-        uint16_t entryCount{ 0 };
-    } __attribute__((packed));
 
-    struct StandardHeader {
-        char identifier[4];
-        uint16_t entryCount;
-        uint32_t nextHeaderOffset;
-    } __attribute__((packed));
+struct FileHeader {
+    char magic[6]{ 'T', 'O', 'A', 'S', 'T', 'D' };
+    uint16_t entryCount{ 0 };
+} __attribute__((packed));
 
-    struct PartLocationEntry {
-        uint16_t cellanimIndex;
-        uint16_t arrangementIndex;
-        uint16_t partIndex;
-    } __attribute__((packed));
+struct StandardHeader {
+    char identifier[4];
+    uint16_t entryCount;
+    uint32_t nextHeaderOffset;
+} __attribute__((packed));
 
-    struct PartAlphaEntry {
-        uint16_t cellanimIndex;
-        uint16_t arrangementIndex;
-        uint16_t partIndex;
+struct PartLocationEntry {
+    uint16_t cellanimIndex;
+    uint16_t arrangementIndex;
+    uint16_t partIndex;
+} __attribute__((packed));
 
-        uint8_t opacity;
+struct PartAlphaEntry {
+    uint16_t cellanimIndex;
+    uint16_t arrangementIndex;
+    uint16_t partIndex;
 
-        uint8_t pad8;
-    } __attribute__((packed));
+    uint8_t opacity;
 
-    struct NamedPartEntry {
-        uint16_t cellanimIndex;
-        uint16_t arrangementIndex;
-        uint16_t partIndex;
+    uint8_t pad8;
+} __attribute__((packed));
 
-        char name[32];
-    } __attribute__((packed));
+struct NamedPartEntry {
+    uint16_t cellanimIndex;
+    uint16_t arrangementIndex;
+    uint16_t partIndex;
 
-    void Apply(const unsigned char* data, SessionManager::Session* session) {
-        const FileHeader* fileHeader = reinterpret_cast<const FileHeader*>(data);
+    char name[32];
+} __attribute__((packed));
 
-        if (UNLIKELY(memcmp(fileHeader->magic, "TOASTD", 6) != 0)) {
-            std::cerr << "[EditorData::Apply] Invalid editor data binary: header magic failed check!\n";
-            return;
-        }
+void Apply(const unsigned char* data, SessionManager::Session* session) {
+    const FileHeader* fileHeader = reinterpret_cast<const FileHeader*>(data);
 
-        if (fileHeader->entryCount == 0)
-            return;
-
-        const StandardHeader* currentHeader =
-            reinterpret_cast<const StandardHeader*>(data + sizeof(FileHeader));
-
-        auto getPart = [&session](
-            uint16_t cellIndex, uint16_t arrngIndex, uint16_t partIndex
-        ) -> RvlCellAnim::ArrangementPart* {
-            if (cellIndex >= session->cellanims.size()) {
-                std::cerr <<
-                    "[EditorData::Apply] Invalid editor data binary: oob cellanim index!:\n" <<
-                    "   - Cellanim Index: " << cellIndex << '\n';
-                return nullptr;
-            }
-
-            auto& arrangements = session->cellanims.at(cellIndex).object->arrangements;
-            if (arrngIndex >= arrangements.size()) {
-                std::cerr <<
-                    "[EditorData::Apply] Invalid editor data binary: oob arrangement index!:" <<
-                    "   - Cellanim Index: " << cellIndex << '\n' <<
-                    "   - Arrangement Index: " << arrngIndex << '\n';
-                return nullptr;
-            }
-
-            auto& arrangement = arrangements.at(arrngIndex);
-            if (partIndex >= arrangement.parts.size()) {
-                std::cerr <<
-                    "[EditorData::Apply] Invalid editor data binary: oob part index!:" <<
-                    "   - Cellanim Index: " << cellIndex << '\n' <<
-                    "   - Arrangement Index: " << arrngIndex << '\n' <<
-                    "   - Part Index: " << partIndex << '\n';
-                return nullptr;
-            }
-
-            return &arrangement.parts.at(partIndex);
-        };
-
-        for (uint16_t i = 0; i < fileHeader->entryCount; i++) {
-            switch (*reinterpret_cast<const uint32_t*>(currentHeader->identifier)) {
-                case IDENTIFIER_TO_U32('E', 'L', 'P', 'T'): {
-                    const PartLocationEntry* currentEntry = reinterpret_cast<const PartLocationEntry*>(
-                        currentHeader + 1
-                    );
-                    for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                        auto* part = getPart(
-                            currentEntry->cellanimIndex,
-                            currentEntry->arrangementIndex,
-                            currentEntry->partIndex
-                        );
-
-                        if (LIKELY(!!part))
-                            part->editorLocked = true;
-                        else
-                            return;
-
-                        currentEntry++;
-                    }
-                } break;
-
-                case IDENTIFIER_TO_U32('E', 'I', 'P', 'T'): {
-                    const PartAlphaEntry* currentEntry = reinterpret_cast<const PartAlphaEntry*>(
-                        currentHeader + 1
-                    );
-                    for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                        auto* part = getPart(
-                            currentEntry->cellanimIndex,
-                            currentEntry->arrangementIndex,
-                            currentEntry->partIndex
-                        );
-
-                        if (LIKELY(!!part)) {
-                            part->opacity = currentEntry->opacity;
-                            part->editorVisible = false;
-                        }
-                        else
-                            return;
-
-                        currentEntry++;
-                    }
-                } break;
-
-                case IDENTIFIER_TO_U32('A', 'P', 'N', 'T'): {
-                    const NamedPartEntry* currentEntry = reinterpret_cast<const NamedPartEntry*>(
-                        currentHeader + 1
-                    );
-                    for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                        auto* part = getPart(
-                            currentEntry->cellanimIndex,
-                            currentEntry->arrangementIndex,
-                            currentEntry->partIndex
-                        );
-
-                        if (LIKELY(!!part))
-                            strncpy(part->editorName, currentEntry->name, 32);
-                        else
-                            return;
-
-                        currentEntry++;
-                    }
-                } break;
-
-                default:
-                    std::cerr << "[EditorData::Apply] Unimplemented entry type: " <<
-                        currentHeader->identifier[0] <<
-                        currentHeader->identifier[1] <<
-                        currentHeader->identifier[2] <<
-                        currentHeader->identifier[3] <<
-                    '\n';
-                    break;
-            }
-
-            if (i + 1 < fileHeader->entryCount)
-                currentHeader =
-                    reinterpret_cast<const StandardHeader*>(data + currentHeader->nextHeaderOffset);
-        }
+    if (UNLIKELY(memcmp(fileHeader->magic, "TOASTD", 6) != 0)) {
+        std::cerr << "[EditorData::Apply] Invalid editor data binary: header magic failed check!\n";
+        return;
     }
 
-    std::vector<unsigned char> Write(SessionManager::Session* session) {
-        std::vector<unsigned char> result(sizeof(FileHeader));
+    if (fileHeader->entryCount == 0)
+        return;
 
-        FileHeader* fileHeader = reinterpret_cast<FileHeader*>(result.data());
-        *fileHeader = FileHeader{};
+    const StandardHeader* currentHeader =
+        reinterpret_cast<const StandardHeader*>(data + sizeof(FileHeader));
 
-        std::vector<PartLocationEntry> lockedParts;
-        std::vector<PartAlphaEntry> invisibleParts;
-        std::vector<NamedPartEntry> namedParts;
+    auto getPart = [&session](
+        uint16_t cellIndex, uint16_t arrngIndex, uint16_t partIndex
+    ) -> RvlCellAnim::ArrangementPart* {
+        if (cellIndex >= session->cellanims.size()) {
+            std::cerr <<
+                "[EditorData::Apply] Invalid editor data binary: oob cellanim index!:\n" <<
+                "   - Cellanim Index: " << cellIndex << '\n';
+            return nullptr;
+        }
 
-        for (uint16_t i = 0; i < session->cellanims.size(); i++) {
-            const auto cellanim = session->cellanims.at(i).object;
+        auto& arrangements = session->cellanims.at(cellIndex).object->arrangements;
+        if (arrngIndex >= arrangements.size()) {
+            std::cerr <<
+                "[EditorData::Apply] Invalid editor data binary: oob arrangement index!:" <<
+                "   - Cellanim Index: " << cellIndex << '\n' <<
+                "   - Arrangement Index: " << arrngIndex << '\n';
+            return nullptr;
+        }
 
-            for (uint16_t j = 0; j < cellanim->arrangements.size(); j++) {
-                const auto& arrangement = cellanim->arrangements.at(j);
+        auto& arrangement = arrangements.at(arrngIndex);
+        if (partIndex >= arrangement.parts.size()) {
+            std::cerr <<
+                "[EditorData::Apply] Invalid editor data binary: oob part index!:" <<
+                "   - Cellanim Index: " << cellIndex << '\n' <<
+                "   - Arrangement Index: " << arrngIndex << '\n' <<
+                "   - Part Index: " << partIndex << '\n';
+            return nullptr;
+        }
 
-                for (uint16_t n = 0; n < arrangement.parts.size(); n++) {
-                    const auto& part = arrangement.parts.at(n);
+        return &arrangement.parts.at(partIndex);
+    };
 
-                    if (part.editorLocked)
-                        lockedParts.push_back({ i, j, n });
-                    if (!part.editorVisible)
-                        invisibleParts.push_back({ i, j, n, part.opacity });
+    for (uint16_t i = 0; i < fileHeader->entryCount; i++) {
+        switch (*reinterpret_cast<const uint32_t*>(currentHeader->identifier)) {
+            case IDENTIFIER_TO_U32('E', 'L', 'P', 'T'): {
+                const PartLocationEntry* currentEntry = reinterpret_cast<const PartLocationEntry*>(
+                    currentHeader + 1
+                );
+                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                    auto* part = getPart(
+                        currentEntry->cellanimIndex,
+                        currentEntry->arrangementIndex,
+                        currentEntry->partIndex
+                    );
 
-                    if (part.editorName[0] != '\0') {
-                        NamedPartEntry entry { i, j, n };
-                        strncpy(entry.name, part.editorName, 32);
+                    if (LIKELY(!!part))
+                        part->editorLocked = true;
+                    else
+                        return;
 
-                        namedParts.push_back(entry);
+                    currentEntry++;
+                }
+            } break;
+
+            case IDENTIFIER_TO_U32('E', 'I', 'P', 'T'): {
+                const PartAlphaEntry* currentEntry = reinterpret_cast<const PartAlphaEntry*>(
+                    currentHeader + 1
+                );
+                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                    auto* part = getPart(
+                        currentEntry->cellanimIndex,
+                        currentEntry->arrangementIndex,
+                        currentEntry->partIndex
+                    );
+
+                    if (LIKELY(!!part)) {
+                        part->opacity = currentEntry->opacity;
+                        part->editorVisible = false;
                     }
+                    else
+                        return;
+
+                    currentEntry++;
+                }
+            } break;
+
+            case IDENTIFIER_TO_U32('A', 'P', 'N', 'T'): {
+                const NamedPartEntry* currentEntry = reinterpret_cast<const NamedPartEntry*>(
+                    currentHeader + 1
+                );
+                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                    auto* part = getPart(
+                        currentEntry->cellanimIndex,
+                        currentEntry->arrangementIndex,
+                        currentEntry->partIndex
+                    );
+
+                    if (LIKELY(!!part))
+                        strncpy(part->editorName, currentEntry->name, 32);
+                    else
+                        return;
+
+                    currentEntry++;
+                }
+            } break;
+
+            default:
+                std::cerr << "[EditorData::Apply] Unimplemented entry type: " <<
+                    currentHeader->identifier[0] <<
+                    currentHeader->identifier[1] <<
+                    currentHeader->identifier[2] <<
+                    currentHeader->identifier[3] <<
+                '\n';
+                break;
+        }
+
+        if (i + 1 < fileHeader->entryCount)
+            currentHeader =
+                reinterpret_cast<const StandardHeader*>(data + currentHeader->nextHeaderOffset);
+    }
+}
+
+std::vector<unsigned char> Write(SessionManager::Session* session) {
+    std::vector<unsigned char> result(sizeof(FileHeader));
+
+    FileHeader* fileHeader = reinterpret_cast<FileHeader*>(result.data());
+    *fileHeader = FileHeader{};
+
+    std::vector<PartLocationEntry> lockedParts;
+    std::vector<PartAlphaEntry> invisibleParts;
+    std::vector<NamedPartEntry> namedParts;
+
+    for (uint16_t i = 0; i < session->cellanims.size(); i++) {
+        const auto cellanim = session->cellanims.at(i).object;
+
+        for (uint16_t j = 0; j < cellanim->arrangements.size(); j++) {
+            const auto& arrangement = cellanim->arrangements.at(j);
+
+            for (uint16_t n = 0; n < arrangement.parts.size(); n++) {
+                const auto& part = arrangement.parts.at(n);
+
+                if (part.editorLocked)
+                    lockedParts.push_back({ i, j, n });
+                if (!part.editorVisible)
+                    invisibleParts.push_back({ i, j, n, part.opacity });
+
+                if (part.editorName[0] != '\0') {
+                    NamedPartEntry entry { i, j, n };
+                    strncpy(entry.name, part.editorName, 32);
+
+                    namedParts.push_back(entry);
                 }
             }
         }
-
-        uint32_t writeOffset{ sizeof(FileHeader) };
-
-        if (!invisibleParts.empty()) {
-            fileHeader->entryCount++;
-
-            uint32_t endOffset =
-                writeOffset + sizeof(StandardHeader) +
-                (sizeof(PartAlphaEntry) * invisibleParts.size());
-
-            result.resize(endOffset);
-
-            StandardHeader* header =
-                reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
-            *header = StandardHeader {
-                .identifier = { 'E', 'I', 'P', 'T' },
-                .entryCount = (uint16_t)invisibleParts.size(),
-                .nextHeaderOffset = endOffset
-            };
-
-            writeOffset += sizeof(StandardHeader);
-
-            for (uint16_t i = 0; i < header->entryCount; i++) {
-                *reinterpret_cast<PartAlphaEntry*>(
-                    result.data() + writeOffset
-                ) = invisibleParts.at(i);
-
-                writeOffset += sizeof(PartAlphaEntry);
-            }
-        }
-
-        if (!lockedParts.empty()) {
-            fileHeader->entryCount++;
-
-            uint32_t endOffset =
-                writeOffset + sizeof(StandardHeader) +
-                (sizeof(PartLocationEntry) * lockedParts.size());
-
-            result.resize(endOffset);
-
-            StandardHeader* header =
-                reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
-            *header = StandardHeader {
-                .identifier = { 'E', 'L', 'P', 'T' },
-                .entryCount = (uint16_t)lockedParts.size(),
-                .nextHeaderOffset = endOffset
-            };
-
-            writeOffset += sizeof(StandardHeader);
-
-            for (uint16_t i = 0; i < header->entryCount; i++) {
-                *reinterpret_cast<PartLocationEntry*>(
-                    result.data() + writeOffset
-                ) = lockedParts.at(i);
-
-                writeOffset += sizeof(PartLocationEntry);
-            }
-        }
-
-        if (!namedParts.empty()) {
-            fileHeader->entryCount++;
-
-            uint32_t endOffset =
-                writeOffset + sizeof(StandardHeader) +
-                (sizeof(NamedPartEntry) * namedParts.size());
-
-            result.resize(endOffset);
-
-            StandardHeader* header =
-                reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
-            *header = StandardHeader {
-                    .identifier = { 'A', 'P', 'N', 'T' },
-                .entryCount = (uint16_t)namedParts.size(),
-                .nextHeaderOffset = endOffset
-            };
-
-            writeOffset += sizeof(StandardHeader);
-
-            for (uint16_t i = 0; i < header->entryCount; i++) {
-                *reinterpret_cast<NamedPartEntry*>(
-                    result.data() + writeOffset
-                ) = namedParts.at(i);
-
-                writeOffset += sizeof(NamedPartEntry);
-            }
-        }
-
-        return result;
     }
-};
+
+    uint32_t writeOffset{ sizeof(FileHeader) };
+
+    if (!invisibleParts.empty()) {
+        fileHeader->entryCount++;
+
+        uint32_t endOffset =
+            writeOffset + sizeof(StandardHeader) +
+            (sizeof(PartAlphaEntry) * invisibleParts.size());
+
+        result.resize(endOffset);
+
+        StandardHeader* header =
+            reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
+        *header = StandardHeader {
+            .identifier = { 'E', 'I', 'P', 'T' },
+            .entryCount = (uint16_t)invisibleParts.size(),
+            .nextHeaderOffset = endOffset
+        };
+
+        writeOffset += sizeof(StandardHeader);
+
+        for (uint16_t i = 0; i < header->entryCount; i++) {
+            *reinterpret_cast<PartAlphaEntry*>(
+                result.data() + writeOffset
+            ) = invisibleParts.at(i);
+
+            writeOffset += sizeof(PartAlphaEntry);
+        }
+    }
+
+    if (!lockedParts.empty()) {
+        fileHeader->entryCount++;
+
+        uint32_t endOffset =
+            writeOffset + sizeof(StandardHeader) +
+            (sizeof(PartLocationEntry) * lockedParts.size());
+
+        result.resize(endOffset);
+
+        StandardHeader* header =
+            reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
+        *header = StandardHeader {
+            .identifier = { 'E', 'L', 'P', 'T' },
+            .entryCount = (uint16_t)lockedParts.size(),
+            .nextHeaderOffset = endOffset
+        };
+
+        writeOffset += sizeof(StandardHeader);
+
+        for (uint16_t i = 0; i < header->entryCount; i++) {
+            *reinterpret_cast<PartLocationEntry*>(
+                result.data() + writeOffset
+            ) = lockedParts.at(i);
+
+            writeOffset += sizeof(PartLocationEntry);
+        }
+    }
+
+    if (!namedParts.empty()) {
+        fileHeader->entryCount++;
+
+        uint32_t endOffset =
+            writeOffset + sizeof(StandardHeader) +
+            (sizeof(NamedPartEntry) * namedParts.size());
+
+        result.resize(endOffset);
+
+        StandardHeader* header =
+            reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
+        *header = StandardHeader {
+                .identifier = { 'A', 'P', 'N', 'T' },
+            .entryCount = (uint16_t)namedParts.size(),
+            .nextHeaderOffset = endOffset
+        };
+
+        writeOffset += sizeof(StandardHeader);
+
+        for (uint16_t i = 0; i < header->entryCount; i++) {
+            *reinterpret_cast<NamedPartEntry*>(
+                result.data() + writeOffset
+            ) = namedParts.at(i);
+
+            writeOffset += sizeof(NamedPartEntry);
+        }
+    }
+
+    return result;
+}
+
+}; // namespace EditorData
 
 int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;

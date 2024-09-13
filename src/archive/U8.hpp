@@ -8,56 +8,58 @@
 #include <optional>
 
 namespace U8 {
-    class Directory;
 
-    class File {
-    public:
-        std::string name;
+class Directory;
 
-        std::vector<unsigned char> data;
+class File {
+public:
+    std::string name;
 
-        Directory* parent{ nullptr };
+    std::vector<unsigned char> data;
 
-        File(const std::string& n);
-    };
+    Directory* parent{ nullptr };
 
-    class Directory {
-    public:
-        std::string name;
-        std::vector<File> files;
-        std::vector<Directory> subdirectories;
+    File(const std::string& n);
+};
 
-        Directory* parent{ nullptr };
+class Directory {
+public:
+    std::string name;
+    std::vector<File> files;
+    std::vector<Directory> subdirectories;
 
-        void AddFile(File& file);
-        void AddFile(File&& file);
+    Directory* parent{ nullptr };
 
-        void AddDirectory(Directory& directory);
-        void AddDirectory(Directory&& directory);
+    void AddFile(File& file);
+    void AddFile(File&& file);
 
-        void SortAlphabetically();
+    void AddDirectory(Directory& directory);
+    void AddDirectory(Directory&& directory);
 
-        Directory(const std::string& n);
+    void SortAlphabetically();
 
-        Directory(const std::string& n, Directory* parentDir);
+    Directory(const std::string& n);
 
-        Directory* GetParent() const;
-    };
+    Directory(const std::string& n, Directory* parentDir);
 
-    class U8ArchiveObject {
-    public:
-        Directory structure{ "root" };
+    Directory* GetParent() const;
+};
 
-        std::vector<unsigned char> Reserialize();
+class U8ArchiveObject {
+public:
+    Directory structure{ "root" };
 
-        U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize);
+    std::vector<unsigned char> Reserialize();
 
-        U8ArchiveObject() {};
-    };
+    U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize);
 
-    std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath);
+    U8ArchiveObject() {};
+};
 
-    std::optional<File> findFile(const std::string& path, const Directory& directory);
-}
+std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath);
+
+std::optional<File> findFile(const std::string& path, const Directory& directory);
+
+} // namespace U8
 
 #endif // U8_HPP

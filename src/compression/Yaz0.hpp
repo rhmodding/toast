@@ -8,9 +8,11 @@
 #include <optional>
 
 namespace Yaz0 {
-    std::optional<std::vector<unsigned char>> decompress(const unsigned char* compressedData, const size_t dataSize);
 
-    std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel);
-}
+std::optional<std::vector<unsigned char>> decompress(const unsigned char* compressedData, const size_t dataSize);
+
+std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel);
+
+} // namespace Yaz0
 
 #endif // YAZ0_HPP

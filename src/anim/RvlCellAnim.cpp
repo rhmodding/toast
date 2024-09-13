@@ -96,241 +96,243 @@ struct AnimationKeyRaw {
 #define EXPECT_DATA_FOOTER "EXPECTDT"
 
 namespace RvlCellAnim {
-    RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
-        const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
-        if (UNLIKELY(header->magic != HEADER_MAGIC)) {
-            std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: header magic failed check!\n";
-            return;
-        }
+RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
+    const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
-        this->sheetIndex = BYTESWAP_16(header->sheetIndex);
-
-        this->textureW = BYTESWAP_16(header->sheetW);
-        this->textureH = BYTESWAP_16(header->sheetH);
-
-        this->usePalette = header->usePalette != 0;
-
-        if (header->unknown_1 != 0x0000)
-            std::cout << "[RvlCellAnimObject::RvlCellAnimObject] header->unknown_1 is nonzero (" << header->unknown_1 << ").\n";
-
-        uint32_t readOffset{ sizeof(RvlCellAnimHeader) };
-
-        // Arrangements
-        uint16_t arrangementCount = BYTESWAP_16(
-            reinterpret_cast<const ArrangementsHeader*>(
-                RvlCellAnimData + readOffset
-            )->arrangementCount
-        );
-        readOffset += sizeof(ArrangementsHeader);
-
-        this->arrangements.resize(arrangementCount);
-
-        for (uint16_t i = 0; i < arrangementCount; i++) {
-            const ArrangementRaw* arrangementRaw =
-                reinterpret_cast<const ArrangementRaw*>(RvlCellAnimData + readOffset);
-            readOffset += sizeof(ArrangementRaw);
-
-            Arrangement& arrangement = this->arrangements[i];
-
-            uint16_t arrangementPartCount = BYTESWAP_16(arrangementRaw->partsCount);
-            arrangement.parts.resize(arrangementPartCount);
-
-            for (uint16_t j = 0; j < arrangementPartCount; j++) {
-                const ArrangementPartRaw* arrangementPartRaw =
-                    reinterpret_cast<const ArrangementPartRaw*>(RvlCellAnimData + readOffset);
-                readOffset += sizeof(ArrangementPartRaw);
-
-                arrangement.parts[j] = ArrangementPart{
-                    .regionX = BYTESWAP_16(arrangementPartRaw->regionX),
-                    .regionY = BYTESWAP_16(arrangementPartRaw->regionY),
-                    .regionW = BYTESWAP_16(arrangementPartRaw->regionW),
-                    .regionH = BYTESWAP_16(arrangementPartRaw->regionH),
-
-                    .transform = arrangementPartRaw->transform.getByteswapped(),
-
-                    .flipX = arrangementPartRaw->flipX != 0,
-                    .flipY = arrangementPartRaw->flipY != 0,
-
-                    .opacity = arrangementPartRaw->opacity
-                };
-
-                if (UNLIKELY(arrangementPartRaw->unknown_1 != 0)) {
-                    std::cout <<
-                        "[RvlCellAnimObject::RvlCellAnimObject] Arrangement Part has nonzero unknown value!:\n" <<
-                        "   - Arrangement No.: " << i + 1 << "\n" <<
-                        "   - Part No.: " << j + 1 << "\n" <<
-                        "   - Value (BE): " << arrangementPartRaw->unknown_1 << "\n";
-                }
-            }
-        }
-
-        uint16_t animationCount = BYTESWAP_16(
-            reinterpret_cast<const AnimationsHeader*>(
-                RvlCellAnimData + readOffset
-            )->animationCount
-        );
-        readOffset += sizeof(AnimationsHeader);
-
-        this->animations.resize(animationCount);
-
-        for (uint16_t i = 0; i < animationCount; i++) {
-            const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(RvlCellAnimData + readOffset);
-            readOffset += sizeof(AnimationRaw);
-
-            Animation& animation = this->animations[i];
-
-            uint16_t keyCount = BYTESWAP_16(animationRaw->keyCount);
-            animation.keys.resize(keyCount);
-
-            for (uint16_t j = 0; j < keyCount; j++) {
-                const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(RvlCellAnimData + readOffset);
-                readOffset += sizeof(AnimationKeyRaw);
-
-                animation.keys[j] = AnimationKey{
-                    .arrangementIndex = BYTESWAP_16(keyRaw->arrangementIndex),
-
-                    .holdFrames = BYTESWAP_16(keyRaw->holdFrames),
-
-                    .transform = keyRaw->transform.getByteswapped(),
-
-                    .opacity = keyRaw->opacity
-                };
-            }
-        }
-
-        this->expectEditorData =
-            memcmp(RvlCellAnimData + dataSize - 8, EXPECT_DATA_FOOTER, 8) == 0;
-
-        this->ok = true;
+    if (UNLIKELY(header->magic != HEADER_MAGIC)) {
+        std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: header magic failed check!\n";
+        return;
     }
 
-    std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
-        // Allocate persistent size
-        std::vector<unsigned char> result(
-            sizeof(RvlCellAnimHeader) +
-            sizeof(ArrangementsHeader) +
-            sizeof(AnimationsHeader) +
-            8 // EXPECT_DATA_FOOTER
-        );
+    this->sheetIndex = BYTESWAP_16(header->sheetIndex);
 
-        RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
-        header->magic = HEADER_MAGIC;
+    this->textureW = BYTESWAP_16(header->sheetW);
+    this->textureH = BYTESWAP_16(header->sheetH);
 
-        header->usePalette = this->usePalette ? 0x01000000 : 0x00000000;
+    this->usePalette = header->usePalette != 0;
 
-        header->sheetIndex = BYTESWAP_16(this->sheetIndex);
+    if (header->unknown_1 != 0x0000)
+        std::cout << "[RvlCellAnimObject::RvlCellAnimObject] header->unknown_1 is nonzero (" << header->unknown_1 << ").\n";
 
-        header->sheetW = BYTESWAP_16(this->textureW);
-        header->sheetH = BYTESWAP_16(this->textureH);
+    uint32_t readOffset{ sizeof(RvlCellAnimHeader) };
 
-        header->unknown_1 = 0x0000;
+    // Arrangements
+    uint16_t arrangementCount = BYTESWAP_16(
+        reinterpret_cast<const ArrangementsHeader*>(
+            RvlCellAnimData + readOffset
+        )->arrangementCount
+    );
+    readOffset += sizeof(ArrangementsHeader);
 
-        uint32_t writeOffset{ sizeof(RvlCellAnimHeader) };
+    this->arrangements.resize(arrangementCount);
 
-        *reinterpret_cast<ArrangementsHeader*>(result.data() + writeOffset) =
-            ArrangementsHeader{ BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size())) };
-        writeOffset += sizeof(ArrangementsHeader);
+    for (uint16_t i = 0; i < arrangementCount; i++) {
+        const ArrangementRaw* arrangementRaw =
+            reinterpret_cast<const ArrangementRaw*>(RvlCellAnimData + readOffset);
+        readOffset += sizeof(ArrangementRaw);
 
-        for (const Arrangement& arrangement : this->arrangements) {
-            result.resize(
-                result.size() +
-                sizeof(ArrangementRaw) +
-                (sizeof(ArrangementPartRaw) * arrangement.parts.size())
-            );
+        Arrangement& arrangement = this->arrangements[i];
 
-            ArrangementRaw* arrangementRaw = reinterpret_cast<ArrangementRaw*>(result.data() + writeOffset);
-            writeOffset += sizeof(ArrangementRaw);
+        uint16_t arrangementPartCount = BYTESWAP_16(arrangementRaw->partsCount);
+        arrangement.parts.resize(arrangementPartCount);
 
-            arrangementRaw->partsCount = BYTESWAP_16(static_cast<uint16_t>(arrangement.parts.size()));
+        for (uint16_t j = 0; j < arrangementPartCount; j++) {
+            const ArrangementPartRaw* arrangementPartRaw =
+                reinterpret_cast<const ArrangementPartRaw*>(RvlCellAnimData + readOffset);
+            readOffset += sizeof(ArrangementPartRaw);
 
-            for (const ArrangementPart& part : arrangement.parts) {
-                ArrangementPartRaw* arrangementPartRaw =
-                    reinterpret_cast<ArrangementPartRaw*>(result.data() + writeOffset);
-                writeOffset += sizeof(ArrangementPartRaw);
+            arrangement.parts[j] = ArrangementPart{
+                .regionX = BYTESWAP_16(arrangementPartRaw->regionX),
+                .regionY = BYTESWAP_16(arrangementPartRaw->regionY),
+                .regionW = BYTESWAP_16(arrangementPartRaw->regionW),
+                .regionH = BYTESWAP_16(arrangementPartRaw->regionH),
 
-                *arrangementPartRaw = ArrangementPartRaw{
-                    .regionX = BYTESWAP_16(part.regionX),
-                    .regionY = BYTESWAP_16(part.regionY),
-                    .regionW = BYTESWAP_16(part.regionW),
-                    .regionH = BYTESWAP_16(part.regionH),
+                .transform = arrangementPartRaw->transform.getByteswapped(),
 
-                    .unknown_1 = BYTESWAP_16(part.unknown),
+                .flipX = arrangementPartRaw->flipX != 0,
+                .flipY = arrangementPartRaw->flipY != 0,
 
-                    .transform = part.transform.getByteswapped(),
+                .opacity = arrangementPartRaw->opacity
+            };
 
-                    .flipX = static_cast<uint8_t>(part.flipX ? 0x01 : 0x00),
-                    .flipY = static_cast<uint8_t>(part.flipY ? 0x01 : 0x00),
-
-                    .opacity = part.opacity,
-                };
-
-                if (!part.editorVisible)
-                    arrangementPartRaw->opacity = 0;
+            if (UNLIKELY(arrangementPartRaw->unknown_1 != 0)) {
+                std::cout <<
+                    "[RvlCellAnimObject::RvlCellAnimObject] Arrangement Part has nonzero unknown value!:\n" <<
+                    "   - Arrangement No.: " << i + 1 << "\n" <<
+                    "   - Part No.: " << j + 1 << "\n" <<
+                    "   - Value (BE): " << arrangementPartRaw->unknown_1 << "\n";
             }
         }
-
-        *reinterpret_cast<AnimationsHeader*>(result.data() + writeOffset) =
-            AnimationsHeader{ BYTESWAP_16(static_cast<uint16_t>(this->animations.size())) };
-        writeOffset += sizeof(AnimationsHeader);
-
-        for (const Animation& animation : this->animations) {
-            result.resize(
-                result.size() +
-                sizeof(AnimationRaw) +
-                (sizeof(AnimationKeyRaw) * animation.keys.size())
-            );
-
-            AnimationRaw* animationRaw = reinterpret_cast<AnimationRaw*>(result.data() + writeOffset);
-            writeOffset += sizeof(AnimationRaw);
-
-            animationRaw->keyCount = BYTESWAP_16(static_cast<uint16_t>(animation.keys.size()));
-
-            for (const AnimationKey& key : animation.keys) {
-                AnimationKeyRaw* animationKeyRaw =
-                    reinterpret_cast<AnimationKeyRaw*>(result.data() + writeOffset);
-                writeOffset += sizeof(AnimationKeyRaw);
-
-                *animationKeyRaw = AnimationKeyRaw{
-                    .arrangementIndex = BYTESWAP_16(key.arrangementIndex),
-
-                    .holdFrames = BYTESWAP_16(key.holdFrames),
-
-                    .transform = key.transform.getByteswapped(),
-
-                    .opacity = key.opacity
-                };
-            }
-        }
-
-        sprintf(
-            reinterpret_cast<char*>(result.data() + result.size() - 8),
-            "%.8s", EXPECT_DATA_FOOTER
-        );
-
-        return result;
     }
 
-    std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char* filePath) {
-        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-        if (UNLIKELY(!file.is_open())) {
-            std::cerr << "[RvlCellAnim::readRvlCellAnimFile] Could not open file at path: " << filePath << '\n';
-            return nullptr;
+    uint16_t animationCount = BYTESWAP_16(
+        reinterpret_cast<const AnimationsHeader*>(
+            RvlCellAnimData + readOffset
+        )->animationCount
+    );
+    readOffset += sizeof(AnimationsHeader);
+
+    this->animations.resize(animationCount);
+
+    for (uint16_t i = 0; i < animationCount; i++) {
+        const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(RvlCellAnimData + readOffset);
+        readOffset += sizeof(AnimationRaw);
+
+        Animation& animation = this->animations[i];
+
+        uint16_t keyCount = BYTESWAP_16(animationRaw->keyCount);
+        animation.keys.resize(keyCount);
+
+        for (uint16_t j = 0; j < keyCount; j++) {
+            const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(RvlCellAnimData + readOffset);
+            readOffset += sizeof(AnimationKeyRaw);
+
+            animation.keys[j] = AnimationKey{
+                .arrangementIndex = BYTESWAP_16(keyRaw->arrangementIndex),
+
+                .holdFrames = BYTESWAP_16(keyRaw->holdFrames),
+
+                .transform = keyRaw->transform.getByteswapped(),
+
+                .opacity = keyRaw->opacity
+            };
         }
-
-        const std::streampos fileSize = file.tellg();
-        file.seekg(0, std::ios::beg);
-
-        unsigned char* buffer = new unsigned char[fileSize];
-        file.read(reinterpret_cast<char*>(buffer), fileSize);
-
-        file.close();
-
-        std::shared_ptr<RvlCellAnimObject> object =
-            std::make_shared<RvlCellAnimObject>(RvlCellAnimObject(buffer, fileSize));
-
-        delete[] buffer;
-
-        return object;
     }
+
+    this->expectEditorData =
+        memcmp(RvlCellAnimData + dataSize - 8, EXPECT_DATA_FOOTER, 8) == 0;
+
+    this->ok = true;
 }
+
+std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
+    // Allocate persistent size
+    std::vector<unsigned char> result(
+        sizeof(RvlCellAnimHeader) +
+        sizeof(ArrangementsHeader) +
+        sizeof(AnimationsHeader) +
+        8 // EXPECT_DATA_FOOTER
+    );
+
+    RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
+    header->magic = HEADER_MAGIC;
+
+    header->usePalette = this->usePalette ? 0x01000000 : 0x00000000;
+
+    header->sheetIndex = BYTESWAP_16(this->sheetIndex);
+
+    header->sheetW = BYTESWAP_16(this->textureW);
+    header->sheetH = BYTESWAP_16(this->textureH);
+
+    header->unknown_1 = 0x0000;
+
+    uint32_t writeOffset{ sizeof(RvlCellAnimHeader) };
+
+    *reinterpret_cast<ArrangementsHeader*>(result.data() + writeOffset) =
+        ArrangementsHeader{ BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size())) };
+    writeOffset += sizeof(ArrangementsHeader);
+
+    for (const Arrangement& arrangement : this->arrangements) {
+        result.resize(
+            result.size() +
+            sizeof(ArrangementRaw) +
+            (sizeof(ArrangementPartRaw) * arrangement.parts.size())
+        );
+
+        ArrangementRaw* arrangementRaw = reinterpret_cast<ArrangementRaw*>(result.data() + writeOffset);
+        writeOffset += sizeof(ArrangementRaw);
+
+        arrangementRaw->partsCount = BYTESWAP_16(static_cast<uint16_t>(arrangement.parts.size()));
+
+        for (const ArrangementPart& part : arrangement.parts) {
+            ArrangementPartRaw* arrangementPartRaw =
+                reinterpret_cast<ArrangementPartRaw*>(result.data() + writeOffset);
+            writeOffset += sizeof(ArrangementPartRaw);
+
+            *arrangementPartRaw = ArrangementPartRaw{
+                .regionX = BYTESWAP_16(part.regionX),
+                .regionY = BYTESWAP_16(part.regionY),
+                .regionW = BYTESWAP_16(part.regionW),
+                .regionH = BYTESWAP_16(part.regionH),
+
+                .unknown_1 = BYTESWAP_16(part.unknown),
+
+                .transform = part.transform.getByteswapped(),
+
+                .flipX = static_cast<uint8_t>(part.flipX ? 0x01 : 0x00),
+                .flipY = static_cast<uint8_t>(part.flipY ? 0x01 : 0x00),
+
+                .opacity = part.opacity,
+            };
+
+            if (!part.editorVisible)
+                arrangementPartRaw->opacity = 0;
+        }
+    }
+
+    *reinterpret_cast<AnimationsHeader*>(result.data() + writeOffset) =
+        AnimationsHeader{ BYTESWAP_16(static_cast<uint16_t>(this->animations.size())) };
+    writeOffset += sizeof(AnimationsHeader);
+
+    for (const Animation& animation : this->animations) {
+        result.resize(
+            result.size() +
+            sizeof(AnimationRaw) +
+            (sizeof(AnimationKeyRaw) * animation.keys.size())
+        );
+
+        AnimationRaw* animationRaw = reinterpret_cast<AnimationRaw*>(result.data() + writeOffset);
+        writeOffset += sizeof(AnimationRaw);
+
+        animationRaw->keyCount = BYTESWAP_16(static_cast<uint16_t>(animation.keys.size()));
+
+        for (const AnimationKey& key : animation.keys) {
+            AnimationKeyRaw* animationKeyRaw =
+                reinterpret_cast<AnimationKeyRaw*>(result.data() + writeOffset);
+            writeOffset += sizeof(AnimationKeyRaw);
+
+            *animationKeyRaw = AnimationKeyRaw{
+                .arrangementIndex = BYTESWAP_16(key.arrangementIndex),
+
+                .holdFrames = BYTESWAP_16(key.holdFrames),
+
+                .transform = key.transform.getByteswapped(),
+
+                .opacity = key.opacity
+            };
+        }
+    }
+
+    sprintf(
+        reinterpret_cast<char*>(result.data() + result.size() - 8),
+        "%.8s", EXPECT_DATA_FOOTER
+    );
+
+    return result;
+}
+
+std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char* filePath) {
+    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+    if (UNLIKELY(!file.is_open())) {
+        std::cerr << "[RvlCellAnim::readRvlCellAnimFile] Could not open file at path: " << filePath << '\n';
+        return nullptr;
+    }
+
+    const std::streampos fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    unsigned char* buffer = new unsigned char[fileSize];
+    file.read(reinterpret_cast<char*>(buffer), fileSize);
+
+    file.close();
+
+    std::shared_ptr<RvlCellAnimObject> object =
+        std::make_shared<RvlCellAnimObject>(RvlCellAnimObject(buffer, fileSize));
+
+    delete[] buffer;
+
+    return object;
+}
+
+} // namespace RvlCellAnim

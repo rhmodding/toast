@@ -13,188 +13,178 @@
 #define CANVAS_ORIGIN 512
 
 namespace RvlCellAnim {
-    union Unknown32 {
-        uint32_t u32;
-        uint16_t u16[2];
-        uint8_t u8[4];
 
-        Unknown32() : u32(0) {}
+// Do not change this structure!!
+struct TransformValues {
+    int16_t positionX{ 0 }, positionY{ 0 };
+    float scaleX{ 1.f }, scaleY{ 1.f };
+    float angle{ 0.f }; // Angle in degrees
 
-        bool operator==(const Unknown32& other) const {
-            return this->u32 == other.u32;
-        }
-    };
-
-    // Do not change this structure!!
-    struct TransformValues {
-        int16_t positionX{ 0 }, positionY{ 0 };
-        float scaleX{ 1.f }, scaleY{ 1.f };
-        float angle{ 0.f }; // Angle in degrees
-
-        TransformValues getByteswapped() const {
-            TransformValues transform;
-
-            transform.positionX = BYTESWAP_16(this->positionX);
-            transform.positionY = BYTESWAP_16(this->positionY);
-
-            transform.scaleX = Common::byteswapFloat(this->scaleX);
-            transform.scaleY = Common::byteswapFloat(this->scaleY);
-
-            transform.angle = Common::byteswapFloat(this->angle);
-
-            return transform;
-        }
-
-        TransformValues average(const TransformValues& other) const {
-            TransformValues transform{
-                .positionX = (int16_t)AVERAGE_INTS(this->positionX, other.positionX),
-                .positionY = (int16_t)AVERAGE_INTS(this->positionY, other.positionY),
-
-                .scaleX = AVERAGE_FLOATS(this->scaleX, other.scaleX),
-                .scaleY = AVERAGE_FLOATS(this->scaleY, other.scaleY),
-
-                .angle = AVERAGE_FLOATS(this->angle, other.angle)
-            };
-
-            return transform;
-        }
-
-        TransformValues lerp(const TransformValues& other, float t) const {
-            TransformValues transform{
-                .positionX = (int16_t)std::lerp(this->positionX, other.positionX, t),
-                .positionY = (int16_t)std::lerp(this->positionY, other.positionY, t),
-
-                .scaleX = std::lerp(this->scaleX, other.scaleX, t),
-                .scaleY = std::lerp(this->scaleY, other.scaleY, t),
-
-                .angle = std::lerp(this->angle, other.angle, t)
-            };
-
-            return transform;
-        }
-
-        bool operator==(const TransformValues& other) const {
-            return
-                this->positionX == other.positionX &&
-                this->positionY == other.positionY &&
-
-                this->scaleX == other.scaleX &&
-                this->scaleY == other.scaleY &&
-
-                this->angle == other.angle;
-        }
-
-        bool operator!=(const TransformValues& other) const {
-            return !(*this == other);
-        }
-    } __attribute__((packed));
-
-    struct ArrangementPart {
-        uint16_t regionX{ 8 }, regionY{ 8 };
-        uint16_t regionW{ 32 }, regionH{ 32 };
-
-        uint16_t unknown;
-
-        TransformValues transform{
-            .positionX = CANVAS_ORIGIN,
-            .positionY = CANVAS_ORIGIN
-        };
-
-        bool flipX{ false }, flipY{ false };
-
-        uint8_t opacity{ 0xFFu };
-
-        bool editorVisible{ true };
-        bool editorLocked{ false };
-
-        char editorName[32]{ '\0' };
-
-        bool operator==(const ArrangementPart& other) const {
-            return
-                this->regionX == other.regionX &&
-                this->regionY == other.regionY &&
-                this->regionW == other.regionW &&
-                this->regionH == other.regionH &&
-
-                this->unknown == other.unknown &&
-
-                this->transform == other.transform &&
-
-                this->flipX == other.flipX &&
-                this->flipY == other.flipY &&
-
-                this->opacity == other.opacity;
-        }
-
-        bool operator!=(const ArrangementPart& other) const {
-            return !(*this == other);
-        }
-    };
-
-    struct Arrangement {
-        std::vector<ArrangementPart> parts;
-
-        int tempOffset[2]{ 0, 0 };
-        float tempScale[2]{ 1.f, 1.f };
-
-        bool operator==(const Arrangement& other) const {
-            return other.parts == this->parts;
-        }
-    };
-
-    struct AnimationKey {
-        uint16_t arrangementIndex{ 0 };
-
-        uint16_t holdFrames{ 1 };
-
+    TransformValues getByteswapped() const {
         TransformValues transform;
 
-        uint8_t opacity{ 0xFFu };
+        transform.positionX = BYTESWAP_16(this->positionX);
+        transform.positionY = BYTESWAP_16(this->positionY);
 
-        bool operator==(const AnimationKey& other) const {
-            return
-                this->arrangementIndex == other.arrangementIndex &&
+        transform.scaleX = Common::byteswapFloat(this->scaleX);
+        transform.scaleY = Common::byteswapFloat(this->scaleY);
 
-                this->holdFrames == other.holdFrames &&
+        transform.angle = Common::byteswapFloat(this->angle);
 
-                this->transform == other.transform &&
+        return transform;
+    }
 
-                this->opacity == other.opacity;
-        }
+    TransformValues average(const TransformValues& other) const {
+        TransformValues transform{
+            .positionX = (int16_t)AVERAGE_INTS(this->positionX, other.positionX),
+            .positionY = (int16_t)AVERAGE_INTS(this->positionY, other.positionY),
 
-        bool operator!=(const AnimationKey& other) const {
-            return !(*this == other);
-        }
+            .scaleX = AVERAGE_FLOATS(this->scaleX, other.scaleX),
+            .scaleY = AVERAGE_FLOATS(this->scaleY, other.scaleY),
+
+            .angle = AVERAGE_FLOATS(this->angle, other.angle)
+        };
+
+        return transform;
+    }
+
+    TransformValues lerp(const TransformValues& other, float t) const {
+        TransformValues transform{
+            .positionX = (int16_t)std::lerp(this->positionX, other.positionX, t),
+            .positionY = (int16_t)std::lerp(this->positionY, other.positionY, t),
+
+            .scaleX = std::lerp(this->scaleX, other.scaleX, t),
+            .scaleY = std::lerp(this->scaleY, other.scaleY, t),
+
+            .angle = std::lerp(this->angle, other.angle, t)
+        };
+
+        return transform;
+    }
+
+    bool operator==(const TransformValues& other) const {
+        return
+            this->positionX == other.positionX &&
+            this->positionY == other.positionY &&
+
+            this->scaleX == other.scaleX &&
+            this->scaleY == other.scaleY &&
+
+            this->angle == other.angle;
+    }
+
+    bool operator!=(const TransformValues& other) const {
+        return !(*this == other);
+    }
+} __attribute__((packed));
+
+struct ArrangementPart {
+    uint16_t regionX{ 8 }, regionY{ 8 };
+    uint16_t regionW{ 32 }, regionH{ 32 };
+
+    uint16_t unknown;
+
+    TransformValues transform{
+        .positionX = CANVAS_ORIGIN,
+        .positionY = CANVAS_ORIGIN
     };
 
-    struct Animation {
-        std::vector<AnimationKey> keys;
-    };
+    bool flipX{ false }, flipY{ false };
 
-    class RvlCellAnimObject {
-    public:
-        bool ok{ false };
+    uint8_t opacity{ 0xFFu };
 
-        uint16_t sheetIndex;
+    bool editorVisible{ true };
+    bool editorLocked{ false };
 
-        uint16_t textureW, textureH;
-        
-        bool usePalette;
+    char editorName[32]{ '\0' };
 
-        std::vector<Arrangement> arrangements;
-        std::vector<Animation> animations;
+    bool operator==(const ArrangementPart& other) const {
+        return
+            this->regionX == other.regionX &&
+            this->regionY == other.regionY &&
+            this->regionW == other.regionW &&
+            this->regionH == other.regionH &&
 
-        // The supplemental editor data (TOAST.DAT) is expected.
-        // The end of the cellanim binary will contain EXPECTDT
-        // if this is true.
-        bool expectEditorData{ true };
+            this->unknown == other.unknown &&
 
-        std::vector<unsigned char> Reserialize();
+            this->transform == other.transform &&
 
-        RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize);
-    };
+            this->flipX == other.flipX &&
+            this->flipY == other.flipY &&
 
-    std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char *filePath);
-}
+            this->opacity == other.opacity;
+    }
+
+    bool operator!=(const ArrangementPart& other) const {
+        return !(*this == other);
+    }
+};
+
+struct Arrangement {
+    std::vector<ArrangementPart> parts;
+
+    int tempOffset[2]{ 0, 0 };
+    float tempScale[2]{ 1.f, 1.f };
+
+    bool operator==(const Arrangement& other) const {
+        return other.parts == this->parts;
+    }
+};
+
+struct AnimationKey {
+    uint16_t arrangementIndex{ 0 };
+
+    uint16_t holdFrames{ 1 };
+
+    TransformValues transform;
+
+    uint8_t opacity{ 0xFFu };
+
+    bool operator==(const AnimationKey& other) const {
+        return
+            this->arrangementIndex == other.arrangementIndex &&
+
+            this->holdFrames == other.holdFrames &&
+
+            this->transform == other.transform &&
+
+            this->opacity == other.opacity;
+    }
+
+    bool operator!=(const AnimationKey& other) const {
+        return !(*this == other);
+    }
+};
+
+struct Animation {
+    std::vector<AnimationKey> keys;
+};
+
+class RvlCellAnimObject {
+public:
+    bool ok{ false };
+
+    uint16_t sheetIndex;
+
+    uint16_t textureW, textureH;
+    
+    bool usePalette;
+
+    std::vector<Arrangement> arrangements;
+    std::vector<Animation> animations;
+
+    // The supplemental editor data (TOAST.DAT) is expected.
+    // The end of the cellanim binary will contain EXPECTDT
+    // if this is true.
+    bool expectEditorData{ true };
+
+    std::vector<unsigned char> Reserialize();
+
+    RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize);
+};
+
+std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char *filePath);
+
+} // namespace RvlCellAnim
 
 #endif // RVLCELLANIM_HPP

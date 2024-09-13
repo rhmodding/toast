@@ -38,181 +38,183 @@ struct Yaz0Header {
 } __attribute__((packed));
 
 namespace Yaz0 {
-    std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
-        std::vector<unsigned char> result(sizeof(Yaz0Header));
-        result.reserve(dataSize);
 
-        Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
+std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
+    std::vector<unsigned char> result(sizeof(Yaz0Header));
+    result.reserve(dataSize);
 
-        *reinterpret_cast<uint32_t*>(header->magic) = HEADER_MAGIC;
-        // header->magic[0] = 'Y';
-        // header->magic[1] = 'a';
-        // header->magic[2] = 'z';
-        // header->magic[3] = '0';
+    Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
 
-        header->uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize));
-        header->reserved[0] = 0x0000;
-        header->reserved[1] = 0x0000;
+    *reinterpret_cast<uint32_t*>(header->magic) = HEADER_MAGIC;
+    // header->magic[0] = 'Y';
+    // header->magic[1] = 'a';
+    // header->magic[2] = 'z';
+    // header->magic[3] = '0';
 
-        // Compression
+    header->uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize));
+    header->reserved[0] = 0x0000;
+    header->reserved[1] = 0x0000;
+
+    // Compression
+    {
+        struct CompressionState {
+            uint32_t pendingChunks{ 0 };
+            std::bitset<8> groupHeader;
+            uint32_t groupHeaderOffset{ sizeof(Yaz0Header) }; // Skip header
+
+            std::vector<unsigned char>& buffer;
+
+            CompressionState(std::vector<unsigned char>& buffer) : buffer(buffer) {}
+        } compressionState(result);
+
+        result.push_back(0xFFu);
+
         {
-            struct CompressionState {
-                uint32_t pendingChunks{ 0 };
-                std::bitset<8> groupHeader;
-                uint32_t groupHeaderOffset{ sizeof(Yaz0Header) }; // Skip header
+            unsigned char dummy[8];
+            size_t dummySize = 8;
 
-                std::vector<unsigned char>& buffer;
+            const int zlibRun = zng_compress2(
+                dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, 2, 9),
+                [](void* data, uint32_t dist, uint32_t lc) {
+                    auto* compressionState = reinterpret_cast<CompressionState*>(data);
 
-                CompressionState(std::vector<unsigned char>& buffer) : buffer(buffer) {}
-            } compressionState(result);
+                    if (dist == 0) {
+                        compressionState->groupHeader.set(7 - compressionState->pendingChunks);
+                        compressionState->buffer.push_back(static_cast<unsigned char>(lc));
+                    }
+                    else {
+                        uint32_t distance = dist - 1;
+                        uint32_t length = lc + ZLIB_MIN_MATCH;
 
-            result.push_back(0xFFu);
-
-            {
-                unsigned char dummy[8];
-                size_t dummySize = 8;
-
-                const int zlibRun = zng_compress2(
-                    dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, 2, 9),
-                    [](void* data, uint32_t dist, uint32_t lc) {
-                        auto* compressionState = reinterpret_cast<CompressionState*>(data);
-
-                        if (dist == 0) {
-                            compressionState->groupHeader.set(7 - compressionState->pendingChunks);
-                            compressionState->buffer.push_back(static_cast<unsigned char>(lc));
+                        if (length < 18) {
+                            compressionState->buffer.push_back(static_cast<unsigned char>(
+                                ((length - 2) << 4) | static_cast<unsigned char>(distance >> 8)
+                            ));
+                            compressionState->buffer.push_back(static_cast<unsigned char>(distance));
                         }
                         else {
-                            uint32_t distance = dist - 1;
-                            uint32_t length = lc + ZLIB_MIN_MATCH;
+                            // If the match is longer than 18 bytes, 3 bytes are needed to write the match
+                            const uint32_t actualLength = std::min<uint32_t>(MAX_MATCH_LENGTH, length);
 
-                            if (length < 18) {
-                                compressionState->buffer.push_back(static_cast<unsigned char>(
-                                    ((length - 2) << 4) | static_cast<unsigned char>(distance >> 8)
-                                ));
-                                compressionState->buffer.push_back(static_cast<unsigned char>(distance));
-                            }
-                            else {
-                                // If the match is longer than 18 bytes, 3 bytes are needed to write the match
-                                const uint32_t actualLength = std::min<uint32_t>(MAX_MATCH_LENGTH, length);
-
-                                compressionState->buffer.push_back(static_cast<unsigned char>(distance >> 8));
-                                compressionState->buffer.push_back(static_cast<unsigned char>(distance));
-                                compressionState->buffer.push_back(static_cast<unsigned char>(actualLength - 0x12));
-                            }
+                            compressionState->buffer.push_back(static_cast<unsigned char>(distance >> 8));
+                            compressionState->buffer.push_back(static_cast<unsigned char>(distance));
+                            compressionState->buffer.push_back(static_cast<unsigned char>(actualLength - 0x12));
                         }
+                    }
 
-                        if (++compressionState->pendingChunks == CHUNKS_PER_GROUP) {
-                            // Write group header
-                            compressionState->buffer[compressionState->groupHeaderOffset] =
-                                static_cast<char>(compressionState->groupHeader.to_ulong());
+                    if (++compressionState->pendingChunks == CHUNKS_PER_GROUP) {
+                        // Write group header
+                        compressionState->buffer[compressionState->groupHeaderOffset] =
+                            static_cast<char>(compressionState->groupHeader.to_ulong());
 
-                            // Reset values
-                            compressionState->pendingChunks = 0;
-                            compressionState->groupHeader.reset();
-                            compressionState->groupHeaderOffset = static_cast<uint32_t>(compressionState->buffer.size());
+                        // Reset values
+                        compressionState->pendingChunks = 0;
+                        compressionState->groupHeader.reset();
+                        compressionState->groupHeaderOffset = static_cast<uint32_t>(compressionState->buffer.size());
 
-                            compressionState->buffer.push_back(0xFFu);
-                        }
-                    },
-                    &compressionState
-                );
+                        compressionState->buffer.push_back(0xFFu);
+                    }
+                },
+                &compressionState
+            );
 
-                if (zlibRun != Z_OK) {
-                    std::cerr << "[Yaz0::compress] zng_compress failed with code " << zlibRun << ".\n";
-                    return std::nullopt; // return nothing (std::optional)
-                }
-
-                if (compressionState.pendingChunks != 0)
-                    compressionState.buffer[compressionState.groupHeaderOffset] =
-                        static_cast<unsigned char>(compressionState.groupHeader.to_ulong());
+            if (zlibRun != Z_OK) {
+                std::cerr << "[Yaz0::compress] zng_compress failed with code " << zlibRun << ".\n";
+                return std::nullopt; // return nothing (std::optional)
             }
-        }
 
-        return result;
+            if (compressionState.pendingChunks != 0)
+                compressionState.buffer[compressionState.groupHeaderOffset] =
+                    static_cast<unsigned char>(compressionState.groupHeader.to_ulong());
+        }
     }
 
-    std::optional<std::vector<unsigned char>> decompress(const unsigned char* compressedData, const size_t dataSize) {
-        if (dataSize < sizeof(Yaz0Header)) {
-            std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: data size smaller than header size!\n";
+    return result;
+}
+
+std::optional<std::vector<unsigned char>> decompress(const unsigned char* compressedData, const size_t dataSize) {
+    if (dataSize < sizeof(Yaz0Header)) {
+        std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: data size smaller than header size!\n";
+        return std::nullopt; // return nothing (std::optional)
+    }
+
+    const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(compressedData);
+
+    uint32_t uncompressedSize = BYTESWAP_32(header->uncompressedSize);
+
+    if (*reinterpret_cast<const uint32_t*>(header->magic) != HEADER_MAGIC) {
+        std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: header magic failed check!\n";
+        return std::nullopt; // return nothing (std::optional)
+    }
+
+    std::vector<unsigned char> destination(uncompressedSize);
+
+    // compressedData without header
+    const unsigned char* dataSource = compressedData + sizeof(Yaz0Header);
+
+    uint32_t readOffset{ 0 };
+    uint32_t destOffset{ 0 };
+
+    uint8_t bitsLeft{ 0 };
+    uint8_t opcodeByte{ 0 };
+
+    while (destOffset < uncompressedSize) {
+        // Read new opcode byte if no bits left
+        if (bitsLeft == 0) {
+            opcodeByte = *(dataSource + (readOffset++));
+
+            // Reset bitsLeft (1byte)
+            bitsLeft = 8;
+        }
+
+        if (UNLIKELY(readOffset >= dataSize)) {
+            // We've reached the end of the uncompressed file but we're not finished reading yet;
+            // Usually this means the file is invalid.
+
+            std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the read offset is larger than the data size!\n";
+            std::cerr << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
             return std::nullopt; // return nothing (std::optional)
         }
 
-        const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(compressedData);
+        if ((opcodeByte & 0b10000000) != 0) { // MSB set: Copy one byte directly.
+            destination.at(destOffset++) = *(dataSource + (readOffset++));
 
-        uint32_t uncompressedSize = BYTESWAP_32(header->uncompressedSize);
-
-        if (*reinterpret_cast<const uint32_t*>(header->magic) != HEADER_MAGIC) {
-            std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: header magic failed check!\n";
-            return std::nullopt; // return nothing (std::optional)
-        }
-
-        std::vector<unsigned char> destination(uncompressedSize);
-
-        // compressedData without header
-        const unsigned char* dataSource = compressedData + sizeof(Yaz0Header);
-
-        uint32_t readOffset{ 0 };
-        uint32_t destOffset{ 0 };
-
-        uint8_t bitsLeft{ 0 };
-        uint8_t opcodeByte{ 0 };
-
-        while (destOffset < uncompressedSize) {
-            // Read new opcode byte if no bits left
-            if (bitsLeft == 0) {
-                opcodeByte = *(dataSource + (readOffset++));
-
-                // Reset bitsLeft (1byte)
-                bitsLeft = 8;
+            if (readOffset >= (size_t)(compressedData - sizeof(Yaz0Header))) {
+                return std::nullopt;
             }
+        }
+        else { // MSB not set: RLE compression.
+            uint8_t byteA = *(dataSource + (readOffset++));
+            uint8_t byteB = *(dataSource + (readOffset++));
 
-            if (UNLIKELY(readOffset >= dataSize)) {
-                // We've reached the end of the uncompressed file but we're not finished reading yet;
-                // Usually this means the file is invalid.
+            uint32_t dist = ((byteA & 0xF) << 8) | byteB;
 
-                std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the read offset is larger than the data size!\n";
+            int copySource = destOffset - (dist + 1);
+
+            if (UNLIKELY(copySource < 0)) {
+                std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the destination offset is out of bounds (negative)!\n";
                 std::cerr << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
                 return std::nullopt; // return nothing (std::optional)
             }
 
-            if ((opcodeByte & 0b10000000) != 0) { // MSB set: Copy one byte directly.
-                destination.at(destOffset++) = *(dataSource + (readOffset++));
+            unsigned numBytes = byteA >> 4;
+            if (numBytes == 0)
+                numBytes = *(dataSource + (readOffset++)) + 0x12;
+            else
+                numBytes += 2;
 
-                if (readOffset >= (size_t)(compressedData - sizeof(Yaz0Header))) {
-                    return std::nullopt;
-                }
-            }
-            else { // MSB not set: RLE compression.
-                uint8_t byteA = *(dataSource + (readOffset++));
-                uint8_t byteB = *(dataSource + (readOffset++));
+            if (numBytes > uncompressedSize - destOffset)
+                numBytes = uncompressedSize - destOffset;
 
-                uint32_t dist = ((byteA & 0xF) << 8) | byteB;
-
-                int copySource = destOffset - (dist + 1);
-
-                if (UNLIKELY(copySource < 0)) {
-                    std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the destination offset is out of bounds (negative)!\n";
-                    std::cerr << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
-                    return std::nullopt; // return nothing (std::optional)
-                }
-
-                unsigned numBytes = byteA >> 4;
-                if (numBytes == 0)
-                    numBytes = *(dataSource + (readOffset++)) + 0x12;
-                else
-                    numBytes += 2;
-
-                if (numBytes > uncompressedSize - destOffset)
-                    numBytes = uncompressedSize - destOffset;
-
-                for (unsigned i = 0; i < numBytes; i++, copySource++, destOffset++)
-                    destination[destOffset] = destination[copySource];
-            }
-
-            opcodeByte <<= 1;
-            bitsLeft--;
+            for (unsigned i = 0; i < numBytes; i++, copySource++, destOffset++)
+                destination[destOffset] = destination[copySource];
         }
 
-        return destination;
+        opcodeByte <<= 1;
+        bitsLeft--;
     }
+
+    return destination;
+}
+
 } // namespace Yaz0
