@@ -75,7 +75,7 @@ public:
     } fonts;
 
     bool getArrangementMode() {
-        if (LIKELY(SessionManager::getInstance().currentSession >= 0))
+        if (SessionManager::getInstance().currentSession >= 0)
             return SessionManager::getInstance().getCurrentSession()->arrangementMode;
         else
             return false;
