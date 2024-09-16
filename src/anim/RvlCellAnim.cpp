@@ -20,8 +20,8 @@ struct RvlCellAnimHeader {
     // Index into cellanim.tpl for the associated sheet
     uint16_t sheetIndex;
 
-    // Unknown value
-    uint16_t unknown_1;
+    // Used for debugging purposes in the game, always 0x0000
+    uint16_t _unused{ 0x0000 };
 
     uint16_t sheetW; // Sheet width in relation to UV regions
     uint16_t sheetH; // Sheet height in relation to UV regions
@@ -31,7 +31,7 @@ struct ArrangementsHeader {
     // Amount of arrangements (commonly referred to as sprites)
     uint16_t arrangementCount;
 
-    uint16_t pad16{ 0x0000 };
+    uint16_t _pad16{ 0x0000 };
 } __attribute__((packed));
 
 // Same structure
@@ -43,9 +43,9 @@ struct ArrangementPartRaw {
     uint16_t regionW; // Width of UV region in spritesheet
     uint16_t regionH; // Height of UV region in spritesheet
 
-    uint16_t unknown_1; // Unknown value
+    uint16_t _reserved{ 0x0000 }; // Palette index, set by game
 
-    uint16_t pad16{ 0x0000 };
+    uint16_t _pad16{ 0x0000 };
 
     TransformValuesRaw transform;
 
@@ -54,28 +54,28 @@ struct ArrangementPartRaw {
 
     uint8_t opacity;
 
-    uint8_t pad8{ 0x00 };
+    uint8_t _pad8{ 0x00 };
 } __attribute__((packed));
 
 struct ArrangementRaw {
     // Amout of parts in the arrangement (commonly referred to as a sprite)
     uint16_t partsCount;
 
-    uint16_t pad16{ 0x0000 };
+    uint16_t _pad16{ 0x0000 };
 } __attribute__((packed));
 
 struct AnimationsHeader {
     // Amount of animations
     uint16_t animationCount;
 
-    uint16_t pad16{ 0x0000 };
+    uint16_t _pad16{ 0x0000 };
 } __attribute__((packed));
 
 struct AnimationRaw {
     // Amount of keys the animation has
     uint16_t keyCount;
 
-    uint16_t pad16{ 0x0000 };
+    uint16_t _pad16{ 0x0000 };
 } __attribute__((packed));
 
 struct AnimationKeyRaw {
@@ -89,8 +89,7 @@ struct AnimationKeyRaw {
 
     uint8_t opacity;
 
-    // 24-byte padding
-    uint8_t pad24[3]{ 0x00, 0x00, 0x00 };
+    uint8_t _pad24[3]{ 0x00, 0x00, 0x00 };
 } __attribute__((packed));
 
 #define EXPECT_DATA_FOOTER "EXPECTDT"
@@ -111,9 +110,6 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
     this->textureH = BYTESWAP_16(header->sheetH);
 
     this->usePalette = header->usePalette != 0;
-
-    if (header->unknown_1 != 0x0000)
-        std::cout << "[RvlCellAnimObject::RvlCellAnimObject] header->unknown_1 is nonzero (" << header->unknown_1 << ").\n";
 
     uint32_t readOffset{ sizeof(RvlCellAnimHeader) };
 
@@ -155,14 +151,6 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
                 .opacity = arrangementPartRaw->opacity
             };
-
-            if (UNLIKELY(arrangementPartRaw->unknown_1 != 0)) {
-                std::cout <<
-                    "[RvlCellAnimObject::RvlCellAnimObject] Arrangement Part has nonzero unknown value!:\n" <<
-                    "   - Arrangement No.: " << i + 1 << "\n" <<
-                    "   - Part No.: " << j + 1 << "\n" <<
-                    "   - Value (BE): " << arrangementPartRaw->unknown_1 << "\n";
-            }
         }
     }
 
@@ -225,8 +213,6 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     header->sheetW = BYTESWAP_16(this->textureW);
     header->sheetH = BYTESWAP_16(this->textureH);
 
-    header->unknown_1 = 0x0000;
-
     uint32_t writeOffset{ sizeof(RvlCellAnimHeader) };
 
     *reinterpret_cast<ArrangementsHeader*>(result.data() + writeOffset) =
@@ -256,12 +242,10 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
                 .regionW = BYTESWAP_16(part.regionW),
                 .regionH = BYTESWAP_16(part.regionH),
 
-                .unknown_1 = BYTESWAP_16(part.unknown),
-
                 .transform = part.transform.getByteswapped(),
 
-                .flipX = static_cast<uint8_t>(part.flipX ? 0x01 : 0x00),
-                .flipY = static_cast<uint8_t>(part.flipY ? 0x01 : 0x00),
+                .flipX = part.flipX ? (uint8_t)0x01 : (uint8_t)0x00,
+                .flipY = part.flipY ? (uint8_t)0x01 : (uint8_t)0x00,
 
                 .opacity = part.opacity,
             };
