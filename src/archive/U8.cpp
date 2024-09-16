@@ -13,7 +13,7 @@
 
 #include "../common.hpp"
 
-#define HEADER_MAGIC 0x2D38AA55
+#define HEADER_MAGIC IDENTIFIER_TO_U32('U', 0xAA, '8', '-')
 
 struct U8ArchiveHeader {
     // Magic value (should always equal to 0x55AA382D [1437218861] if valid)

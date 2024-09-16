@@ -19,7 +19,7 @@
 
 #include "../common.hpp"
 
-#define HEADER_MAGIC 0x307A6159 // 'Yaz0'
+#define HEADER_MAGIC IDENTIFIER_TO_U32('Y', 'a', 'z', '0')
 
 #define CHUNKS_PER_GROUP 8
 #define MAX_MATCH_LENGTH 0xFF + 0x12
