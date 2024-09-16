@@ -142,8 +142,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
             textureData.width = BYTESWAP_16(header->width);
             textureData.height = BYTESWAP_16(header->height);
 
-            TPLImageFormat format = static_cast<TPLImageFormat>(BYTESWAP_32(header->format));
-            textureData.format = format;
+            textureData.format = static_cast<TPLImageFormat>(BYTESWAP_32(header->format));
 
             textureData.mipMap = header->minLOD == header->maxLOD ? 0 : 1;
 
@@ -158,7 +157,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
 
             ImageConvert::toRGBA32(
                 textureData.data,
-                format,
+                textureData.format,
                 textureData.width, textureData.height,
                 imageData,
                 textureData.palette.data()
