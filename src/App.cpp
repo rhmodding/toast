@@ -368,7 +368,7 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("Animation", sessionAvaliable)) {
-            const uint16_t animIndex =
+            const unsigned animIndex =
                 appState.globalAnimatable->getCurrentAnimationIndex();
 
             ImGui::Text("Selected animation (no. %u)", animIndex + 1);
@@ -395,7 +395,7 @@ void App::Menubar() {
             !sessionManager.getInstance().getCurrentSession()->arrangementMode &&
             !playerManager.playing
         )) {
-            const uint16_t keyIndex =
+            const unsigned keyIndex =
                 appState.globalAnimatable->getCurrentKeyIndex();
             auto* key = appState.globalAnimatable->getCurrentKey();
 
@@ -507,7 +507,7 @@ void App::Menubar() {
             sessionAvaliable &&
             !playerManager.playing
         )) {
-            const uint16_t arrangementIndex =
+            const unsigned arrangementIndex =
                 appState.globalAnimatable->getCurrentKey()->arrangementIndex;
 
             ImGui::Text(
@@ -519,7 +519,7 @@ void App::Menubar() {
 
             // Duplicate option
             {
-                const uint16_t keyIndex =
+                const unsigned keyIndex =
                     appState.globalAnimatable->getCurrentKeyIndex();
                 auto* key = appState.globalAnimatable->getCurrentKey();
 
@@ -527,7 +527,7 @@ void App::Menubar() {
                 ImGui::BeginDisabled(arrangementUnique);
 
                 if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
-                    uint16_t newIndex = CellanimHelpers::DuplicateArrangement(key->arrangementIndex);
+                    unsigned newIndex = CellanimHelpers::DuplicateArrangement(key->arrangementIndex);
 
                     if (!appState.getArrangementMode()) {
                         auto newKey = *key;

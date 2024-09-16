@@ -14,7 +14,7 @@ class CommandModifyAnimation : public BaseCommand {
 public:
     // Constructor: Replace animation from cellanimIndex and animationIndex by newAnimation.
     CommandModifyAnimation(
-        uint16_t cellanimIndex, uint16_t animationIndex,
+        unsigned cellanimIndex, unsigned animationIndex,
         RvlCellAnim::Animation newAnimation
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex),
@@ -46,8 +46,8 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint16_t animationIndex;
+    unsigned cellanimIndex;
+    unsigned animationIndex;
 
     RvlCellAnim::Animation oldAnimation;
     RvlCellAnim::Animation newAnimation;

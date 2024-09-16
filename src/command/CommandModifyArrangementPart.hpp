@@ -13,7 +13,7 @@ class CommandModifyArrangementPart : public BaseCommand {
 public:
     // Constructor: Replace part from cellanimIndex, arrangementIndex and partIndex by newPart.
     CommandModifyArrangementPart(
-        uint16_t cellanimIndex, uint32_t arrangementIndex, uint32_t partIndex,
+        unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex,
         RvlCellAnim::ArrangementPart newPart
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
@@ -44,9 +44,9 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint32_t arrangementIndex;
-    uint32_t partIndex;
+    unsigned cellanimIndex;
+    unsigned arrangementIndex;
+    unsigned partIndex;
 
     RvlCellAnim::ArrangementPart oldPart;
     RvlCellAnim::ArrangementPart newPart;

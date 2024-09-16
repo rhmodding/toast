@@ -9,8 +9,8 @@ class CommandSwitchCellanim : public BaseCommand {
 public:
     // Constructor: Switch cellanim space by index.
     CommandSwitchCellanim(
-        uint32_t sessionIndex,
-        uint16_t cellanimIndex
+        unsigned sessionIndex,
+        unsigned cellanimIndex
     ) :
         sessionIndex(sessionIndex),
         cellanimIndex(cellanimIndex)
@@ -33,10 +33,10 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint16_t previousCellanim;
+    unsigned cellanimIndex;
+    unsigned previousCellanim;
 
-    uint32_t sessionIndex;
+    unsigned sessionIndex;
 };
 
 #endif // COMMANDSWITCHCELLANIM_HPP

@@ -23,7 +23,7 @@ public:
 
 protected:
     void Run() override {
-        int32_t tResult = SessionManager::getInstance().ExportSessionCompressedArc(session, outPath.c_str());
+        int tResult = SessionManager::getInstance().ExportSessionCompressedArc(session, outPath.c_str());
         result.store(tResult);
     }
 
@@ -42,7 +42,7 @@ private:
     SessionManager::Session* session;
     std::string outPath;
 
-    std::atomic<int32_t> result;
+    std::atomic<int> result;
 };
 
 #endif // ASYNCTASK_EXPORTSESSIONTASK_HPP

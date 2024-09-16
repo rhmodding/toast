@@ -12,7 +12,7 @@ class CommandDeleteArrangementPart : public BaseCommand {
 public:
     // Constructor: Delete part by cellanimIndex, arrangementIndex and partIndex.
     CommandDeleteArrangementPart(
-        uint16_t cellanimIndex, uint32_t arrangementIndex, uint32_t partIndex
+        unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex)
     {
@@ -36,9 +36,9 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint32_t arrangementIndex;
-    uint32_t partIndex;
+    unsigned cellanimIndex;
+    unsigned arrangementIndex;
+    unsigned partIndex;
 
     RvlCellAnim::ArrangementPart part;
 

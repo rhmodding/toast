@@ -4,7 +4,7 @@
 
 #include "../command/CommandInsertArrangement.hpp"
 
-uint16_t CellanimHelpers::DuplicateArrangement(uint16_t arrangementIndex) {
+unsigned CellanimHelpers::DuplicateArrangement(unsigned arrangementIndex) {
     GET_SESSION_MANAGER;
 
     auto object = sessionManager.getCurrentSession()->getCellanimObject();
@@ -21,7 +21,7 @@ uint16_t CellanimHelpers::DuplicateArrangement(uint16_t arrangementIndex) {
     return object->arrangements.size() - 1;
 }
 
-bool CellanimHelpers::getArrangementUnique(uint16_t arrangementIndex) {
+bool CellanimHelpers::getArrangementUnique(unsigned arrangementIndex) {
     unsigned timesUsed{ 0 };
 
     for (const auto& animation : SessionManager::getInstance().getCurrentSession()->getCellanimObject()->animations) {

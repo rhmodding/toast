@@ -96,12 +96,12 @@ void Popup_SwapAnimation(int animationIndex) {
 
             GET_ANIMATABLE;
 
-            for (uint16_t n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
+            for (unsigned n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
                 std::ostringstream fmtStream;
 
                 GET_SESSION_MANAGER;
 
-                uint16_t nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
+                unsigned nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
 
                 auto query = sessionManager.getCurrentSession()->getAnimationNames().find(swapNames ? n : nI);
 

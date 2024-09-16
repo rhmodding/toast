@@ -123,7 +123,7 @@ struct Image {
     // TODO: find a better solution for this ^
 
     Image() = default;
-    Image(uint16_t width, uint16_t height, GLuint texture) : width(width), height(height), texture(texture) {}
+    Image(int width, int height, GLuint texture) : width(width), height(height), texture(texture) {}
 
     ~Image() {
         this->FreeTexture();

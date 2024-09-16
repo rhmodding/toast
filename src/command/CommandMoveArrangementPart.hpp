@@ -15,7 +15,7 @@ class CommandMoveArrangementPart : public BaseCommand {
 public:
     // Constructor: Move part by cellanimIndex, arrangementIndex and partIndex.
     CommandMoveArrangementPart(
-        uint16_t cellanimIndex, uint32_t arrangementIndex, uint32_t partIndex,
+        unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex,
         bool moveDown
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
@@ -28,7 +28,7 @@ public:
         RvlCellAnim::Arrangement& arrangement = this->getArrangement();
 
         // An integer is used since nSwap can be negative.
-        int32_t nSwap = this->partIndex + (moveDown ? -1 : 1);
+        int nSwap = this->partIndex + (moveDown ? -1 : 1);
         if (nSwap >= 0 && nSwap < arrangement.parts.size())
             std::swap(
                 arrangement.parts.at(this->partIndex),
@@ -44,7 +44,7 @@ public:
 
         RvlCellAnim::Arrangement& arrangement = this->getArrangement();
 
-        int32_t nSwap = this->partIndex + (moveDown ? -1 : 1);
+        int nSwap = this->partIndex + (moveDown ? -1 : 1);
         if (nSwap >= 0 && nSwap < arrangement.parts.size())
             std::swap(
                 arrangement.parts.at(this->partIndex),
@@ -58,9 +58,9 @@ public:
 private:
     bool moveDown;
 
-    uint16_t cellanimIndex;
-    uint32_t arrangementIndex;
-    uint32_t partIndex;
+    unsigned cellanimIndex;
+    unsigned arrangementIndex;
+    unsigned partIndex;
 
     RvlCellAnim::ArrangementPart& getPart() {
         return

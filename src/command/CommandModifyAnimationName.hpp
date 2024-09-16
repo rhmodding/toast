@@ -9,7 +9,7 @@ class CommandModifyAnimationName : public BaseCommand {
 public:
     // Constructor: Modify animation name from cellanimIndex, animationIndex and name.
     CommandModifyAnimationName(
-        uint16_t cellanimIndex, uint16_t animationIndex,
+        unsigned cellanimIndex, unsigned animationIndex,
         char* name
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex),
@@ -45,8 +45,8 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint16_t animationIndex;
+    unsigned cellanimIndex;
+    unsigned animationIndex;
 
     std::string oldName;
     std::string newName;

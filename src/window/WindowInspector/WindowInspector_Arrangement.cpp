@@ -18,10 +18,6 @@
 
 #include "../../AppState.hpp"
 
-const uint8_t uint8_one = 1;
-const uint16_t uint16_one = 1;
-const uint32_t uint32_one = 1;
-
 void WindowInspector::Level_Arrangement() {
     GET_APP_STATE;
     GET_ANIMATABLE;

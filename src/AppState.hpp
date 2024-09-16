@@ -56,7 +56,7 @@ public:
         return this->windowClearColor;
     }
 
-    inline uint32_t getUpdateRate() {
+    inline unsigned getUpdateRate() {
         return ConfigManager::getInstance().getConfig().updateRate;
     }
 
@@ -84,10 +84,10 @@ public:
     // This key object is meant for the arrangement mode to control the state of the key.
     RvlCellAnim::AnimationKey controlKey;
 
-    uint16_t selectedAnimation{ 0 };
-    int32_t selectedPart{ -1 };
+    unsigned selectedAnimation{ 0 };
+    int selectedPart{ -1 };
 
-    int32_t getMatchingNamePartIndex(
+    int getMatchingNamePartIndex(
         RvlCellAnim::ArrangementPart& part,
         const RvlCellAnim::Arrangement& arrangement
     ) {
@@ -106,7 +106,7 @@ public:
         return -1;
     }
 
-    int32_t getMatchingRegionPartIndex(
+    int getMatchingRegionPartIndex(
         RvlCellAnim::ArrangementPart& part,
         const RvlCellAnim::Arrangement& arrangement
     ) {
@@ -125,7 +125,7 @@ public:
     }
 
     inline void correctSelectedPart() {
-        this->selectedPart = std::clamp<int32_t>(
+        this->selectedPart = std::clamp<int>(
             this->selectedPart,
             -1,
             this->globalAnimatable->getCurrentArrangement()->parts.size() - 1

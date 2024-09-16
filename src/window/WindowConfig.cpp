@@ -121,9 +121,11 @@ void WindowConfig::Update() {
 
                     ImGui::Separator();
 
-                    uint32_t updateRate = this->selfConfig.updateRate;
-                    if (ImGui::DragScalar("App update rate", ImGuiDataType_U32, &updateRate, .5f, nullptr, nullptr, "%u cycles per second"))
-                        this->selfConfig.updateRate = std::clamp<uint32_t>(updateRate, 1, UINT32_MAX);
+                    const unsigned min = 30;
+
+                    unsigned updateRate = this->selfConfig.updateRate;
+                    if (ImGui::DragScalar("App update rate", ImGuiDataType_U32, &updateRate, .5f, &min, nullptr, "%u cycles per second"))
+                        this->selfConfig.updateRate = std::clamp<unsigned>(updateRate, min, UINT32_MAX);
 
                     ImGui::Separator();
 

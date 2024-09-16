@@ -62,7 +62,7 @@ private:
     void updateAnimationState() {
         GET_APP_STATE;
 
-        uint16_t newSelectedAnimation{ 0 };
+        unsigned newSelectedAnimation{ 0 };
         bool selectedDifferentAnimation{ false };
 
         if (

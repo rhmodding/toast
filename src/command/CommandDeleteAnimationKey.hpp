@@ -12,7 +12,7 @@ class CommandDeleteAnimationKey : public BaseCommand {
 public:
     // Constructor: Delete key by cellanimIndex, animationIndex and keyIndex.
     CommandDeleteAnimationKey(
-        uint16_t cellanimIndex, uint16_t animationIndex, uint32_t keyIndex
+        unsigned cellanimIndex, unsigned animationIndex, unsigned keyIndex
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex)
     {

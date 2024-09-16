@@ -13,7 +13,7 @@ class CommandInsertArrangementPart : public BaseCommand {
 public:
     // Constructor: Insert part by cellanimIndex, arrangementIndex and partIndex from part.
     CommandInsertArrangementPart(
-        uint16_t cellanimIndex, uint32_t arrangementIndex, uint32_t partIndex,
+        unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex,
         RvlCellAnim::ArrangementPart part
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
@@ -41,9 +41,9 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint32_t arrangementIndex;
-    uint32_t partIndex;
+    unsigned cellanimIndex;
+    unsigned arrangementIndex;
+    unsigned partIndex;
 
     RvlCellAnim::ArrangementPart part;
 

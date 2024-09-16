@@ -13,7 +13,7 @@ class CommandModifyArrangement : public BaseCommand {
 public:
     // Constructor: Replace arrangement from cellanimIndex and arrangementIndex by newArrangement.
     CommandModifyArrangement(
-        uint16_t cellanimIndex, uint32_t arrangementIndex,
+        unsigned cellanimIndex, unsigned arrangementIndex,
         RvlCellAnim::Arrangement newArrangement
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex),
@@ -43,8 +43,8 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint32_t arrangementIndex;
+    unsigned cellanimIndex;
+    unsigned arrangementIndex;
 
     RvlCellAnim::Arrangement oldArrangement;
     RvlCellAnim::Arrangement newArrangement;

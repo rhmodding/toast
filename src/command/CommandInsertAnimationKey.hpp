@@ -14,9 +14,9 @@ class CommandInsertAnimationKey : public BaseCommand {
 public:
     // Constructor: Insert key by cellanimIndex, animationIndex, and keyIndex from key.
     CommandInsertAnimationKey(
-        uint16_t cellanimIndex,
-        uint16_t animationIndex,
-        uint32_t keyIndex,
+        unsigned cellanimIndex,
+        unsigned animationIndex,
+        unsigned keyIndex,
         RvlCellAnim::AnimationKey key
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex),
@@ -46,9 +46,9 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint16_t animationIndex;
-    uint32_t keyIndex;
+    unsigned cellanimIndex;
+    unsigned animationIndex;
+    unsigned keyIndex;
 
     RvlCellAnim::AnimationKey key;
 

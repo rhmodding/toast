@@ -14,7 +14,7 @@ class CommandModifyArrangements : public BaseCommand {
 public:
     // Constructor: Replace arrangements by cellanimIndex by newArrangements.
     CommandModifyArrangements(
-        uint16_t cellanimIndex,
+        unsigned cellanimIndex,
         std::vector<RvlCellAnim::Arrangement> newArrangements
     ) :
         cellanimIndex(cellanimIndex),
@@ -46,7 +46,7 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
+    unsigned cellanimIndex;
 
     std::vector<RvlCellAnim::Arrangement> oldArrangements;
     std::vector<RvlCellAnim::Arrangement> newArrangements;

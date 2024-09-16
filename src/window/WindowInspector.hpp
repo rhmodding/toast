@@ -11,7 +11,7 @@ class WindowInspector : public BaseWindow {
 public:
     void Update() override;
 
-    enum InspectorLevel: uint8_t {
+    enum InspectorLevel {
         InspectorLevel_Animation,
         InspectorLevel_Key,
         InspectorLevel_Arrangement,

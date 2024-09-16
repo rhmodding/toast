@@ -76,7 +76,7 @@ void WindowHybridList::Update() {
 
     ImGui::BeginChild("List", ImVec2(0, 0), ImGuiChildFlags_Border);
     {
-        int32_t deleteArrangement{ -1 };
+        int deleteArrangement{ -1 };
 
         static RvlCellAnim::Arrangement copyArrangement;
         static bool allowPasteArrangement{ false };

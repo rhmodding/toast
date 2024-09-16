@@ -16,7 +16,7 @@ class CommandDeleteArrangement : public BaseCommand {
 public:
     // Constructor: Delete arrangement by cellanimIndex and arrangementIndex.
     CommandDeleteArrangement(
-        uint16_t cellanimIndex, uint32_t arrangementIndex
+        unsigned cellanimIndex, unsigned arrangementIndex
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex)
     {
@@ -84,8 +84,8 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint32_t arrangementIndex;
+    unsigned cellanimIndex;
+    unsigned arrangementIndex;
 
     RvlCellAnim::Arrangement arrangement;
 

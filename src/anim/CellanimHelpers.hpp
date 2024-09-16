@@ -5,9 +5,9 @@
 
 namespace CellanimHelpers {
 
-uint16_t DuplicateArrangement(uint16_t arrangementIndex);
+unsigned DuplicateArrangement(unsigned arrangementIndex);
 
-bool getArrangementUnique(uint16_t arrangementIndex);
+bool getArrangementUnique(unsigned arrangementIndex);
 
 } // namespace CellanimHelpers
 

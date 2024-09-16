@@ -38,7 +38,7 @@ public:
         std::vector<CellanimData> cellanims;
         std::vector<std::shared_ptr<Common::Image>> sheets;
 
-        uint16_t currentCellanim{ 0 };
+        unsigned currentCellanim{ 0 };
 
         ///////////////////////////
 
@@ -128,10 +128,10 @@ public:
     };
     std::deque<Session> sessionList;
 
-    int32_t currentSession{ -1 };
+    int currentSession{ -1 };
 
     // Current session being closed. Used for closing while modified warning.
-    int32_t sessionClosing{ -1 };
+    int sessionClosing{ -1 };
 
     Session* getCurrentSession() {
         if (this->currentSession >= 0)
@@ -150,7 +150,7 @@ public:
 
     void SessionChanged();
 
-    enum SessionError: int16_t {
+    enum SessionError {
         SessionError_None = 0,
 
         SessionOpenError_FailOpenArchive = -1,
@@ -168,14 +168,14 @@ public:
     } lastSessionError{ SessionError_None };
 
     // Push session from a Yaz0-compressed Arc file (SZS).
-    int32_t PushSessionFromCompressedArc(const char* filePath);
+    int PushSessionFromCompressedArc(const char* filePath);
     // Push session from BRCAD, PNG, and H file respectively
-    int32_t PushSessionTraditional(const char* paths[3]);
+    int PushSessionTraditional(const char* paths[3]);
 
-    int32_t ExportSessionCompressedArc(Session* session, const char* outPath);
+    int ExportSessionCompressedArc(Session* session, const char* outPath);
 
     void ClearSessionPtr(Session* session);
-    void FreeSessionIndex(int32_t index);
+    void FreeSessionIndex(int index);
 
     void FreeAllSessions();
 

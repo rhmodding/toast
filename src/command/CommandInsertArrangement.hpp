@@ -13,8 +13,8 @@ class CommandInsertArrangement : public BaseCommand {
 public:
     // Constructor: Insert arrangement by cellanimIndex and arrangementIndex from arrangement.
     CommandInsertArrangement(
-        uint16_t cellanimIndex,
-        uint16_t arrangementIndex,
+        unsigned cellanimIndex,
+        unsigned arrangementIndex,
         RvlCellAnim::Arrangement arrangement
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex),
@@ -46,9 +46,9 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
+    unsigned cellanimIndex;
 
-    uint16_t arrangementIndex;
+    unsigned arrangementIndex;
 
     RvlCellAnim::Arrangement arrangement;
 

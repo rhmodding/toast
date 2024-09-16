@@ -23,7 +23,7 @@ ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
 }
 
 
-void Animatable::setAnimationFromIndex(uint16_t animIndex) {
+void Animatable::setAnimationFromIndex(unsigned animIndex) {
     SAFE_ASSERT(this->cellanim, true);
     SAFE_ASSERT(this->cellanim->animations.size() >= animIndex, true);
 
@@ -36,7 +36,7 @@ void Animatable::setAnimationFromIndex(uint16_t animIndex) {
     this->holdKey = this->currentKey->holdFrames;
 }
 
-void Animatable::setAnimationKeyFromIndex(uint16_t keyIndex) {
+void Animatable::setAnimationKeyFromIndex(unsigned keyIndex) {
     SAFE_ASSERT(this->cellanim, true);
     SAFE_ASSERT(this->currentAnimation, true);
 
@@ -73,10 +73,10 @@ void Animatable::Update() {
     this->holdKey--;
 }
 
-uint16_t Animatable::getCurrentAnimationIndex() const {
+unsigned Animatable::getCurrentAnimationIndex() const {
     return this->currentAnimationIndex;
 }
-uint16_t Animatable::getCurrentKeyIndex() const {
+unsigned Animatable::getCurrentKeyIndex() const {
     return this->currentKeyIndex;
 }
 
@@ -93,20 +93,20 @@ RvlCellAnim::Arrangement* Animatable::getCurrentArrangement() const {
 }
 
 void Animatable::refreshPointers() {
-    this->currentAnimationIndex = std::clamp<uint16_t>(
+    this->currentAnimationIndex = std::clamp<unsigned>(
         this->currentAnimationIndex,
         0, this->cellanim->animations.size() - 1
     );
     this->currentAnimation = &this->cellanim->animations.at(this->currentAnimationIndex);
 
-    this->currentKeyIndex = std::clamp<uint16_t>(
+    this->currentKeyIndex = std::clamp<unsigned>(
         this->currentKeyIndex,
         0, this->currentAnimation->keys.size() - 1
     );
     this->currentKey = &this->currentAnimation->keys.at(this->currentKeyIndex);
 }
 
-int32_t Animatable::getHoldFramesLeft() const {
+int Animatable::getHoldFramesLeft() const {
     return this->holdKey;
 }
 
@@ -135,7 +135,7 @@ ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
 }
 
 // Top-left, top-right, bottom-right, bottom-left
-std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationKey* key, uint16_t partIndex) const {
+std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationKey* key, unsigned partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
     SAFE_ASSERT_RET(this->cellanim, transformedQuad);
@@ -279,11 +279,11 @@ void Animatable::DrawKey(
         if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)
             continue;
 
-        const uint16_t sourceRect[4] = {
-            static_cast<uint16_t>(part.regionX * mismatchScaleX),
-            static_cast<uint16_t>(part.regionY * mismatchScaleY),
-            static_cast<uint16_t>(part.regionW * mismatchScaleX),
-            static_cast<uint16_t>(part.regionH * mismatchScaleY)
+        const unsigned sourceRect[4] = {
+            static_cast<unsigned>(part.regionX * mismatchScaleX),
+            static_cast<unsigned>(part.regionY * mismatchScaleY),
+            static_cast<unsigned>(part.regionW * mismatchScaleX),
+            static_cast<unsigned>(part.regionH * mismatchScaleY)
         };
 
         auto transformedQuad = this->getPartWorldQuad(key, i);
@@ -332,7 +332,7 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
     this->DrawKey(this->currentKey, drawList, -1, 0xFFFFFFFFu, allowOpacity);
 }
 
-void Animatable::DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_t frontCount, uint8_t opacity) {
+void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, uint8_t opacity) {
     SAFE_ASSERT(this->cellanim, true);
     SAFE_ASSERT(this->currentAnimation, true);
 

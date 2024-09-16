@@ -1,12 +1,12 @@
 #include "anim/RvlCellAnim.hpp"
 
+#include <numeric>
+
 #include "PlayerManager.hpp"
 
 #include "AppState.hpp"
 
-#include <numeric>
-
-void PlayerManager::setCurrentKeyIndex(uint16_t index) {
+void PlayerManager::setCurrentKeyIndex(unsigned index) {
     GET_APP_STATE;
 
     RvlCellAnim::ArrangementPart* part{ nullptr };
@@ -21,7 +21,7 @@ void PlayerManager::setCurrentKeyIndex(uint16_t index) {
     appState.globalAnimatable->setAnimationKeyFromIndex(index);
 
     if (part) {
-        int32_t p = appState.getMatchingNamePartIndex(
+        int p = appState.getMatchingNamePartIndex(
             *part,
             *appState.globalAnimatable->getCurrentArrangement()
         );
@@ -109,7 +109,7 @@ void PlayerManager::Update() {
         this->currentFrame = globalAnimatable->getCurrentKeyIndex();
 
         if (part) {
-            int32_t p = appState.getMatchingNamePartIndex(
+            int p = appState.getMatchingNamePartIndex(
                 *part,
                 *appState.globalAnimatable->getCurrentArrangement()
             );

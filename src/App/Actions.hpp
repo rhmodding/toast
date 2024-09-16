@@ -88,7 +88,7 @@ void Dialog_CreateTraditionalSession() {
 
     GET_SESSION_MANAGER;
 
-    int32_t result = sessionManager.PushSessionTraditional((const char **)pathList);
+    int result = sessionManager.PushSessionTraditional((const char **)pathList);
     if (result < 0)
         AppState::getInstance().OpenGlobalPopup("###SessionErr");
     else {

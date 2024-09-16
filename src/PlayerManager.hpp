@@ -21,29 +21,30 @@ public:
 
     bool looping{ false };
 
-    uint32_t currentFrame{ 0 };
+    unsigned currentFrame{ 0 };
 
-    uint16_t frameRate{ 60 };
+    unsigned frameRate{ 60 };
 
 public:
     void Update();
 
     void ResetTimer();
 
-    inline uint16_t getCurrentKeyIndex() {
+    inline unsigned getCurrentKeyIndex() {
         return AppState::getInstance().globalAnimatable->
             getCurrentKeyIndex();
     }
-    inline uint16_t getKeyCount() {
+    inline unsigned getKeyCount() {
         return AppState::getInstance().globalAnimatable->
             getCurrentAnimation()->keys.size();
     }
-    inline int32_t getHoldFramesLeft() {
+    
+    inline int getHoldFramesLeft() {
         return AppState::getInstance().globalAnimatable->
             getHoldFramesLeft();
     }
 
-    void setCurrentKeyIndex(uint16_t index);
+    void setCurrentKeyIndex(unsigned index);
 
     void setAnimating(bool animating);
 
@@ -59,7 +60,7 @@ public:
     }
 
     inline void clampCurrentKeyIndex() {
-        this->setCurrentKeyIndex(std::clamp<uint16_t>(
+        this->setCurrentKeyIndex(std::clamp<unsigned>(
             this->getCurrentKeyIndex(),
             0,
             AppState::getInstance().globalAnimatable->getCurrentAnimation()->keys.size() - 1

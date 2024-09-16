@@ -148,7 +148,7 @@ void WindowTimeline::Update() {
 
                         ImGui::SameLine();
 
-                        int32_t holdFramesLeft = playerManager.getHoldFramesLeft();
+                        int holdFramesLeft = playerManager.getHoldFramesLeft();
 
                         ImGui::BeginDisabled(true);
 

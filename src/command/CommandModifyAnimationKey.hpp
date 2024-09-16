@@ -13,7 +13,7 @@ class CommandModifyAnimationKey : public BaseCommand {
 public:
     // Constructor: Replace key from cellanimIndex, animationIndex and keyIndex by newKey.
     CommandModifyAnimationKey(
-        uint16_t cellanimIndex, uint16_t animationIndex, uint32_t keyIndex,
+        unsigned cellanimIndex, unsigned animationIndex, unsigned keyIndex,
         RvlCellAnim::AnimationKey newKey
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex),
@@ -33,9 +33,9 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint16_t animationIndex;
-    uint32_t keyIndex;
+    unsigned cellanimIndex;
+    unsigned animationIndex;
+    unsigned keyIndex;
 
     RvlCellAnim::AnimationKey oldKey;
     RvlCellAnim::AnimationKey newKey;

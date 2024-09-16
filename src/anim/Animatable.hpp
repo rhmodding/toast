@@ -21,8 +21,8 @@ private:
 
     int holdKey{ 0 };
 
-    uint16_t currentAnimationIndex{ 0 };
-    uint16_t currentKeyIndex{ 0 };
+    unsigned currentAnimationIndex{ 0 };
+    unsigned currentKeyIndex{ 0 };
 
     void DrawKey(
         const RvlCellAnim::AnimationKey* key,
@@ -53,8 +53,8 @@ public:
 
     ~Animatable() {};
 
-    void setAnimationFromIndex(uint16_t animIndex);
-    void setAnimationKeyFromIndex(uint16_t keyIndex);
+    void setAnimationFromIndex(unsigned animIndex);
+    void setAnimationKeyFromIndex(unsigned keyIndex);
 
     void overrideAnimationKey(RvlCellAnim::AnimationKey* key)
         __attribute__((nonnull));
@@ -62,10 +62,10 @@ public:
     void setAnimating(bool animating);
     bool getAnimating() const;
 
-    uint16_t getCurrentAnimationIndex() const;
-    uint16_t getCurrentKeyIndex() const;
+    unsigned getCurrentAnimationIndex() const;
+    unsigned getCurrentKeyIndex() const;
 
-    int32_t getHoldFramesLeft() const;
+    int getHoldFramesLeft() const;
 
     RvlCellAnim::AnimationKey* getCurrentKey() const;
     RvlCellAnim::Animation* getCurrentAnimation() const;
@@ -80,14 +80,14 @@ public:
     void Draw(ImDrawList* drawList, bool allowOpacity = true)
         __attribute__((nonnull));
 
-    void DrawOnionSkin(ImDrawList* drawList, uint16_t backCount, uint16_t frontCount, uint8_t opacity)
+    void DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, uint8_t opacity)
         __attribute__((nonnull));
 
     // Does the Animatable actually draw anything at all to the screen?
     bool getDoesDraw(bool allowOpacity = true) const;
 
     std::array<ImVec2, 4> getPartWorldQuad(
-        const RvlCellAnim::AnimationKey* key, uint16_t partIndex
+        const RvlCellAnim::AnimationKey* key, unsigned partIndex
     ) const __attribute__((nonnull));
     ImRect getKeyWorldRect(RvlCellAnim::AnimationKey* key)
         const __attribute__((nonnull));

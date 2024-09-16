@@ -52,7 +52,7 @@ struct PartAlphaEntry {
 
     uint8_t opacity;
 
-    uint8_t pad8;
+    uint8_t _pad8{ 0x00 };
 } __attribute__((packed));
 
 struct NamedPartEntry {
@@ -314,7 +314,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
 
 }; // namespace EditorData
 
-int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
+int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;
 
     auto __archiveResult = U8::readYaz0U8Archive(filePath);
@@ -417,7 +417,7 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
             if (line.compare(0, 7, "#define") == 0) {
                 std::istringstream lineStream(line);
                 std::string define, key;
-                uint32_t value;
+                unsigned value;
 
                 lineStream >> define >> key >> value;
 
@@ -476,10 +476,10 @@ int32_t SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     this->lastSessionError = SessionError_None;
 
-    return static_cast<int32_t>(this->sessionList.size() - 1);
+    return static_cast<int>(this->sessionList.size() - 1);
 }
 
-int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
+int SessionManager::PushSessionTraditional(const char* paths[3]) {
     Session newSession;
     newSession.cellanims.resize(1);
     newSession.sheets.resize(1);
@@ -527,7 +527,7 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
             if (line.compare(0, 7, "#define") == 0) {
                 std::istringstream lineStream(line);
                 std::string define, key;
-                uint32_t value;
+                unsigned value;
 
                 lineStream >> define >> key >> value;
 
@@ -552,10 +552,10 @@ int32_t SessionManager::PushSessionTraditional(const char* paths[3]) {
 
     this->lastSessionError = SessionError_None;
 
-    return static_cast<int32_t>(this->sessionList.size() - 1);
+    return static_cast<int>(this->sessionList.size() - 1);
 }
 
-int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char* outPath) {
+int SessionManager::ExportSessionCompressedArc(Session* session, const char* outPath) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
     U8::U8ArchiveObject archive;
@@ -682,20 +682,22 @@ int32_t SessionManager::ExportSessionCompressedArc(Session* session, const char*
     return 0;
 }
 
-void SessionManager::FreeSessionIndex(int32_t index) {
+void SessionManager::FreeSessionIndex(int index) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
+    /*
     if (
         UNLIKELY(index >= this->sessionList.size()) ||
         UNLIKELY(index < 0)
     )
         return;
+    */
 
     auto it = this->sessionList.begin() + index;
     this->sessionList.erase(it);
 
     this->currentSession =
-        std::clamp<int32_t>(this->currentSession, -1, this->sessionList.size() - 1);
+        std::clamp<int>(this->currentSession, -1, this->sessionList.size() - 1);
 }
 
 void SessionManager::FreeAllSessions() {
@@ -709,7 +711,7 @@ void SessionManager::SessionChanged() {
     std::lock_guard<std::mutex> lock(this->mtx);
 
     this->currentSession =
-        std::clamp<int32_t>(this->currentSession, -1, this->sessionList.size() - 1);
+        std::clamp<int>(this->currentSession, -1, this->sessionList.size() - 1);
 
     if (UNLIKELY(this->currentSession < 0))
         return;
@@ -724,7 +726,7 @@ void SessionManager::SessionChanged() {
         this->getCurrentSession()->getCellanimSheet()
     );
 
-    appState.selectedAnimation = std::clamp<uint16_t>(
+    appState.selectedAnimation = std::clamp<unsigned>(
         appState.selectedAnimation,
         0,
         globalAnimatable->cellanim->animations.size() - 1
