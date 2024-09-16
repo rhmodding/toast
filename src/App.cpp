@@ -637,7 +637,8 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Dear ImGui demo window", "", &appState.enableDemoWindow);
+            if (ImGui::MenuItem("Dear ImGui demo window", "", this->windowDemo.window.get()->open))
+                this->windowDemo.window.get()->open ^= true;
 
             ImGui::EndMenu();
         }
@@ -804,9 +805,6 @@ void App::Update() {
 
     Shortcuts::Handle();
 
-    if (appState.enableDemoWindow)
-        ImGui::ShowDemoWindow(&appState.enableDemoWindow);
-
     if (SessionManager::getInstance().getSessionAvaliable()) {
         PlayerManager::getInstance().Update();
 
@@ -820,6 +818,8 @@ void App::Update() {
 
     this->windowConfig.Update();
     this->windowAbout.Update();
+
+    this->windowDemo.Update();
 
     AsyncTaskManager::getInstance().UpdateTasks();
 

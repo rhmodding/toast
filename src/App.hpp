@@ -20,6 +20,8 @@
 #include "window/WindowConfig.hpp"
 #include "window/WindowAbout.hpp"
 
+#include "window/WindowImguiDemo.hpp"
+
 #include "common.hpp"
 
 #define WINDOW_TITLE "Toast Beta"
@@ -77,6 +79,8 @@ private: // Windows
 
     AppWindow<WindowConfig> windowConfig;
     AppWindow<WindowAbout> windowAbout;
+
+    AppWindow<WindowImguiDemo> windowDemo;
 
     GLFWwindow* window{ nullptr };
 

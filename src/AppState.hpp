@@ -34,8 +34,6 @@ class AppState : public Singleton<AppState> {
 private:
     std::array<float, 4> windowClearColor;
 public:
-    bool enableDemoWindow{ false };
-
     inline bool getDarkThemeEnabled() {
         return ConfigManager::getInstance().getConfig().theme == ThemeChoice_Dark;
     }

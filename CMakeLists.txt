@@ -50,6 +50,8 @@ set(SOURCES
     src/window/WindowConfig.cpp
     src/window/WindowAbout.cpp
 
+    src/window/WindowImguiDemo.cpp
+
     src/common.cpp
 
     src/SessionManager.cpp
