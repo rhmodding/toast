@@ -33,7 +33,7 @@ struct U8ArchiveHeader {
 } __attribute__((packed));
 
 struct U8ArchiveNode {
-    uint32_t attributes{ 0x00000000 }; // uint8: type, uint24: nameOffset
+    uint32_t attributes{ 0x00000000 }; // | type (1b) |    name offset (3b)   |
 
     // 0x00: file, 0x01: directory
     inline uint8_t getType() const {
@@ -41,13 +41,14 @@ struct U8ArchiveNode {
     }
 
     // Offset into the string pool for the name of the node.
+    // Returns LE value
     inline uint32_t getNameOffset() const {
-       return BYTESWAP_32((this->attributes >> 8) & 0xFFFFFF);
+        return BYTESWAP_32(this->attributes >> 8 << 8);
     }
 
+    // offset must be LE
     inline void setAttributes(uint8_t type, uint32_t offset) {
-        this->attributes = BYTESWAP_32(offset);
-        *reinterpret_cast<uint8_t*>(&this->attributes) = type;
+        this->attributes = (BYTESWAP_32(offset) & 0xFFFFFF00) | type;
     }
 
     // File: Offset of begin of data
@@ -117,19 +118,9 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t 
 
     uint32_t rootSize = BYTESWAP_32(rootNode->size);
 
-    std::vector<std::string> stringList(rootSize);
-    {
-        const char* stringPool = reinterpret_cast<const char*>(
-            archiveData + sizeof(U8ArchiveHeader) + (rootSize * sizeof(U8ArchiveNode))
-        );
-
-        for (uint32_t i = 0, offset = 0; i < rootSize; i++) {
-            std::string str(stringPool + offset);
-            offset += str.size() + 1; // Null terminator
-
-            stringList.at(i) = std::move(str);
-        }
-    }
+    const char* stringPool = reinterpret_cast<const char*>(
+        archiveData + sizeof(U8ArchiveHeader) + (rootSize * sizeof(U8ArchiveNode))
+    );
 
     uint16_t dirStack[16]; // 16 layers of depth
     uint16_t dirIndex{ 0 };
@@ -142,8 +133,10 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t 
             (i * sizeof(U8ArchiveNode))
         );
 
+        const char* name = stringPool + node->getNameOffset();
+
         if (node->getType() == 0x00) {
-            File file(stringList.at(i));
+            File file(name);
 
             const unsigned char* dataStart = archiveData + BYTESWAP_32(node->dataOffset);
             file.data = std::vector<unsigned char>(
@@ -154,7 +147,7 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t 
             currentDirectory->AddFile(file);
         }
         else if (node->getType() == 0x01) {
-            Directory directory(stringList.at(i));
+            Directory directory(name);
 
             currentDirectory->AddDirectory(directory);
 
