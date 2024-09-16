@@ -19,53 +19,59 @@ struct TPLClutHeader {
     uint16_t numEntries;
 
     // Boolean value, used in official SDK to keep track of status
-    uint8_t unpacked;
+    uint8_t _unpacked{ 0x00 };
 
-    uint8_t pad8;
+    uint8_t _pad8{ 0x00 };
 
-    // TPLClutFormat (big endian)
-    uint32_t format;
+    uint32_t format; // TPLClutFormat (big endian)
 
     uint32_t dataOffset;
-};
+} __attribute__((packed));
 
 struct TPLPalette {
-    uint32_t versionNumber; // 2142000 in big-endian. This is a revision date (Feb 14 2000)
+    // 2142000 in big-endian. This is a revision date (Feb 14 2000)
+    uint32_t versionNumber;
+    
+    // Amount of descriptors in descriptor table
     uint32_t descriptorCount;
+
+    // Offset to begin of descriptor table
     uint32_t descriptorsOffset;
-};
+} __attribute__((packed));
 
 struct TPLDescriptor {
+    // Offset to the begin of the associated texture header (TPLHeader)
     uint32_t textureHeaderOffset;
+
+    // Offset to the begin of the associated CLUT header (TPLClutHeader)
+    // (if zero, then no CLUT header is linked)
     uint32_t CLUTHeaderOffset;
-};
+} __attribute__((packed));
 
 struct TPLHeader {
-    uint16_t height;
-    uint16_t width;
+    uint16_t height; // Texture height
+    uint16_t width; // Texture width
 
-    // TPLImageFormat (big endian)
-    uint32_t format;
+    uint32_t format; // TPLImageFormat (big endian)
 
     uint32_t dataOffset;
 
-    TPL::TPLWrapMode wrapS;
-    TPL::TPLWrapMode wrapT;
+    uint32_t wrapS; // TPLWrapMode (big endian)
+    uint32_t wrapT; // TPLWrapMode (big endian)
 
-    TPL::TPLTexFilter minFilter;
-    TPL::TPLTexFilter magFilter;
+    uint32_t minFilter; // TPLTexFilter (big endian)
+    uint32_t magFilter; // TPLTexFilter (big endian)
 
     float LODBias;
 
-    // Boolean value
-    uint8_t edgeLODEnable;
+    uint8_t edgeLODEnable; // Boolean value
 
     uint8_t minLOD;
     uint8_t maxLOD;
 
     // Boolean value, used in official SDK to keep track of status
-    uint8_t unpacked;
-};
+    uint8_t _unpacked{ 0x00 };
+} __attribute__((packed));
 
 namespace TPL {
 
@@ -269,8 +275,6 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             (sizeof(TPLClutHeader) * clutIndex)
         );
 
-        paletteDescriptor->unpacked = 0x00;
-
         paletteDescriptor->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
 
         // Data
@@ -324,8 +328,6 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
         header->maxLOD = 0x00;
         header->minLOD = 0x00;
-
-        header->unpacked = 0x00;
     }
 
     // Image Data
