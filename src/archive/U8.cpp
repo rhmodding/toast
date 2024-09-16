@@ -185,26 +185,29 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
 
     // Set headerSize and dataOffset later.
 
-    header->reserved[0] = 0x0000;
-    header->reserved[1] = 0x0000;
-    header->reserved[2] = 0x0000;
-    header->reserved[3] = 0x0000;
+    memset(header->reserved, 0x00, sizeof(header->reserved));
 
     //////////////////////////////////////////////////////////////////
 
     struct FlatEntry {
-        // 0x02 for Root Node, 0x01 for Directory* and 0x00 for File*
-        uint8_t type;
-
         void* ptr;
 
         uint32_t parent;
-
         uint32_t nextOutOfDir;
+
+        uint8_t type;
+        uint8_t _pad24[3];
     };
 
     std::vector<FlatEntry> flattenedArchive;
-    flattenedArchive.push_back({ 0x02, nullptr, 0, 0 });
+    flattenedArchive.push_back({
+        .ptr = nullptr,
+
+        .parent = 0,
+        .nextOutOfDir = 0,
+
+        .type = 0x02
+    });
 
     std::stack<std::pair<Directory*, uint32_t>> directoryStack;
     directoryStack.push({ &this->structure, 0 });
@@ -217,17 +220,31 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
         uint32_t& index = directoryStack.top().second;
 
         if (index < currentDir->files.size()) {
-            flattenedArchive.push_back({ 0x00, &currentDir->files[index++], parentList.back(), 0 });
+            flattenedArchive.push_back({
+                .ptr = &currentDir->files[index++],
+
+                .parent = parentList.back(),
+                .nextOutOfDir = 0,
+
+                .type = 0x00
+            });
         }
         else if (index < currentDir->files.size() + currentDir->subdirectories.size()) {
             index -= static_cast<uint32_t>(currentDir->files.size());
             Directory* subDir = &currentDir->subdirectories[index];
 
-            flattenedArchive.push_back({ 0x01, subDir, parentList.back(), 0 });
+            flattenedArchive.push_back({
+                .ptr = subDir,
+
+                .parent = parentList.back(),
+                .nextOutOfDir = 0,
+
+                .type = 0x01
+            });
 
             parentList.push_back(static_cast<uint32_t>(flattenedArchive.size() - 1));
-            directoryStack.push({ subDir, 0});
-            ++index;
+            directoryStack.push({ subDir, 0 });
+            index++;
         }
         else {
             for (uint32_t parentIndex : parentList)
@@ -264,7 +281,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
         stringPoolSize
     );
 
-    dataOffset += 0x20 - (dataOffset % 0x20);
+    dataOffset = (dataOffset + 31) & ~31;
 
     // Data offsets
     for (unsigned i = 0; i < flattenedArchive.size(); i++) {
@@ -301,7 +318,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
             case 0x02: { // Root node
                 node->size = BYTESWAP_32(entry.nextOutOfDir);
 
-                node->dataOffset = 0x0000;
+                node->dataOffset = 0x00000000;
 
                 node->setAttributes(0x01, 0x000000);
             } break;
