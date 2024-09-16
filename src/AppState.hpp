@@ -52,7 +52,7 @@ public:
         ImGui::GetStyle().Colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4();
     }
 
-    inline std::array<float, 4> getWindowClearColor() {
+    inline const std::array<float, 4>& getWindowClearColor() {
         return this->windowClearColor;
     }
 

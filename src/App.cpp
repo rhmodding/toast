@@ -838,7 +838,7 @@ void App::Update() {
 
     glViewport(0, 0, framebufferSize[0], framebufferSize[1]);
 
-    const auto clearColor = appState.getWindowClearColor();
+    const auto& clearColor = appState.getWindowClearColor();
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 
     glClear(GL_COLOR_BUFFER_BIT);
