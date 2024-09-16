@@ -33,7 +33,6 @@
 #include "command/CommandSwitchCellanim.hpp"
 #include "command/CommandModifyArrangement.hpp"
 #include "command/CommandDeleteArrangement.hpp"
-#include "command/CommandModifyArrangementPart.hpp"
 #include "command/CommandDeleteArrangementPart.hpp"
 #include "command/CommandModifyAnimationKey.hpp"
 #include "command/CommandDeleteAnimationKey.hpp"
@@ -43,9 +42,6 @@
 #include "anim/CellanimHelpers.hpp"
 
 #include "task/AsyncTaskManager.hpp"
-#include "task/AsyncTask_ExportSessionTask.hpp"
-#include "task/AsyncTask_PushSessionTask.hpp"
-#include "task/AsyncTask_OptimizeCellanim.hpp"
 
 #include "MtCommandManager.hpp"
 
@@ -89,8 +85,8 @@ void App::AttemptExit(bool force) {
 App::App() {
     gAppPtr = this;
 
-    glfwSetErrorCallback([](int error_code, const char* description) {
-        std::cerr << "GLFW Error (" << error_code << "): " << description << '\n';
+    glfwSetErrorCallback([](int code, const char* description) {
+        std::cerr << "GLFW Error (" << code << "): " << description << '\n';
     });
     if (UNLIKELY(!glfwInit())) {
         std::cerr << "[App:App] Failed to init GLFW!\n";

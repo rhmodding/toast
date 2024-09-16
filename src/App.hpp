@@ -36,7 +36,9 @@ public:
 
     void AttemptExit(bool force = false);
 
-    bool isRunning() const { return this->running; }
+    inline bool isRunning() const {
+        return this->running;
+    }
 
     GLFWwindow* getWindow() {
         if (UNLIKELY(!this->window)) {
@@ -86,9 +88,6 @@ private: // Windows
 
 private: // Flags
     bool running{ true };
-
-    // Open ExitWithChanges popup
-    bool _exitWithChangesPopup{ false };
 
 private:
     std::thread::id windowThreadID;
