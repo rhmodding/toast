@@ -173,13 +173,13 @@ void WindowTimeline::Update() {
 
                             ImGui::Separator();
 
-                            static const uint16_t u16_one = 1;
+                            static const uint32_t u32_one = 1;
 
                             static const uint8_t  u8_min  = 0;
                             static const uint8_t  u8_max  = 0xFFu;
 
-                            ImGui::InputScalar("Back count", ImGuiDataType_U16, &appState.onionSkinState.backCount, &u16_one);
-                            ImGui::InputScalar("Front count", ImGuiDataType_U16, &appState.onionSkinState.frontCount, &u16_one);
+                            ImGui::InputScalar("Back count", ImGuiDataType_U32, &appState.onionSkinState.backCount, &u32_one);
+                            ImGui::InputScalar("Front count", ImGuiDataType_U32, &appState.onionSkinState.frontCount, &u32_one);
 
                             ImGui::Separator();
 

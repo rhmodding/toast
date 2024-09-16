@@ -138,12 +138,13 @@ public:
 
     struct OnionSkinState {
         bool enabled{ false };
-
-        uint16_t backCount{ 3 };
-        uint16_t frontCount{ 2 };
-        uint8_t opacity{ 50 };
-
         bool drawUnder{ false };
+
+        unsigned backCount{ 3 };
+        unsigned frontCount{ 2 };
+
+        uint8_t opacity{ 50 };
+        uint8_t _pad24[3];
     } onionSkinState;
 
     enum CopyPasteContext {
