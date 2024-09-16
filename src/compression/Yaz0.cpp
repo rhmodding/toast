@@ -1,5 +1,5 @@
 /*
-    * This file contains functions derived from syaz0 by zeldamods,
+    * This file contains code derived from syaz0 by zeldamods,
     * which is licensed under the GPL 2.0 license.
     *
     * Original source: https://github.com/zeldamods/syaz0
@@ -46,23 +46,21 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
     Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
 
     *reinterpret_cast<uint32_t*>(header->magic) = HEADER_MAGIC;
-    // header->magic[0] = 'Y';
-    // header->magic[1] = 'a';
-    // header->magic[2] = 'z';
-    // header->magic[3] = '0';
 
     header->uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize));
+
     header->reserved[0] = 0x0000;
     header->reserved[1] = 0x0000;
 
     // Compression
     {
         struct CompressionState {
-            uint32_t pendingChunks{ 0 };
-            std::bitset<8> groupHeader;
-            uint32_t groupHeaderOffset{ sizeof(Yaz0Header) }; // Skip header
-
             std::vector<unsigned char>& buffer;
+
+            unsigned pendingChunks{ 0 };
+
+            unsigned groupHeaderOffset{ sizeof(Yaz0Header) };
+            std::bitset<8> groupHeader;
 
             CompressionState(std::vector<unsigned char>& buffer) : buffer(buffer) {}
         } compressionState(result);
@@ -75,16 +73,16 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
             const int zlibRun = zng_compress2(
                 dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, 2, 9),
-                [](void* data, uint32_t dist, uint32_t lc) {
-                    auto* compressionState = reinterpret_cast<CompressionState*>(data);
+                [](void* usrData, unsigned dist, unsigned lc) {
+                    CompressionState* compressionState = reinterpret_cast<CompressionState*>(usrData);
 
                     if (dist == 0) {
                         compressionState->groupHeader.set(7 - compressionState->pendingChunks);
                         compressionState->buffer.push_back(static_cast<unsigned char>(lc));
                     }
                     else {
-                        uint32_t distance = dist - 1;
-                        uint32_t length = lc + ZLIB_MIN_MATCH;
+                        unsigned distance = dist - 1;
+                        unsigned length = lc + ZLIB_MIN_MATCH;
 
                         if (length < 18) {
                             compressionState->buffer.push_back(static_cast<unsigned char>(
@@ -94,7 +92,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                         }
                         else {
                             // If the match is longer than 18 bytes, 3 bytes are needed to write the match
-                            const uint32_t actualLength = std::min<uint32_t>(MAX_MATCH_LENGTH, length);
+                            const unsigned actualLength = std::min<unsigned>(MAX_MATCH_LENGTH, length);
 
                             compressionState->buffer.push_back(static_cast<unsigned char>(distance >> 8));
                             compressionState->buffer.push_back(static_cast<unsigned char>(distance));
@@ -114,8 +112,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
                         compressionState->buffer.push_back(0xFFu);
                     }
-                },
-                &compressionState
+                }, &compressionState
             );
 
             if (zlibRun != Z_OK) {
