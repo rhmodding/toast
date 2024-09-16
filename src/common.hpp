@@ -106,8 +106,8 @@ constexpr ImVec4 RGBAtoImVec4(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 bool IsMouseInRegion(const ImVec2 point, float radius = 10.f);
 
 // Simple helper function to load an image into a OpenGL texture with common settings
-bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, int* height);
-bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* width, int* height);
+bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* outWidth, int* outHeight);
+bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* outWidth, int* outHeight);
 
 struct Image {
     int width{ 0 };
@@ -133,7 +133,7 @@ struct Image {
         return LoadTextureFromFile(filename, &this->texture, &this->width, &this->height);
     }
 
-    bool LoadFromMem(const unsigned char* buffer, const uint32_t size) {
+    bool LoadFromMem(const unsigned char* buffer, uint32_t size) {
         return LoadTextureFromMem(buffer, size, &this->texture, &this->width, &this->height);
     }
 

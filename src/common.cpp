@@ -15,8 +15,8 @@
 namespace Common {
 
 float byteswapFloat(float value) {
-    uint32_t rValue = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(&value));
-    return *reinterpret_cast<float*>(&rValue);
+    uint32_t temp = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(&value));
+    return *reinterpret_cast<float*>(&temp);
 }
 
 bool SaveBackupFile(const char* filePath, bool once) {
@@ -72,7 +72,7 @@ std::string randomString(const unsigned length) {
     return string;
 }
 
-bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, int* height)  {
+bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* outWidth, int* outHeight)  {
     int imageWidth{ 0 };
     int imageHeight{ 0 };
 
@@ -101,15 +101,15 @@ bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* width, i
 
     *texturePtr = imageTexture;
 
-    if (width != nullptr)
-        *width = imageWidth;
-    if (height != nullptr)
-        *height = imageHeight;
+    if (outWidth != nullptr)
+        *outWidth = imageWidth;
+    if (outHeight != nullptr)
+        *outHeight = imageHeight;
 
     return true;
 }
 
-bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* width, int* height) {
+bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* outWidth, int* outHeight) {
     int imageWidth{ 0 };
     int imageHeight{ 0 };
 
@@ -138,10 +138,10 @@ bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint
 
     *texturePtr = imageTexture;
 
-    if (width != nullptr)
-        *width = imageWidth;
-    if (height != nullptr)
-        *height = imageHeight;
+    if (outWidth != nullptr)
+        *outWidth = imageWidth;
+    if (outHeight != nullptr)
+        *outHeight = imageHeight;
 
     return true;
 }
