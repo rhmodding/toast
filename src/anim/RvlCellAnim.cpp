@@ -288,8 +288,8 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
         }
     }
 
-    sprintf(
-        reinterpret_cast<char*>(result.data() + result.size() - 8),
+    snprintf(
+        reinterpret_cast<char*>(result.data() + result.size() - 8), 8,
         "%.8s", EXPECT_DATA_FOOTER
     );
 

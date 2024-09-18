@@ -63,7 +63,7 @@ void Popup_SessionErr() {
             break;
         
         default:
-            sprintf(errorMessage, "An unknown error has occurred (code %i).", errorCode);
+            snprintf(errorMessage, 256, "An unknown error has occurred (code %i).", errorCode);
             errorType = 2;
             break;
     }
@@ -71,21 +71,24 @@ void Popup_SessionErr() {
     char popupTitle[256];
     switch (errorType)  {
         case 0:
-            sprintf(
-                popupTitle, "There was an error opening the session (code %i).###SessionErr",
+            snprintf(
+                popupTitle, 256,
+                "There was an error opening the session (code %i).###SessionErr",
                 errorCode
             );
             break;
         case 1:
-            sprintf(
-                popupTitle, "There was an error exporting the session (code %i).###SessionErr",
+            snprintf(
+                popupTitle, 256,
+                "There was an error exporting the session (code %i).###SessionErr",
                 errorCode
             );
             break;
         
         default:
-            sprintf(
-                popupTitle, "There was an unknown session-related error (code %i).###SessionErr",
+            snprintf(
+                popupTitle, 256,
+                "There was an unknown session-related error (code %i).###SessionErr",
                 errorCode
             );
             break;

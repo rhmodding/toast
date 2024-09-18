@@ -18,7 +18,7 @@ public:
         message(message)
     {
         char str[32];
-        sprintf(str, "Task%u", id);
+        snprintf(str, 32, "Task%u", id);
 
         this->imguiID = ImHashStr(str);
 

@@ -379,8 +379,8 @@ void WindowInspector::Level_Arrangement() {
         for (int n = arrangementPtr->parts.size() - 1; n >= 0; n--) {
             ImGui::PushID(n);
 
-            char buffer[16];
-            sprintf(buffer, "Part no. %u", n+1);
+            char buffer[32];
+            snprintf(buffer, 32, "Part no. %u", n+1);
 
             ImGui::SetNextItemAllowOverlap();
             if (ImGui::Selectable("###PartSelectable", appState.selectedPart == n, ImGuiSelectableFlags_SelectOnNav))

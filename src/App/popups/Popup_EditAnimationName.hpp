@@ -37,7 +37,7 @@ void Popup_EditAnimationName(int animationIndex) {
         }
         else {
             const std::string& str = sessionManager.getCurrentSession()->getCellanimName();
-            sprintf(newMacro, "%.*s_", str.size() - 6, str.c_str());
+            snprintf(newMacro, MACRO_BUF_SIZE, "%.*s_", static_cast<int>(str.size() - 6), str.c_str());
         }
     }
 

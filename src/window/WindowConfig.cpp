@@ -164,7 +164,7 @@ void WindowConfig::Update() {
                         clName = levelNames[selectedLevel];
                     else {
                         static char buf[64];
-                        sprintf(buf, "Other (lvl %i)", this->selfConfig.compressionLevel);
+                        snprintf(buf, 64, "Other (lvl %i)", this->selfConfig.compressionLevel);
     
                         clName = buf;
                     }

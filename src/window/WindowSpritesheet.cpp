@@ -80,8 +80,8 @@ void WindowSpritesheet::PaletteWindow() {
                 const uint8_t b = (color >>  8) & 0xFF;
                 const uint8_t a = (color >>  0) & 0xFF;
 
-                char buffer[48];
-                sprintf(buffer, "[%03u] - R: %03u G: %03u B: %03u A: %03u", i, r, g, b, a);
+                char buffer[64];
+                snprintf(buffer, 64, "[%03u] - R: %03u G: %03u B: %03u A: %03u", i, r, g, b, a);
 
                 ImGui::PushID(i);
 
@@ -211,7 +211,7 @@ void WindowSpritesheet::FormatPopup() {
                     char formattedStr[32];
                     {
                         char numberStr[32];
-                        sprintf(numberStr, "%u", dataSize);
+                        snprintf(numberStr, 32, "%u", dataSize);
 
                         uint32_t srcLen = strlen(numberStr);
                         uint32_t destLen = srcLen + (srcLen - 1) / 3;
@@ -492,7 +492,7 @@ void WindowSpritesheet::Update() {
 
         {
             char textBuffer[32];
-            sprintf(textBuffer, "Double-click to %s", this->sheetZoomEnabled ? "un-zoom" : "zoom");
+            snprintf(textBuffer, 32, "Double-click to %s", this->sheetZoomEnabled ? "un-zoom" : "zoom");
 
             ImGui::SetCursorPosX(
                 windowSize.x - ImGui::CalcTextSize(textBuffer).x -

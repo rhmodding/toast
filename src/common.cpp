@@ -21,7 +21,7 @@ float byteswapFloat(float value) {
 
 bool SaveBackupFile(const char* filePath, bool once) {
     char newFileName[PATH_MAX];
-    sprintf(newFileName, "%s.bak", filePath);
+    snprintf(newFileName, PATH_MAX, "%s.bak", filePath);
 
     bool exists{ false };
     {

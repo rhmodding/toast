@@ -60,7 +60,7 @@ void WindowTimeline::Update() {
                         char playPauseButtonLabel[24] = { '\0' };
                         const char* playPauseIcon = playerManager.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
 
-                        sprintf(playPauseButtonLabel, "%s##playPauseButton", playPauseIcon);
+                        snprintf(playPauseButtonLabel, 24, "%s##playPauseButton", playPauseIcon);
 
                         if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
                             if (
@@ -246,8 +246,8 @@ void WindowTimeline::Update() {
                             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
                         }
 
-                        char buffer[18];
-                        sprintf(buffer, "%u##KeyButton", i+1);
+                        char buffer[24];
+                        snprintf(buffer, 24, "%u##KeyButton", i+1);
 
                         if (ImGui::Button(buffer, buttonDimensions)) {
                             playerManager.setCurrentKeyIndex(i);
@@ -601,7 +601,7 @@ void WindowTimeline::Update() {
                             ImGui::PushID(i);
 
                             char buffer[24];
-                            sprintf(buffer, "%u##OnionSkinButton", i+1);
+                            snprintf(buffer, 24, "%u##OnionSkinButton", i+1);
 
                             ImGui::BeginDisabled();
                             if (

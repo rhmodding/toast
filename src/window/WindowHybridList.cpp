@@ -150,8 +150,8 @@ void WindowHybridList::Update() {
             }
         else
             for (unsigned n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
-                char buffer[32];
-                sprintf(buffer, "Arrangement no. %d", n+1);
+                char buffer[48];
+                snprintf(buffer, 48, "Arrangement no. %d", n+1);
 
                 RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 

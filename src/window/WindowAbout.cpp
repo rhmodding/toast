@@ -134,7 +134,7 @@ void WindowAbout::Update() {
     if (ImGui::Button(githubButton, { 30.f, 30.f })) {
         char buf[256];
 
-        sprintf(buf, "%s %s",
+        snprintf(buf, 256, "%s %s",
     #ifdef _WIN32
             "start ",
     #elif __APPLE__
@@ -149,7 +149,7 @@ void WindowAbout::Update() {
     }
 
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-        ImGui::SetTooltip(githubTooltip);
+        ImGui::SetTooltip("%s", githubTooltip);
 
     textPosition.y += (ImGui::GetTextLineHeight() * 2) + 5.f;
 
