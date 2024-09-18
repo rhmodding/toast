@@ -336,7 +336,7 @@ void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigne
     SAFE_ASSERT(this->cellanim, true);
     SAFE_ASSERT(this->currentAnimation, true);
 
-    if (!this->visible || !drawList || !this->currentAnimation)
+    if (!this->visible)
         return;
 
     const int keyIndex = this->currentKeyIndex;
