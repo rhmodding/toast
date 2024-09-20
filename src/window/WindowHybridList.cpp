@@ -72,7 +72,14 @@ void WindowHybridList::Update() {
         );
     }
 
-    ImGui::Begin(appState.getArrangementMode() ? "Arrangements###HybridList" : "Animations###HybridList", nullptr);
+    char label[32];
+    snprintf(
+        label, 32, "%s###HybridList",
+        appState.getArrangementMode() ?
+            "Arrangements" : "Animations"
+    );
+
+    ImGui::Begin(label);
 
     ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Border);
     {
