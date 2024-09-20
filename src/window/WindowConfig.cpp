@@ -99,7 +99,7 @@ void WindowConfig::Update() {
         // Right
         {
             ImGui::BeginGroup();
-            ImGui::BeginChild("Properties", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
+            ImGui::BeginChild("Properties", ImVec2(0.f, -ImGui::GetFrameHeightWithSpacing()));
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, -2 });
 

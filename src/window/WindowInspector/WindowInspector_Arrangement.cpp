@@ -53,7 +53,7 @@ void WindowInspector::Level_Arrangement() {
                 static uint16_t oldArrangement{ 0 };
                 uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
 
-                ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
+                ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
                 if (ImGui::InputScalar(
                     "##ArrangementInput",
                     ImGuiDataType_U16,

@@ -185,7 +185,7 @@ void WindowSpritesheet::FormatPopup() {
                     std::numeric_limits<float>::max()
                 }
             );
-            ImGui::BeginChild("Properties", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
+            ImGui::BeginChild("Properties", ImVec2(0.f, -ImGui::GetFrameHeightWithSpacing()), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
 
             {
                 ImGui::PushFont(AppState::getInstance().fonts.large);

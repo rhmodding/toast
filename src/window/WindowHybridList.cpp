@@ -74,7 +74,7 @@ void WindowHybridList::Update() {
 
     ImGui::Begin(appState.getArrangementMode() ? "Arrangements###HybridList" : "Animations###HybridList", nullptr);
 
-    ImGui::BeginChild("List", ImVec2(0, 0), ImGuiChildFlags_Border);
+    ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Border);
     {
         int deleteArrangement{ -1 };
 
