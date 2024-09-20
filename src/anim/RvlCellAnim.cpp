@@ -7,14 +7,13 @@
 
 #include "../common.hpp"
 
-#define HEADER_MAGIC 0xD8B43201
+#define RCAD_REVISION_DATE 0xD8B43201
 
 struct RvlCellAnimHeader {
-    // Magic value (should always equal to 0x0132B4D8 [20100312] if valid)
-    // Could be a format revision timestamp? (2010/03/12)
-    uint32_t magic;
+    // Format revision date, 20100312 in BE (2010/03/12)
+    uint32_t revisionDate;
 
-    // Flock Step
+    // TPL has palette usage (boolean)
     uint32_t usePalette;
 
     // Index into cellanim.tpl for the associated sheet
@@ -99,8 +98,8 @@ namespace RvlCellAnim {
 RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
     const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
-    if (UNLIKELY(header->magic != HEADER_MAGIC)) {
-        std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: header magic failed check!\n";
+    if (UNLIKELY(header->revisionDate != RCAD_REVISION_DATE)) {
+        std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: revision date failed check!\n";
         return;
     }
 
@@ -111,10 +110,10 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
     this->usePalette = header->usePalette != 0;
 
-    uint32_t readOffset{ sizeof(RvlCellAnimHeader) };
+    unsigned readOffset{ sizeof(RvlCellAnimHeader) };
 
     // Arrangements
-    uint16_t arrangementCount = BYTESWAP_16(
+    const uint16_t arrangementCount = BYTESWAP_16(
         reinterpret_cast<const ArrangementsHeader*>(
             RvlCellAnimData + readOffset
         )->arrangementCount
@@ -130,7 +129,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
         Arrangement& arrangement = this->arrangements[i];
 
-        uint16_t arrangementPartCount = BYTESWAP_16(arrangementRaw->partsCount);
+        const uint16_t arrangementPartCount = BYTESWAP_16(arrangementRaw->partsCount);
         arrangement.parts.resize(arrangementPartCount);
 
         for (uint16_t j = 0; j < arrangementPartCount; j++) {
@@ -154,7 +153,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
         }
     }
 
-    uint16_t animationCount = BYTESWAP_16(
+    const uint16_t animationCount = BYTESWAP_16(
         reinterpret_cast<const AnimationsHeader*>(
             RvlCellAnimData + readOffset
         )->animationCount
@@ -169,7 +168,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
         Animation& animation = this->animations[i];
 
-        uint16_t keyCount = BYTESWAP_16(animationRaw->keyCount);
+        const uint16_t keyCount = BYTESWAP_16(animationRaw->keyCount);
         animation.keys.resize(keyCount);
 
         for (uint16_t j = 0; j < keyCount; j++) {
@@ -204,7 +203,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     );
 
     RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
-    header->magic = HEADER_MAGIC;
+    header->revisionDate = RCAD_REVISION_DATE;
 
     header->usePalette = this->usePalette ? 0x01000000 : 0x00000000;
 
@@ -213,7 +212,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     header->sheetW = BYTESWAP_16(this->textureW);
     header->sheetH = BYTESWAP_16(this->textureH);
 
-    uint32_t writeOffset{ sizeof(RvlCellAnimHeader) };
+    unsigned writeOffset{ sizeof(RvlCellAnimHeader) };
 
     *reinterpret_cast<ArrangementsHeader*>(result.data() + writeOffset) =
         ArrangementsHeader{ BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size())) };
