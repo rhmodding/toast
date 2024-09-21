@@ -178,23 +178,23 @@ protected:
 
             // RGBA
             auto bilinearInterpolation = [](
-                const unsigned char* src, uint32_t srcWidth, uint32_t srcHeight,
-                unsigned char* dst, uint32_t dstWidth, uint32_t dstHeight
+                const unsigned char* src, unsigned srcWidth, unsigned srcHeight,
+                unsigned char* dst, unsigned dstWidth, unsigned dstHeight
             ) {
                 float x_ratio = static_cast<float>(srcWidth - 1) / dstWidth;
                 float y_ratio = static_cast<float>(srcHeight - 1) / dstHeight;
                 float x_diff, y_diff, blue, red, green, alpha;
-                uint32_t x, y, index;
+                unsigned x, y, index;
 
-                for (uint32_t i = 0; i < dstHeight; i++) {
-                    for (uint32_t j = 0; j < dstWidth; j++) {
-                        x = static_cast<uint32_t>(x_ratio * j);
-                        y = static_cast<uint32_t>(y_ratio * i);
+                for (unsigned i = 0; i < dstHeight; i++) {
+                    for (unsigned j = 0; j < dstWidth; j++) {
+                        x = static_cast<unsigned>(x_ratio * j);
+                        y = static_cast<unsigned>(y_ratio * i);
                         x_diff = (x_ratio * j) - x;
                         y_diff = (y_ratio * i) - y;
                         index = (y * srcWidth + x) * 4;
 
-                        for (uint32_t c = 0; c < 4; c++) {
+                        for (unsigned c = 0; c < 4; c++) {
                             blue = src[index + c] * (1 - x_diff) * (1 - y_diff) +
                                     src[index + 4 + c] * x_diff * (1 - y_diff) +
                                     src[(y + 1) * srcWidth * 4 + x * 4 + c] * (1 - x_diff) * y_diff +
