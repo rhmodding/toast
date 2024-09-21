@@ -292,7 +292,7 @@ void Popup_MInterpolateKeys() {
         currentKey = globalAnimatable->getCurrentKey();
         nextKey = currentKey + 1;
 
-        currentKeyIndex = globalAnimatable->getCurrentKeyIndex();
+        currentKeyIndex = static_cast<int>(globalAnimatable->getCurrentKeyIndex());
 
         // Does next key exist?
         condition = currentKeyIndex + 1 < currentAnimation->keys.size();
