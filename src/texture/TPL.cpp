@@ -155,18 +155,20 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
             uint32_t imageSize = ImageConvert::getImageByteSize(textureData);
             const unsigned char* imageData = tplData + BYTESWAP_32(header->dataOffset);
 
+            textureData.data.resize(textureData.width * textureData.height * 4);
+
             ImageConvert::toRGBA32(
-                textureData.data,
+                textureData.data.data(),
                 textureData.format,
                 textureData.width, textureData.height,
                 imageData,
                 textureData.palette.data()
             );
 
-            textureData.valid = 0xFFu;
+            textureData.valid = true;
         }
         else
-            textureData.valid = 0x00;
+            textureData.valid = false;
 
         this->textures.push_back(textureData);
     }
@@ -347,8 +349,10 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             ) + i)->dataOffset = BYTESWAP_32(writeOffset);
 
             std::vector<unsigned char> imageData;
+            imageData.resize(ImageConvert::getImageByteSize(texture));
+
             ImageConvert::fromRGBA32(
-                imageData,
+                imageData.data(),
                 texture.format,
                 texture.width, texture.height,
                 texture.data.data(),
