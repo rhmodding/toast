@@ -81,21 +81,23 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                         compressionState->buffer.push_back(static_cast<unsigned char>(lc));
                     }
                     else {
-                        unsigned distance = dist - 1;
-                        unsigned length = lc + ZLIB_MIN_MATCH;
+                        unsigned newDistance = dist - 1;
+                        unsigned matchLength = lc + ZLIB_MIN_MATCH;
 
-                        if (length < 18) {
-                            compressionState->buffer.push_back(static_cast<unsigned char>(
-                                ((length - 2) << 4) | static_cast<unsigned char>(distance >> 8)
-                            ));
-                            compressionState->buffer.push_back(static_cast<unsigned char>(distance));
+                        if (matchLength < 18) {
+                            unsigned char firstByte = static_cast<unsigned char>(
+                                ((matchLength - 2) << 4) | (newDistance >> 8)
+                            );
+
+                            compressionState->buffer.push_back(firstByte);
+                            compressionState->buffer.push_back(static_cast<unsigned char>(newDistance));
                         }
                         else {
                             // If the match is longer than 18 bytes, 3 bytes are needed to write the match
-                            const unsigned actualLength = std::min<unsigned>(MAX_MATCH_LENGTH, length);
+                            const unsigned actualLength = std::min<unsigned>(MAX_MATCH_LENGTH, matchLength);
 
-                            compressionState->buffer.push_back(static_cast<unsigned char>(distance >> 8));
-                            compressionState->buffer.push_back(static_cast<unsigned char>(distance));
+                            compressionState->buffer.push_back(static_cast<unsigned char>(newDistance >> 8));
+                            compressionState->buffer.push_back(static_cast<unsigned char>(newDistance));
                             compressionState->buffer.push_back(static_cast<unsigned char>(actualLength - 0x12));
                         }
                     }
@@ -108,7 +110,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                         // Reset values
                         compressionState->pendingChunks = 0;
                         compressionState->groupHeader.reset();
-                        compressionState->groupHeaderOffset = static_cast<uint32_t>(compressionState->buffer.size());
+                        compressionState->groupHeaderOffset = static_cast<unsigned>(compressionState->buffer.size());
 
                         compressionState->buffer.push_back(0xFFu);
                     }
