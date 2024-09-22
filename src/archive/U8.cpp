@@ -401,13 +401,13 @@ std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
     return archive;
 }
 
-std::optional<File> findFile(const std::string& path, const Directory& directory) {
-    size_t pos = path.find('/');
+std::optional<File> findFile(const char* path, const Directory& directory) {
+    const char* pos = strchr(path, '/');
 
-    if (pos == std::string::npos) {
+    if (!pos) {
         // No '/' found: It's a file, go find it
         for (const File& file : directory.files)
-            if (file.name == path)
+            if (strcmp(file.name.c_str(), path) == 0)
                 return file;
 
         // File not found
@@ -415,12 +415,9 @@ std::optional<File> findFile(const std::string& path, const Directory& directory
     }
     else {
         // '/' found: It's a subdirectory, recursively search
-        std::string subDirName = path.substr(0, pos);
-        std::string remainingPath = path.substr(pos + 1);
-
         for (const Directory& subDir : directory.subdirectories)
-            if (subDir.name == subDirName)
-                return findFile(remainingPath, subDir);
+            if (strncmp(subDir.name.c_str(), path, (pos - path)) == 0)
+                return findFile(path + (pos - path) + 1, subDir);
 
         // Subdirectory not found
         return std::nullopt;
