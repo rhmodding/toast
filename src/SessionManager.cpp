@@ -345,6 +345,13 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     TPL::TPLObject tplObject =
         TPL::TPLObject((*__tplSearch).data.data(), (*__tplSearch).data.size());
 
+    if (!tplObject.ok) {
+        std::lock_guard<std::mutex> lock(this->mtx);
+        this->lastSessionError = SessionOpenError_FailOpenTPL;
+
+        return -1;
+    }
+
     std::vector<const U8::File*> brcadFiles;
     for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
         if (

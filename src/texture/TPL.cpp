@@ -172,14 +172,17 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
 
         this->textures.push_back(textureData);
     }
+
+    this->ok = true;
 }
 
 std::vector<unsigned char> TPLObject::Reserialize() {
     std::vector<unsigned char> result;
 
     // Precompute size required & texture indexes for color palettes
-    uint32_t paletteEntriesSize{ 0 };
-    std::unordered_set<uint32_t> paletteTextures;
+    unsigned paletteEntriesSize{ 0 };
+    std::unordered_set<unsigned> paletteTextures;
+
     for (unsigned i = 0; i < this->textures.size(); i++) {
         if (
             this->textures.at(i).format == TPL_IMAGE_FORMAT_C4 ||
@@ -193,7 +196,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
         }
     }
 
-    uint32_t baseSize = (
+    unsigned baseSize = (
         ((
             sizeof(TPLPalette) +
             (sizeof(TPLDescriptor) * this->textures.size()) +
@@ -215,15 +218,13 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     TPLHeader* headers = nullptr;
 
     if (!paletteTextures.empty()) {
-        paletteWritePtr = reinterpret_cast<uint8_t*>(
-            result.data() + (
-                (
-                    sizeof(TPLPalette) +
-                    (sizeof(TPLDescriptor) * this->textures.size()) +
-                    (sizeof(TPLClutHeader) * paletteTextures.size())
-                    + 31
-                ) & ~31
-            )
+        paletteWritePtr = result.data() + (
+            (
+                sizeof(TPLPalette) +
+                (sizeof(TPLDescriptor) * this->textures.size()) +
+                (sizeof(TPLClutHeader) * paletteTextures.size())
+                + 31
+            ) & ~31
         );
     }
 
@@ -333,7 +334,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
     // Image Data
     {
-        uint32_t writeOffset = static_cast<uint32_t>(result.size());
+        unsigned writeOffset = result.size();
 
         for (unsigned i = 0; i < this->textures.size(); i++) {
             TPL::TPLTexture& texture = this->textures.at(i);
@@ -403,7 +404,8 @@ GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
     TPL::TPLTexFilter tplMinFilter = tplTexture.minFilter;
     TPL::TPLTexFilter tplMagFilter = tplTexture.magFilter;
 
-    std::future<void> future = MtCommandManager::getInstance().enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
+    std::future<void> future =
+    MtCommandManager::getInstance().enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
         glGenTextures(1, &imageTexture);
         glBindTexture(GL_TEXTURE_2D, imageTexture);
 

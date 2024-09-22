@@ -111,6 +111,8 @@ struct TPLTexture {
 
 class TPLObject {
 public:
+    bool ok{ false };
+
     std::vector<TPLTexture> textures;
 
     std::vector<unsigned char> Reserialize();

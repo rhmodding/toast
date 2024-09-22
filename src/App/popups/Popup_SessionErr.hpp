@@ -36,6 +36,10 @@ void Popup_SessionErr() {
             strcpy(errorMessage, "The brcad file could not be opened.");
             errorType = 0;
             break;
+        case SessionManager::SessionOpenError_FailOpenTPL:
+            strcpy(errorMessage, "The TPL file could not be opened.");
+            errorType = 0;
+            break; 
         case SessionManager::SessionOpenError_FailOpenPNG:
             strcpy(errorMessage, "The image file (.png) could not be opened.");
             errorType = 0;
@@ -100,7 +104,7 @@ void Popup_SessionErr() {
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted(errorMessage);
 
-        ImGui::Dummy({0, 5});
+        ImGui::Dummy({ ImGui::CalcTextSize(popupTitle, nullptr, true).x - 40, 5});
 
         if (ImGui::Button("Alright", ImVec2(120, 0)))
             ImGui::CloseCurrentPopup();
