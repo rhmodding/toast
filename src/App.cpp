@@ -654,51 +654,50 @@ void App::Menubar() {
                 ImGui::PushID(n);
 
                 bool sessionOpen{ true };
-                if (
-                    ImGui::BeginTabItem(
-                        sessionManager.sessionList.at(n).mainPath.c_str(),
-                        &sessionOpen,
-                        ImGuiTabItemFlags_None | (
-                            sessionManager.sessionList.at(n).modified ?
-                            ImGuiTabItemFlags_UnsavedDocument : 0
-                        )
+                bool tabVisible = ImGui::BeginTabItem(
+                    sessionManager.sessionList.at(n).mainPath.c_str(),
+                    &sessionOpen,
+                    ImGuiTabItemFlags_None | (
+                        sessionManager.sessionList.at(n).modified ?
+                        ImGuiTabItemFlags_UnsavedDocument : 0
                     )
-                ) {
-                    if (sessionManager.currentSession != n) {
-                        sessionManager.currentSession = n;
-                        sessionManager.SessionChanged();
-                    }
+                );
 
+                if (tabVisible)
                     ImGui::EndTabItem();
 
-                    if (ImGui::BeginPopupContextItem()) {
-                        ImGui::Text("Select a Cellanim:");
-                        ImGui::Separator();
-                        for (unsigned i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
-                            const std::string& str = sessionManager.sessionList.at(n).cellanims.at(i).name;
+                if (ImGui::IsItemClicked() && sessionManager.currentSession != n) {
+                    sessionManager.currentSession = n;
+                    sessionManager.SessionChanged();
+                }
 
-                            std::ostringstream fmtStream;
-                            fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
+                if (tabVisible && ImGui::BeginPopupContextItem()) {
+                    ImGui::Text("Select a Cellanim:");
+                    ImGui::Separator();
+                    for (unsigned i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
+                        const std::string& str = sessionManager.sessionList.at(n).cellanims.at(i).name;
 
-                            if (ImGui::MenuItem(
-                                fmtStream.str().c_str(), nullptr,
-                                sessionManager.sessionList.at(n).currentCellanim == i
-                            )) {
-                                ImGui::CloseCurrentPopup();
+                        std::ostringstream fmtStream;
+                        fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
 
-                                if (sessionManager.sessionList.at(n).currentCellanim != i) {
-                                    sessionManager.currentSession = n;
+                        if (ImGui::MenuItem(
+                            fmtStream.str().c_str(), nullptr,
+                            sessionManager.sessionList.at(n).currentCellanim == i
+                        )) {
+                            ImGui::CloseCurrentPopup();
 
-                                    sessionManager.sessionList.at(n).executeCommand(
-                                    std::make_shared<CommandSwitchCellanim>(
-                                        n, i
-                                    ));
-                                }
+                            if (sessionManager.sessionList.at(n).currentCellanim != i) {
+                                sessionManager.currentSession = n;
+
+                                sessionManager.sessionList.at(n).executeCommand(
+                                std::make_shared<CommandSwitchCellanim>(
+                                    n, i
+                                ));
                             }
                         }
-
-                        ImGui::EndPopup();
                     }
+
+                    ImGui::EndPopup();
                 }
 
                 const std::string& cellanimName = sessionManager.sessionList.at(n).cellanims.at(

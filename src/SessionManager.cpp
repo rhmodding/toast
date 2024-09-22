@@ -720,17 +720,17 @@ void SessionManager::SessionChanged() {
     this->currentSession =
         std::clamp<int>(this->currentSession, -1, this->sessionList.size() - 1);
 
-    if (UNLIKELY(this->currentSession < 0))
+    if (this->currentSession < 0)
         return;
 
     GET_APP_STATE;
     GET_ANIMATABLE;
 
-    Common::deleteIfNotNullptr(globalAnimatable);
+    Common::deleteIfNotNullptr(globalAnimatable, false);
 
     globalAnimatable = new Animatable(
-        this->getCurrentSession()->getCellanimObject(),
-        this->getCurrentSession()->getCellanimSheet()
+        this->sessionList[this->currentSession].getCellanimObject(),
+        this->sessionList[this->currentSession].getCellanimSheet()
     );
 
     appState.selectedAnimation = std::clamp<unsigned>(
