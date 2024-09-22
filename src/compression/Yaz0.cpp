@@ -148,25 +148,23 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
 
     std::vector<unsigned char> destination(uncompressedSize);
 
-    // compressedData without header
-    const unsigned char* dataSource = compressedData + sizeof(Yaz0Header);
+    const unsigned char* currentByte = compressedData + sizeof(Yaz0Header);
 
-    uint32_t readOffset{ 0 };
-    uint32_t destOffset{ 0 };
+    unsigned destOffset{ 0 };
 
-    uint8_t bitsLeft{ 0 };
+    unsigned bitsLeft{ 0 };
     uint8_t opcodeByte{ 0 };
 
     while (destOffset < uncompressedSize) {
         // Read new opcode byte if no bits left
         if (bitsLeft == 0) {
-            opcodeByte = *(dataSource + (readOffset++));
+            opcodeByte = *(currentByte++);
 
             // Reset bitsLeft (1byte)
             bitsLeft = 8;
         }
 
-        if (UNLIKELY(readOffset >= dataSize)) {
+        if (UNLIKELY((currentByte - compressedData) >= dataSize)) {
             // We've reached the end of the uncompressed file but we're not finished reading yet;
             // Usually this means the file is invalid.
 
@@ -175,18 +173,14 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
             return std::nullopt; // return nothing (std::optional)
         }
 
-        if ((opcodeByte & 0b10000000) != 0) { // MSB set: Copy one byte directly.
-            destination.at(destOffset++) = *(dataSource + (readOffset++));
-
-            if (readOffset >= (size_t)(compressedData - sizeof(Yaz0Header))) {
-                return std::nullopt;
-            }
+        if ((opcodeByte & (1 << 7)) != 0) { // MSB set: Copy one byte directly.
+            destination[destOffset++] = *(currentByte++);
         }
         else { // MSB not set: RLE compression.
-            uint8_t byteA = *(dataSource + (readOffset++));
-            uint8_t byteB = *(dataSource + (readOffset++));
+            uint8_t byteA = *(currentByte++);
+            uint8_t byteB = *(currentByte++);
 
-            uint32_t dist = ((byteA & 0xF) << 8) | byteB;
+            unsigned dist = ((byteA & 0xF) << 8) | byteB;
 
             int copySource = destOffset - (dist + 1);
 
@@ -198,15 +192,12 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
 
             unsigned numBytes = byteA >> 4;
             if (numBytes == 0)
-                numBytes = *(dataSource + (readOffset++)) + 0x12;
+                numBytes = *(currentByte++) + 0x12;
             else
                 numBytes += 2;
 
-            if (numBytes > uncompressedSize - destOffset)
-                numBytes = uncompressedSize - destOffset;
-
-            for (unsigned i = 0; i < numBytes; i++, copySource++, destOffset++)
-                destination[destOffset] = destination[copySource];
+            for (unsigned i = 0; i < numBytes && destOffset < uncompressedSize; i++)
+                destination[destOffset++] = destination[copySource++];
         }
 
         opcodeByte <<= 1;
