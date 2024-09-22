@@ -645,7 +645,8 @@ void App::Menubar() {
     if (ImGui::BeginMenuBar()) {
         static const ImGuiTabBarFlags tabBarFlags =
             ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_TabListPopupButton |
-            ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll;
+            ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll |
+            ImGuiTabBarFlags_AutoSelectNewTabs;
 
         GET_SESSION_MANAGER;
 
