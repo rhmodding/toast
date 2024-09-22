@@ -400,14 +400,17 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
         // Find header file
         const U8::File* headerFile{ nullptr };
-        std::string targetHeaderName =
-            "rcad_" +
-            brcadFiles.at(i)->name.substr(0, brcadFiles.at(i)->name.size() - 6) +
-            "_labels.h";
+
+        char targetHeaderName[128];
+        snprintf(
+            targetHeaderName, 128, "rcad_%.*s_labels.h",
+            static_cast<int>(brcadFiles.at(i)->name.size() - 6),
+            brcadFiles.at(i)->name.c_str()
+        );
 
         // Find header file
         for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
-            if (file.name == targetHeaderName) {
+            if (strcmp(file.name.c_str(), targetHeaderName) == 0) {
                 headerFile = &file;
                 continue;
             }
