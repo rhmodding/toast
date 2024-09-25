@@ -42,7 +42,11 @@ void Popup_SwapAnimation(int animationIndex) {
                     std::numeric_limits<float>::max()
                 }
             );
-            if (ImGui::BeginChild("Properties", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
+            if (ImGui::BeginChild(
+                "Properties",
+                ImVec2(0.f, -ImGui::GetFrameHeightWithSpacing()),
+                ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX
+            )) {
                 if (swapAnim < 0) {
                     ImGui::Bullet();
                     ImGui::SameLine();

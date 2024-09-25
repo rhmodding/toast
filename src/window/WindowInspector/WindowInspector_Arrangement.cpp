@@ -53,7 +53,7 @@ void WindowInspector::Level_Arrangement() {
                 static uint16_t oldArrangement{ 0 };
                 uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
 
-                ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
+                ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
                 if (ImGui::InputScalar(
                     "##ArrangementInput",
                     ImGuiDataType_U16,
@@ -379,8 +379,8 @@ void WindowInspector::Level_Arrangement() {
         for (int n = arrangementPtr->parts.size() - 1; n >= 0; n--) {
             ImGui::PushID(n);
 
-            char buffer[16];
-            sprintf(buffer, "Part no. %u", n+1);
+            char buffer[32];
+            snprintf(buffer, 32, "Part no. %u", n+1);
 
             ImGui::SetNextItemAllowOverlap();
             if (ImGui::Selectable("###PartSelectable", appState.selectedPart == n, ImGuiSelectableFlags_SelectOnNav))

@@ -18,7 +18,7 @@ public:
         message(message)
     {
         char str[32];
-        sprintf(str, "Task%u", id);
+        snprintf(str, 32, "Task%u", id);
 
         this->imguiID = ImHashStr(str);
 
@@ -48,12 +48,12 @@ public:
         if (ImGui::BeginPopupModal((char*)ICON_FA_WAND_MAGIC_SPARKLES "  Working..###WORKING", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::TextUnformatted(this->message);
 
-            ImGui::Dummy(ImVec2(0.f, 1.f));
+            ImGui::Dummy({ 0.f, 1.f });
 
             ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
             ImGui::ProgressBar(
                 -1.f * static_cast<float>(ImGui::GetTime() - this->startTime),
-                ImVec2(.0f, 15.f)
+                { .0f, 15.f }
             );
             ImGui::PopStyleColor();
 

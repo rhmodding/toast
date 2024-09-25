@@ -36,6 +36,10 @@ void Popup_SessionErr() {
             strcpy(errorMessage, "The brcad file could not be opened.");
             errorType = 0;
             break;
+        case SessionManager::SessionOpenError_FailOpenTPL:
+            strcpy(errorMessage, "The TPL file could not be opened.");
+            errorType = 0;
+            break; 
         case SessionManager::SessionOpenError_FailOpenPNG:
             strcpy(errorMessage, "The image file (.png) could not be opened.");
             errorType = 0;
@@ -63,7 +67,7 @@ void Popup_SessionErr() {
             break;
         
         default:
-            sprintf(errorMessage, "An unknown error has occurred (code %i).", errorCode);
+            snprintf(errorMessage, 256, "An unknown error has occurred (code %i).", errorCode);
             errorType = 2;
             break;
     }
@@ -71,21 +75,24 @@ void Popup_SessionErr() {
     char popupTitle[256];
     switch (errorType)  {
         case 0:
-            sprintf(
-                popupTitle, "There was an error opening the session (code %i).###SessionErr",
+            snprintf(
+                popupTitle, 256,
+                "There was an error opening the session (code %i).###SessionErr",
                 errorCode
             );
             break;
         case 1:
-            sprintf(
-                popupTitle, "There was an error exporting the session (code %i).###SessionErr",
+            snprintf(
+                popupTitle, 256,
+                "There was an error exporting the session (code %i).###SessionErr",
                 errorCode
             );
             break;
         
         default:
-            sprintf(
-                popupTitle, "There was an unknown session-related error (code %i).###SessionErr",
+            snprintf(
+                popupTitle, 256,
+                "There was an unknown session-related error (code %i).###SessionErr",
                 errorCode
             );
             break;
@@ -97,7 +104,7 @@ void Popup_SessionErr() {
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted(errorMessage);
 
-        ImGui::Dummy({0, 5});
+        ImGui::Dummy({ ImGui::CalcTextSize(popupTitle, nullptr, true).x - 40, 5});
 
         if (ImGui::Button("Alright", ImVec2(120, 0)))
             ImGui::CloseCurrentPopup();

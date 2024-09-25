@@ -202,15 +202,15 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
         .type = 0x02
     });
 
-    std::stack<std::pair<Directory*, uint32_t>> directoryStack;
+    std::stack<std::pair<Directory*, unsigned>> directoryStack;
     directoryStack.push({ &this->structure, 0 });
 
-    std::vector<uint32_t> parentList;
+    std::vector<unsigned> parentList;
     parentList.push_back(0);
 
     while (!directoryStack.empty()) {
         Directory* currentDir = directoryStack.top().first;
-        uint32_t& index = directoryStack.top().second;
+        unsigned& index = directoryStack.top().second;
 
         if (index < currentDir->files.size()) {
             flattenedArchive.push_back({
@@ -223,7 +223,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
             });
         }
         else if (index < currentDir->files.size() + currentDir->subdirectories.size()) {
-            index -= static_cast<uint32_t>(currentDir->files.size());
+            index -= currentDir->files.size();
             Directory* subDir = &currentDir->subdirectories[index];
 
             flattenedArchive.push_back({
@@ -235,44 +235,45 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
                 .type = 0x01
             });
 
-            parentList.push_back(static_cast<uint32_t>(flattenedArchive.size() - 1));
+            parentList.push_back(flattenedArchive.size() - 1);
             directoryStack.push({ subDir, 0 });
             index++;
         }
         else {
-            for (uint32_t parentIndex : parentList)
-                flattenedArchive.at(parentIndex).nextOutOfDir = static_cast<uint32_t>(flattenedArchive.size());
+            for (unsigned parentIndex : parentList)
+                flattenedArchive.at(parentIndex).nextOutOfDir = flattenedArchive.size();
 
             parentList.pop_back();
             directoryStack.pop();
         }
     }
 
-    uint32_t stringPoolSize{ 1 };
-    uint32_t dataSize{ 0 };
+    // The string pool size is initialized to 1 to account for the
+    // null-termination of the first string (root node name) which
+    // will always be empty.
+    unsigned stringPoolSize{ 1 };
 
-    std::vector<uint32_t> stringOffsets;
-    std::vector<uint32_t> dataOffsets;
+    unsigned dataSize{ 0 };
+
+    std::vector<unsigned> stringOffsets({ 0 });
+    std::vector<unsigned> dataOffsets;
 
     // String offsets
     for (const FlatEntry& entry : flattenedArchive) {
         if (entry.type == 0x01) {
             stringOffsets.push_back(stringPoolSize);
-            stringPoolSize += static_cast<uint32_t>(reinterpret_cast<Directory*>(entry.ptr)->name.size() + 1);
+            stringPoolSize += reinterpret_cast<Directory*>(entry.ptr)->name.size() + 1;
         }
         else if (entry.type == 0x00) {
             stringOffsets.push_back(stringPoolSize);
-            stringPoolSize += static_cast<uint32_t>(reinterpret_cast<File*>(entry.ptr)->name.size() + 1);
+            stringPoolSize += reinterpret_cast<File*>(entry.ptr)->name.size() + 1;
         }
-        else
-            stringOffsets.push_back(0);
     }
 
-    uint32_t dataOffset = static_cast<uint32_t>(
+    unsigned dataOffset =
         sizeof(U8ArchiveHeader) +
         (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-        stringPoolSize
-    );
+        stringPoolSize;
 
     dataOffset = (dataOffset + 31) & ~31;
 
@@ -282,7 +283,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
 
         if (entry.type == 0x00) {
             dataOffsets.push_back(dataOffset + dataSize);
-            dataSize += static_cast<uint32_t>(reinterpret_cast<File*>(entry.ptr)->data.size());
+            dataSize += reinterpret_cast<File*>(entry.ptr)->data.size();
 
             if (i+1 != flattenedArchive.size())
                 dataSize = (dataSize + 31) & ~31;
@@ -401,13 +402,13 @@ std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
     return archive;
 }
 
-std::optional<File> findFile(const std::string& path, const Directory& directory) {
-    size_t pos = path.find('/');
+std::optional<File> findFile(const char* path, const Directory& directory) {
+    const char* pos = strchr(path, '/');
 
-    if (pos == std::string::npos) {
+    if (!pos) {
         // No '/' found: It's a file, go find it
         for (const File& file : directory.files)
-            if (file.name == path)
+            if (strcmp(file.name.c_str(), path) == 0)
                 return file;
 
         // File not found
@@ -415,12 +416,9 @@ std::optional<File> findFile(const std::string& path, const Directory& directory
     }
     else {
         // '/' found: It's a subdirectory, recursively search
-        std::string subDirName = path.substr(0, pos);
-        std::string remainingPath = path.substr(pos + 1);
-
         for (const Directory& subDir : directory.subdirectories)
-            if (subDir.name == subDirName)
-                return findFile(remainingPath, subDir);
+            if (strncmp(subDir.name.c_str(), path, (pos - path)) == 0)
+                return findFile(path + (pos - path) + 1, subDir);
 
         // Subdirectory not found
         return std::nullopt;

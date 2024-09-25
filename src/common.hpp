@@ -13,8 +13,6 @@
 
 #include "texture/TPL.hpp"
 
-//#include "stb/stb_image_write.h"
-
 #ifdef _MSC_VER
     #define BYTESWAP_64 _byteswap_uint64
     #define BYTESWAP_32 _byteswap_ulong

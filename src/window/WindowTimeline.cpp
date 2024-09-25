@@ -29,7 +29,7 @@ void WindowTimeline::Update() {
 
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
     ImGui::Begin("Timeline");
     ImGui::PopStyleVar();
 
@@ -38,169 +38,164 @@ void WindowTimeline::Update() {
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_MenuBarBg));
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.f);
 
-    ImGui::BeginChild("TimelineToolbar", ImVec2(0, 0), ImGuiChildFlags_AutoResizeY);
+    ImGui::BeginChild("TimelineToolbar", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
 
-        ImGui::Dummy(ImVec2(0, .5f));
+        ImGui::Dummy({ 0.f, .5f });
 
-        ImGui::Dummy(ImVec2(2, 0));
+        ImGui::Dummy({ 2.f, 0.f });
         ImGui::SameLine();
 
-        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(15, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 15.f, 0.f });
 
         if (ImGui::BeginTable("TimelineToolbarTable", 3, ImGuiTableFlags_BordersInnerV)) {
             ImGui::TableNextRow();
-            for (unsigned column = 0; column < 3; column++) {
-                ImGui::TableSetColumnIndex(column);
 
-                switch (column) {
-                    case 0: {
-                        char playPauseButtonLabel[24] = { '\0' };
-                        const char* playPauseIcon = playerManager.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
+            ImGui::TableSetColumnIndex(0);
+            {
+                char playPauseButtonLabel[24] = { '\0' };
+                const char* playPauseIcon = playerManager.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
 
-                        sprintf(playPauseButtonLabel, "%s##playPauseButton", playPauseIcon);
+                snprintf(playPauseButtonLabel, 24, "%s##playPauseButton", playPauseIcon);
 
-                        if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
-                            if (
-                                (playerManager.getCurrentKeyIndex() == playerManager.getKeyCount() - 1) &&
-                                (playerManager.getHoldFramesLeft() == 0)
-                            )
-                                playerManager.setCurrentKeyIndex(0);
+                if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
+                    if (
+                        (playerManager.getCurrentKeyIndex() == playerManager.getKeyCount() - 1) &&
+                        (playerManager.getHoldFramesLeft() == 0)
+                    )
+                        playerManager.setCurrentKeyIndex(0);
 
-                            playerManager.ResetTimer();
-                            playerManager.setAnimating(!playerManager.playing);
-                        }
-                        ImGui::SameLine();
+                    playerManager.ResetTimer();
+                    playerManager.setAnimating(!playerManager.playing);
+                }
+                ImGui::SameLine();
 
-                        ImGui::Dummy(ImVec2(2, 0));
-                        ImGui::SameLine();
+                ImGui::Dummy(ImVec2(2, 0));
+                ImGui::SameLine();
 
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                        if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", ImVec2(32-6, 32-6))) {
-                            playerManager.setCurrentKeyIndex(0);
-                        } ImGui::SameLine();
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", ImVec2(32-6, 32-6))) {
+                    playerManager.setCurrentKeyIndex(0);
+                } ImGui::SameLine();
 
-                        ImGui::SetItemTooltip("Go to first key");
+                ImGui::SetItemTooltip("Go to first key");
 
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                        if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", ImVec2(32-6, 32-6))) {
-                            if (playerManager.getCurrentKeyIndex() >= 1)
-                                playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() - 1);
-                        } ImGui::SameLine();
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", ImVec2(32-6, 32-6))) {
+                    if (playerManager.getCurrentKeyIndex() >= 1)
+                        playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() - 1);
+                } ImGui::SameLine();
 
-                        ImGui::SetItemTooltip("Step back a key");
+                ImGui::SetItemTooltip("Step back a key");
 
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                        if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", ImVec2(32-6, 32-6))) {
-                            playerManager.setAnimating(false);
-                            playerManager.setCurrentKeyIndex(0);
-                        } ImGui::SameLine();
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", ImVec2(32-6, 32-6))) {
+                    playerManager.setAnimating(false);
+                    playerManager.setCurrentKeyIndex(0);
+                } ImGui::SameLine();
 
-                        ImGui::SetItemTooltip("Stop playback and go to first key");
+                ImGui::SetItemTooltip("Stop playback and go to first key");
 
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                        if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", ImVec2(32-6, 32-6))) {
-                            if (playerManager.getCurrentKeyIndex() != playerManager.getKeyCount() - 1) {
-                                playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() + 1);
-                            }
-                        } ImGui::SameLine();
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", ImVec2(32-6, 32-6))) {
+                    if (playerManager.getCurrentKeyIndex() != playerManager.getKeyCount() - 1) {
+                        playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() + 1);
+                    }
+                } ImGui::SameLine();
 
-                        ImGui::SetItemTooltip("Step forward a key");
+                ImGui::SetItemTooltip("Step forward a key");
 
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                        if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", ImVec2(32-6, 32-6))) {
-                            playerManager.setCurrentKeyIndex(playerManager.getKeyCount() - 1);
-                        } ImGui::SameLine();
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", ImVec2(32-6, 32-6))) {
+                    playerManager.setCurrentKeyIndex(playerManager.getKeyCount() - 1);
+                } ImGui::SameLine();
 
-                        ImGui::SetItemTooltip("Go to last key");
+                ImGui::SetItemTooltip("Go to last key");
 
-                        ImGui::Dummy(ImVec2(2, 0));
-                        ImGui::SameLine();
+                ImGui::Dummy(ImVec2(2, 0));
+                ImGui::SameLine();
 
-                        {
-                            const bool lLooping = playerManager.looping;
-                            if (lLooping)
-                                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+                {
+                    const bool lLooping = playerManager.looping;
+                    if (lLooping)
+                        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
 
-                            if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", ImVec2(32, 32)))
-                                playerManager.looping ^= true;
+                    if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", ImVec2(32, 32)))
+                        playerManager.looping ^= true;
 
-                            ImGui::SetItemTooltip("Toggle looping");
+                    ImGui::SetItemTooltip("Toggle looping");
 
-                            if (lLooping)
-                                ImGui::PopStyleColor();
-                        }
-                    } break;
+                    if (lLooping)
+                        ImGui::PopStyleColor();
+                }
+            }
 
-                    case 1: {
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
+            ImGui::TableSetColumnIndex(1);
+            {
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
 
-                        uint16_t keyNo = playerManager.getCurrentKeyIndex() + 1;
+                unsigned keyNo = playerManager.getCurrentKeyIndex() + 1;
 
-                        ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                        if (ImGui::InputScalar("Key No.", ImGuiDataType_U16, &keyNo, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
-                            playerManager.setCurrentKeyIndex(std::clamp<uint16_t>(
-                                keyNo - 1, 1, std::numeric_limits<uint16_t>::max()
-                            ));
-                        }
+                ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
+                if (ImGui::InputScalar("Key No.", ImGuiDataType_U32, &keyNo, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                    playerManager.setCurrentKeyIndex(std::clamp<unsigned>(
+                        keyNo - 1, 1, std::numeric_limits<unsigned>::max()
+                    ));
+                }
 
-                        ImGui::SameLine();
+                ImGui::SameLine();
 
-                        int holdFramesLeft = playerManager.getHoldFramesLeft();
+                int holdFramesLeft = playerManager.getHoldFramesLeft();
 
-                        ImGui::BeginDisabled(true);
+                ImGui::BeginDisabled(true);
 
-                        ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                        ImGui::InputInt("Hold Frames Left", &holdFramesLeft, 0, 0, ImGuiInputTextFlags_ReadOnly);
+                ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
+                ImGui::InputInt("Hold Frames Left", &holdFramesLeft, 0, 0, ImGuiInputTextFlags_ReadOnly);
 
-                        ImGui::EndDisabled();
+                ImGui::EndDisabled();
 
-                        ImGui::SameLine();
+                ImGui::SameLine();
 
-                        ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15);
-                        ImGui::InputScalar("FPS", ImGuiDataType_U16, &playerManager.frameRate, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-                    } break;
+                ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
+                ImGui::InputScalar("FPS", ImGuiDataType_U16, &playerManager.frameRate, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+            }
 
-                    case 2: {
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                        if (ImGui::Button((char*)ICON_FA_EYE " Onion Skin ..", ImVec2(0, 32-6)))
-                            ImGui::OpenPopup("###OnionSkinOptions");
+            ImGui::TableSetColumnIndex(2);
+            {
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
+                if (ImGui::Button((char*)ICON_FA_EYE " Onion Skin ..", { 0.f, 32.f - 6.f }))
+                    ImGui::OpenPopup("###OnionSkinOptions");
 
-                        if (ImGui::BeginPopup("###OnionSkinOptions")) {
-                            ImGui::Checkbox("Enabled", &appState.onionSkinState.enabled);
+                if (ImGui::BeginPopup("###OnionSkinOptions")) {
+                    ImGui::Checkbox("Enabled", &appState.onionSkinState.enabled);
 
-                            ImGui::Separator();
+                    ImGui::Separator();
 
-                            static const uint32_t u32_one = 1;
+                    static const uint32_t u32_one = 1;
 
-                            static const uint8_t  u8_min  = 0;
-                            static const uint8_t  u8_max  = 0xFFu;
+                    static const uint8_t  u8_min  = 0;
+                    static const uint8_t  u8_max  = 0xFFu;
 
-                            ImGui::InputScalar("Back count", ImGuiDataType_U32, &appState.onionSkinState.backCount, &u32_one);
-                            ImGui::InputScalar("Front count", ImGuiDataType_U32, &appState.onionSkinState.frontCount, &u32_one);
+                    ImGui::InputScalar("Back count", ImGuiDataType_U32, &appState.onionSkinState.backCount, &u32_one);
+                    ImGui::InputScalar("Front count", ImGuiDataType_U32, &appState.onionSkinState.frontCount, &u32_one);
 
-                            ImGui::Separator();
+                    ImGui::Separator();
 
-                            ImGui::DragScalar(
-                                "Opacity",
-                                ImGuiDataType_U8, &appState.onionSkinState.opacity,
-                                1.f, &u8_min, &u8_max,
-                                "%u/255",
-                                ImGuiSliderFlags_AlwaysClamp
-                            );
+                    ImGui::DragScalar(
+                        "Opacity",
+                        ImGuiDataType_U8, &appState.onionSkinState.opacity,
+                        1.f, &u8_min, &u8_max,
+                        "%u/255",
+                        ImGuiSliderFlags_AlwaysClamp
+                    );
 
-                            ImGui::Separator();
+                    ImGui::Separator();
 
-                            ImGui::Checkbox("Draw behind", &appState.onionSkinState.drawUnder);
+                    ImGui::Checkbox("Draw behind", &appState.onionSkinState.drawUnder);
 
-                            ImGui::EndPopup();
-                        }
-                    } break;
-
-                    default:
-                        break;
+                    ImGui::EndPopup();
                 }
             }
 
@@ -209,11 +204,11 @@ void WindowTimeline::Update() {
 
         ImGui::PopStyleVar();
 
-        ImGui::Dummy(ImVec2(0, .5f));
+        ImGui::Dummy({ 0.f, .5f });
     }
     ImGui::EndChild();
 
-    ImGui::BeginChild("TimelineKeys", ImVec2(0, 0), 0, ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::BeginChild("TimelineKeys", { 0.f, 0.f }, 0, ImGuiWindowFlags_HorizontalScrollbar);
     {
         const ImVec2 buttonDimensions(22.f, 30.f);
 
@@ -227,17 +222,17 @@ void WindowTimeline::Update() {
             ImGui::TableNextRow();
             { // Keys
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Dummy(ImVec2(5, 0));
+                ImGui::Dummy({ 5.f, 0.f });
                 ImGui::SameLine();
                 ImGui::TextUnformatted("Keys");
                 ImGui::TableSetColumnIndex(1);
 
                 {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
-                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
-                    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 4.f, 3.f });
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 2.f, 4.f });
+                    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f);
 
-                    for (uint16_t i = 0; i < playerManager.getKeyCount(); i++) {
+                    for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
                         ImGui::PushID(i);
 
                         bool popColor{ false };
@@ -246,8 +241,8 @@ void WindowTimeline::Update() {
                             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
                         }
 
-                        char buffer[18];
-                        sprintf(buffer, "%u##KeyButton", i+1);
+                        char buffer[24];
+                        snprintf(buffer, 24, "%u##KeyButton", i+1);
 
                         if (ImGui::Button(buffer, buttonDimensions)) {
                             playerManager.setCurrentKeyIndex(i);
@@ -459,13 +454,13 @@ void WindowTimeline::Update() {
                             RvlCellAnim::AnimationKey* key = &globalAnimatable->getCurrentAnimation()->keys.at(i);
 
                             ImGui::BulletText("Arrangement Index: %u", key->arrangementIndex);
-                            ImGui::Dummy(ImVec2(0, 10));
+                            ImGui::Dummy({ 0.f, 10.f });
                             ImGui::BulletText("Held for: %u frame(s)", key->holdFrames);
-                            ImGui::Dummy(ImVec2(0, 10));
+                            ImGui::Dummy({ 0.f, 10.f });
                             ImGui::BulletText("Scale X: %f", key->transform.scaleX);
                             ImGui::BulletText("Scale Y: %f", key->transform.scaleY);
                             ImGui::BulletText("Angle: %f", key->transform.angle);
-                            ImGui::Dummy(ImVec2(0, 10));
+                            ImGui::Dummy({ 0.f, 10.f });
                             ImGui::BulletText("Opacity: %u/255", key->opacity);
 
                             ImGui::EndTooltip();
@@ -549,7 +544,7 @@ void WindowTimeline::Update() {
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
                     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
 
-                    for (uint16_t i = 0; i < playerManager.getKeyCount(); i++) {
+                    for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
                         ImGui::PushID(i);
 
                         // Key button dummy
@@ -597,11 +592,11 @@ void WindowTimeline::Update() {
                         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
                         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
 
-                        for (uint16_t i = 0; i < playerManager.getKeyCount(); i++) {
+                        for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
                             ImGui::PushID(i);
 
                             char buffer[24];
-                            sprintf(buffer, "%u##OnionSkinButton", i+1);
+                            snprintf(buffer, 24, "%u##OnionSkinButton", i+1);
 
                             ImGui::BeginDisabled();
                             if (

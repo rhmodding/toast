@@ -345,6 +345,13 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     TPL::TPLObject tplObject =
         TPL::TPLObject((*__tplSearch).data.data(), (*__tplSearch).data.size());
 
+    if (!tplObject.ok) {
+        std::lock_guard<std::mutex> lock(this->mtx);
+        this->lastSessionError = SessionOpenError_FailOpenTPL;
+
+        return -1;
+    }
+
     std::vector<const U8::File*> brcadFiles;
     for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
         if (
@@ -393,14 +400,17 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
         // Find header file
         const U8::File* headerFile{ nullptr };
-        std::string targetHeaderName =
-            "rcad_" +
-            brcadFiles.at(i)->name.substr(0, brcadFiles.at(i)->name.size() - 6) +
-            "_labels.h";
+
+        char targetHeaderName[128];
+        snprintf(
+            targetHeaderName, 128, "rcad_%.*s_labels.h",
+            static_cast<int>(brcadFiles.at(i)->name.size() - 6),
+            brcadFiles.at(i)->name.c_str()
+        );
 
         // Find header file
         for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
-            if (file.name == targetHeaderName) {
+            if (strcmp(file.name.c_str(), targetHeaderName) == 0) {
                 headerFile = &file;
                 continue;
             }
@@ -713,17 +723,17 @@ void SessionManager::SessionChanged() {
     this->currentSession =
         std::clamp<int>(this->currentSession, -1, this->sessionList.size() - 1);
 
-    if (UNLIKELY(this->currentSession < 0))
+    if (this->currentSession < 0)
         return;
 
     GET_APP_STATE;
     GET_ANIMATABLE;
 
-    Common::deleteIfNotNullptr(globalAnimatable);
+    Common::deleteIfNotNullptr(globalAnimatable, false);
 
     globalAnimatable = new Animatable(
-        this->getCurrentSession()->getCellanimObject(),
-        this->getCurrentSession()->getCellanimSheet()
+        this->sessionList[this->currentSession].getCellanimObject(),
+        this->sessionList[this->currentSession].getCellanimSheet()
     );
 
     appState.selectedAnimation = std::clamp<unsigned>(

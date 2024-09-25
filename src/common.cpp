@@ -1,8 +1,10 @@
 #include "common.hpp"
 
+#define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#define STB_IMAGE_WRITE_STATIC
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
@@ -21,7 +23,7 @@ float byteswapFloat(float value) {
 
 bool SaveBackupFile(const char* filePath, bool once) {
     char newFileName[PATH_MAX];
-    sprintf(newFileName, "%s.bak", filePath);
+    snprintf(newFileName, PATH_MAX, "%s.bak", filePath);
 
     bool exists{ false };
     {

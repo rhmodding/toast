@@ -23,8 +23,8 @@ public:
 
 protected:
     void Run() override {
-        int tResult = SessionManager::getInstance().PushSessionFromCompressedArc(filePath.c_str());
-        result.store(tResult);
+        int lResult = SessionManager::getInstance().PushSessionFromCompressedArc(filePath.c_str());
+        result.store(lResult);
     }
 
     void Effect() override {

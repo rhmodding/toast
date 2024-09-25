@@ -27,22 +27,24 @@ void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, uint32_t offset = 0) {
 
 #pragma region Ixx
 
-void IMPLEMENTATION_FROM_I4(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 8); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 8) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
 
-            for (unsigned pY = 0; pY < 8; pY++) {
-                for (unsigned pX = 0; pX < 8; pX += 2) {
-                    if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 8 + pY >= srcHeight))
-                        continue;
+            for (unsigned y = 0; y < 8; y++) {
+                if (yy + y >= srcHeight) break;
 
-                    const uint8_t intensityA = ((data[readOffset] & 0xF0) >> 4) * 0x11;
-                    const uint8_t intensityB = (data[readOffset] & 0x0F) * 0x11;
-                    readOffset++;
+                const unsigned rowBase = srcWidth * (yy + y);
 
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 8) + pY) + (xBlock * 8) + pX);
+                for (unsigned x = 0; x < 8; x += 2) {
+                    if (xx + x >= srcWidth) break;
+
+                    const uint8_t intensityA = ((data[readOffset + (y * 8) + x] & 0xF0) >> 4) * 0x11;
+                    const uint8_t intensityB = (data[readOffset + (y * 8) + x] & 0x0F) * 0x11;
+
+                    const unsigned destIndex = (rowBase + xx + x) * 4;
 
                     result[destIndex + 0] = intensityA;
                     result[destIndex + 1] = intensityA;
@@ -55,24 +57,26 @@ void IMPLEMENTATION_FROM_I4(unsigned char* result, uint16_t srcWidth, uint16_t s
                     result[destIndex + 7] = 0xFFu;
                 }
             }
+            readOffset += 1 * 8 * 8;
         }
     }
 }
 
-void IMPLEMENTATION_FROM_I8(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
 
-            for (unsigned pY = 0; pY < 4; pY++) {
-                for (unsigned pX = 0; pX < 8; pX++) {
-                    if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
-                        continue;
+            for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
 
-                    const uint8_t intensity = data[readOffset++];
+                for (unsigned x = 0; x < 8; x++) {
+                    if (xx + x >= srcWidth) break;
 
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 8) + pX);
+                    const uint8_t intensity = data[readOffset + (y * 8) + x];
+
+                    const uint32_t destIndex = 4 * (srcWidth * (yy + y) + xx + x);
 
                     result[destIndex + 0] = intensity;
                     result[destIndex + 1] = intensity;
@@ -80,27 +84,29 @@ void IMPLEMENTATION_FROM_I8(unsigned char* result, uint16_t srcWidth, uint16_t s
                     result[destIndex + 3] = 0xFFu;
                 }
             }
+            readOffset += 1 * 8 * 4;
         }
     }
 }
 
-void IMPLEMENTATION_FROM_IA4(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
 
-            for (unsigned pY = 0; pY < 4; pY++) {
-                for (unsigned pX = 0; pX < 8; pX++) {
-                    if ((xBlock * 8 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
-                        continue;
+            for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
 
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 8) + pX);
+                const unsigned rowBase = srcWidth * (yy + y);
 
-                    const uint8_t alpha = ((data[readOffset] & 0xF0) >> 4) * 0x11;
-                    const uint8_t intensity = (data[readOffset] & 0x0F) * 0x11;
+                for (unsigned x = 0; x < 8; x++) {
+                    if (xx + x >= srcWidth) break;
 
-                    readOffset++;
+                    const unsigned destIndex = (rowBase + xx + x) * 4;
+
+                    const uint8_t alpha = ((data[readOffset + (y * 8) + x] & 0xF0) >> 4) * 0x11;
+                    const uint8_t intensity = (data[readOffset + (y * 8) + x] & 0x0F) * 0x11;
 
                     result[destIndex + 0] = intensity;
                     result[destIndex + 1] = intensity;
@@ -108,25 +114,29 @@ void IMPLEMENTATION_FROM_IA4(unsigned char* result, uint16_t srcWidth, uint16_t 
                     result[destIndex + 3] = alpha;
                 }
             }
+            readOffset += 1 * 8 * 4;
         }
     }
 }
 
-void IMPLEMENTATION_FROM_IA8(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 4) {
 
-            for (unsigned pY = 0; pY < 4; pY++) {
-                for (unsigned pX = 0; pX < 4; pX++) {
-                    if ((xBlock * 4 + pX >= srcWidth) || (yBlock * 4 + pY >= srcHeight))
-                        continue;
+            for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
 
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + pY) + (xBlock * 4) + pX);
+                const unsigned rowBase = srcWidth * (yy + y);
 
-                    const uint8_t alpha = data[readOffset++];
-                    const uint8_t intensity = data[readOffset++];
+                for (unsigned x = 0; x < 4; x++) {
+                    if (xx + x >= srcWidth) break;
+
+                    const unsigned destIndex = (rowBase + xx + x) * 4;
+
+                    const uint8_t alpha = data[readOffset + (y * 2 * 4) + (x * 2) + 0];
+                    const uint8_t intensity = data[readOffset + (y * 2 * 4) + (x * 2) + 1];
 
                     result[destIndex + 0] = intensity;
                     result[destIndex + 1] = intensity;
@@ -134,6 +144,7 @@ void IMPLEMENTATION_FROM_IA8(unsigned char* result, uint16_t srcWidth, uint16_t 
                     result[destIndex + 3] = alpha;
                 }
             }
+            readOffset += 2 * 4 * 4;
         }
     }
 }
@@ -142,21 +153,25 @@ void IMPLEMENTATION_FROM_IA8(unsigned char* result, uint16_t srcWidth, uint16_t 
 
 #pragma region RGBxxx
 
-void IMPLEMENTATION_FROM_RGB565(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
-        for (uint16_t xx = 0; xx < srcWidth; xx += 4) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 4) {
 
             for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
                 for (unsigned x = 0; x < 4; x++) {
-                    if (xx + x >= srcWidth || yy + y >= srcHeight)
-                        continue;
+                    if (xx + x >= srcWidth) break;
 
-                    const uint32_t writeOffset = ((srcWidth * (yy + y)) + xx + x) * 4;
+                    const unsigned writeOffset = (rowBase + xx + x) * 4;
 
-                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
-                    readOffset += sizeof(uint16_t);
+                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(
+                        data + readOffset + (y * 2 * 4) + (x * 2)
+                    ));
 
                     result[writeOffset + 0] = ((sourcePixel >> 11) & 0x1f) << 3;
                     result[writeOffset + 1] = ((sourcePixel >>  5) & 0x3f) << 2;
@@ -164,28 +179,30 @@ void IMPLEMENTATION_FROM_RGB565(unsigned char* result, uint16_t srcWidth, uint16
                     result[writeOffset + 3] = 0xFFu;
                 }
             }
+            readOffset += 2 * 4 * 4;
         }
     }
 }
 
-void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t yy = 0; yy < srcHeight; yy += 4) {
-        for (uint16_t xx = 0; xx < srcWidth; xx += 4) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 4) {
 
             for (unsigned y = 0; y < 4; y++) {
                 if (yy + y >= srcHeight) break;
 
-                const uint32_t rowBase = srcWidth * (yy + y);
+                const unsigned rowBase = srcWidth * (yy + y);
 
                 for (unsigned x = 0; x < 4; x++) {
                     if (xx + x >= srcWidth) break;
 
-                    const uint32_t writeOffset = (rowBase + xx + x) * 4;
+                    const unsigned writeOffset = (rowBase + xx + x) * 4;
 
-                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
-                    readOffset += sizeof(uint16_t);
+                    const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(
+                        data + readOffset + (y * 2 * 4) + (x * 2)
+                    ));
 
                     if ((sourcePixel & 0x8000) != 0) { // RGB555
                         result[writeOffset + 0] = (((sourcePixel >> 10) & 0x1f) << 3) | (((sourcePixel >> 10) & 0x1f) >> 2);
@@ -195,54 +212,64 @@ void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, uint16_t srcWidth, uint16
                         result[writeOffset + 3] = 0xFFu;
                     }
                     else { // RGBA4443
-                        result[writeOffset + 3] =
-                            (((sourcePixel >> 12) & 0x7) << 5) | (((sourcePixel >> 12) & 0x7) << 2) |
-                            (((sourcePixel >> 12) & 0x7) >> 1);
+                        result[writeOffset + 0] = (((sourcePixel >> 8) & 0x0f) << 4) | ((sourcePixel >> 8) & 0x0f);
+                        result[writeOffset + 1] = (((sourcePixel >> 4) & 0x0f) << 4) | ((sourcePixel >> 4) & 0x0f);
+                        result[writeOffset + 2] = (((sourcePixel) & 0x0f) << 4) | ((sourcePixel) & 0x0f);
 
-                        result[writeOffset + 0] = (((sourcePixel >> 8) & 0xf) << 4) | ((sourcePixel >> 8) & 0xf);
-                        result[writeOffset + 1] = (((sourcePixel >> 4) & 0xf) << 4) | ((sourcePixel >> 4) & 0xf);
-                        result[writeOffset + 2] = (((sourcePixel) & 0xf) << 4) | ((sourcePixel) & 0xf);
+                        result[writeOffset + 3] =
+                            (((sourcePixel >> 12) & 0x07) << 5) | (((sourcePixel >> 12) & 0x07) << 2) |
+                            (((sourcePixel >> 12) & 0x07) >> 1);
                     }
                 }
             }
+            readOffset += 2 * 4 * 4;
+
         }
     }
 }
 
-void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 4) {
             // The block data is split down into two subblocks:
             //    Subblock A: Alpha and Red channel
             //    Subblock B: Green and Blue channel
 
             // Subblock A
             for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
                 for (unsigned x = 0; x < 4; x++) {
-                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
-                        continue;
+                    if (xx + x >= srcWidth) break;
 
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 4) + x);
+                    const unsigned destIndex = (rowBase + xx + x) * 4;
 
-                    result[destIndex + 3] = data[readOffset++]; // Alpha channel
-                    result[destIndex + 0] = data[readOffset++]; // Red channel
+                    result[destIndex + 3] = data[readOffset + (y * 2 * 4) + (x * 2) + 0]; // Alpha channel
+                    result[destIndex + 0] = data[readOffset + (y * 2 * 4) + (x * 2) + 1]; // Red channel
                 }
             }
+            readOffset += 2 * 4 * 4;
 
             // Subblock B
             for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
                 for (unsigned x = 0; x < 4; x++) {
-                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
-                        continue;
+                    if (xx + x >= srcWidth) break;
 
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 4) + x);
+                    const unsigned destIndex = (rowBase + xx + x) * 4;
 
-                    result[destIndex + 1] = data[readOffset++]; // Green channel
-                    result[destIndex + 2] = data[readOffset++]; // Blue channel
+                    result[destIndex + 1] = data[readOffset + (y * 2 * 4) + (x * 2) + 0]; // Green channel
+                    result[destIndex + 2] = data[readOffset + (y * 2 * 4) + (x * 2) + 1]; // Blue channel
                 }
             }
+            readOffset += 2 * 4 * 4;
         }
     }
 }
@@ -251,19 +278,24 @@ void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, uint16_t srcWidth, uint16
 
 #pragma region Cx
 
-void IMPLEMENTATION_FROM_C8(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data, uint32_t* colorPalette) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, uint32_t* colorPalette) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
 
             for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
                 for (unsigned x = 0; x < 8; x++) {
-                    if ((xBlock * 8 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
+                    if (srcWidth + x >= srcWidth) break;
+                    if ((srcWidth + x >= srcWidth) || (yy + y >= srcHeight))
                         continue;
 
                     const uint32_t color = colorPalette[data[readOffset++]];
-                    const uint32_t destIndex = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 8) + x);
+                    const uint32_t destIndex = 4 * (rowBase * (yy + y) + xx + x);
 
                     result[destIndex + 0] = (color >> 24) & 0xFFu;
                     result[destIndex + 1] = (color >> 16) & 0xFFu;
@@ -279,11 +311,13 @@ void IMPLEMENTATION_FROM_C8(unsigned char* result, uint16_t srcWidth, uint16_t s
 
 #pragma region CMPR
 
-void IMPLEMENTATION_FROM_CMPR(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t readOffset{ 0 };
+void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned readOffset{ 0 };
 
-    for (uint16_t y = 0; y < srcHeight; y += 4) {
-        for (uint16_t x = 0; x < srcWidth; x += 4) {
+    // TODO: fix CMPR
+
+    for (unsigned y = 0; y < srcHeight; y += 4) {
+        for (unsigned x = 0; x < srcWidth; x += 4) {
             const uint16_t color1 = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
             readOffset += sizeof(uint16_t);
 
@@ -350,23 +384,24 @@ void IMPLEMENTATION_FROM_CMPR(unsigned char* result, uint16_t srcWidth, uint16_t
 
 #pragma region RGBxxx
 
-void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t writeOffset{ 0 };
+void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned writeOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 4) {
 
             for (unsigned y = 0; y < 4; y++) {
-                for (unsigned x = 0; x < 4; x++) {
-                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
-                        continue;
+                if (yy + y >= srcHeight) break;
 
-                    const uint8_t* readPixel = data +
-                        (((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x)) * 4);
+                const unsigned rowBase = srcWidth * (yy + y);
+
+                for (unsigned x = 0; x < 4; x++) {
+                    if (xx + x >= srcWidth) break;
+
+                    const uint8_t* readPixel = data + (rowBase + xx + x) * 4;
 
                     // A pixel is 16-bit but we write it in two 8-bit segments.
-                    uint8_t* pixel = reinterpret_cast<uint8_t*>(&result[writeOffset]);
-                    writeOffset += sizeof(uint16_t);
+                    uint8_t* pixel = result + writeOffset + (y * 2 * 4) + (x * 2);
 
                     if (readPixel[3] == 255) { // Opaque, write RGB555 pixel
                         // Bits:
@@ -374,8 +409,8 @@ void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint16_t srcWidth, uint16_t
                         // ^    ^    ^     ^
                         // Type Red  Green Blue
 
-                        *(pixel + 0) = 0x0080 | ((readPixel[0] & 0xF8) >> 1) | (readPixel[1] >> 6);
-                        *(pixel + 1) = ((readPixel[1] & 0x38) << 2) | (readPixel[2] >> 3);
+                        pixel[0] = 0x0080 | ((readPixel[0] & 0xF8) >> 1) | (readPixel[1] >> 6);
+                        pixel[1] = ((readPixel[1] & 0x38) << 2) | (readPixel[2] >> 3);
                     }
                     else { // Transparent, write RGBA4443
                         // Bits:
@@ -383,50 +418,59 @@ void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint16_t srcWidth, uint16_t
                         // ^    ^     ^   ^     ^
                         // Type Alpha Red Green Blue
 
-                        *(pixel + 0) = ((readPixel[3] >> 1) & 0x70) | ((readPixel[0] & 0xF0) >> 4);
-                        *(pixel + 1) = (readPixel[1] & 0xF0) | ((readPixel[2] & 0xF0) >> 4);
+                        pixel[0] = ((readPixel[3] >> 1) & 0x70) | ((readPixel[0] & 0xF0) >> 4);
+                        pixel[1] = (readPixel[1] & 0xF0) | ((readPixel[2] & 0xF0) >> 4);
                     }
                 }
             }
+            writeOffset += 2 * 4 * 4;
+
         }
     }
 }
 
-void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
-    uint32_t writeOffset = 0;
+void IMPLEMENTATION_TO_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned writeOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 4) {
             // The block data is split down into two subblocks:
             //    Subblock A: Alpha and Red channel
             //    Subblock B: Green and Blue channel
 
             // Subblock A
             for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
                 for (unsigned x = 0; x < 4; x++) {
-                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
-                        continue;
+                    if (xx + x >= srcWidth) break;
 
-                    const uint32_t readOffset = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 4) + x);
+                    const unsigned readOffset = (rowBase + xx + x) * 4;
 
-                    result[writeOffset++] = data[readOffset + 3]; // Alpha channel
-                    result[writeOffset++] = data[readOffset + 0]; // Red channel
+                    result[writeOffset + (y * 2 * 4) + (x * 2) + 0] = data[readOffset + 3]; // Alpha channel
+                    result[writeOffset + (y * 2 * 4) + (x * 2) + 1] = data[readOffset + 0]; // Red channel
                 }
             }
+            writeOffset += 2 * 4 * 4;
 
             // Subblock B
             for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
                 for (unsigned x = 0; x < 4; x++) {
-                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
-                        continue;
+                    if (xx + x >= srcWidth) break;
 
-                    const uint32_t readOffset = 4 * (srcWidth * ((yBlock * 4) + y) + (xBlock * 4) + x);
+                    const unsigned readOffset = (rowBase + xx + x) * 4;
 
-                    result[writeOffset++] = data[readOffset + 1]; // Green channel
-                    result[writeOffset++] = data[readOffset + 2]; // Blue channel
+                    result[writeOffset + (y * 2 * 4) + (x * 2) + 0] = data[readOffset + 1]; // Green channel
+                    result[writeOffset + (y * 2 * 4) + (x * 2) + 1] = data[readOffset + 2]; // Blue channel
                 }
             }
-
+            writeOffset += 2 * 4 * 4;
         }
     }
 }
@@ -435,13 +479,13 @@ void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint16_t srcWidth, uint16_t
 
 #pragma region Cx
 
-void IMPLEMENTATION_TO_C8(unsigned char* result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_TO_C8(unsigned char* result, std::vector<uint32_t>& colors, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
                        // Color  // Index
     std::unordered_map<uint32_t, uint8_t> indexMap;
     for (unsigned i = 0; i < colors.size(); i++)
         indexMap[colors.at(i)] = static_cast<uint8_t>(i);
 
-    uint32_t writeOffset{ 0 };
+    unsigned writeOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
@@ -468,13 +512,13 @@ void IMPLEMENTATION_TO_C8(unsigned char* result, std::vector<uint32_t>& colors, 
     }
 }
 
-void IMPLEMENTATION_TO_C14X2(unsigned char* result, std::vector<uint32_t>& colors, uint16_t srcWidth, uint16_t srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_TO_C14X2(unsigned char* result, std::vector<uint32_t>& colors, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
                        // Color  // Index (byteswapped)
     std::unordered_map<uint32_t, uint16_t> indexMap;
     for (unsigned i = 0; i < colors.size(); i++)
         indexMap[colors.at(i)] = BYTESWAP_16(static_cast<uint16_t>(i));
 
-    uint32_t writeOffset{ 0 };
+    unsigned writeOffset{ 0 };
 
     for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
         for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
@@ -492,6 +536,7 @@ void IMPLEMENTATION_TO_C14X2(unsigned char* result, std::vector<uint32_t>& color
                     uint16_t* pixel = reinterpret_cast<uint16_t*>(&result[writeOffset]);
                     writeOffset += sizeof(uint16_t);
 
+                    // TODO: fix colors not being found
                     if (indexMap.find(readPixel) != indexMap.end()) {
                         *pixel = indexMap[readPixel];
                     }
@@ -508,42 +553,40 @@ void IMPLEMENTATION_TO_C14X2(unsigned char* result, std::vector<uint32_t>& color
 //////////////////////////////////////////////////////////////////
 
 bool ImageConvert::toRGBA32(
-    std::vector<unsigned char>& buffer,
+    unsigned char* buffer,
     const TPL::TPLImageFormat type,
-    const uint16_t srcWidth,
-    const uint16_t srcHeight,
+    const unsigned srcWidth,
+    const unsigned srcHeight,
     const unsigned char* data,
     uint32_t* colorPalette
 ) {
-    buffer.resize(srcWidth * srcHeight * 4);
-
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4:
-            IMPLEMENTATION_FROM_I4(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_I4(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_I8:
-            IMPLEMENTATION_FROM_I8(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_I8(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_IA4:
-            IMPLEMENTATION_FROM_IA4(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_IA4(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_IA8:
-            IMPLEMENTATION_FROM_IA8(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_IA8(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
-            IMPLEMENTATION_FROM_RGB565(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGB565(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            IMPLEMENTATION_FROM_RGB5A3(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGB5A3(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            IMPLEMENTATION_FROM_RGBA32(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_RGBA32(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_C8:
@@ -552,11 +595,11 @@ bool ImageConvert::toRGBA32(
                 return false;
             }
 
-            IMPLEMENTATION_FROM_C8(buffer.data(), srcWidth, srcHeight, data, colorPalette);
+            IMPLEMENTATION_FROM_C8(buffer, srcWidth, srcHeight, data, colorPalette);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
-            IMPLEMENTATION_FROM_CMPR(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_FROM_CMPR(buffer, srcWidth, srcHeight, data);
             break;
 
         default:
@@ -567,26 +610,20 @@ bool ImageConvert::toRGBA32(
 }
 
 bool ImageConvert::fromRGBA32(
-    std::vector<unsigned char>& buffer,
+    unsigned char* buffer,
     const TPL::TPLImageFormat type,
-    const uint16_t srcWidth,
-    const uint16_t srcHeight,
+    const unsigned srcWidth,
+    const unsigned srcHeight,
     const unsigned char* data,
     std::vector<uint32_t>* colorPalette
 ) {
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            buffer.resize(
-                ImageConvert::getImageByteSize(IMGFMT::TPL_IMAGE_FORMAT_RGB5A3, srcWidth, srcHeight)
-            );
-            IMPLEMENTATION_TO_RGB5A3(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_TO_RGB5A3(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            buffer.resize(
-                ImageConvert::getImageByteSize(IMGFMT::TPL_IMAGE_FORMAT_RGBA32, srcWidth, srcHeight)
-            );
-            IMPLEMENTATION_TO_RGBA32(buffer.data(), srcWidth, srcHeight, data);
+            IMPLEMENTATION_TO_RGBA32(buffer, srcWidth, srcHeight, data);
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_C8:
@@ -595,11 +632,7 @@ bool ImageConvert::fromRGBA32(
                 return false;
             }
 
-            buffer.resize(
-                ImageConvert::getImageByteSize(IMGFMT::TPL_IMAGE_FORMAT_C8, srcWidth, srcHeight)
-            );
-
-            IMPLEMENTATION_TO_C8(buffer.data(), *colorPalette, srcWidth, srcHeight, data);
+            IMPLEMENTATION_TO_C8(buffer, *colorPalette, srcWidth, srcHeight, data);
             break;
         case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
             if (!colorPalette) {
@@ -607,11 +640,7 @@ bool ImageConvert::fromRGBA32(
                 return false;
             }
 
-            buffer.resize(
-                ImageConvert::getImageByteSize(IMGFMT::TPL_IMAGE_FORMAT_C14X2, srcWidth, srcHeight)
-            );
-
-            IMPLEMENTATION_TO_C14X2(buffer.data(), *colorPalette, srcWidth, srcHeight, data);
+            IMPLEMENTATION_TO_C14X2(buffer, *colorPalette, srcWidth, srcHeight, data);
             break;
 
         default:
@@ -621,7 +650,7 @@ bool ImageConvert::fromRGBA32(
     return true;
 }
 
-uint32_t ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const uint16_t width, const uint16_t height) {
+unsigned ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, const unsigned height) {
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4:
             return width * height / 2;
@@ -663,7 +692,7 @@ uint32_t ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const ui
     return 0;
 }
 
-uint32_t ImageConvert::getImageByteSize(const TPL::TPLTexture& texture) {
+unsigned ImageConvert::getImageByteSize(const TPL::TPLTexture& texture) {
     switch (texture.format) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4:
             return texture.width * texture.height / 2;

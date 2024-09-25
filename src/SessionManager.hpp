@@ -153,18 +153,19 @@ public:
     enum SessionError {
         SessionError_None = 0,
 
-        SessionOpenError_FailOpenArchive = -1,
-        SessionOpenError_FailFindTPL = -2,
-        SessionOpenError_RootDirNotFound = -3,
-        SessionOpenError_NoBXCADsFound = -4,
-        SessionOpenError_FailOpenBXCAD = -5,
-        SessionOpenError_FailOpenPNG = -6,
-        SessionOpenError_FailOpenHFile = -7,
-        SessionOpenError_SessionsFull = -8,
+        SessionOpenError_FailOpenArchive = -0xFF,
+        SessionOpenError_FailFindTPL,
+        SessionOpenError_RootDirNotFound,
+        SessionOpenError_NoBXCADsFound,
+        SessionOpenError_FailOpenBXCAD,
+        SessionOpenError_FailOpenTPL,
+        SessionOpenError_FailOpenPNG,
+        SessionOpenError_FailOpenHFile,
+        SessionOpenError_SessionsFull,
 
-        SessionOutError_FailOpenFile = -9,
-        SessionOutError_ZlibError = -10,
-        SessionOutError_FailTPLTextureExport = -11,
+        SessionOutError_FailOpenFile,
+        SessionOutError_ZlibError,
+        SessionOutError_FailTPLTextureExport,
     } lastSessionError{ SessionError_None };
 
     // Push session from a Yaz0-compressed Arc file (SZS).

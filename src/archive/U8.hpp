@@ -58,7 +58,7 @@ public:
 
 std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath);
 
-std::optional<File> findFile(const std::string& path, const Directory& directory);
+std::optional<File> findFile(const char* path, const Directory& directory);
 
 } // namespace U8
 

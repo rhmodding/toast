@@ -99,7 +99,7 @@ void WindowConfig::Update() {
         // Right
         {
             ImGui::BeginGroup();
-            ImGui::BeginChild("Properties", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
+            ImGui::BeginChild("Properties", ImVec2(0.f, -ImGui::GetFrameHeightWithSpacing()));
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, -2 });
 
@@ -164,7 +164,7 @@ void WindowConfig::Update() {
                         clName = levelNames[selectedLevel];
                     else {
                         static char buf[64];
-                        sprintf(buf, "Other (lvl %i)", this->selfConfig.compressionLevel);
+                        snprintf(buf, 64, "Other (lvl %i)", this->selfConfig.compressionLevel);
     
                         clName = buf;
                     }

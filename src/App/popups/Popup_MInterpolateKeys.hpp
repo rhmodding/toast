@@ -115,7 +115,7 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
     bb.Expand({ -(padX / 2.f), -(padY / 2.f) });
 
     char buf[128];
-    sprintf(buf, "%s##bInteract", label);
+    snprintf(buf, 128, "%s##bInteract", label);
 
     ImGui::InvisibleButton(buf, outerBb.GetSize(),
         ImGuiButtonFlags_MouseButtonLeft
@@ -292,7 +292,7 @@ void Popup_MInterpolateKeys() {
         currentKey = globalAnimatable->getCurrentKey();
         nextKey = currentKey + 1;
 
-        currentKeyIndex = globalAnimatable->getCurrentKeyIndex();
+        currentKeyIndex = static_cast<int>(globalAnimatable->getCurrentKeyIndex());
 
         // Does next key exist?
         condition = currentKeyIndex + 1 < currentAnimation->keys.size();

@@ -72,9 +72,16 @@ void WindowHybridList::Update() {
         );
     }
 
-    ImGui::Begin(appState.getArrangementMode() ? "Arrangements###HybridList" : "Animations###HybridList", nullptr);
+    char label[32];
+    snprintf(
+        label, 32, "%s###HybridList",
+        appState.getArrangementMode() ?
+            "Arrangements" : "Animations"
+    );
 
-    ImGui::BeginChild("List", ImVec2(0, 0), ImGuiChildFlags_Border);
+    ImGui::Begin(label);
+
+    ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Border);
     {
         int deleteArrangement{ -1 };
 
@@ -150,8 +157,8 @@ void WindowHybridList::Update() {
             }
         else
             for (unsigned n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
-                char buffer[32];
-                sprintf(buffer, "Arrangement no. %d", n+1);
+                char buffer[48];
+                snprintf(buffer, 48, "Arrangement no. %d", n+1);
 
                 RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
