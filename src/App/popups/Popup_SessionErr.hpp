@@ -65,7 +65,7 @@ void Popup_SessionErr() {
             strcpy(errorMessage, "There was an error exporting a texture.");
             errorType = 1;
             break;
-        
+
         default:
             snprintf(errorMessage, 256, "An unknown error has occurred (code %i).", errorCode);
             errorType = 2;
@@ -88,7 +88,7 @@ void Popup_SessionErr() {
                 errorCode
             );
             break;
-        
+
         default:
             snprintf(
                 popupTitle, 256,

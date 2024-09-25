@@ -177,7 +177,7 @@ void WindowSpritesheet::FormatPopup() {
         // Left
         {
             ImGui::BeginGroup();
-            
+
             ImGui::SetNextWindowSizeConstraints(
                 { 270.f, 0.f },
                 {
