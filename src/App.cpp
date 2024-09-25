@@ -246,6 +246,7 @@ void App::Menubar() {
     GET_APP_STATE;
     GET_SESSION_MANAGER;
     GET_PLAYER_MANAGER;
+    GET_CONFIG_MANAGER;
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
@@ -283,6 +284,35 @@ void App::Menubar() {
                 nullptr
             ))
                 Actions::Dialog_CreateTraditionalSession();
+
+            const auto& recentlyOpened = configManager.getConfig().recentlyOpened;
+            if (ImGui::BeginMenu(
+                (char*)ICON_FA_FILE_IMPORT " Open recent",
+                !recentlyOpened.empty()
+            )) {
+                for (unsigned i = 0; i < 12; i++) {
+                    const int j = recentlyOpened.size() > i ? recentlyOpened.size() - 1 - i : -1;
+                    const bool none = (j < 0);
+
+                    ImGui::BeginDisabled(none);
+
+                    char label[128];
+                    if (none)
+                        snprintf(label, 128, "%u. -", i + 1);
+                    else
+                        snprintf(label, 128, "%u. %s", i + 1, recentlyOpened[j].c_str());
+
+                    if (ImGui::MenuItem(label) && !none) {
+                        AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
+                            recentlyOpened[j]
+                        );
+                    }
+
+                    ImGui::EndDisabled();
+                }
+
+                ImGui::EndMenu();
+            }
 
             ImGui::Separator();
 
@@ -480,7 +510,7 @@ void App::Menubar() {
 
                     sessionManager.getCurrentSessionModified() = true;
                 }
-                
+
                 ImGui::EndMenu();
             }
 
@@ -529,7 +559,7 @@ void App::Menubar() {
                     if (!appState.getArrangementMode()) {
                         auto newKey = *key;
                         newKey.arrangementIndex = newIndex;
-                            
+
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyAnimationKey>(
                             sessionManager.getCurrentSession()->currentCellanim,

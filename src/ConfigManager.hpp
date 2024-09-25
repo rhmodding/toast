@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include <vector>
+
 #include <iostream>
 #include <fstream>
 
@@ -49,7 +51,9 @@ public:
         std::string imageEditorPath{ "" };
 
         std::string textureEditPath{ "./toastEditTexture.temp.png" };
-        
+
+        std::vector<std::string> recentlyOpened;
+
         int lastWindowWidth{ 1500 };
         int lastWindowHeight{ 780 };
 
@@ -92,6 +96,7 @@ public:
             {"theme", config.theme},
             {"imageEditorPath", config.imageEditorPath},
             {"textureEditPath", config.textureEditPath},
+            {"recentlyOpened", config.recentlyOpened},
             {"lastWindowWidth", config.lastWindowWidth},
             {"lastWindowHeight", config.lastWindowHeight},
             {"canvasLMBPanEnabled", config.canvasLMBPanEnabled},
@@ -101,15 +106,16 @@ public:
         };
     }
     friend void from_json(const nlohmann::ordered_json& j, ConfigManager::Config& config) {
-        config.theme = j.value("theme", config.theme);
-        config.imageEditorPath = j.value("imageEditorPath", config.imageEditorPath);
-        config.textureEditPath = j.value("textureEditPath", config.textureEditPath);
-        config.lastWindowWidth = j.value("lastWindowWidth", config.lastWindowWidth);
-        config.lastWindowHeight = j.value("lastWindowHeight", config.lastWindowHeight);
+        config.theme =               j.value("theme", config.theme);
+        config.imageEditorPath =     j.value("imageEditorPath", config.imageEditorPath);
+        config.textureEditPath =     j.value("textureEditPath", config.textureEditPath);
+        config.recentlyOpened =      j.value("recentlyOpened", config.recentlyOpened);
+        config.lastWindowWidth =     j.value("lastWindowWidth", config.lastWindowWidth);
+        config.lastWindowHeight =    j.value("lastWindowHeight", config.lastWindowHeight);
         config.canvasLMBPanEnabled = j.value("canvasLMBPanEnabled", config.canvasLMBPanEnabled);
-        config.updateRate = j.value("updateRate", config.updateRate);
-        config.backupBehaviour = j.value("backupBehaviour", config.backupBehaviour);
-        config.compressionLevel = j.value("compressionLevel", config.compressionLevel);
+        config.updateRate =          j.value("updateRate", config.updateRate);
+        config.backupBehaviour =     j.value("backupBehaviour", config.backupBehaviour);
+        config.compressionLevel =    j.value("compressionLevel", config.compressionLevel);
     }
 
 public:
@@ -134,12 +140,16 @@ public:
         this->config = j.get<Config>();
     }
 
-    void Save() const {
+    void Save() {
         std::ofstream file(this->configPath);
         if (UNLIKELY(!file.is_open())) {
             std::cerr << "[ConfigManager::Save] Unable to open file for saving.\n";
             return;
         }
+
+        auto& recentlyOpened = this->config.recentlyOpened;
+        if (recentlyOpened.size() > 12)
+            recentlyOpened.resize(12);
 
         nlohmann::ordered_json j = config;
         file << j.dump(4);
