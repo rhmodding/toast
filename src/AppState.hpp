@@ -146,17 +146,6 @@ public:
         uint8_t opacity{ 50 };
         uint8_t _pad24[3];
     } onionSkinState;
-
-    enum CopyPasteContext {
-        CopyPasteContext_None,
-
-        CopyPasteContext_Animation,
-        CopyPasteContext_Arrangement,
-        CopyPasteContext_Part,
-        CopyPasteContext_Key,
-
-        CopyPasteContext_Max
-    } lastCopyPasteContext{ CopyPasteContext_None };
 private:
     AppState() {} // Private constructor to prevent instantiation
     ~AppState() {
