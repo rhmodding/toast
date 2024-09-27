@@ -454,8 +454,8 @@ void Popup_MInterpolateKeys() {
                         if (mnpi < 0 && (endPart->regionX != part.regionX ||
                                         endPart->regionY != part.regionY ||
                                         endPart->regionW != part.regionW ||
-                                        endPart->regionH != part.regionH)) {
-                            
+                                        endPart->regionH != part.regionH)
+                        ) {
                             int mrpi = appState.getMatchingRegionPartIndex(part, *endArrangement);
 
                             if (mrpi >= 0)
@@ -475,7 +475,7 @@ void Popup_MInterpolateKeys() {
 
                         part.opacity = static_cast<uint8_t>(std::lerp(part.opacity, endPart->opacity, t));
                     }
-                
+
                     newKey.arrangementIndex = globalAnimatable->cellanim->arrangements.size();
                     globalAnimatable->cellanim->arrangements.push_back(newArrangement);
 

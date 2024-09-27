@@ -7,6 +7,8 @@
 
 #include "../SessionManager.hpp"
 
+#include "../ConfigManager.hpp"
+
 #include "../AppState.hpp"
 
 class ExportSessionTask : public AsyncTask {
@@ -36,6 +38,17 @@ protected:
 
         this->session->traditionalMethod = false;
         this->session->mainPath = outPath;
+
+        GET_CONFIG_MANAGER;
+
+        auto newConfig = configManager.getConfig();
+
+        auto& recentlyOpened = newConfig.recentlyOpened;
+
+        recentlyOpened.erase(std::remove(recentlyOpened.begin(), recentlyOpened.end(), outPath), recentlyOpened.end());
+        newConfig.recentlyOpened.push_back(outPath);
+
+        configManager.setConfig(newConfig);
     }
 
 private:

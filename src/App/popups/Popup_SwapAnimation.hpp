@@ -34,7 +34,7 @@ void Popup_SwapAnimation(int animationIndex) {
         // Left
         {
             ImGui::BeginGroup();
-            
+
             ImGui::SetNextWindowSizeConstraints(
                 { 200.f, 380.f },
                 {
