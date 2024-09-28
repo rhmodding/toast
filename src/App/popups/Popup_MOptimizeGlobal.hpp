@@ -23,9 +23,9 @@ void Popup_MOptimizeGlobal() {
 
         sessionManager.getCurrentSession()->getCellanimObject();
 
-        ImGui::Dummy({ 0, 5 });
+        ImGui::Dummy({ 0.f, 5.f });
         ImGui::Separator();
-        ImGui::Dummy({ 0, 10 });
+        ImGui::Dummy({ 0.f, 10.f });
 
         static OptimizeCellanimOptions options;
 
@@ -38,8 +38,6 @@ void Popup_MOptimizeGlobal() {
         static int downscaleOption{ 0 };
 
         ImGui::Checkbox("Remove all animation name macros", &options.removeAnimationNames);
-        ImGui::Checkbox("Remove all hidden parts (editor hidden)", &options.removeHiddenPartsEditor);
-        ImGui::Checkbox("Remove all invisible parts (zero-opacity or zero-scale)", &options.removeInvisibleParts);
         ImGui::Checkbox("Remove all unused arrangements", &options.removeUnusedArrangements);
 
         ImGui::Dummy({ 0, 5 });

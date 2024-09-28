@@ -20,8 +20,6 @@
 
 struct OptimizeCellanimOptions {
     bool removeAnimationNames{ false };
-    bool removeHiddenPartsEditor{ true };
-    bool removeInvisibleParts{ true };
     bool removeUnusedArrangements{ true };
 
     enum DownscaleOption: int {
@@ -59,57 +57,9 @@ protected:
             future.get();
         }
 
-        if (
-            this->options.removeHiddenPartsEditor ||
-            this->options.removeInvisibleParts
-        ) {
-            std::vector<std::pair<uint32_t, uint32_t>> toErase;
-
-            auto& arrangements = cellanim->arrangements;
-
-            for (unsigned i = 0; i < arrangements.size(); i++) {
-                auto& arrangement = arrangements.at(i);
-                for (unsigned j = 0; j < arrangement.parts.size(); j++) {
-                    const auto& part = arrangement.parts.at(j);
-
-                    // Skip if it might be a templating part
-                    if (part.regionW < 16 || part.regionH < 16)
-                        continue;
-
-                    if (
-                        this->options.removeHiddenPartsEditor ?
-                            !part.editorVisible : false ||
-                        this->options.removeInvisibleParts ? (
-                            part.opacity == 0 ||
-                            (part.transform.scaleX == 0.f && part.transform.scaleY == 0.f)
-                        ) : false
-                    ) {
-                        toErase.push_back({ i, j });
-                        continue;
-                    }
-                }
-            }
-
-            std::sort(toErase.rbegin(), toErase.rend(), [](const auto& a, const auto& b) {
-                return a.second < b.second;
-            });
-
-            std::future<void> future = mtCommandManager.enqueueCommand(
-            [&toErase, &arrangements]() {
-                for (const auto& pair : toErase) {
-                    auto& parts = arrangements.at(pair.first).parts;
-                    parts.erase(parts.begin() + pair.second);
-                }
-
-                AppState::getInstance().correctSelectedPart();
-            });
-
-            future.get();
-        }
-
         if (this->options.removeUnusedArrangements) {
-            std::unordered_set<uint32_t> usedIndices;
-            std::vector<uint32_t> toErase;
+            std::unordered_set<unsigned> usedIndices;
+            std::vector<unsigned> toErase;
 
             for (const auto& anim : cellanim->animations) {
                 for (const auto& key : anim.keys)
@@ -127,7 +77,7 @@ protected:
             std::future<void> future = mtCommandManager.enqueueCommand(
             [&arrangements, &toErase, &animations]() {
                 for (unsigned i = 0; i < toErase.size(); i++) {
-                    uint32_t index = toErase.at(i);
+                    unsigned index = toErase.at(i);
 
                     auto it = arrangements.begin() + index;
                     arrangements.erase(it);
@@ -152,8 +102,8 @@ protected:
         if (this->options.downscaleSpritesheet) {
             auto sheet = this->session->getCellanimSheet();
 
-            uint16_t newWidth = sheet->width;
-            uint16_t newHeight = sheet->height;
+            unsigned newWidth = sheet->width;
+            unsigned newHeight = sheet->height;
 
             switch (this->options.downscaleSpritesheet) {
                 case OptimizeCellanimOptions::DownscaleOption_0_875x:
@@ -176,60 +126,68 @@ protected:
             if (newWidth & 1) newWidth++;
             if (newHeight & 1) newHeight++;
 
-            // RGBA
-            auto bilinearInterpolation = [](
-                const unsigned char* src, unsigned srcWidth, unsigned srcHeight,
-                unsigned char* dst, unsigned dstWidth, unsigned dstHeight
-            ) {
-                float x_ratio = static_cast<float>(srcWidth - 1) / dstWidth;
-                float y_ratio = static_cast<float>(srcHeight - 1) / dstHeight;
-                float x_diff, y_diff, blue, red, green, alpha;
-                unsigned x, y, index;
+            // RGBA image
+            unsigned char* originalPixels = new unsigned char[sheet->width * sheet->height * 4];
 
-                for (unsigned i = 0; i < dstHeight; i++) {
-                    for (unsigned j = 0; j < dstWidth; j++) {
-                        x = static_cast<unsigned>(x_ratio * j);
-                        y = static_cast<unsigned>(y_ratio * i);
-                        x_diff = (x_ratio * j) - x;
-                        y_diff = (y_ratio * i) - y;
-                        index = (y * srcWidth + x) * 4;
-
-                        for (unsigned c = 0; c < 4; c++) {
-                            blue = src[index + c] * (1 - x_diff) * (1 - y_diff) +
-                                    src[index + 4 + c] * x_diff * (1 - y_diff) +
-                                    src[(y + 1) * srcWidth * 4 + x * 4 + c] * (1 - x_diff) * y_diff +
-                                    src[(y + 1) * srcWidth * 4 + (x + 1) * 4 + c] * x_diff * y_diff;
-
-                            dst[(i * dstWidth + j) * 4 + c] = static_cast<unsigned char>(blue);
-                        }
-                    }
-                }
-            };
-
-            std::vector<unsigned char> originalPixels(sheet->width * sheet->height * 4);
-
-            std::future<void> futureA = mtCommandManager.enqueueCommand([&sheet, &originalPixels]() {
+            std::future<void> futureA = mtCommandManager.enqueueCommand([&sheet, originalPixels]() {
                 glBindTexture(GL_TEXTURE_2D, sheet->texture);
-                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, originalPixels.data());
+                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, originalPixels);
                 glBindTexture(GL_TEXTURE_2D, 0);
             });
 
             futureA.get();
 
-            std::vector<unsigned char> downscaledPixels(newWidth * newHeight * 4);
-            bilinearInterpolation(
-                originalPixels.data(), sheet->width, sheet->height,
-                downscaledPixels.data(), newWidth, newHeight
-            );
+            // RGBA image
+            unsigned char* downscaledPixels = new unsigned char[sheet->width * sheet->height * 4];
+
+            // Bilinear scale
+            {
+                const float ratioX = static_cast<float>(sheet->width - 1) / newWidth;
+                const float ratioY = static_cast<float>(sheet->height - 1) / newHeight;
+
+                for (unsigned _y = 0; _y < newHeight; _y++) {
+                    const float scaledY = ratioY * _y;
+                    const unsigned y    = static_cast<unsigned>(scaledY);
+                    const float diffY   = scaledY - y;
+
+                    const unsigned yOffset     = y * sheet->width * 4;
+                    const unsigned yOffsetNext = (y + 1) * sheet->width * 4;
+
+                    for (unsigned _x = 0; _x < newWidth; _x++) {
+                        const float scaledX = ratioX * _x;
+                        const unsigned x    = static_cast<unsigned>(scaledX);
+                        const float diffX   = scaledX - x;
+
+                        const unsigned index     = yOffset + x * 4;
+                        const unsigned indexNext = yOffsetNext + x * 4;
+
+                        for (unsigned c = 0; c < 4; c++) {
+                            float topLeft     = originalPixels[index + c];
+                            float topRight    = originalPixels[index + 4 + c];
+                            float bottomLeft  = originalPixels[indexNext + c];
+                            float bottomRight = originalPixels[indexNext + 4 + c];
+
+                            float channel = topLeft * (1 - diffX) * (1 - diffY) +
+                                            topRight * diffX * (1 - diffY) +
+                                            bottomLeft * (1 - diffX) * diffY +
+                                            bottomRight * diffX * diffY;
+
+                            downscaledPixels[(_y * newWidth + _x) * 4 + c] = static_cast<unsigned char>(channel);
+                        }
+                    }
+                }
+            }
+
+            delete[] originalPixels;
 
             GLuint newTexture{ 0 };
 
-            std::future<void> futureB = mtCommandManager.enqueueCommand([&sheet, &newTexture, &downscaledPixels, newWidth, newHeight]() {
+            std::future<void> futureB = mtCommandManager.enqueueCommand([&sheet, &newTexture, downscaledPixels, newWidth, newHeight]() {
                 sheet->FreeTexture();
 
                 glGenTextures(1, &newTexture);
                 glBindTexture(GL_TEXTURE_2D, newTexture);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newWidth, newHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, downscaledPixels.data());
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newWidth, newHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, downscaledPixels);
 
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -243,6 +201,8 @@ protected:
             });
 
             futureB.get();
+
+            delete[] downscaledPixels;
         }
     }
 
