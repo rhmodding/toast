@@ -650,86 +650,80 @@ bool ImageConvert::fromRGBA32(
     return true;
 }
 
+static unsigned ImageByteSize_4(unsigned width, unsigned height) {
+ 	unsigned tilesX = ((width + 7) / 8);
+	unsigned tilesY = ((height + 7) / 8);
+
+	return tilesX * tilesY * 32;
+}
+static unsigned ImageByteSize_8(unsigned width, unsigned height) {
+ 	unsigned tilesX = ((width + 7) / 8);
+	unsigned tilesY = ((height + 3) / 4);
+
+	return tilesX * tilesY * 32;
+}
+static unsigned ImageByteSize_16(unsigned width, unsigned height) {
+ 	unsigned tilesX = ((width + 3) / 4);
+	unsigned tilesY = ((height + 3) / 4);
+
+	return tilesX * tilesY * 32;
+}
+static unsigned ImageByteSize_32(unsigned width, unsigned height) {
+ 	unsigned tilesX = ((width + 3) / 4);
+	unsigned tilesY = ((height + 3) / 4);
+
+	return tilesX * tilesY * 32 * 2;
+}
+static unsigned ImageByteSize_CMPR(unsigned width, unsigned height) {
+ 	unsigned tilesX = ((width + 7) / 8);
+	unsigned tilesY = ((height + 7) / 8);
+
+	return tilesX * tilesY * 32;
+}
+
 unsigned ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, const unsigned height) {
     switch (type) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4:
-            return width * height / 2;
+            return ImageByteSize_4(width, height);
 
         case IMGFMT::TPL_IMAGE_FORMAT_I8:
-            return width * height;
+            return ImageByteSize_8(width, height);
 
         case IMGFMT::TPL_IMAGE_FORMAT_IA4:
-            return width * height;
+            return ImageByteSize_8(width, height);
 
         case IMGFMT::TPL_IMAGE_FORMAT_IA8:
-            return width * height * 2;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_C4:
-            return width * height / 2;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_C8:
-            return width * height;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
-            return width * height * 2;
+            return ImageByteSize_16(width, height);
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
-            return width * height * 2;
+            return ImageByteSize_16(width, height);
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            return width * height * 2;
+            return ImageByteSize_16(width, height);
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            return width * height * 4;
+            return ImageByteSize_32(width, height);
+
+        case IMGFMT::TPL_IMAGE_FORMAT_C4:
+            return ImageByteSize_4(width, height);
+
+        case IMGFMT::TPL_IMAGE_FORMAT_C8:
+            return ImageByteSize_8(width, height);
+
+        case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
+            return ImageByteSize_16(width, height);
 
         case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
-            return width * height / 2;
+            return ImageByteSize_CMPR(width, height);
 
         default:
-            break;
+            std::cerr << "[ImageConvert::getImageByteSize] Invalid format passed (" << (int)type << ")\n";
+            return 0;
     }
 
-    return 0;
+    // NOT REACHED
 }
 
 unsigned ImageConvert::getImageByteSize(const TPL::TPLTexture& texture) {
-    switch (texture.format) {
-        case IMGFMT::TPL_IMAGE_FORMAT_I4:
-            return texture.width * texture.height / 2;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_I8:
-            return texture.width * texture.height;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_IA4:
-            return texture.width * texture.height;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_IA8:
-            return texture.width * texture.height * 2;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_C4:
-            return texture.width * texture.height / 2;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_C8:
-            return texture.width * texture.height;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
-            return texture.width * texture.height * 2;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
-            return texture.width * texture.height * 2;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            return texture.width * texture.height * 2;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            return texture.width * texture.height * 4;
-
-        case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
-            return texture.width * texture.height / 2;
-
-        default:
-            break;
-    }
-
-    return 0;
+    return getImageByteSize(texture.format, texture.width, texture.height);
 }
