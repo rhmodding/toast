@@ -12,13 +12,16 @@
 
 #include <cmath>
 
+#include <bit>
+
 #include "MtCommandManager.hpp"
 
 namespace Common {
 
 float byteswapFloat(float value) {
-    uint32_t temp = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(&value));
-    return *reinterpret_cast<float*>(&temp);
+    return std::bit_cast<float, uint32_t>(
+        BYTESWAP_32(std::bit_cast<uint32_t, float>(value))
+    );
 }
 
 bool SaveBackupFile(const char* filePath, bool once) {
