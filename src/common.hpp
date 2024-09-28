@@ -30,6 +30,8 @@
 
 #define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
+#define IS_POWER_OF_TWO(x) ((x) > 0 && !((x) & ((x) - 1)))
+
 #define AVERAGE_FLOATS(a, b) ((float)(a + b) / 2.f)
 #define AVERAGE_INTS(a, b) ((int32_t)(a + b) / 2)
 #define AVERAGE_UINTS(a, b) ((uint32_t)(a + b) / 2)
