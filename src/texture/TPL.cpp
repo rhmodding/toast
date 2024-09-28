@@ -260,13 +260,12 @@ std::vector<unsigned char> TPLObject::Reserialize() {
                 (sizeof(TPLClutHeader) * clutIndex++)
             ));
         }
-        else {
+        else
             descriptor->CLUTHeaderOffset = 0x00000000;
-        }
     }
 
     // Palette Descriptors & Data
-    for (unsigned textureIndex = 0, clutIndex = 0; textureIndex < this->textures.size(); textureIndex++) {
+    for (unsigned textureIndex = 0, clutIndex = 0; textureIndex < this->textures.size(); textureIndex++, clutIndex++) {
         if (paletteTextures.find(textureIndex) == paletteTextures.end()) // No need to write a palette descriptor.
             continue;
 
@@ -280,24 +279,20 @@ std::vector<unsigned char> TPLObject::Reserialize() {
         paletteDescriptor->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
 
         // Data
-        {
-            paletteDescriptor->dataOffset = BYTESWAP_32(static_cast<uint32_t>(
-                paletteWritePtr - result.data()
-            ));
+        paletteDescriptor->dataOffset = BYTESWAP_32(static_cast<uint32_t>(
+            paletteWritePtr - result.data()
+        ));
 
-            paletteDescriptor->numEntries = BYTESWAP_16(this->textures.at(textureIndex).palette.size());
+        paletteDescriptor->numEntries = BYTESWAP_16(this->textures.at(textureIndex).palette.size());
 
-            PaletteUtils::WriteRGBA32Palette(
-                this->textures.at(textureIndex).palette.data(),
-                this->textures.at(textureIndex).palette.size(),
-                TPL::TPL_CLUT_FORMAT_RGB5A3,
-                paletteWritePtr
-            );
+        PaletteUtils::WriteRGBA32Palette(
+            this->textures.at(textureIndex).palette.data(),
+            this->textures.at(textureIndex).palette.size(),
+            TPL::TPL_CLUT_FORMAT_RGB5A3,
+            paletteWritePtr
+        );
 
-            paletteWritePtr += (this->textures.at(textureIndex).palette.size() * sizeof(uint16_t));
-        }
-
-        clutIndex++;
+        paletteWritePtr += (this->textures.at(textureIndex).palette.size() * sizeof(uint16_t));
     }
 
     // Texture Headers
@@ -311,6 +306,13 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             (sizeof(TPLHeader) * i)
         );
 
+        if (header->width > 1024 || header->height > 1024) {
+            std::cerr <<
+                "[TPLObject::Reserialize] The dimensions of the texture exceed 1024x1024 " <<
+                '(' << header->width << 'x' << header->height << ')' <<
+                ", the game will most likely be unable to read it properly.\n";
+        }
+
         header->width = BYTESWAP_16(texture.width);
         header->height = BYTESWAP_16(texture.height);
 
@@ -318,8 +320,25 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
         // header->dataOffset gets set in the image data writing portion.
 
-        header->wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(texture.wrapS));
-        header->wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(texture.wrapT));
+        if (
+            header->wrapS != TPL_WRAP_MODE_CLAMP &&
+            !IS_POWER_OF_TWO(header->width)
+        ) {
+            std::cerr << "[TPLObject::Reserialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP\n";
+            header->wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(TPL_WRAP_MODE_CLAMP));
+        }
+        else
+            header->wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(texture.wrapS));
+
+        if (
+            header->wrapT != TPL_WRAP_MODE_CLAMP &&
+            !IS_POWER_OF_TWO(header->height)
+        ) {
+            std::cerr << "[TPLObject::Reserialize] Image width is not a power of two, so vertical wrap will be set to CLAMP\n";
+            header->wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(TPL_WRAP_MODE_CLAMP));
+        }
+        else
+            header->wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(texture.wrapT));
 
         header->minFilter = static_cast<TPLTexFilter>(BYTESWAP_32(texture.minFilter));
         header->magFilter = static_cast<TPLTexFilter>(BYTESWAP_32(texture.magFilter));
