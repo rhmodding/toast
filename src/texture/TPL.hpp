@@ -16,8 +16,7 @@ namespace TPL {
 enum TPLWrapMode {
     TPL_WRAP_MODE_CLAMP,
     TPL_WRAP_MODE_REPEAT,
-    TPL_WRAP_MODE_MIRROR,
-    TPL_WRAP_MODE_NONE
+    TPL_WRAP_MODE_MIRROR
 };
 
 enum TPLTexFilter {
