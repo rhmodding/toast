@@ -7,11 +7,7 @@
 
 #include <unordered_set>
 
-#if defined(__APPLE__)
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "../_glInclude.hpp"
 
 #include "../SessionManager.hpp"
 #include "../MtCommandManager.hpp"
