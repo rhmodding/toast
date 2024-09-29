@@ -7,6 +7,9 @@
 #include <iostream>
 #include <sstream>
 
+#include <set>
+#include <vector>
+
 #include <string>
 
 #include <filesystem>
@@ -15,12 +18,25 @@
 
 #include <tinyfiledialogs.h>
 
+#include "../font/FontAwesome.h"
+
 #include "../AppState.hpp"
 
 #include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"
+#include "../MtCommandManager.hpp"
 
 #include "../texture/ImageConvert.hpp"
+
+#define STB_RECT_PACK_IMPLEMENTATION
+#include "../stb/stb_rect_pack.h"
+
+bool operator==(const stbrp_rect& lhs, const stbrp_rect& rhs) {
+    return lhs.w == rhs.w &&
+           lhs.h == rhs.h &&
+           lhs.x == rhs.x &&
+           lhs.y == rhs.y;
+}
 
 #define SHEET_ZOOM_TIME .3f // seconds
 
@@ -344,6 +360,132 @@ void WindowSpritesheet::FormatPopup() {
     ImGui::PopID();
 }
 
+void RepackSheet() {
+    const unsigned padding = 4;
+    const uint32_t borderCol = 0xFF000000;
+
+    GET_SESSION_MANAGER;
+
+    auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
+    auto& arrangements = sessionManager.getCurrentSession()->getCellanimObject()->arrangements;
+
+    struct RectComparator {
+        bool operator()(const stbrp_rect& lhs, const stbrp_rect& rhs) const {
+            if (lhs.w != rhs.w) return lhs.w < rhs.w;
+            if (lhs.h != rhs.h) return lhs.h < rhs.h;
+            if (lhs.x != rhs.x) return lhs.x < rhs.x;
+            return lhs.y < rhs.y;
+        }
+    };
+    std::set<stbrp_rect, RectComparator> rectsSet;
+
+    for (auto& arrangement : arrangements) {
+        for (auto& part : arrangement.parts) {
+            stbrp_rect rect;
+            rect.w = part.regionW + padding;
+            rect.h = part.regionH + padding;
+            rect.x = part.regionX - (padding / 2);
+            rect.y = part.regionY - (padding / 2);
+
+            rectsSet.insert(rect);
+        }
+    }
+
+    const unsigned numRects = rectsSet.size();
+
+    std::vector<stbrp_rect> rects(rectsSet.begin(), rectsSet.end());
+    std::vector<stbrp_rect> originalRects(rectsSet.begin(), rectsSet.end());
+
+    // Internal storage for stbrp
+    stbrp_node nodes[numRects];
+
+    stbrp_context context;
+    stbrp_init_target(&context, cellanimSheet->width, cellanimSheet->height, nodes, numRects);
+
+    int packed = stbrp_pack_rects(&context, rects.data(), numRects);
+
+    if (!packed)
+        return;
+
+    unsigned char* newImage = new unsigned char[cellanimSheet->width * cellanimSheet->height * 4];
+    unsigned char* srcImage = new unsigned char[cellanimSheet->width * cellanimSheet->height * 4];
+
+    memset(newImage, 0, cellanimSheet->width * cellanimSheet->height * 4);
+
+    std::future<void> futureA = MtCommandManager::getInstance().enqueueCommand([&cellanimSheet, &srcImage]() {
+        glBindTexture(GL_TEXTURE_2D, cellanimSheet->texture);
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImage);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    });
+    futureA.get();
+
+    // Create new image data
+    for (unsigned i = 0; i < numRects; ++i) {
+        stbrp_rect* rect = &rects[i];
+        stbrp_rect* originalRect = &originalRects[i];
+
+        int ox = originalRect->x;
+        int oy = originalRect->y;
+        
+        int nx = rect->x;
+        int ny = rect->y;
+
+        int w = originalRect->w;
+        int h = originalRect->h;
+
+        // Copy the image rect
+        for (unsigned row = 0; row < h; row++) {
+            unsigned char* src = srcImage + ((oy + row) * cellanimSheet->width + ox) * 4;
+            unsigned char* dst = newImage + ((ny + row) * cellanimSheet->width + nx) * 4;
+
+            memcpy(dst, src, w * 4);
+        }
+
+        // Vertical borders
+        for (unsigned col = 0; col < w; col++) {
+            ((uint32_t*)newImage)[(ny * cellanimSheet->width) + nx + col] = borderCol;
+            ((uint32_t*)newImage)[((ny + h - 1) * cellanimSheet->width) + nx + col] = borderCol;
+        }
+
+        // Horizontal borders
+        for (unsigned row = 0; row < h; row++) {
+            ((uint32_t*)newImage)[((ny + row) * cellanimSheet->width) + nx] = borderCol;
+            ((uint32_t*)newImage)[((ny + row) * cellanimSheet->width) + nx + w - 1] = borderCol;
+        }
+    }
+
+    // Assign new rects
+    for (auto& arrangement : arrangements) {
+        for (auto& part : arrangement.parts) {
+            stbrp_rect rect;
+            rect.w = part.regionW + padding;
+            rect.h = part.regionH + padding;
+            rect.x = part.regionX - (padding / 2);
+            rect.y = part.regionY - (padding / 2);
+
+            auto findRect = std::find(originalRects.begin(), originalRects.end(), rect);
+            if (findRect != originalRects.end()) {
+                stbrp_rect& newRect = rects[findRect - originalRects.begin()];
+
+                part.regionW = newRect.w - padding;
+                part.regionH = newRect.h - padding;
+                part.regionX = newRect.x + (padding / 2);
+                part.regionY = newRect.y + (padding / 2);
+            }
+        }
+    }
+
+    std::future<void> futureB = MtCommandManager::getInstance().enqueueCommand([&cellanimSheet, &newImage]() {
+        glBindTexture(GL_TEXTURE_2D, cellanimSheet->texture);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cellanimSheet->width, cellanimSheet->height, GL_RGBA, GL_UNSIGNED_BYTE, newImage);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    });
+    futureB.get();
+
+    delete[] srcImage;
+    delete[] newImage;
+}
+
 void WindowSpritesheet::Update() {
     static bool firstOpen{ true };
     if (UNLIKELY(firstOpen)) {
@@ -460,6 +602,10 @@ void WindowSpritesheet::Update() {
                         sessionManager.getCurrentSessionModified() = true;
                     }
                 }
+            }
+
+            if (ImGui::MenuItem((char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
+                RepackSheet();
             }
 
             ImGui::EndMenu();
