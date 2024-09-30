@@ -609,6 +609,19 @@ bool ImageConvert::toRGBA32(
     return true;
 }
 
+bool ImageConvert::toRGBA32(
+    TPL::TPLTexture& texture,
+    const unsigned char* data
+) {
+    return ImageConvert::toRGBA32(
+        texture.data.data(),
+        texture.format,
+        texture.width, texture.height,
+        data,
+        texture.palette.data()
+    );
+}
+
 bool ImageConvert::fromRGBA32(
     unsigned char* buffer,
     const TPL::TPLImageFormat type,
@@ -648,6 +661,18 @@ bool ImageConvert::fromRGBA32(
     }
 
     return true;
+}
+bool ImageConvert::fromRGBA32(
+    TPL::TPLTexture& texture,
+    unsigned char* buffer
+) {
+    return fromRGBA32(
+        buffer,
+        texture.format,
+        texture.width, texture.height,
+        texture.data.data(),
+        &texture.palette
+    );
 }
 
 static unsigned ImageByteSize_4(unsigned width, unsigned height) {

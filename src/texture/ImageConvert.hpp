@@ -15,6 +15,11 @@ bool toRGBA32(
     const unsigned char* data,
     uint32_t* colorPalette = nullptr
 );
+bool toRGBA32(
+    TPL::TPLTexture& texture,
+    const unsigned char* data
+);
+
 bool fromRGBA32(
     unsigned char* buffer,
     const TPL::TPLImageFormat type,
@@ -22,6 +27,10 @@ bool fromRGBA32(
     const unsigned srcHeight,
     const unsigned char* data,
     std::vector<uint32_t>* colorPalette = nullptr
+);
+bool fromRGBA32(
+    TPL::TPLTexture& texture,
+    unsigned char* buffer
 );
 
 unsigned getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, const unsigned height);

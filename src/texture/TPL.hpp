@@ -85,8 +85,6 @@ enum TPLClutFormat : uint32_t {
 const char* getImageFormatName(TPLImageFormat format);
 
 struct TPLTexture {
-    bool valid;
-
     uint8_t mipMap;
     uint8_t _pad24[3];
 

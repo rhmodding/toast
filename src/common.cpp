@@ -191,17 +191,13 @@ std::optional<TPL::TPLTexture> Image::ExportToTPLTexture() {
         return std::nullopt; // return nothing (std::optional)
 
     TPL::TPLTexture tplTexture;
-    tplTexture.data.resize(
-        this->width *
-        this->height *
-        4
-    );
+    tplTexture.data.resize(this->width * this->height * 4);
 
     GLint wrapModeS, wrapModeT;
 
     {
         GLuint texture = this->texture;
-        uint8_t* textureBuffer = tplTexture.data.data();
+        unsigned char* textureBuffer = tplTexture.data.data();
         std::future<void> future = MtCommandManager::getInstance().enqueueCommand([texture, textureBuffer, &wrapModeS, &wrapModeT]() {
             glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -234,8 +230,6 @@ std::optional<TPL::TPLTexture> Image::ExportToTPLTexture() {
     tplTexture.format = this->tplOutFormat;
 
     tplTexture.palette = this->tplColorPalette;
-
-    tplTexture.valid = 0xFFu;
 
     return tplTexture;
 }
