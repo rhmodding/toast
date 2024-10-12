@@ -31,7 +31,7 @@ public:
     std::queue<MtCommand> commandQueue;
 
     std::future<void> enqueueCommand(std::function<void()> func) {
-        if (std::this_thread::get_id() == gAppPtr->getWindowThreadID()) {
+        if (std::this_thread::get_id() == gAppPtr->getMainThreadId()) {
             func();
 
             std::promise<void> promise;

@@ -120,7 +120,7 @@ App::App() {
     GET_CONFIG_MANAGER;
     configManager.Load();
 
-    this->windowThreadID = std::this_thread::get_id();
+    this->mainThreadId = std::this_thread::get_id();
 
     this->window = glfwCreateWindow(
         configManager.getConfig().lastWindowWidth,

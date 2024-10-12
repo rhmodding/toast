@@ -90,10 +90,10 @@ private: // Flags
     bool running{ true };
 
 private:
-    std::thread::id windowThreadID;
+    std::thread::id mainThreadId;
 public:
-    std::thread::id getWindowThreadID() {
-        return this->windowThreadID;
+    std::thread::id getMainThreadId() {
+        return this->mainThreadId;
     }
 
 }; // class App
