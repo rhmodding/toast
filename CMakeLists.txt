@@ -6,7 +6,7 @@ project(toast)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (MSVC)
-    message(FATAL_ERROR "MSVC compiler is not supported. Please use GCC or Clang instead")
+    message(FATAL_ERROR "Compiling with MSVC is not supported. Please use GCC or Clang instead")
 endif()
 
 set(SOURCES

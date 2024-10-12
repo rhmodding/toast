@@ -13,15 +13,9 @@
 
 #include "texture/TPL.hpp"
 
-#ifdef _MSC_VER
-    #define BYTESWAP_64 _byteswap_uint64
-    #define BYTESWAP_32 _byteswap_ulong
-    #define BYTESWAP_16 _byteswap_ushort
-#else
-    #define BYTESWAP_64 __builtin_bswap64
-    #define BYTESWAP_32 __builtin_bswap32
-    #define BYTESWAP_16 __builtin_bswap16
-#endif
+#define BYTESWAP_64 __builtin_bswap64
+#define BYTESWAP_32 __builtin_bswap32
+#define BYTESWAP_16 __builtin_bswap16
 
 #define IDENTIFIER_TO_U32(char1, char2, char3, char4) ( \
     ((uint32_t)char4 << 24) | ((uint32_t)char3 << 16) | \
