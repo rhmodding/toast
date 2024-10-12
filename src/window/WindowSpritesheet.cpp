@@ -362,12 +362,16 @@ void WindowSpritesheet::FormatPopup() {
 
 void RepackSheet() {
     const unsigned padding = 4;
+    const unsigned paddingHalf = padding / 2;
+
     const uint32_t borderCol = 0xFF000000;
 
     GET_SESSION_MANAGER;
 
     auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
-    auto& arrangements = sessionManager.getCurrentSession()->getCellanimObject()->arrangements;
+
+    const auto& cellanimObject = sessionManager.getCurrentSession()->getCellanimObject();
+    auto arrangements = cellanimObject->arrangements; // Create copy instead of reference, move when finished
 
     struct RectComparator {
         bool operator()(const stbrp_rect& lhs, const stbrp_rect& rhs) const {
@@ -377,42 +381,45 @@ void RepackSheet() {
             return lhs.y < rhs.y;
         }
     };
-    std::set<stbrp_rect, RectComparator> rectsSet;
+    std::set<stbrp_rect, RectComparator> _rectsSet;
 
-    for (auto& arrangement : arrangements) {
-        for (auto& part : arrangement.parts) {
+    for (const auto& arrangement : arrangements) {
+        for (const auto& part : arrangement.parts) {
             stbrp_rect rect;
             rect.w = part.regionW + padding;
             rect.h = part.regionH + padding;
-            rect.x = part.regionX - (padding / 2);
-            rect.y = part.regionY - (padding / 2);
+            rect.x = part.regionX - paddingHalf;
+            rect.y = part.regionY - paddingHalf;
 
-            rectsSet.insert(rect);
+            _rectsSet.insert(rect);
         }
     }
 
-    const unsigned numRects = rectsSet.size();
+    const unsigned numRects = _rectsSet.size();
 
-    std::vector<stbrp_rect> rects(rectsSet.begin(), rectsSet.end());
-    std::vector<stbrp_rect> originalRects(rectsSet.begin(), rectsSet.end());
+    std::vector<stbrp_rect> rects(_rectsSet.begin(), _rectsSet.end());
+    std::vector<stbrp_rect> originalRects = rects;
+
+    // _rectsSet not used from here on out
+    _rectsSet.clear();
 
     // Internal storage for stbrp
-    stbrp_node nodes[numRects];
+    std::vector<stbrp_node> nodes(numRects);
 
     stbrp_context context;
-    stbrp_init_target(&context, cellanimSheet->width, cellanimSheet->height, nodes, numRects);
+    stbrp_init_target(&context, cellanimSheet->width, cellanimSheet->height, nodes.data(), numRects);
 
-    int packed = stbrp_pack_rects(&context, rects.data(), numRects);
-
-    if (!packed)
+    int successful = stbrp_pack_rects(&context, rects.data(), numRects);
+    if (!successful)
         return;
 
     unsigned char* newImage = new unsigned char[cellanimSheet->width * cellanimSheet->height * 4];
-    unsigned char* srcImage = new unsigned char[cellanimSheet->width * cellanimSheet->height * 4];
-
     memset(newImage, 0, cellanimSheet->width * cellanimSheet->height * 4);
 
-    std::future<void> futureA = MtCommandManager::getInstance().enqueueCommand([&cellanimSheet, &srcImage]() {
+    unsigned char* srcImage = new unsigned char[cellanimSheet->width * cellanimSheet->height * 4];
+
+    // Copy cellanim sheet to srcImage
+    std::future<void> futureA = MtCommandManager::getInstance().enqueueCommand([&cellanimSheet, srcImage]() {
         glBindTexture(GL_TEXTURE_2D, cellanimSheet->texture);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImage);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -460,8 +467,8 @@ void RepackSheet() {
             stbrp_rect rect;
             rect.w = part.regionW + padding;
             rect.h = part.regionH + padding;
-            rect.x = part.regionX - (padding / 2);
-            rect.y = part.regionY - (padding / 2);
+            rect.x = part.regionX - paddingHalf;
+            rect.y = part.regionY - paddingHalf;
 
             auto findRect = std::find(originalRects.begin(), originalRects.end(), rect);
             if (findRect != originalRects.end()) {
@@ -469,16 +476,19 @@ void RepackSheet() {
 
                 part.regionW = newRect.w - padding;
                 part.regionH = newRect.h - padding;
-                part.regionX = newRect.x + (padding / 2);
-                part.regionY = newRect.y + (padding / 2);
+                part.regionX = newRect.x + paddingHalf;
+                part.regionY = newRect.y + paddingHalf;
             }
         }
     }
 
-    std::future<void> futureB = MtCommandManager::getInstance().enqueueCommand([&cellanimSheet, &newImage]() {
+    // Copy new image to cellanim sheet & move new arrangements
+    std::future<void> futureB = MtCommandManager::getInstance().enqueueCommand([&cellanimSheet, &newImage, &cellanimObject, &arrangements]() {
         glBindTexture(GL_TEXTURE_2D, cellanimSheet->texture);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cellanimSheet->width, cellanimSheet->height, GL_RGBA, GL_UNSIGNED_BYTE, newImage);
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        cellanimObject->arrangements = std::move(arrangements);
     });
     futureB.get();
 
