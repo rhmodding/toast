@@ -123,8 +123,13 @@ void DrawRotatedBox(ImDrawList* drawList, ImVec2 center, float radius, float rot
     );
 }
 
-const ImVec2 feverSafeAreaSize(832, 456);
-const ImVec2 megamixSafeAreaSize(440, 240);
+// Screen safe area for Fever (RVL)
+#define RVL_SAFE_X (832)
+#define RVL_SAFE_Y (832)
+
+// Screen safe area for Megamix (CTR)
+#define CTR_SAFE_X (440)
+#define CTR_SAFE_Y (240)
 
 void WindowCanvas::Menubar() {
     if (ImGui::BeginMenuBar()) {
@@ -175,7 +180,7 @@ void WindowCanvas::Menubar() {
             if (ImGui::MenuItem("Reset to Safe Area", nullptr, false)) {
                 this->canvasOffset = { 0.f, 0.f };
 
-                ImVec2 rect = feverSafeAreaSize;
+                ImVec2 rect = { RVL_SAFE_X, RVL_SAFE_Y };
 
                 float scale;
                 Common::fitRectangle(rect, this->canvasSize, scale);
@@ -415,13 +420,13 @@ void WindowCanvas::Update() {
             // Draw safe area if enabled
             if (this->visualizeSafeArea) {
                 ImVec2 boxTopLeft = {
-                    origin.x - ((feverSafeAreaSize.x * (this->canvasZoom + 1)) / 2),
-                    origin.y - ((feverSafeAreaSize.y * (this->canvasZoom + 1)) / 2)
+                    origin.x - ((RVL_SAFE_X * (this->canvasZoom + 1.f)) / 2.f),
+                    origin.y - ((RVL_SAFE_Y * (this->canvasZoom + 1.f)) / 2.f)
                 };
 
                 ImVec2 boxBottomRight = {
-                    boxTopLeft.x + (feverSafeAreaSize.x * (this->canvasZoom + 1)),
-                    boxTopLeft.y + (feverSafeAreaSize.y * (this->canvasZoom + 1))
+                    boxTopLeft.x + (RVL_SAFE_X * (this->canvasZoom + 1.f)),
+                    boxTopLeft.y + (RVL_SAFE_Y * (this->canvasZoom + 1.f))
                 };
 
                 uint32_t color = IM_COL32(0, 0, 0, this->safeAreaAlpha);
