@@ -223,7 +223,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
         }
     }
 
-    uint32_t writeOffset{ sizeof(FileHeader) };
+    unsigned writeOffset{ sizeof(FileHeader) };
 
     if (!invisibleParts.empty()) {
         fileHeader->entryCount++;
@@ -244,7 +244,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
 
         writeOffset += sizeof(StandardHeader);
 
-        for (uint16_t i = 0; i < header->entryCount; i++) {
+        for (unsigned i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<PartAlphaEntry*>(
                 result.data() + writeOffset
             ) = invisibleParts[i];
@@ -272,7 +272,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
 
         writeOffset += sizeof(StandardHeader);
 
-        for (uint16_t i = 0; i < header->entryCount; i++) {
+        for (unsigned i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<PartLocationEntry*>(
                 result.data() + writeOffset
             ) = lockedParts[i];
@@ -300,7 +300,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
 
         writeOffset += sizeof(StandardHeader);
 
-        for (uint16_t i = 0; i < header->entryCount; i++) {
+        for (unsigned i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<NamedPartEntry*>(
                 result.data() + writeOffset
             ) = namedParts[i];
@@ -334,8 +334,8 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         return -1;
     }
 
-    auto __tplSearch = U8::findFile("./cellanim.tpl", archiveObject.structure);
-    if (UNLIKELY(!__tplSearch.has_value())) {
+    U8::File* __tplSearch = U8::findFile("./cellanim.tpl", archiveObject.structure);
+    if (!__tplSearch) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_FailFindTPL;
 
@@ -343,7 +343,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     }
 
     TPL::TPLObject tplObject =
-        TPL::TPLObject((*__tplSearch).data.data(), (*__tplSearch).data.size());
+        TPL::TPLObject(__tplSearch->data.data(), __tplSearch->data.size());
 
     if (!tplObject.ok) {
         std::lock_guard<std::mutex> lock(this->mtx);
@@ -463,12 +463,12 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
             break;
         }
 
-    auto __datSearch = U8::findFile(
+    U8::File* __datSearch = U8::findFile(
         EDITORDATA_RESOURCE_NAME,
         archiveObject.structure.subdirectories[0]
     );
-    if (__datSearch.has_value() && dataExpected) {
-        EditorData::Apply((*__datSearch).data.data(), &newSession);
+    if (__datSearch && dataExpected) {
+        EditorData::Apply(__datSearch->data.data(), &newSession);
     }
     else if (dataExpected) {
         std::cerr << "[SessionManager::PushSessionFromCompressedArc] Supplemental editor data is expected but was not found!\n";

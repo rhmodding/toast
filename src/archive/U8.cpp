@@ -344,33 +344,30 @@ std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
     }
 
     U8::U8ArchiveObject archive(
-        (*decompressedData).data(),
-        (*decompressedData).size()
+        decompressedData->data(),
+        decompressedData->size()
     );
 
     return archive;
 }
 
-std::optional<File> findFile(const char* path, const Directory& directory) {
-    const char* pos = strchr(path, '/');
+File* findFile(const char* path, Directory& directory) {
+    const char* slash = strchr(path, '/');
 
-    if (!pos) {
-        // No '/' found: It's a file, go find it
-        for (const File& file : directory.files)
+    if (!slash) { // Slash not found: it's a file, search for it
+        for (File& file : directory.files)
             if (strcmp(file.name.c_str(), path) == 0)
-                return file;
+                return &file;
 
-        // File not found
-        return std::nullopt;
+        return nullptr;
     }
-    else {
-        // '/' found: It's a subdirectory, recursively search
-        for (const Directory& subDir : directory.subdirectories)
-            if (strncmp(subDir.name.c_str(), path, (pos - path)) == 0)
-                return findFile(path + (pos - path) + 1, subDir);
+    else { // Slash found, it's a subdirectory, recursive search
+        unsigned slashOffset = (slash - path);
+        for (Directory& subDir : directory.subdirectories)
+            if (strncmp(subDir.name.c_str(), path, slashOffset) == 0)
+                return findFile(slash + 1, subDir);
 
-        // Subdirectory not found
-        return std::nullopt;
+        return nullptr;
     }
 }
 

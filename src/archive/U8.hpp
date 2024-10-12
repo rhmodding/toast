@@ -58,7 +58,8 @@ public:
 
 std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath);
 
-std::optional<File> findFile(const char* path, const Directory& directory);
+// Note: pointer might be invalidated if parent vector is mutated
+File* findFile(const char* path, Directory& directory);
 
 } // namespace U8
 
