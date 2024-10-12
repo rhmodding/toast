@@ -147,9 +147,13 @@ public:
             return;
         }
 
-        auto& recentlyOpened = this->config.recentlyOpened;
-        if (recentlyOpened.size() > 12)
-            recentlyOpened.resize(12);
+        std::vector<std::string>& recentlyOpened = this->config.recentlyOpened;
+        if (recentlyOpened.size() > 12) {
+            recentlyOpened.erase(
+                recentlyOpened.begin(),
+                recentlyOpened.begin() + (recentlyOpened.size() - 12)
+            );
+        }
 
         nlohmann::ordered_json j = config;
         file << j.dump(4);
