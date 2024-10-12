@@ -139,6 +139,7 @@ public:
     struct OnionSkinState {
         bool enabled{ false };
         bool drawUnder{ false };
+        bool rollOver{ false };
 
         unsigned backCount{ 3 };
         unsigned frontCount{ 2 };

@@ -332,21 +332,36 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
     this->DrawKey(this->currentKey, drawList, -1, 0xFFFFFFFFu, allowOpacity);
 }
 
-void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, uint8_t opacity) {
+void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, bool rollOver, uint8_t opacity) {
     SAFE_ASSERT(this->cellanim, true);
     SAFE_ASSERT(this->currentAnimation, true);
 
     if (!this->visible)
         return;
 
-    const int keyIndex = this->currentKeyIndex;
+    const unsigned keyIndex = this->currentKeyIndex;
+    const unsigned keyCount = this->currentAnimation->keys.size();
 
     auto _drawOnionSkin = [&](int startIndex, int endIndex, int step, ImU32 color) {
-        for (int i = startIndex; (step < 0) ? (i >= endIndex) : (i <= endIndex); i += step) {
-            if (i < 0 || i >= this->currentAnimation->keys.size())
+        int i = startIndex;
+        while ((step < 0) ? (i >= endIndex) : (i <= endIndex)) {
+            int wrappedIndex = i;
+
+            // Handle roll over logic
+            if (rollOver) {
+                if (wrappedIndex < 0) {
+                    wrappedIndex = (keyCount + (wrappedIndex % keyCount)) % keyCount; // Roll backwards
+                } else if (wrappedIndex >= keyCount) {
+                    wrappedIndex = wrappedIndex % keyCount; // Roll forwards
+                }
+            }
+
+            // Break if out of bounds and roll over is not enabled
+            if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= keyCount))
                 break;
 
-            this->DrawKey(&this->currentAnimation->keys.at(i), drawList, -1, color);
+            this->DrawKey(&this->currentAnimation->keys.at(wrappedIndex), drawList, -1, color);
+            i += step;
         }
     };
 

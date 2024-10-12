@@ -394,6 +394,7 @@ void WindowCanvas::Update() {
                         drawList,
                         appState.onionSkinState.backCount,
                         appState.onionSkinState.frontCount,
+                        appState.onionSkinState.rollOver,
                         appState.onionSkinState.opacity
                     );
                 }
@@ -405,6 +406,7 @@ void WindowCanvas::Update() {
                         drawList,
                         appState.onionSkinState.backCount,
                         appState.onionSkinState.frontCount,
+                        appState.onionSkinState.rollOver,
                         appState.onionSkinState.opacity
                     );
                 }

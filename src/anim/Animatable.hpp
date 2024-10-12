@@ -80,7 +80,7 @@ public:
     void Draw(ImDrawList* drawList, bool allowOpacity = true)
         __attribute__((nonnull));
 
-    void DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, uint8_t opacity)
+    void DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, bool rollOver, uint8_t opacity)
         __attribute__((nonnull));
 
     // Does the Animatable actually draw anything at all to the screen?
