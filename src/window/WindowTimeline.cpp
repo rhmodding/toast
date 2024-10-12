@@ -195,6 +195,8 @@ void WindowTimeline::Update() {
 
                     ImGui::Checkbox("Draw behind", &appState.onionSkinState.drawUnder);
 
+                    ImGui::Checkbox("Roll over (loop)", &appState.onionSkinState.rollOver);
+
                     ImGui::EndPopup();
                 }
             }
@@ -261,13 +263,11 @@ void WindowTimeline::Update() {
                             ImGui::Text((char*)ICON_FA_KEY "  Options for key no. %u", i+1);
                             ImGui::Text(
                                 "Hold "
-
                             #if defined(__APPLE__)
                                 "[Option]"
                             #else
                                 "[Alt]"
                             #endif
-
                                 " for variations."
                             );
 
