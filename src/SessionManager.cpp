@@ -200,7 +200,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
     std::vector<NamedPartEntry> namedParts;
 
     for (uint16_t i = 0; i < session->cellanims.size(); i++) {
-        const auto cellanim = session->cellanims.at(i).object;
+        const auto cellanim = session->cellanims[i].object;
 
         for (uint16_t j = 0; j < cellanim->arrangements.size(); j++) {
             const auto& arrangement = cellanim->arrangements.at(j);
@@ -247,7 +247,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
         for (uint16_t i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<PartAlphaEntry*>(
                 result.data() + writeOffset
-            ) = invisibleParts.at(i);
+            ) = invisibleParts[i];
 
             writeOffset += sizeof(PartAlphaEntry);
         }
@@ -275,7 +275,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
         for (uint16_t i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<PartLocationEntry*>(
                 result.data() + writeOffset
-            ) = lockedParts.at(i);
+            ) = lockedParts[i];
 
             writeOffset += sizeof(PartLocationEntry);
         }
@@ -303,7 +303,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
         for (uint16_t i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<NamedPartEntry*>(
                 result.data() + writeOffset
-            ) = namedParts.at(i);
+            ) = namedParts[i];
 
             writeOffset += sizeof(NamedPartEntry);
         }
@@ -381,7 +381,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
         auto& cellanim = newSession.cellanims.at(i);
 
-        cellanim.name = brcadFiles.at(i)->name;
+        cellanim.name = file->name;
         cellanim.object =
             std::make_shared<RvlCellAnim::RvlCellAnimObject>(
             RvlCellAnim::RvlCellAnimObject(

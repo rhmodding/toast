@@ -95,7 +95,7 @@ public:
             return -1;
 
         for (unsigned i = 0; i < arrangement.parts.size(); i++) {
-            const auto& lPart = arrangement.parts.at(i);
+            const auto& lPart = arrangement.parts[i];
             if (
                 lPart.editorName[0] != '\0' &&
                 (strncmp(lPart.editorName, part.editorName, 32) == 0)
@@ -111,7 +111,7 @@ public:
         const RvlCellAnim::Arrangement& arrangement
     ) {
         for (unsigned i = 0; i < arrangement.parts.size(); i++) {
-            const auto& lPart = arrangement.parts.at(i);
+            const auto& lPart = arrangement.parts[i];
             if (
                 lPart.regionX == part.regionX &&
                 lPart.regionY == part.regionY &&

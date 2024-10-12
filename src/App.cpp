@@ -64,7 +64,7 @@ void App::AttemptExit(bool force) {
 
     if (!force)
         for (unsigned i = 0; i < sessionManager.sessionList.size(); i++) {
-            if (sessionManager.sessionList.at(i).modified) {
+            if (sessionManager.sessionList[i].modified) {
                 Popups::_openExitWithChangesPopup = true;
 
                 return; // Cancel

@@ -71,8 +71,7 @@ std::string randomString(const unsigned length) {
     string.resize(length);
 
     for (unsigned i = 0; i < length; i++)
-        string.at(i) =
-            characters[rand() % (sizeof(characters) - 1)];
+        string[i] = characters[rand() % (sizeof(characters) - 1)];
 
     return string;
 }
