@@ -1,12 +1,24 @@
 #include "ImageConvert.hpp"
 
 #include <unordered_map>
+#include <set>
 
 #include <iostream>
 
 #include "../common.hpp"
 
 #define IMGFMT TPL::TPLImageFormat
+
+/*                                 result          srcWidth  srcHeight data                  palette
+**                                                                                          (not used by non-palette 
+**                                                                                           implementations) */
+typedef void (*FromImplementation)(unsigned char*, unsigned, unsigned, const unsigned char*, const uint32_t*);
+
+/*                               result          paletteOut paletteSizeOut       srcHeight data
+**                                                                     srcWidth
+**                                               (not mutated by non-palette
+**                                                implementations) */
+typedef void (*ToImplementation)(unsigned char*, uint32_t*, unsigned*, unsigned, unsigned, const unsigned char*);
 
 void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, uint32_t offset = 0) {
     uint8_t rU, gU, bU;
@@ -27,7 +39,7 @@ void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, uint32_t offset = 0) {
 
 #pragma region Ixx
 
-void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 8) {
@@ -62,7 +74,7 @@ void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned s
     }
 }
 
-void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -89,7 +101,7 @@ void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned s
     }
 }
 
-void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -119,7 +131,7 @@ void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned 
     }
 }
 
-void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -153,7 +165,7 @@ void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned 
 
 #pragma region RGBxxx
 
-void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -184,7 +196,7 @@ void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsign
     }
 }
 
-void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -228,7 +240,7 @@ void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsign
     }
 }
 
-void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -278,7 +290,7 @@ void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsign
 
 #pragma region Cx
 
-void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, uint32_t* colorPalette) {
+void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {    
     unsigned readOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -290,12 +302,12 @@ void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned s
                 const unsigned rowBase = srcWidth * (yy + y);
 
                 for (unsigned x = 0; x < 8; x++) {
-                    if (srcWidth + x >= srcWidth) break;
-                    if ((srcWidth + x >= srcWidth) || (yy + y >= srcHeight))
-                        continue;
+                    if (xx + x >= srcWidth) break;
 
-                    const uint32_t color = colorPalette[data[readOffset++]];
-                    const uint32_t destIndex = 4 * (rowBase * (yy + y) + xx + x);
+                    const uint8_t index = data[readOffset + (y * 8) + x];
+                    const uint32_t color = palette[index];
+
+                    const uint32_t destIndex = 4 * (srcWidth * (yy + y) + xx + x);
 
                     result[destIndex + 0] = (color >> 24) & 0xFFu;
                     result[destIndex + 1] = (color >> 16) & 0xFFu;
@@ -303,6 +315,7 @@ void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned s
                     result[destIndex + 3] = color & 0xFFu;
                 }
             }
+            readOffset += 1 * 8 * 4;
         }
     }
 }
@@ -311,7 +324,7 @@ void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned s
 
 #pragma region CMPR
 
-void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset{ 0 };
 
     // TODO: fix CMPR
@@ -384,7 +397,7 @@ void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned
 
 #pragma region RGBxxx
 
-void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     unsigned writeOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -424,12 +437,11 @@ void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned
                 }
             }
             writeOffset += 2 * 4 * 4;
-
         }
     }
 }
 
-void IMPLEMENTATION_TO_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     unsigned writeOffset{ 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -479,71 +491,90 @@ void IMPLEMENTATION_TO_RGBA32(unsigned char* result, unsigned srcWidth, unsigned
 
 #pragma region Cx
 
-void IMPLEMENTATION_TO_C8(unsigned char* result, std::vector<uint32_t>& colors, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
-                       // Color  // Index
-    std::unordered_map<uint32_t, uint8_t> indexMap;
-    for (unsigned i = 0; i < colors.size(); i++)
-        indexMap[colors.at(i)] = static_cast<uint8_t>(i);
+void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    std::unordered_map<uint32_t, uint8_t> colorToIndex;
+    unsigned nextColorIndex{ 0 };
 
     unsigned writeOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 8); xBlock++) {
-
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
+            
             for (unsigned y = 0; y < 4; y++) {
-                for (unsigned x = 0; x < 8; x++) {
-                    if ((xBlock * 8 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
-                        continue;
+                if (yy + y >= srcHeight) break;
 
-                    const uint32_t readPixel = *(
-                        reinterpret_cast<const uint32_t*>(data) +
-                        (srcWidth * ((yBlock * 4) + y) + (xBlock * 8) + x)
+                const unsigned rowBase = srcWidth * (yy + y);
+
+                for (unsigned x = 0; x < 8; x++) {
+                    if (xx + x >= srcWidth) break;
+
+                    const uint32_t readPixel = *reinterpret_cast<const uint32_t*>(
+                        data + (rowBase + xx + x) * 4
+                    );
+                    uint8_t* pixel = reinterpret_cast<uint8_t*>(
+                        result + writeOffset + (y * 8) + x
                     );
 
-                    uint8_t* pixel = reinterpret_cast<uint8_t*>(&result[writeOffset++]);
+                    if (colorToIndex.find(readPixel) == colorToIndex.end()) {
+                        if (nextColorIndex >= 256) {
+                            std::cerr << "[IMPLEMENTATION_TO_C8] Palette index limit reached (256), processing cannot continue.\n";
+                            return;
+                        }
 
-                    // TODO: fix colors not being found
-                    if (indexMap.find(readPixel) != indexMap.end()) {
-                        *pixel = indexMap[readPixel];
+                        paletteOut[nextColorIndex] = readPixel;
+                        colorToIndex[readPixel] = nextColorIndex++;
                     }
+                    *pixel = colorToIndex[readPixel];
                 }
             }
+            writeOffset += 1 * 8 * 4;
         }
     }
+
+    *paletteSizeOut = nextColorIndex;
 }
 
-void IMPLEMENTATION_TO_C14X2(unsigned char* result, std::vector<uint32_t>& colors, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
-                       // Color  // Index (byteswapped)
-    std::unordered_map<uint32_t, uint16_t> indexMap;
-    for (unsigned i = 0; i < colors.size(); i++)
-        indexMap[colors.at(i)] = BYTESWAP_16(static_cast<uint16_t>(i));
+void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    std::unordered_map<uint32_t, uint8_t> colorToIndex;
+    unsigned nextColorIndex{ 0 };
 
     unsigned writeOffset{ 0 };
 
-    for (uint16_t yBlock = 0; yBlock < (srcHeight / 4); yBlock++) {
-        for (uint16_t xBlock = 0; xBlock < (srcWidth / 4); xBlock++) {
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 4) {
 
             for (unsigned y = 0; y < 4; y++) {
-                for (unsigned x = 0; x < 4; x++) {
-                    if ((xBlock * 4 + x >= srcWidth) || (yBlock * 4 + y >= srcHeight))
-                        continue;
+                if (yy + y >= srcHeight) break;
 
-                    const uint32_t readPixel = *(
-                        reinterpret_cast<const uint32_t*>(data) +
-                        ((srcWidth * ((yBlock * 4) + y)) + ((xBlock * 4) + x))
+                const unsigned rowBase = srcWidth * (yy + y);
+
+                for (unsigned x = 0; x < 4; x++) {
+                    if (xx + x >= srcWidth) break;
+
+                    const uint32_t readPixel = *reinterpret_cast<const uint32_t*>(
+                        data + (rowBase + xx + x) * 4
+                    );
+                    uint16_t* pixel = reinterpret_cast<uint16_t*>(
+                        result + writeOffset + (y * 2 * 4) + (x * 2)
                     );
 
-                    uint16_t* pixel = reinterpret_cast<uint16_t*>(&result[writeOffset]);
-                    writeOffset += sizeof(uint16_t);
+                    if (colorToIndex.find(readPixel) == colorToIndex.end()) {
+                        if (nextColorIndex >= 16384) {
+                            std::cerr << "[IMPLEMENTATION_TO_C14X2] Palette index limit reached (16384), processing cannot continue.\n";
+                            return;
+                        }
 
-                    // TODO: fix colors not being found
-                    if (indexMap.find(readPixel) != indexMap.end()) {
-                        *pixel = indexMap[readPixel];
+                        paletteOut[nextColorIndex] = readPixel;
+                        colorToIndex[readPixel] = nextColorIndex++;
                     }
+                    *pixel = BYTESWAP_16(colorToIndex[readPixel]);
                 }
             }
+            writeOffset += 2 * 4 * 4;
         }
     }
+
+    *paletteSizeOut = nextColorIndex;
 }
 
 #pragma endregion
@@ -554,57 +585,61 @@ void IMPLEMENTATION_TO_C14X2(unsigned char* result, std::vector<uint32_t>& color
 
 bool ImageConvert::toRGBA32(
     unsigned char* buffer,
-    const TPL::TPLImageFormat type,
+    const TPL::TPLImageFormat format,
     const unsigned srcWidth,
     const unsigned srcHeight,
     const unsigned char* data,
-    uint32_t* colorPalette
+    const uint32_t* palette
 ) {
-    switch (type) {
+    FromImplementation implementation;
+    switch (format) {
         case IMGFMT::TPL_IMAGE_FORMAT_I4:
-            IMPLEMENTATION_FROM_I4(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_FROM_I4;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_I8:
-            IMPLEMENTATION_FROM_I8(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_FROM_I8;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_IA4:
-            IMPLEMENTATION_FROM_IA4(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_FROM_IA4;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_IA8:
-            IMPLEMENTATION_FROM_IA8(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_FROM_IA8;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
-            IMPLEMENTATION_FROM_RGB565(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_FROM_RGB565;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            IMPLEMENTATION_FROM_RGB5A3(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_FROM_RGB5A3;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            IMPLEMENTATION_FROM_RGBA32(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_FROM_RGBA32;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_C8:
-            if (!colorPalette) {
-                std::cerr << "[ImageConvert::toRGBA32] Couldn't convert C8 format: no color palette passed.\n";
+            if (!palette) {
+                std::cerr << "[ImageConvert::toRGBA32] Cannot convert C8 texture: palette is nullptr\n";
                 return false;
             }
 
-            IMPLEMENTATION_FROM_C8(buffer, srcWidth, srcHeight, data, colorPalette);
+            implementation = IMPLEMENTATION_FROM_C8;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
-            IMPLEMENTATION_FROM_CMPR(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_FROM_CMPR;
             break;
 
         default:
+            std::cerr << "[ImageConvert::toRGBA32] Cannot convert texture: invalid format (" << format << ")\n";
             return false;
     }
+
+    implementation(buffer, srcWidth, srcHeight, data, palette);
 
     return true;
 }
@@ -624,41 +659,46 @@ bool ImageConvert::toRGBA32(
 
 bool ImageConvert::fromRGBA32(
     unsigned char* buffer,
-    const TPL::TPLImageFormat type,
+    uint32_t* paletteOut,
+    unsigned* paletteSizeOut,
+    const TPL::TPLImageFormat format,
     const unsigned srcWidth,
     const unsigned srcHeight,
-    const unsigned char* data,
-    std::vector<uint32_t>* colorPalette
+    const unsigned char* data
 ) {
-    switch (type) {
+    ToImplementation implementation;
+    switch (format) {
         case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
-            IMPLEMENTATION_TO_RGB5A3(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_TO_RGB5A3;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
-            IMPLEMENTATION_TO_RGBA32(buffer, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_TO_RGBA32;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_C8:
-            if (!colorPalette) {
+            if (!paletteOut) {
                 std::cerr << "[ImageConvert::fromRGBA32] Couldn't convert to C8 format: no color palette passed.\n";
                 return false;
             }
 
-            IMPLEMENTATION_TO_C8(buffer, *colorPalette, srcWidth, srcHeight, data);
+            //IMPLEMENTATION_TO_C8(buffer, paletteOut, paletteSizeOut, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_TO_C8;
             break;
         case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
-            if (!colorPalette) {
+            if (!paletteOut) {
                 std::cerr << "[ImageConvert::fromRGBA32] Couldn't convert to C14X2 format: no color palette passed.\n";
                 return false;
             }
 
-            IMPLEMENTATION_TO_C14X2(buffer, *colorPalette, srcWidth, srcHeight, data);
+            implementation = IMPLEMENTATION_TO_C14X2;
             break;
 
         default:
             return false;
     }
+
+    implementation(buffer, paletteOut, paletteSizeOut, srcWidth, srcHeight, data);
 
     return true;
 }
@@ -666,13 +706,27 @@ bool ImageConvert::fromRGBA32(
     TPL::TPLTexture& texture,
     unsigned char* buffer
 ) {
-    return fromRGBA32(
+    if (texture.format == IMGFMT::TPL_IMAGE_FORMAT_C14X2)
+        texture.palette.resize(16384);
+    if (texture.format == IMGFMT::TPL_IMAGE_FORMAT_C8)
+        texture.palette.resize(256);
+    if (texture.format == IMGFMT::TPL_IMAGE_FORMAT_C4)
+        texture.palette.resize(16);
+
+    unsigned paletteSize{ 0 };
+
+    bool result = fromRGBA32(
         buffer,
+        texture.palette.data(),
+        &paletteSize,
         texture.format,
         texture.width, texture.height,
-        texture.data.data(),
-        &texture.palette
+        texture.data.data()
     );
+
+    texture.palette.resize(paletteSize);
+
+    return result;
 }
 
 static unsigned ImageByteSize_4(unsigned width, unsigned height) {

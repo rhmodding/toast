@@ -6,10 +6,19 @@
 #include <cstdint>
 
 #include <vector>
+#include <set>
 
 #include "../common.hpp"
 
 namespace PaletteUtils {
+
+unsigned countUniqueColors(const uint32_t* rgbaImage, unsigned width, unsigned height) {
+    std::set<uint32_t> uniqueColors;
+    for (unsigned i = 0; i < width * height; ++i)
+        uniqueColors.insert(rgbaImage[i]);
+    
+    return uniqueColors.size();
+}
 
 void CLUTtoRGBA32Palette(
     std::vector<uint32_t>& buffer,
@@ -105,22 +114,19 @@ bool WriteRGBA32Palette(
         } break;
         case TPL::TPL_CLUT_FORMAT_RGB5A3: {
             for (uint16_t i = 0; i < numEntries; i++) {
+                const uint8_t* readPixel = reinterpret_cast<const uint8_t*>(data + i);
+
                 // A pixel is 16-bit but we write it in two 8-bit segments.
-                uint8_t* pixel = reinterpret_cast<uint8_t*>(dest + (i * sizeof(uint16_t)));
+                uint8_t* pixel = dest + (i * 2);
 
-                uint8_t r = (*(data + i) >> 24) & 0xFF;
-                uint8_t g = (*(data + i) >> 16) & 0xFF;
-                uint8_t b = (*(data + i) >>  8) & 0xFF;
-                uint8_t a = (*(data + i) >>  0) & 0xFF;
-
-                if (a == 255) { // Opaque, write RGB555 pixel
+                if (readPixel[3] == 255) { // Opaque, write RGB555 pixel
                     // Bits:
                     // 1    RRRRRGGGGG BBBBB
                     // ^    ^    ^     ^
                     // Type Red  Green Blue
 
-                    *(pixel + 0) = 0x0080 | ((r & 0xF8) >> 1) | (g >> 6);
-                    *(pixel + 1) = ((g & 0x38) << 2) | (b >> 3);
+                    pixel[0] = 0x0080 | ((readPixel[0] & 0xF8) >> 1) | (readPixel[1] >> 6);
+                    pixel[1] = ((readPixel[1] & 0x38) << 2) | (readPixel[2] >> 3);
                 }
                 else { // Transparent, write RGBA4443
                     // Bits:
@@ -128,8 +134,8 @@ bool WriteRGBA32Palette(
                     // ^    ^     ^   ^     ^
                     // Type Alpha Red Green Blue
 
-                    *(pixel + 0) = ((a >> 1) & 0x70) | ((r & 0xF0) >> 4);
-                    *(pixel + 1) = (g & 0xF0) | ((b & 0xF0) >> 4);
+                    pixel[0] = ((readPixel[3] >> 1) & 0x70) | ((readPixel[0] & 0xF0) >> 4);
+                    pixel[1] = (readPixel[1] & 0xF0) | ((readPixel[2] & 0xF0) >> 4);
                 }
             }
         } break;

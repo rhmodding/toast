@@ -13,7 +13,7 @@
 
 #include "../common.hpp"
 
-#define TPL_VERSION_NUMBER 0x30AF2000
+#define TPL_VERSION_NUMBER (0x30AF2000)
 
 struct TPLClutHeader {
     uint16_t numEntries;
@@ -136,7 +136,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
             PaletteUtils::CLUTtoRGBA32Palette(
                 textureData.palette,
 
-                reinterpret_cast<const uint8_t*>(tplData + BYTESWAP_32(clutHeader->dataOffset)),
+                tplData + BYTESWAP_32(clutHeader->dataOffset),
                 BYTESWAP_16(clutHeader->numEntries),
 
                 static_cast<TPL::TPLClutFormat>(BYTESWAP_32(clutHeader->format))
@@ -175,18 +175,22 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
     // Precompute size required & texture indexes for color palettes
     unsigned paletteEntriesSize{ 0 };
-    std::unordered_set<unsigned> paletteTextures;
+    std::vector<unsigned> paletteTextures;
 
     for (unsigned i = 0; i < textureCount; i++) {
-        if (
-            this->textures.at(i).format == TPL_IMAGE_FORMAT_C4 ||
-            this->textures.at(i).format == TPL_IMAGE_FORMAT_C8 ||
-            this->textures.at(i).format == TPL_IMAGE_FORMAT_C14X2
-        ) {
-            paletteTextures.insert(i);
+        const auto& texture = this->textures[i];
 
-            // All palette formats have a consistent pixel size of 16 bits
-            paletteEntriesSize += (this->textures.at(i).palette.size() * sizeof(uint16_t));
+        if (
+            texture.format == TPL_IMAGE_FORMAT_C4 ||
+            texture.format == TPL_IMAGE_FORMAT_C8 ||
+            texture.format == TPL_IMAGE_FORMAT_C14X2
+        ) {
+            paletteTextures.push_back(i);
+
+            unsigned colorCount = PaletteUtils::countUniqueColors(
+                (uint32_t*)texture.data.data(), texture.width, texture.height
+            );
+            paletteEntriesSize += colorCount * 2;
         }
     }
 
@@ -208,23 +212,21 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     palette->descriptorCount = BYTESWAP_32(textureCount);
     palette->descriptorsOffset = BYTESWAP_32(sizeof(TPLPalette));
 
-    unsigned char* paletteWritePtr = nullptr;
+    unsigned nextColorPaletteOffset = 0;
     if (!paletteTextures.empty()) {
-        paletteWritePtr = result.data() + (
-            (
-                sizeof(TPLPalette) +
-                (sizeof(TPLDescriptor) * textureCount) +
-                (sizeof(TPLClutHeader) * paletteTextures.size())
-                + 31
-            ) & ~31
-        );
+        nextColorPaletteOffset = (
+            sizeof(TPLPalette) +
+            (sizeof(TPLDescriptor) * textureCount) +
+            (sizeof(TPLClutHeader) * paletteTextures.size())
+            + 31
+        ) & ~31;
     }
 
     TPLHeader* headers = reinterpret_cast<TPLHeader*>(result.data() + headerSectionStart);
     TPLDescriptor* descriptors = reinterpret_cast<TPLDescriptor*>(result.data() + sizeof(TPLPalette));
 
     // Texture Descriptors
-    for (unsigned textureIndex = 0, clutIndex = 0; textureIndex < textureCount; textureIndex++) {
+    for (unsigned textureIndex = 0; textureIndex < textureCount; textureIndex++) {
         TPLDescriptor* descriptor = descriptors + textureIndex;
 
         descriptor->textureHeaderOffset = BYTESWAP_32(static_cast<uint32_t>(
@@ -232,48 +234,39 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             (sizeof(TPLHeader) * textureIndex)
         ));
 
-        if (paletteTextures.find(textureIndex) != paletteTextures.end()) {
+        auto it = std::find(paletteTextures.begin(), paletteTextures.end(), textureIndex);
+        if (it != paletteTextures.end()) {
             descriptor->CLUTHeaderOffset = BYTESWAP_32(static_cast<uint32_t>(
                 sizeof(TPLPalette) +
                 (sizeof(TPLDescriptor) * textureCount) +
-                (sizeof(TPLClutHeader) * clutIndex)
+                (sizeof(TPLClutHeader) * std::distance(paletteTextures.begin(), it))
             ));
-            clutIndex++;
         }
         else
             descriptor->CLUTHeaderOffset = 0x00000000;
     }
 
-    TPLClutHeader* paletteDescriptors = reinterpret_cast<TPLClutHeader*>(
+    TPLClutHeader* clutHeaders = reinterpret_cast<TPLClutHeader*>(
         result.data() +
         sizeof(TPLPalette) +
         (sizeof(TPLDescriptor) * textureCount)
     );
 
     // Palette Descriptors & Data
-    for (unsigned textureIndex = 0, clutIndex = 0; textureIndex < textureCount; textureIndex++, clutIndex++) {
-        if (paletteTextures.find(textureIndex) == paletteTextures.end()) // No need to write a palette descriptor.
-            continue;
+    for (unsigned clutIndex = 0; clutIndex < paletteTextures.size(); clutIndex++) {
+        TPLClutHeader* clutHeader = clutHeaders + clutIndex;
 
-        TPLClutHeader* paletteDescriptor = paletteDescriptors + clutIndex;
+        clutHeader->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
+        clutHeader->dataOffset = BYTESWAP_32(nextColorPaletteOffset);
 
-        paletteDescriptor->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
+        auto& texture = this->textures[paletteTextures[clutIndex]];
 
-        // Data
-        paletteDescriptor->dataOffset = BYTESWAP_32(static_cast<uint32_t>(
-            paletteWritePtr - result.data()
-        ));
-
-        paletteDescriptor->numEntries = BYTESWAP_16(this->textures.at(textureIndex).palette.size());
-
-        PaletteUtils::WriteRGBA32Palette(
-            this->textures.at(textureIndex).palette.data(),
-            this->textures.at(textureIndex).palette.size(),
-            TPL::TPL_CLUT_FORMAT_RGB5A3,
-            paletteWritePtr
+        unsigned colorCount = PaletteUtils::countUniqueColors(
+            (uint32_t*)texture.data.data(), texture.width, texture.height
         );
+        clutHeader->numEntries = BYTESWAP_16(colorCount);
 
-        paletteWritePtr += (this->textures.at(textureIndex).palette.size() * sizeof(uint16_t));
+        nextColorPaletteOffset += colorCount * 2; // size of RGB5A3 pixel
     }
 
     // Texture Headers
@@ -337,16 +330,33 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             // Align writeOffset to 64 bytes
             writeOffset = (writeOffset + 63) & ~63;
 
-            (headers + i)->dataOffset = BYTESWAP_32(writeOffset);
+            headers[i].dataOffset = BYTESWAP_32(writeOffset);
 
             const unsigned imageSize = ImageConvert::getImageByteSize(texture);
 
             result.resize(writeOffset + imageSize);
-            // headers must be re-assigned due to the data realloc
+
+            // pointers must be re-assigned due to the data realloc
             headers = reinterpret_cast<TPLHeader*>(result.data() + headerSectionStart);
+            clutHeaders = reinterpret_cast<TPLClutHeader*>(
+                result.data() +
+                sizeof(TPLPalette) +
+                (sizeof(TPLDescriptor) * textureCount)
+            );
 
             unsigned char* imageData = result.data() + writeOffset;
             ImageConvert::fromRGBA32(texture, imageData);
+
+            auto it = std::find(paletteTextures.begin(), paletteTextures.end(), i);
+            if (it != paletteTextures.end()) {
+                TPLClutHeader* clutHeader = clutHeaders + std::distance(paletteTextures.begin(), it);
+
+                PaletteUtils::WriteRGBA32Palette(
+                    texture.palette.data(), texture.palette.size(),
+                    TPL_CLUT_FORMAT_RGB5A3,
+                    result.data() + BYTESWAP_32(clutHeader->dataOffset)
+                );
+            }
 
             writeOffset += imageSize;
         }

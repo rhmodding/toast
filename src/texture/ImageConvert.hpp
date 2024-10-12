@@ -9,11 +9,11 @@ namespace ImageConvert {
 
 bool toRGBA32(
     unsigned char* buffer,
-    const TPL::TPLImageFormat type,
+    const TPL::TPLImageFormat format,
     const unsigned srcWidth,
     const unsigned srcHeight,
     const unsigned char* data,
-    uint32_t* colorPalette = nullptr
+    const uint32_t* palette
 );
 bool toRGBA32(
     TPL::TPLTexture& texture,
@@ -22,11 +22,12 @@ bool toRGBA32(
 
 bool fromRGBA32(
     unsigned char* buffer,
-    const TPL::TPLImageFormat type,
+    uint32_t* paletteOut,
+    uint32_t* paletteSizeOut,
+    const TPL::TPLImageFormat format,
     const unsigned srcWidth,
     const unsigned srcHeight,
-    const unsigned char* data,
-    std::vector<uint32_t>* colorPalette = nullptr
+    const unsigned char* data
 );
 bool fromRGBA32(
     TPL::TPLTexture& texture,
