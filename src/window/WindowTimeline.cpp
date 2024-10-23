@@ -55,12 +55,18 @@ void WindowTimeline::Update() {
 
             ImGui::TableSetColumnIndex(0);
             {
-                char playPauseButtonLabel[24] = { '\0' };
+                char playPauseButtonLabel[24] { '\0' };
                 const char* playPauseIcon = playerManager.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
 
-                snprintf(playPauseButtonLabel, 24, "%s##playPauseButton", playPauseIcon);
+                snprintf(
+                    playPauseButtonLabel, sizeof(playPauseButtonLabel),
+                    "%s##playPauseButton", playPauseIcon
+                );
 
-                if (ImGui::Button(playPauseButtonLabel, ImVec2(32, 32))) {
+                const ImVec2 normalButtonSize { 32, 32 };
+                const ImVec2 smallButtonSize  { 32 - 6, 32 - 6 };
+
+                if (ImGui::Button(playPauseButtonLabel, normalButtonSize)) {
                     if (
                         (playerManager.getCurrentKeyIndex() == playerManager.getKeyCount() - 1) &&
                         (playerManager.getHoldFramesLeft() == 0)
@@ -72,18 +78,18 @@ void WindowTimeline::Update() {
                 }
                 ImGui::SameLine();
 
-                ImGui::Dummy(ImVec2(2, 0));
+                ImGui::Dummy({ 2.f, 0.f });
                 ImGui::SameLine();
 
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", ImVec2(32-6, 32-6))) {
+                if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", smallButtonSize)) {
                     playerManager.setCurrentKeyIndex(0);
                 } ImGui::SameLine();
 
                 ImGui::SetItemTooltip("Go to first key");
 
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", ImVec2(32-6, 32-6))) {
+                if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", smallButtonSize)) {
                     if (playerManager.getCurrentKeyIndex() >= 1)
                         playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() - 1);
                 } ImGui::SameLine();
@@ -91,7 +97,7 @@ void WindowTimeline::Update() {
                 ImGui::SetItemTooltip("Step back a key");
 
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", ImVec2(32-6, 32-6))) {
+                if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", smallButtonSize)) {
                     playerManager.setAnimating(false);
                     playerManager.setCurrentKeyIndex(0);
                 } ImGui::SameLine();
@@ -99,7 +105,7 @@ void WindowTimeline::Update() {
                 ImGui::SetItemTooltip("Stop playback and go to first key");
 
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", ImVec2(32-6, 32-6))) {
+                if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", smallButtonSize)) {
                     if (playerManager.getCurrentKeyIndex() != playerManager.getKeyCount() - 1) {
                         playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() + 1);
                     }
@@ -108,13 +114,13 @@ void WindowTimeline::Update() {
                 ImGui::SetItemTooltip("Step forward a key");
 
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-                if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", ImVec2(32-6, 32-6))) {
+                if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", smallButtonSize)) {
                     playerManager.setCurrentKeyIndex(playerManager.getKeyCount() - 1);
                 } ImGui::SameLine();
 
                 ImGui::SetItemTooltip("Go to last key");
 
-                ImGui::Dummy(ImVec2(2, 0));
+                ImGui::Dummy({ 2.f, 0.f });
                 ImGui::SameLine();
 
                 {
@@ -122,7 +128,7 @@ void WindowTimeline::Update() {
                     if (lLooping)
                         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
 
-                    if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", ImVec2(32, 32)))
+                    if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", normalButtonSize))
                         playerManager.looping ^= true;
 
                     ImGui::SetItemTooltip("Toggle looping");
@@ -212,9 +218,9 @@ void WindowTimeline::Update() {
 
     ImGui::BeginChild("TimelineKeys", { 0.f, 0.f }, 0, ImGuiWindowFlags_HorizontalScrollbar);
     {
-        const ImVec2 buttonDimensions(22.f, 30.f);
+        const ImVec2 buttonDimensions { 22.f, 30.f };
 
-        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(15, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 15.f, 0.f });
 
         if (ImGui::BeginTable("TimelineFrameTable", 2,
                                                         ImGuiTableFlags_RowBg |
@@ -237,14 +243,17 @@ void WindowTimeline::Update() {
                     for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
                         ImGui::PushID(i);
 
-                        bool popColor{ false };
+                        bool popColor { false };
                         if (playerManager.getCurrentKeyIndex() == i) {
                             popColor = true;
                             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
                         }
 
                         char buffer[24];
-                        snprintf(buffer, 24, "%u##KeyButton", i+1);
+                        snprintf(
+                            buffer, sizeof(buffer),
+                            "%u##KeyButton", i+1
+                        );
 
                         if (ImGui::Button(buffer, buttonDimensions)) {
                             playerManager.setCurrentKeyIndex(i);
@@ -277,9 +286,9 @@ void WindowTimeline::Update() {
 
                             // Key splitting
                             {
-                                bool splitPossible{ false };
-                                RvlCellAnim::Arrangement* arrangementA{ nullptr };
-                                RvlCellAnim::Arrangement* arrangementB{ nullptr };
+                                bool splitPossible { false };
+                                RvlCellAnim::Arrangement* arrangementA { nullptr };
+                                RvlCellAnim::Arrangement* arrangementB { nullptr };
 
                                 if (i+1 < playerManager.getKeyCount()) {
                                     arrangementA = &globalAnimatable->cellanim->arrangements.at(
@@ -299,14 +308,15 @@ void WindowTimeline::Update() {
                                     RvlCellAnim::AnimationKey newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
                                     RvlCellAnim::Arrangement newArrangement = *arrangementA;
 
-                                    for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
-                                        newArrangement.parts.at(j).transform =
-                                            arrangementA->parts.at(j).transform.average(
+                                    unsigned maxParts = std::min(arrangementA->parts.size(), arrangementB->parts.size());
+                                    for (unsigned j = 0; j < maxParts; j++) {
+                                        newArrangement.parts[j].transform =
+                                            arrangementA->parts[j].transform.average(
                                                 arrangementB->parts.at(j).transform
                                             );
 
-                                        newArrangement.parts.at(j).opacity = AVERAGE_UCHARS(
-                                            arrangementA->parts.at(j).opacity,
+                                        newArrangement.parts[j].opacity = AVERAGE_UCHARS(
+                                            arrangementA->parts[j].opacity,
                                             arrangementB->parts.at(j).opacity
                                         );
                                     }
@@ -474,7 +484,7 @@ void WindowTimeline::Update() {
                         uint16_t holdFrames = globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames;
                         if (holdFrames > 1) {
                             ImGui::SameLine();
-                            ImGui::Dummy(ImVec2(static_cast<float>(10 * holdFrames), buttonDimensions.y));
+                            ImGui::Dummy({ static_cast<float>(10 * holdFrames), buttonDimensions.y });
                         }
 
                         ImGui::SameLine();
@@ -508,7 +518,7 @@ void WindowTimeline::Update() {
                                     ));
                                 } break;
                                 case DeleteKeyMode_ToRight: {
-                                    RvlCellAnim::Animation newAnimation{
+                                    RvlCellAnim::Animation newAnimation {
                                         .keys = globalAnimatable->getCurrentAnimation()->keys
                                     };
                                     newAnimation.keys.erase(newAnimation.keys.begin() + i + 1, newAnimation.keys.end());
@@ -534,15 +544,15 @@ void WindowTimeline::Update() {
             ImGui::TableNextRow();
             { // Hold Frames
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Dummy(ImVec2(5, 0));
+                ImGui::Dummy({ 5.f, 0.f });
                 ImGui::SameLine();
                 ImGui::TextUnformatted("Hold Frames");
                 ImGui::TableSetColumnIndex(1);
 
                 {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
-                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
-                    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 4.f, 3.f });
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 2.f, 4.f });
+                    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f);
 
                     for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
                         ImGui::PushID(i);
@@ -554,13 +564,13 @@ void WindowTimeline::Update() {
                         if (holdFrames > 1) {
                             ImGui::SameLine();
 
-                            ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(
+                            ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, {
                                 playerManager.getCurrentKeyIndex() == i ?
                                     ((holdFrames - playerManager.getHoldFramesLeft()) / (float)holdFrames) :
                                 playerManager.getCurrentKeyIndex() > i ?
                                     1.f : 0.f,
                                 .5f
-                            ));
+                            });
 
                             ImGui::BeginDisabled();
                             ImGui::Button((char*)ICON_FA_HOURGLASS "", { static_cast<float>(10 * holdFrames), 30.f });
@@ -582,21 +592,24 @@ void WindowTimeline::Update() {
                 ImGui::TableNextRow();
                 { // Onion Skin
                     ImGui::TableSetColumnIndex(0);
-                    ImGui::Dummy(ImVec2(5, 0));
+                    ImGui::Dummy({ 5.f, 0.f });
                     ImGui::SameLine();
                     ImGui::TextUnformatted("Onion Skin");
                     ImGui::TableSetColumnIndex(1);
 
                     {
-                        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
-                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 4));
-                        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+                        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 4.f, 3.f });
+                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 2.f, 4.f });
+                        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f);
 
                         for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
                             ImGui::PushID(i);
 
                             char buffer[24];
-                            snprintf(buffer, 24, "%u##OnionSkinButton", i+1);
+                            snprintf(
+                                buffer, sizeof(buffer),
+                                "%u##OnionSkinButton", i+1
+                            );
 
                             ImGui::BeginDisabled();
                             if (
@@ -613,7 +626,7 @@ void WindowTimeline::Update() {
                             uint16_t holdFrames = globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames;
                             if (holdFrames > 1) {
                                 ImGui::SameLine();
-                                ImGui::Dummy(ImVec2(static_cast<float>(10 * holdFrames), buttonDimensions.y));
+                                ImGui::Dummy({ static_cast<float>(10 * holdFrames), buttonDimensions.y });
                             }
 
                             ImGui::SameLine();

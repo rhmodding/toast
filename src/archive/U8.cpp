@@ -179,7 +179,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
     };
 
     std::stack<std::pair<Directory*, unsigned>> directoryStack;
-    directoryStack.push({&this->structure, 0});
+    directoryStack.push({ &this->structure, 0 });
 
     std::vector<unsigned> parentList = { 0 };
 
@@ -220,8 +220,8 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
         }
     }
 
-    unsigned stringPoolSize{ 1 }; // Root node string's null terminator
-    unsigned dataSize{ 0 };
+    unsigned stringPoolSize { 1 }; // Root node string's null terminator
+    unsigned dataSize { 0 };
 
     std::vector<unsigned> stringOffsets(1, 0);
     std::vector<unsigned> dataOffsets(flattenedArchive.size(), 0);

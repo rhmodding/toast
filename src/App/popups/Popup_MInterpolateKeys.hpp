@@ -43,7 +43,7 @@ void EvalBezier(const float P[4], ImVec2* results, unsigned stepCount) {
 ImVec2 BezierValue(const float x, const float P[4]) {
     const int STEPS = 256;
 
-    ImVec2 closestPoint = { 0, 0 };
+    ImVec2 closestPoint { 0.f, 0.f };
     float closestDistance = fabsf(x);
 
     const float step = 1.f / STEPS;
@@ -96,7 +96,7 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
     if (window->SkipItems)
         return false;
 
-    bool changed{ false };
+    bool changed { false };
 
     const float avail = ImGui::GetContentRegionAvail().x;
 
@@ -115,7 +115,7 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
     bb.Expand({ -(padX / 2.f), -(padY / 2.f) });
 
     char buf[128];
-    snprintf(buf, 128, "%s##bInteract", label);
+    snprintf(buf, sizeof(buf), "%s##bInteract", label);
 
     ImGui::InvisibleButton(buf, outerBb.GetSize(),
         ImGuiButtonFlags_MouseButtonLeft
@@ -143,15 +143,15 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
     // Draw grid
     for (unsigned i = 0; i <= bb.GetWidth(); i += IM_ROUND(bb.GetWidth() / 4)) {
         drawList->AddLine(
-            ImVec2(bb.Min.x + i, outerBb.Min.y),
-            ImVec2(bb.Min.x + i, outerBb.Max.y),
+            { bb.Min.x + i, outerBb.Min.y },
+            { bb.Min.x + i, outerBb.Max.y },
             ImGui::GetColorU32(ImGuiCol_TextDisabled)
         );
     }
     for (unsigned i = 0; i <= bb.GetHeight(); i += IM_ROUND(bb.GetHeight() / 4)) {
         drawList->AddLine(
-            ImVec2(outerBb.Min.x, bb.Min.y + i),
-            ImVec2(outerBb.Max.x, bb.Min.y + i),
+            { outerBb.Min.x, bb.Min.y + i },
+            { outerBb.Max.x, bb.Min.y + i },
             ImGui::GetColorU32(ImGuiCol_TextDisabled)
         );
     }
@@ -162,16 +162,16 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 
     // Drawing & handle drag behaviour
     {
-        bool hoveredHandle[2]{ false };
-        static int handleBeingDragged{ -1 };
+        bool hoveredHandle[2] { false };
+        static int handleBeingDragged { -1 };
 
         // Handle drag behaviour
         if (handlesEnabled) {
             for (unsigned i = 0; i < 2; i++) {
-                ImVec2 pos = ImVec2(
+                ImVec2 pos {
                     (P[i*2+0]) * bb.GetWidth() + bb.Min.x,
                     (1 - P[i*2+1]) * bb.GetHeight() + bb.Min.y
-                );
+                };
 
                 hoveredHandle[i] =
                     Common::IsMouseInRegion(pos, GRAB_RADIUS);
@@ -238,14 +238,14 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
                     0.00f, 0.75f, 1.00f, lumaB
                 }));
 
-            ImVec2 p1 = ImVec2(
+            ImVec2 p1 {
                 P[0] * bb.GetWidth() + bb.Min.x,
                 (1.f - P[1]) * bb.GetHeight() + bb.Min.y
-            );
-            ImVec2 p2 = ImVec2(
+            };
+            ImVec2 p2 {
                 P[2] * bb.GetWidth() + bb.Min.x,
                 (1.f - P[3]) * bb.GetHeight() + bb.Min.y
-            );
+            };
 
             drawList->AddLine(bb.GetBL(), p1, IM_COL32_WHITE, LINE_WIDTH);
             drawList->AddLine(bb.GetTR(), p2, IM_COL32_WHITE, LINE_WIDTH);
@@ -267,7 +267,7 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 void Popup_MInterpolateKeys() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
-    static bool lateOpen{ false };
+    static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MInterpolateKeys");
 
     GET_APP_STATE;
@@ -275,15 +275,15 @@ void Popup_MInterpolateKeys() {
 
     bool condition = globalAnimatable && globalAnimatable->cellanim.get();
 
-    static RvlCellAnim::Animation animationBackup{ RvlCellAnim::Animation{} };
+    static RvlCellAnim::Animation animationBackup { RvlCellAnim::Animation{} };
 
-    RvlCellAnim::Animation* currentAnimation{ nullptr };
+    RvlCellAnim::Animation* currentAnimation { nullptr };
     unsigned animationIndex;
 
-    RvlCellAnim::AnimationKey* currentKey{ nullptr };
+    RvlCellAnim::AnimationKey* currentKey { nullptr };
     int currentKeyIndex = -1;
 
-    RvlCellAnim::AnimationKey* nextKey{ nullptr };
+    RvlCellAnim::AnimationKey* nextKey { nullptr };
 
     if (condition) {
         currentAnimation = globalAnimatable->getCurrentAnimation();
@@ -314,14 +314,13 @@ void Popup_MInterpolateKeys() {
 
         ImGui::SeparatorText("Interpolate keys");
 
-        static std::array<float, 4> v = { 0.f, 0.f, 1.f, 1.f };
-
+        static std::array<float, 4> v { 0.f, 0.f, 1.f, 1.f };
         static int interval = 1;
 
         {
-            static bool customEasing{ false };
+            static bool customEasing { false };
 
-            static const char* easeNames[] = {
+            static const char* easeNames[] {
                 "Linear",
                 "Ease In (Sine)",
                 "Ease Out (Sine)",
@@ -349,7 +348,7 @@ void Popup_MInterpolateKeys() {
                 "Ease In-Out (Back)",
                 "Custom"
             };
-            static const std::array<float, 4> easePresets[] = {
+            static const std::array<float, 4> easePresets[] {
                 { 0.000f, 0.000f, 1.000f, 1.000f }, // Linear
                 { 0.470f, 0.000f, 0.745f, 0.715f }, // Ease In (Sine)
                 { 0.390f, 0.575f, 0.565f, 1.000f }, // Ease Out (Sine)
@@ -375,10 +374,11 @@ void Popup_MInterpolateKeys() {
                 { 0.600f, -0.28f, 0.735f, 0.045f }, // Ease In (Back)
                 { 0.175f, 0.885f, 0.320f, 1.275f }, // Ease Out (Back)
                 { 0.680f, -0.55f, 0.265f, 1.550f }, // Ease In-Out (Back)
+
                 { 0.445f, 0.050f, 0.550f, 0.950f }, // Custom (not applied)
             };
 
-            int selectedEaseIndex{ 0 };
+            int selectedEaseIndex { 0 };
             if (customEasing)
                 selectedEaseIndex = ARRAY_LENGTH(easePresets) - 1;
             else {

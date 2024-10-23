@@ -22,7 +22,7 @@ unsigned CellanimHelpers::DuplicateArrangement(unsigned arrangementIndex) {
 }
 
 bool CellanimHelpers::getArrangementUnique(unsigned arrangementIndex) {
-    unsigned timesUsed{ 0 };
+    unsigned timesUsed { 0 };
 
     for (const auto& animation : SessionManager::getInstance().getCurrentSession()->getCellanimObject()->animations) {
         for (const auto& key : animation.keys) {

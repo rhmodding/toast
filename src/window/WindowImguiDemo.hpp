@@ -7,7 +7,7 @@ class WindowImguiDemo : public BaseWindow {
 public:
     void Update() override;
 
-    bool open{ false };
+    bool open { false };
 };
 
 #endif // WINDOWIMGUIDEMO_HPP

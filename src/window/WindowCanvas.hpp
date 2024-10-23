@@ -14,15 +14,15 @@ class WindowCanvas : public BaseWindow {
 public:
     void Update() override;
 
-    ImVec2 canvasOffset{ 0.f, 0.f };
+    ImVec2 canvasOffset { 0.f, 0.f };
 
-    bool   drawAllBounding{ false };
-    ImVec4 partBoundingDrawColor{ 1.f, 1.f, 1.f, 1.f };
-    float  partOriginDrawRadius{ 5.f };
+    bool   drawAllBounding { false };
+    ImVec4 partBoundingDrawColor { 1.f, 1.f, 1.f, 1.f };
+    float  partOriginDrawRadius { 5.f };
 
-    bool   allowOpacity{ true };
+    bool   allowOpacity { true };
 
-    float  canvasZoom{ 0.f };
+    float  canvasZoom { 0.f };
 
     enum GridType {
         GridType_None,
@@ -31,11 +31,11 @@ public:
 
         GridType_Custom
     } gridType;
-    ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
-    bool   enableGridLines{ true };
+    ImVec4 customGridColor { 1.f, 1.f, 1.f, 1.f };
+    bool   enableGridLines { true };
 
-    bool    visualizeSafeArea{ false };
-    uint8_t safeAreaAlpha{ 255 };
+    bool    visualizeSafeArea { false };
+    uint8_t safeAreaAlpha { 255 };
 
 private:
     ImVec2 canvasTopLeft;
@@ -52,7 +52,7 @@ private:
         PartHandle_BottomRight = 6,
         PartHandle_BottomLeft = 7,
         PartHandle_Whole = 8
-    } hoveredPartHandle{ PartHandle_None };
+    } hoveredPartHandle { PartHandle_None };
 
     void Menubar();
 

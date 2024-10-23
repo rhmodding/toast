@@ -16,10 +16,10 @@ public:
         InspectorLevel_Key,
         InspectorLevel_Arrangement,
         InspectorLevel_Arrangement_Im
-    } inspectorLevel{ InspectorLevel_Animation };
+    } inspectorLevel { InspectorLevel_Animation };
 
 private:
-    bool realPosition{ true };
+    bool realPosition { true };
 
     void DrawPreview(Animatable* animatable);
 

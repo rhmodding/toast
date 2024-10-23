@@ -41,11 +41,11 @@ public:
     void applyTheming() {
         if (this->getDarkThemeEnabled()) {
             ImGui::StyleColorsDark();
-            this->windowClearColor = std::array<float, 4>{ 24 / 255.f, 24 / 255.f, 24 / 255.f, 1.f };
+            this->windowClearColor = std::array<float, 4>({ 24 / 255.f, 24 / 255.f, 24 / 255.f, 1.f });
         }
         else {
             ImGui::StyleColorsLight();
-            this->windowClearColor = std::array<float, 4>{ 248 / 255.f, 248 / 255.f, 248 / 255.f, 1.f };
+            this->windowClearColor = std::array<float, 4>({ 248 / 255.f, 248 / 255.f, 248 / 255.f, 1.f });
         }
 
         ImGui::GetStyle().Colors[ImGuiCol_TabSelectedOverline] = ImVec4();
@@ -60,7 +60,7 @@ public:
         return ConfigManager::getInstance().getConfig().updateRate;
     }
 
-    ImGuiID globalPopupID{ 0xBEEFBEEF }; // BEEEEEEFFFF
+    ImGuiID globalPopupID { 0xBEEFBEEF };
     inline void OpenGlobalPopup(const char* popupId) {
         ImGui::PushOverrideID(this->globalPopupID);
         ImGui::OpenPopup(popupId);
@@ -84,8 +84,8 @@ public:
     // This key object is meant for the arrangement mode to control the state of the key.
     RvlCellAnim::AnimationKey controlKey;
 
-    unsigned selectedAnimation{ 0 };
-    int selectedPart{ -1 };
+    unsigned selectedAnimation { 0 };
+    int selectedPart { -1 };
 
     int getMatchingNamePartIndex(
         RvlCellAnim::ArrangementPart& part,
@@ -132,20 +132,19 @@ public:
         );
     }
 
-    bool focusOnSelectedPart{ false };
+    bool focusOnSelectedPart { false };
 
-    Animatable* globalAnimatable{ nullptr };
+    Animatable* globalAnimatable { nullptr };
 
     struct OnionSkinState {
-        bool enabled{ false };
-        bool drawUnder{ false };
-        bool rollOver{ false };
+        bool enabled { false };
+        bool drawUnder { false };
+        bool rollOver { false };
 
-        unsigned backCount{ 3 };
-        unsigned frontCount{ 2 };
+        unsigned backCount { 3 };
+        unsigned frontCount { 2 };
 
-        uint8_t opacity{ 50 };
-        uint8_t _pad24[3];
+        uint8_t opacity { 50 };
     } onionSkinState;
 private:
     AppState() {} // Private constructor to prevent instantiation

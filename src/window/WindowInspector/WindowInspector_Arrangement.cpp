@@ -26,18 +26,18 @@ void WindowInspector::Level_Arrangement() {
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
     static RvlCellAnim::ArrangementPart copyPart;
-    static bool allowPastePart{ false };
+    static bool allowPastePart { false };
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
-    ImGui::BeginChild("ArrangementOverview", { 0, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY);
+    ImGui::BeginChild("ArrangementOverview", { 0.f, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY);
     ImGui::PopStyleVar();
     {
         this->DrawPreview(globalAnimatable);
 
         ImGui::SameLine();
 
-        ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+        ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
         {
             //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
@@ -50,7 +50,7 @@ void WindowInspector::Level_Arrangement() {
                 auto originalKey = *globalAnimatable->getCurrentKey();
                 auto newKey = *globalAnimatable->getCurrentKey();
 
-                static uint16_t oldArrangement{ 0 };
+                static uint16_t oldArrangement { 0 };
                 uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
 
                 ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
@@ -180,11 +180,12 @@ void WindowInspector::Level_Arrangement() {
             {
                 // Position XY
                 {
-                    static int oldPosition[2]{ 0, 0 }; // Does not apply realPosition offset
-                    int positionValues[2] = {
+                    static int oldPosition[2] { 0, 0 }; // Does not apply realPosition offset
+                    int positionValues[2] {
                         partPtr->transform.positionX - (this->realPosition ? 0 : CANVAS_ORIGIN),
                         partPtr->transform.positionY - (this->realPosition ? 0 : CANVAS_ORIGIN)
                     };
+
                     if (ImGui::DragInt2(
                         "Position XY##World",
                         positionValues, 1.f,
@@ -222,7 +223,8 @@ void WindowInspector::Level_Arrangement() {
                 // Scale XY
                 {
                     static float oldScale[2]{ 0.f, 0.f };
-                    float scaleValues[2] = { partPtr->transform.scaleX, partPtr->transform.scaleY };
+                    float scaleValues[2] { partPtr->transform.scaleX, partPtr->transform.scaleY };
+
                     if (ImGui::DragFloat2("Scale XY##World", scaleValues, .01f)) {
                         partPtr->transform.scaleX = scaleValues[0];
                         partPtr->transform.scaleY = scaleValues[1];
@@ -247,8 +249,9 @@ void WindowInspector::Level_Arrangement() {
 
             // Angle Z slider
             {
-                static float oldAngle{ 0.f };
+                static float oldAngle { 0.f };
                 float newAngle = partPtr->transform.angle;
+
                 if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
                     partPtr->transform.angle = newAngle;
 
@@ -270,11 +273,12 @@ void WindowInspector::Level_Arrangement() {
 
             // Opacity slider
             {
-                static const uint8_t min{ 0 };
-                static const uint8_t max{ 0xFF };
+                static const uint8_t min { 0 };
+                static const uint8_t max { 0xFF };
 
-                static uint8_t oldOpacity{ 0 };
+                static uint8_t oldOpacity { 0 };
                 uint8_t newOpacity = partPtr->opacity;
+
                 if (ImGui::SliderScalar("Opacity", ImGuiDataType_U8, &newOpacity, &min, &max, "%u"))
                     partPtr->opacity = newOpacity;
 
@@ -293,11 +297,12 @@ void WindowInspector::Level_Arrangement() {
             {
                 // Position XY
                 {
-                    static int oldPosition[2]{ 0, 0 };
-                    int positionValues[2] = {
+                    static int oldPosition[2] { 0, 0 };
+                    int positionValues[2] {
                         partPtr->regionX,
                         partPtr->regionY
                     };
+
                     if (ImGui::DragInt2("Position XY##Region", positionValues, 1.f)) {
                         partPtr->regionX = static_cast<uint16_t>(positionValues[0]);
                         partPtr->regionY = static_cast<uint16_t>(positionValues[1]);
@@ -321,11 +326,12 @@ void WindowInspector::Level_Arrangement() {
 
                 // Size WH
                 {
-                    static int oldSize[2]{ 0, 0 };
-                    int sizeValues[2] = {
+                    static int oldSize[2] { 0, 0 };
+                    int sizeValues[2] {
                         newPart.regionW,
                         newPart.regionH
                     };
+
                     if (ImGui::DragInt2("Size WH##Region", sizeValues, 1.f)) {
                         partPtr->regionW = static_cast<uint16_t>(sizeValues[0]);
                         partPtr->regionH = static_cast<uint16_t>(sizeValues[1]);
@@ -364,9 +370,9 @@ void WindowInspector::Level_Arrangement() {
     }
     ImGui::EndChild();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
-    ImGui::BeginChild("ArrangementParts", { 0, 0 }, ImGuiChildFlags_Border);
+    ImGui::BeginChild("ArrangementParts", { 0.f, 0.f }, ImGuiChildFlags_Border);
     ImGui::PopStyleVar();
     {
         ImVec2 childSize = ImGui::GetContentRegionAvail();
@@ -380,13 +386,16 @@ void WindowInspector::Level_Arrangement() {
             ImGui::PushID(n);
 
             char buffer[32];
-            snprintf(buffer, 32, "Part no. %u", n+1);
+            snprintf(
+                buffer, sizeof(buffer),
+                "Part no. %u", n+1
+            );
 
             ImGui::SetNextItemAllowOverlap();
             if (ImGui::Selectable("###PartSelectable", appState.selectedPart == n, ImGuiSelectableFlags_SelectOnNav))
                 appState.selectedPart = n;
 
-            bool deletePart{ false };
+            bool deletePart { false };
             if (ImGui::BeginPopupContextItem()) {
                 ImGui::TextUnformatted(buffer);
 
@@ -567,7 +576,7 @@ void WindowInspector::Level_Arrangement() {
                     pos.y += window->DC.CurrLineTextBaseOffset;
 
                 ImVec2 size = ImGui::CalcItemSize(
-                    { 0, 0 },
+                    { 0.f, 0.f },
                     labelSize.x,
                     labelSize.y
                 );
@@ -578,13 +587,13 @@ void WindowInspector::Level_Arrangement() {
                 if (!ImGui::ItemAdd(bb, id))
                     return;
 
-                bool hovered{ false }, held{ false };
+                bool hovered { false }, held { false };
                 bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
 
                 if (pressed)
                     condition ^= true;
 
-                uint32_t textColor{ 0xFFFFFFFF };
+                uint32_t textColor { 0xFFFFFFFF };
 
                 ImVec4 color = (flip ? condition : !condition) ?
                     style.Colors[ImGuiCol_Text] :

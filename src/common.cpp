@@ -28,7 +28,7 @@ bool SaveBackupFile(const char* filePath, bool once) {
     char newFileName[PATH_MAX];
     snprintf(newFileName, PATH_MAX, "%s.bak", filePath);
 
-    bool exists{ false };
+    bool exists { false };
     {
         if (FILE *file = fopen(newFileName, "r")) {
             fclose(file);
@@ -114,8 +114,7 @@ bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* outWidth
 }
 
 bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* outWidth, int* outHeight) {
-    int imageWidth{ 0 };
-    int imageHeight{ 0 };
+    int imageWidth, imageHeight;
 
     unsigned char* imagePtr = stbi_load_from_memory(buffer, size, &imageWidth, &imageHeight, nullptr, 4);
     if (imagePtr == nullptr) {

@@ -17,7 +17,7 @@ public:
 
     std::vector<unsigned char> data;
 
-    Directory* parent{ nullptr };
+    Directory* parent { nullptr };
 
     File(const std::string& n);
 };
@@ -28,7 +28,7 @@ public:
     std::vector<File> files;
     std::vector<Directory> subdirectories;
 
-    Directory* parent{ nullptr };
+    Directory* parent { nullptr };
 
     void AddFile(File& file);
     void AddFile(File&& file);
@@ -47,7 +47,7 @@ public:
 
 class U8ArchiveObject {
 public:
-    Directory structure{ "root" };
+    Directory structure { "root" };
 
     std::vector<unsigned char> Reserialize();
 

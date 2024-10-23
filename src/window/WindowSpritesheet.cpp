@@ -81,12 +81,13 @@ void WindowSpritesheet::PaletteWindow() {
     if (ImGui::Begin("Color Palette", &this->showPaletteWindow)) {
         GET_WINDOW_DRAWLIST;
 
-        static uint16_t selected{ 0 };
-        selected = std::clamp<uint16_t>(selected, 0, colors.size() - 1);
+        static uint16_t selected { 0 };
+        if (selected > colors.size() - 1)
+            selected = colors.size() - 1;
 
         // Left
         {
-            ImGui::BeginChild("ColorList", ImVec2(250, 0), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
+            ImGui::BeginChild("ColorList", { 250.f, 0.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
 
             for (unsigned i = 0; i < colors.size(); i++) {
                 const uint32_t& color = colors.at(i);
@@ -97,7 +98,10 @@ void WindowSpritesheet::PaletteWindow() {
                 const uint8_t a = (color >>  0) & 0xFF;
 
                 char buffer[64];
-                snprintf(buffer, 64, "[%03u] - R: %03u G: %03u B: %03u A: %03u", i, r, g, b, a);
+                snprintf(
+                    buffer, sizeof(buffer),
+                    "[%03u] - R: %03u G: %03u B: %03u A: %03u", i, r, g, b, a
+                );
 
                 ImGui::PushID(i);
 
@@ -106,8 +110,8 @@ void WindowSpritesheet::PaletteWindow() {
 
                 ImGui::SameLine();
 
-                ImVec4 vectorColor(r / 255.f, g / 255.f, b / 255.f, a / 255.f);
-                ImGui::ColorButton("Palette Color", vectorColor, ImGuiColorEditFlags_Uint8, ImVec2(18, 18));
+                ImVec4 vectorColor {r / 255.f, g / 255.f, b / 255.f, a / 255.f };
+                ImGui::ColorButton("Palette Color", vectorColor, ImGuiColorEditFlags_Uint8, { 18.f, 18.f });
 
                 ImGui::PopID();
             }
@@ -119,7 +123,7 @@ void WindowSpritesheet::PaletteWindow() {
         {
             ImGui::BeginChild("Properties");
 
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, -2 });
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, -2.f });
 
             ImGui::PushFont(AppState::getInstance().fonts.large);
             ImGui::TextWrapped("Color %u", selected);
@@ -127,9 +131,9 @@ void WindowSpritesheet::PaletteWindow() {
 
             ImGui::PopStyleVar();
 
-            ImGui::Dummy({ 0, 5 });
+            ImGui::Dummy({ 0.f, 5.f });
             ImGui::Separator();
-            ImGui::Dummy({ 0, 5 });
+            ImGui::Dummy({ 0.f, 5.f });
 
             uint32_t& selectedColor = colors.at(selected);
 
@@ -138,7 +142,7 @@ void WindowSpritesheet::PaletteWindow() {
             const uint8_t b = (selectedColor >>  8) & 0xFF;
             const uint8_t a = (selectedColor >>  0) & 0xFF;
 
-            float values[4] = { r / 255.f, g / 255.f, b / 255.f, a / 255.f };
+            float values[4] { r / 255.f, g / 255.f, b / 255.f, a / 255.f };
             if (ImGui::ColorPicker4(
                 "##ColorPicker",
                 values,
@@ -170,11 +174,11 @@ void WindowSpritesheet::FormatPopup() {
     if (ImGui::BeginPopupModal("Re-encode image..###ReencodePopup", nullptr)) {
         GET_SESSION_MANAGER;
 
-        static const char* formatList[] = {
+        static const char* formatList[] {
             "RGBA32",
             "RGB5A3",
         };
-        static int selectedFormatIndex{ 0 };
+        static int selectedFormatIndex { 0 };
 
         TPL::TPLImageFormat tplFormat;
         switch (selectedFormatIndex) {
@@ -201,7 +205,11 @@ void WindowSpritesheet::FormatPopup() {
                     std::numeric_limits<float>::max()
                 }
             );
-            ImGui::BeginChild("Properties", ImVec2(0.f, -ImGui::GetFrameHeightWithSpacing()), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
+            ImGui::BeginChild(
+                "Properties",
+                { 0.f, -ImGui::GetFrameHeightWithSpacing() },
+                ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX
+            );
 
             {
                 ImGui::PushFont(AppState::getInstance().fonts.large);
@@ -227,7 +235,7 @@ void WindowSpritesheet::FormatPopup() {
                     char formattedStr[32];
                     {
                         char numberStr[32];
-                        snprintf(numberStr, 32, "%u", dataSize);
+                        snprintf(numberStr, sizeof(numberStr), "%u", dataSize);
 
                         uint32_t srcLen = strlen(numberStr);
                         uint32_t destLen = srcLen + (srcLen - 1) / 3;
@@ -321,23 +329,23 @@ void WindowSpritesheet::FormatPopup() {
             );
             ImGui::BeginChild("ImageView");
 
-            static float bgScale{ .215f };
+            static float bgScale { .215f };
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::SliderFloat("##BGSlider", &bgScale, 0.f, 1.f, "BG: %.3f");
 
-            ImVec2 imageRect = ImVec2(
+            ImVec2 imageRect {
                 static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->width),
                 static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->height)
-            );
+            };
 
             float scale;
             Common::fitRectangle(imageRect, ImGui::GetContentRegionAvail(), scale);
 
-            ImVec2 imagePosition = ImVec2(
+            ImVec2 imagePosition {
                 ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * .5f,
                 ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - imageRect.y) * .5f
-            );
+            };
 
             ImGui::GetWindowDrawList()->AddRectFilled(
                 imagePosition,
@@ -497,7 +505,7 @@ void RepackSheet() {
 }
 
 void WindowSpritesheet::Update() {
-    static bool firstOpen{ true };
+    static bool firstOpen { true };
     if (UNLIKELY(firstOpen)) {
         this->gridType = AppState::getInstance().getDarkThemeEnabled() ?
             GridType_Dark : GridType_Light;
@@ -507,7 +515,7 @@ void WindowSpritesheet::Update() {
 
     GET_SESSION_MANAGER;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
     ImGui::Begin("Spritesheet", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar);
     ImGui::PopStyleVar();
 
@@ -648,7 +656,10 @@ void WindowSpritesheet::Update() {
 
         {
             char textBuffer[32];
-            snprintf(textBuffer, 32, "Double-click to %s", this->sheetZoomEnabled ? "un-zoom" : "zoom");
+            snprintf(
+                textBuffer, sizeof(textBuffer),
+                "Double-click to %s", this->sheetZoomEnabled ? "un-zoom" : "zoom"
+            );
 
             ImGui::SetCursorPosX(
                 windowSize.x - ImGui::CalcTextSize(textBuffer).x -
@@ -664,9 +675,9 @@ void WindowSpritesheet::Update() {
 
     ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
     ImVec2 canvasSize = ImGui::GetContentRegionAvail();
-    ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+    ImVec2 canvasBottomRight { canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y };
 
-    uint32_t backgroundColor{ 0 };
+    uint32_t backgroundColor { 0xFF000000 };
     switch (this->gridType) {
         case GridType_None:
             backgroundColor = IM_COL32_BLACK_TRANS;
@@ -732,10 +743,10 @@ void WindowSpritesheet::Update() {
         ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
     );
 
-    ImVec2 imageRect = ImVec2(
+    ImVec2 imageRect {
         static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->width),
         static_cast<float>(sessionManager.getCurrentSession()->getCellanimSheet()->height)
-    );
+    };
 
     float scale;
     Common::fitRectangle(imageRect, canvasSize, scale);
@@ -778,10 +789,10 @@ void WindowSpritesheet::Update() {
         canvasOffset.y = this->sheetZoomEnabled ? this->sheetZoomedOffset.y : 0.f;
     }
 
-    ImVec2 imagePosition = ImVec2(
+    ImVec2 imagePosition {
         (canvasTopLeft.x + (canvasSize.x - imageRect.x) * .5f) + canvasOffset.x,
         (canvasTopLeft.y + (canvasSize.y - imageRect.y) * .5f) + canvasOffset.y
-    );
+    };
 
     drawList->AddImage(
         (void*)(intptr_t)sessionManager.getCurrentSession()->getCellanimSheet()->texture,
@@ -802,17 +813,19 @@ void WindowSpritesheet::Update() {
 
             RvlCellAnim::ArrangementPart* partPtr = &arrangementPtr->parts.at(i);
 
-            uint16_t sourceRect[4] = { partPtr->regionX, partPtr->regionY, partPtr->regionW, partPtr->regionH };
+            uint16_t sourceRect[4] {
+                partPtr->regionX, partPtr->regionY, partPtr->regionW, partPtr->regionH
+            };
 
             float mismatchScaleX = static_cast<float>(globalAnimatable->texture->width) / globalAnimatable->cellanim->textureW;
             float mismatchScaleY = static_cast<float>(globalAnimatable->texture->height) / globalAnimatable->cellanim->textureH;
 
-            ImVec2 topLeftOffset = {
+            ImVec2 topLeftOffset {
                 (sourceRect[0] * scale * mismatchScaleX) + imagePosition.x,
                 (sourceRect[1] * scale * mismatchScaleY) + imagePosition.y,
             };
 
-            ImVec2 bottomRightOffset = {
+            ImVec2 bottomRightOffset {
                 topLeftOffset.x + (sourceRect[2] * scale * mismatchScaleX),
                 topLeftOffset.y + (sourceRect[3] * scale * mismatchScaleY)
             };

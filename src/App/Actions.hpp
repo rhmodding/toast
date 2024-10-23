@@ -18,7 +18,7 @@
 namespace Actions {
 
 void Dialog_CreateCompressedArcSession() {
-    const char* filterPatterns[] = { "*.szs" };
+    const char* filterPatterns[] { "*.szs" };
     char* openFileDialog = tinyfd_openFileDialog(
         "Select a cellanim file",
         nullptr,
@@ -41,8 +41,8 @@ void Dialog_CreateTraditionalSession() {
     const char* vFiltersBrcad[] { "*.brcad" };
     const char* tFiltersBrcad = "Binary Revolution CellAnim Data file (.brcad)";
 
-    const char* vFiltersImage[]  { "*.png", "*.tga", "*.bmp", "*.psd", "*.jpg" };
-    const char* tFiltersImage =  "Image files (.png, .tga, .bmp, .psd, .jpg)";
+    const char* vFiltersImage[] { "*.png", "*.tga", "*.bmp", "*.psd", "*.jpg" };
+    const char* tFiltersImage = "Image files (.png, .tga, .bmp, .psd, .jpg)";
 
     const char* vFiltersHeader[] { "*.h" };
     const char* tFiltersHeader = "Header file (.h)";
@@ -107,7 +107,7 @@ void Dialog_SaveCurrentSessionAsSzs() {
     )
         return;
 
-    const char* filterPatterns[] = { "*.szs" };
+    const char* filterPatterns[] { "*.szs" };
     char* saveFileDialog = tinyfd_saveFileDialog(
         "Select a file to save to",
         nullptr,

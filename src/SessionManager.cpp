@@ -29,8 +29,8 @@
 namespace EditorData {
 
 struct FileHeader {
-    char magic[6]{ 'T', 'O', 'A', 'S', 'T', 'D' };
-    uint16_t entryCount{ 0 };
+    char magic[6] { 'T', 'O', 'A', 'S', 'T', 'D' };
+    uint16_t entryCount { 0 };
 } __attribute__((packed));
 
 struct StandardHeader {
@@ -52,7 +52,7 @@ struct PartAlphaEntry {
 
     uint8_t opacity;
 
-    uint8_t _pad8{ 0x00 };
+    uint8_t _pad8 { 0x00 };
 } __attribute__((packed));
 
 struct NamedPartEntry {
@@ -223,7 +223,7 @@ std::vector<unsigned char> Write(SessionManager::Session* session) {
         }
     }
 
-    unsigned writeOffset{ sizeof(FileHeader) };
+    unsigned writeOffset { sizeof(FileHeader) };
 
     if (!invisibleParts.empty()) {
         fileHeader->entryCount++;
@@ -379,14 +379,14 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     // cellanims
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
-        auto& cellanim = newSession.cellanims.at(i);
+        auto& cellanim = newSession.cellanims[i];
+        const auto* file = brcadFiles[i];
 
         cellanim.name = file->name;
         cellanim.object =
             std::make_shared<RvlCellAnim::RvlCellAnimObject>(
-            RvlCellAnim::RvlCellAnimObject(
-                brcadFiles.at(i)->data.data(), brcadFiles.at(i)->data.size()
-            ));
+                file->data.data(), file->data.size()
+            );
 
         if (UNLIKELY(!cellanim.object->ok)) {
             std::lock_guard<std::mutex> lock(this->mtx);
@@ -401,11 +401,14 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         // Find header file
         const U8::File* headerFile{ nullptr };
 
+        const U8::File* brcadFile = brcadFiles[i];
+
         char targetHeaderName[128];
         snprintf(
-            targetHeaderName, 128, "rcad_%.*s_labels.h",
-            static_cast<int>(brcadFiles.at(i)->name.size() - 6),
-            brcadFiles.at(i)->name.c_str()
+            targetHeaderName, sizeof(targetHeaderName),
+            "rcad_%.*s_labels.h",
+            static_cast<int>(brcadFile->name.size() - 6),
+            brcadFile->name.c_str()
         );
 
         // Find header file
@@ -442,12 +445,13 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     // sheets
     for (unsigned i = 0; i < tplObject.textures.size(); i++) {
-        auto& sheet = newSession.sheets.at(i);
+        auto& sheet = newSession.sheets[i];
+
+        auto& texture = tplObject.textures[i];
 
         sheet = std::make_shared<Common::Image>(
-            tplObject.textures.at(i).width,
-            tplObject.textures.at(i).height,
-            TPL::LoadTPLTextureIntoGLTexture(tplObject.textures.at(i))
+            texture.width, texture.height,
+            TPL::LoadTPLTextureIntoGLTexture(texture)
         );
 
         sheet->tplOutFormat = tplObject.textures.at(i).format;
@@ -491,13 +495,17 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
 int SessionManager::PushSessionTraditional(const char* paths[3]) {
     Session newSession;
-    newSession.cellanims.resize(1);
-    newSession.sheets.resize(1);
 
-    newSession.cellanims.at(0).object = RvlCellAnim::readRvlCellAnimFile(paths[0]);
+    newSession.cellanims.resize(1);
+    auto& cellanim = newSession.cellanims[0];
+
+    newSession.sheets.resize(1);
+    auto& sheet = newSession.sheets[0];
+
+    cellanim.object = RvlCellAnim::readRvlCellAnimFile(paths[0]);
     if (
-        !newSession.cellanims.at(0).object ||
-        !newSession.cellanims.at(0).object->ok
+        !cellanim.object ||
+        !cellanim.object->ok
     ) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_FailOpenBXCAD;
@@ -507,15 +515,13 @@ int SessionManager::PushSessionTraditional(const char* paths[3]) {
 
     {
         std::filesystem::path filePath(paths[0]);
-        newSession.cellanims.at(0).name = filePath.filename().string();
+        cellanim.name = filePath.filename().string();
     }
 
-    newSession.sheets.at(0) =
-        std::make_shared<Common::Image>(Common::Image());
+    sheet = std::make_shared<Common::Image>();
+    sheet->LoadFromFile(paths[1]);
 
-    newSession.sheets.at(0)->LoadFromFile(paths[1]);
-
-    if (!newSession.sheets.at(0)->texture) {
+    if (!sheet->texture) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_FailOpenPNG;
 

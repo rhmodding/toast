@@ -16,13 +16,13 @@ void Popup_EditAnimationName(int animationIndex) {
     if (animationIndex < 0)
         return;
 
-    static bool lateOpen{ false };
+    static bool lateOpen { false };
 
-    static char newMacro[MACRO_BUF_SIZE]{ "" };
+    static char newMacro[MACRO_BUF_SIZE] { '\0' };
 
     CENTER_NEXT_WINDOW;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     bool open = ImGui::BeginPopupModal("Edit animation macro###EditAnimationName", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::PopStyleVar();
 
@@ -33,23 +33,23 @@ void Popup_EditAnimationName(int animationIndex) {
 
         if (animNames.find(animationIndex) != animNames.end()) {
             const auto& str = animNames.at(animationIndex);
-            strncpy(newMacro, str.c_str(), MACRO_BUF_SIZE - 1);
+            strncpy(newMacro, str.c_str(), sizeof(newMacro) - 1);
         }
         else {
             const std::string& str = sessionManager.getCurrentSession()->getCellanimName();
-            snprintf(newMacro, MACRO_BUF_SIZE, "%.*s_", static_cast<int>(str.size() - 6), str.c_str());
+            snprintf(newMacro, sizeof(newMacro), "%.*s_", static_cast<int>(str.size() - 6), str.c_str());
         }
     }
 
     if (open) {
         ImGui::Text("Edit macro name for animation no. %u:", animationIndex + 1);
-        ImGui::InputText("##Input", newMacro, MACRO_BUF_SIZE);
+        ImGui::InputText("##Input", newMacro, sizeof(newMacro));
 
-        ImGui::Dummy({ 0, 15 });
+        ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();
-        ImGui::Dummy({ 0, 5 });
+        ImGui::Dummy({ 0.f, 5.f });
 
-        if (ImGui::Button("OK", ImVec2(120, 0))) {
+        if (ImGui::Button("OK", { 120.f, 0.f })) {
             // Replace spaces with underscores
             {
                 char* character = newMacro;
@@ -75,7 +75,7 @@ void Popup_EditAnimationName(int animationIndex) {
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Nevermind", ImVec2(120, 0)))
+        if (ImGui::Button("Nevermind", { 120.f, 0.f }))
             ImGui::CloseCurrentPopup();
 
         ImGui::EndPopup();

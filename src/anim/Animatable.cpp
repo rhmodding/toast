@@ -131,7 +131,7 @@ ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
         }
     }
 
-    return ImRect{{minX, minY}, {maxX, maxY}};
+    return ImRect({ minX, minY }, { maxX, maxY });
 }
 
 // Top-left, top-right, bottom-right, bottom-left
@@ -146,17 +146,17 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationK
     const int*   arrngOffset = arrangement.tempOffset;
     const float* arrngScale  = arrangement.tempScale;
 
-    ImVec2 keyCenter = {
+    ImVec2 keyCenter {
         this->offset.x,
         this->offset.y
     };
 
-    ImVec2 topLeftOffset = {
+    ImVec2 topLeftOffset {
         (static_cast<float>(part.transform.positionX) - CANVAS_ORIGIN),
         (static_cast<float>(part.transform.positionY) - CANVAS_ORIGIN)
     };
 
-    ImVec2 bottomRightOffset = {
+    ImVec2 bottomRightOffset {
         (topLeftOffset.x + (part.regionW * part.transform.scaleX)),
         (topLeftOffset.y + (part.regionH * part.transform.scaleY))
     };

@@ -13,27 +13,27 @@
 void Popup_WaitForModifiedTexture() {
     CENTER_NEXT_WINDOW;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Modifying texture via image editor###WaitForModifiedTexture", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted(
             "Once the modified texture is ready, select the \"Ready\" option.\n"
             "To cancel, select \"Nevermind\"."
         );
 
-        ImGui::Dummy({ 0, 15 });
+        ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();
-        ImGui::Dummy({ 0, 5 });
+        ImGui::Dummy({ 0.f, 5.f });
 
-        static const char* formatList[] = {
+        static const char* formatList[] {
             "RGBA32 (full-depth color)",
             "RGB5A3 (variable color depth)",
         };
-        static int selectedFormatIndex{ 0 };
+        static int selectedFormatIndex { 0 };
         ImGui::Combo("Image Format", &selectedFormatIndex, formatList, ARRAY_LENGTH(formatList));
 
-        ImGui::Dummy({ 0, 5 });
+        ImGui::Dummy({ 0.f, 5.f });
 
-        if (ImGui::Button("Ready", ImVec2(120, 0))) {
+        if (ImGui::Button("Ready", { 120.f, 0.f })) {
             GET_SESSION_MANAGER;
 
             std::shared_ptr<Common::Image> newImage =
@@ -76,7 +76,7 @@ void Popup_WaitForModifiedTexture() {
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Nevermind", ImVec2(120, 0)))
+        if (ImGui::Button("Nevermind", { 120.f, 0.f }))
             ImGui::CloseCurrentPopup();
 
         ImGui::EndPopup();

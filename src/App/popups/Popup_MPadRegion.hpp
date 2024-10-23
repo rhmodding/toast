@@ -15,13 +15,13 @@
 void Popup_MPadRegion() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
-    static bool lateOpen{ false };
+    static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MPadRegion");
 
     GET_APP_STATE;
     GET_ANIMATABLE;
 
-    RvlCellAnim::ArrangementPart* part{ nullptr };
+    RvlCellAnim::ArrangementPart* part { nullptr };
 
     if (
         globalAnimatable && globalAnimatable->cellanim &&
@@ -29,10 +29,10 @@ void Popup_MPadRegion() {
     )
         part = &globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart);
 
-    static uint16_t origOffset[2]{ 8, 8 };
-    static uint16_t origSize[2]{ 32, 32 };
+    static uint16_t origOffset[2] { 8, 8 };
+    static uint16_t origSize[2] { 32, 32 };
 
-    static int16_t origPosition[2]{ CANVAS_ORIGIN, CANVAS_ORIGIN };
+    static int16_t origPosition[2] { CANVAS_ORIGIN, CANVAS_ORIGIN };
 
     if (!active && lateOpen && part) {
         part->regionX = origOffset[0];
@@ -63,8 +63,8 @@ void Popup_MPadRegion() {
 
         ImGui::SeparatorText("Part Region Padding");
 
-        static int padBy[2] = { 0, 0 };
-        static bool centerPart{ true };
+        static int padBy[2] { 0, 0 };
+        static bool centerPart { true };
 
         ImGui::DragInt2("Padding (pixels)", padBy, .5f);
 

@@ -10,8 +10,8 @@ void WindowInspector::DrawPreview(Animatable* animatable) {
     GET_WINDOW_DRAWLIST;
 
     const ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
-    const ImVec2 canvasSize = { 96, 96 };
-    const ImVec2 canvasBottomRight = ImVec2(canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y);
+    const ImVec2 canvasSize { 96.f, 96.f };
+    const ImVec2 canvasBottomRight { canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y };
 
     const ImVec2 origin(
         canvasTopLeft.x + static_cast<int>(canvasSize.x / 2),
@@ -31,7 +31,7 @@ void WindowInspector::DrawPreview(Animatable* animatable) {
     float scaleX = canvasSize.x / (keyRect.GetWidth() * (1 / animatable->scaleX));
     float scaleY = canvasSize.y / (keyRect.GetHeight() * (1 / animatable->scaleY));
 
-    animatable->offset = { 0, 0 };
+    animatable->offset = { 0.f, 0.f };
     animatable->scaleX = std::min(scaleX, scaleY);
     animatable->scaleY = std::min(scaleX, scaleY);
 

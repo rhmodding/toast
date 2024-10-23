@@ -11,7 +11,7 @@
 #include "../../task/AsyncTask_OptimizeCellanim.hpp"
 
 void Popup_MOptimizeGlobal() {
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Optimize Cellanim###MOptimizeGlobal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         GET_SESSION_MANAGER;
 
@@ -29,18 +29,18 @@ void Popup_MOptimizeGlobal() {
 
         static OptimizeCellanimOptions options;
 
-        static const char* downscaleComboItems[] = {
+        static const char* downscaleComboItems[] {
             "Don't downscale (1x)",
             "Downscale Low (0.875x)",
             "Downscale Medium (0.75x)",
             "Downscale High (0.5x)",
         };
-        static int downscaleOption{ 0 };
+        static int downscaleOption { 0 };
 
         ImGui::Checkbox("Remove all animation name macros", &options.removeAnimationNames);
         ImGui::Checkbox("Remove all unused arrangements", &options.removeUnusedArrangements);
 
-        ImGui::Dummy({ 0, 5 });
+        ImGui::Dummy({ 0.f, 5.f });
 
         ImGui::PopStyleVar();
         ImGui::Combo(
@@ -48,20 +48,20 @@ void Popup_MOptimizeGlobal() {
             reinterpret_cast<int*>(&options.downscaleSpritesheet),
             downscaleComboItems, ARRAY_LENGTH(downscaleComboItems)
         );
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
 
-        ImGui::Dummy({ 0, 12 });
+        ImGui::Dummy({ 0.f, 12.f });
 
         ImGui::TextUnformatted(
             "This action is irreversible; You won't be able to undo this\n"
             "action or any action before it."
         );
 
-        ImGui::Dummy({ 0, 3 });
+        ImGui::Dummy({ 0.f, 3.f });
         ImGui::Separator();
-        ImGui::Dummy({ 0, 5 });
+        ImGui::Dummy({ 0.f, 5.f });
 
-        if (ImGui::Button("OK", ImVec2(120, 0))) {
+        if (ImGui::Button("OK", { 120.f, 0.f })) {
             ImGui::CloseCurrentPopup();
 
             AsyncTaskManager::getInstance().StartTask<OptimizeCellanimTask>(
@@ -71,7 +71,7 @@ void Popup_MOptimizeGlobal() {
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Nevermind", ImVec2(120, 0)))
+        if (ImGui::Button("Nevermind", { 120.f, 0.f }))
             ImGui::CloseCurrentPopup();
 
         ImGui::EndPopup();

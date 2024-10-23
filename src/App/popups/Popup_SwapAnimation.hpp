@@ -24,12 +24,12 @@ void Popup_SwapAnimation(int animationIndex) {
     CENTER_NEXT_WINDOW;
 
     if (ImGui::BeginPopupModal("Swap animations###SwapAnimation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        static float animationBegin{ static_cast<float>(ImGui::GetTime()) };
-        static const float animationTime{ .25f };
+        static float animationBegin { static_cast<float>(ImGui::GetTime()) };
+        static const float animationTime { .25f };
 
-        static bool swapNames{ true };
+        static bool swapNames { true };
 
-        static int swapAnim{ -1 };
+        static int swapAnim { -1 };
 
         // Left
         {
@@ -44,7 +44,7 @@ void Popup_SwapAnimation(int animationIndex) {
             );
             if (ImGui::BeginChild(
                 "Properties",
-                ImVec2(0.f, -ImGui::GetFrameHeightWithSpacing()),
+                { 0.f, -ImGui::GetFrameHeightWithSpacing() },
                 ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX
             )) {
                 if (swapAnim < 0) {
@@ -94,7 +94,7 @@ void Popup_SwapAnimation(int animationIndex) {
                     std::numeric_limits<float>::max()
                 }
             );
-            ImGui::BeginChild("Visualization", { 0, 0 }, ImGuiChildFlags_Border);
+            ImGui::BeginChild("Visualization", { 0.f, 0.f }, ImGuiChildFlags_Border);
 
             float beginCursorY = ImGui::GetCursorPosY();
 

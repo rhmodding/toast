@@ -9,7 +9,7 @@ class WindowConfig : public BaseWindow {
 public:
     void Update() override;
 
-    bool open{ false };
+    bool open { false };
 
     ConfigManager::Config selfConfig;
 };

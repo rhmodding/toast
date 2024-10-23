@@ -13,13 +13,13 @@ void Popup_ModifiedTextureSize() {
 
     // TODO: allow modified image undo
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Texture size mismatch###DialogModifiedPNGSizeDiff", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted("The new texture's size is different from the existing texture.\nPlease select the wanted behavior:");
 
-        ImGui::Dummy({ 0, 15 });
+        ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();
-        ImGui::Dummy({ 0, 5 });
+        ImGui::Dummy({ 0.f, 5.f });
 
         ImGui::PopStyleVar();
 
@@ -78,7 +78,7 @@ void Popup_ModifiedTextureSize() {
 
         ImGui::EndPopup();
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 }); // sigh
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f }); // sigh
     }
     ImGui::PopStyleVar();
 }

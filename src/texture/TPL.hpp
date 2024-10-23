@@ -104,7 +104,7 @@ struct TPLTexture {
 
 class TPLObject {
 public:
-    bool ok{ false };
+    bool ok { false };
 
     std::vector<TPLTexture> textures;
 

@@ -104,10 +104,10 @@ bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* outWidth
 bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* outWidth, int* outHeight);
 
 struct Image {
-    int width{ 0 };
-    int height{ 0 };
+    int width { 0 };
+    int height { 0 };
 
-    GLuint texture{ 0 };
+    GLuint texture { 0 };
 
     // Used when converting to a TPL texture.
     TPL::TPLImageFormat tplOutFormat{ TPL::TPL_IMAGE_FORMAT_RGBA32 };

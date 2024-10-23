@@ -19,9 +19,9 @@ struct TPLClutHeader {
     uint16_t numEntries;
 
     // Boolean value, used in official SDK to keep track of status
-    uint8_t _unpacked{ 0x00 };
+    uint8_t _unpacked { 0x00 };
 
-    uint8_t _pad8{ 0x00 };
+    uint8_t _pad8 { 0x00 };
 
     uint32_t format; // TPLClutFormat (big endian)
 
@@ -70,7 +70,7 @@ struct TPLHeader {
     uint8_t maxLOD;
 
     // Boolean value, used in official SDK to keep track of status
-    uint8_t _unpacked{ 0x00 };
+    uint8_t _unpacked { 0x00 };
 } __attribute__((packed));
 
 namespace TPL {
@@ -174,7 +174,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     const unsigned textureCount = this->textures.size();
 
     // Precompute size required & texture indexes for color palettes
-    unsigned paletteEntriesSize{ 0 };
+    unsigned paletteEntriesSize { 0 };
     std::vector<unsigned> paletteTextures;
 
     for (unsigned i = 0; i < textureCount; i++) {

@@ -7,10 +7,11 @@
 
 #include "../common.hpp"
 
-#define RCAD_REVISION_DATE 0xD8B43201
+#define RCAD_REVISION_DATE (0xD8B43201)
 
 struct RvlCellAnimHeader {
     // Format revision date, 20100312 in BE (2010/03/12)
+    // Compare to RCAD_REVISION_DATE
     uint32_t revisionDate;
 
     // TPL has palette usage (boolean)
@@ -20,7 +21,7 @@ struct RvlCellAnimHeader {
     uint16_t sheetIndex;
 
     // Used for debugging purposes in the game, always 0x0000
-    uint16_t _unused{ 0x0000 };
+    uint16_t _reserved { 0x0000 };
 
     uint16_t sheetW; // Sheet width in relation to UV regions
     uint16_t sheetH; // Sheet height in relation to UV regions
@@ -30,7 +31,7 @@ struct ArrangementsHeader {
     // Amount of arrangements (commonly referred to as sprites)
     uint16_t arrangementCount;
 
-    uint16_t _pad16{ 0x0000 };
+    uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 
 // Same structure
@@ -42,9 +43,9 @@ struct ArrangementPartRaw {
     uint16_t regionW; // Width of UV region in spritesheet
     uint16_t regionH; // Height of UV region in spritesheet
 
-    uint16_t _reserved{ 0x0000 }; // Palette index, set by game
+    uint16_t _reserved { 0x0000 }; // Palette index, set by game
 
-    uint16_t _pad16{ 0x0000 };
+    uint16_t _pad16 { 0x0000 };
 
     TransformValuesRaw transform;
 
@@ -53,28 +54,28 @@ struct ArrangementPartRaw {
 
     uint8_t opacity;
 
-    uint8_t _pad8{ 0x00 };
+    uint8_t _pad8 { 0x00 };
 } __attribute__((packed));
 
 struct ArrangementRaw {
     // Amout of parts in the arrangement (commonly referred to as a sprite)
     uint16_t partsCount;
 
-    uint16_t _pad16{ 0x0000 };
+    uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 
 struct AnimationsHeader {
     // Amount of animations
     uint16_t animationCount;
 
-    uint16_t _pad16{ 0x0000 };
+    uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 
 struct AnimationRaw {
     // Amount of keys the animation has
     uint16_t keyCount;
 
-    uint16_t _pad16{ 0x0000 };
+    uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 
 struct AnimationKeyRaw {
@@ -88,7 +89,7 @@ struct AnimationKeyRaw {
 
     uint8_t opacity;
 
-    uint8_t _pad24[3]{ 0x00, 0x00, 0x00 };
+    uint8_t _pad24[3] { 0x00, 0x00, 0x00 };
 } __attribute__((packed));
 
 #define EXPECT_DATA_FOOTER "EXPECTDT"
@@ -212,10 +213,10 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     header->sheetW = BYTESWAP_16(this->textureW);
     header->sheetH = BYTESWAP_16(this->textureH);
 
-    unsigned writeOffset{ sizeof(RvlCellAnimHeader) };
+    unsigned writeOffset { sizeof(RvlCellAnimHeader) };
 
     *reinterpret_cast<ArrangementsHeader*>(result.data() + writeOffset) =
-        ArrangementsHeader{ BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size())) };
+        ArrangementsHeader { BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size())) };
     writeOffset += sizeof(ArrangementsHeader);
 
     for (const Arrangement& arrangement : this->arrangements) {
@@ -235,7 +236,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
                 reinterpret_cast<ArrangementPartRaw*>(result.data() + writeOffset);
             writeOffset += sizeof(ArrangementPartRaw);
 
-            *arrangementPartRaw = ArrangementPartRaw{
+            *arrangementPartRaw = ArrangementPartRaw {
                 .regionX = BYTESWAP_16(part.regionX),
                 .regionY = BYTESWAP_16(part.regionY),
                 .regionW = BYTESWAP_16(part.regionW),
@@ -255,7 +256,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     }
 
     *reinterpret_cast<AnimationsHeader*>(result.data() + writeOffset) =
-        AnimationsHeader{ BYTESWAP_16(static_cast<uint16_t>(this->animations.size())) };
+        AnimationsHeader { BYTESWAP_16(static_cast<uint16_t>(this->animations.size())) };
     writeOffset += sizeof(AnimationsHeader);
 
     for (const Animation& animation : this->animations) {
@@ -275,7 +276,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
                 reinterpret_cast<AnimationKeyRaw*>(result.data() + writeOffset);
             writeOffset += sizeof(AnimationKeyRaw);
 
-            *animationKeyRaw = AnimationKeyRaw{
+            *animationKeyRaw = AnimationKeyRaw {
                 .arrangementIndex = BYTESWAP_16(key.arrangementIndex),
 
                 .holdFrames = BYTESWAP_16(key.holdFrames),

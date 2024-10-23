@@ -33,9 +33,9 @@ void WindowInspector::Level_Animation() {
         query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
             query->second.c_str() : nullptr;
 
-    ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+    ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
         ImGui::Text("Animation no. %u:", animationIndex + 1);
 

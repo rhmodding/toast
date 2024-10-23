@@ -57,9 +57,9 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         struct CompressionState {
             std::vector<unsigned char>& buffer;
 
-            unsigned pendingChunks{ 0 };
+            unsigned pendingChunks { 0 };
 
-            unsigned groupHeaderOffset{ sizeof(Yaz0Header) };
+            unsigned groupHeaderOffset { sizeof(Yaz0Header) };
             std::bitset<8> groupHeader;
 
             CompressionState(std::vector<unsigned char>& buffer) : buffer(buffer) {}
@@ -150,10 +150,10 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
 
     const unsigned char* currentByte = compressedData + sizeof(Yaz0Header);
 
-    unsigned destOffset{ 0 };
+    unsigned destOffset { 0 };
 
-    unsigned bitsLeft{ 0 };
-    uint8_t opcodeByte{ 0 };
+    unsigned bitsLeft { 0 };
+    uint8_t opcodeByte { 0 };
 
     while (destOffset < uncompressedSize) {
         // Read new opcode byte if no bits left

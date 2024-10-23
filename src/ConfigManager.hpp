@@ -46,24 +46,24 @@ class ConfigManager : public Singleton<ConfigManager> {
 
 public:
     struct Config {
-        ThemeChoice theme{ ThemeChoice_Dark };
+        ThemeChoice theme { ThemeChoice_Dark };
 
-        std::string imageEditorPath{ "" };
+        std::string imageEditorPath { "" };
 
-        std::string textureEditPath{ "./toastEditTexture.temp.png" };
+        std::string textureEditPath { "./toastEditTexture.temp.png" };
 
         std::vector<std::string> recentlyOpened;
 
-        int lastWindowWidth{ 1500 };
-        int lastWindowHeight{ 780 };
+        int lastWindowWidth { 1500 };
+        int lastWindowHeight { 780 };
 
-        bool canvasLMBPanEnabled{ true };
+        bool canvasLMBPanEnabled { true };
 
-        unsigned updateRate{ 120 };
+        unsigned updateRate { 120 };
 
-        BackupBehaviour backupBehaviour{ BackupBehaviour_None };
+        BackupBehaviour backupBehaviour { BackupBehaviour_None };
 
-        unsigned compressionLevel{ 9 };
+        unsigned compressionLevel { 9 };
 
         bool operator==(const Config& other) const {
             return
@@ -93,16 +93,16 @@ public:
     // Friend functions for JSON (de-)serialization
     friend void to_json(nlohmann::ordered_json& j, const ConfigManager::Config& config) {
         j = nlohmann::ordered_json{
-            {"theme", config.theme},
-            {"imageEditorPath", config.imageEditorPath},
-            {"textureEditPath", config.textureEditPath},
-            {"recentlyOpened", config.recentlyOpened},
-            {"lastWindowWidth", config.lastWindowWidth},
-            {"lastWindowHeight", config.lastWindowHeight},
-            {"canvasLMBPanEnabled", config.canvasLMBPanEnabled},
-            {"updateRate", config.updateRate},
-            {"backupBehaviour", config.backupBehaviour},
-            {"compressionLevel", config.compressionLevel}
+            { "theme", config.theme },
+            { "imageEditorPath", config.imageEditorPath },
+            { "textureEditPath", config.textureEditPath },
+            { "recentlyOpened", config.recentlyOpened },
+            { "lastWindowWidth", config.lastWindowWidth },
+            { "lastWindowHeight", config.lastWindowHeight },
+            { "canvasLMBPanEnabled", config.canvasLMBPanEnabled },
+            { "updateRate", config.updateRate },
+            { "backupBehaviour", config.backupBehaviour },
+            { "compressionLevel", config.compressionLevel }
         };
     }
     friend void from_json(const nlohmann::ordered_json& j, ConfigManager::Config& config) {

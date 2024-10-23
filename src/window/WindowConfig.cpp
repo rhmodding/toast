@@ -15,7 +15,7 @@ enum Categories {
     Categories_End
 };
 
-const char* categoryNames[] = {
+const char* categoryNames[] {
     "General",
     "Export",
     "Theming",
@@ -59,7 +59,7 @@ bool CppInputText(const char* label, std::string* str, ImGuiInputTextFlags flags
 }
 
 void WindowConfig::Update() {
-    static bool firstOpen{ true };
+    static bool firstOpen { true };
 
     if (!this->open)
         return;
@@ -72,12 +72,12 @@ void WindowConfig::Update() {
 
     CENTER_NEXT_WINDOW;
 
-    ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize({ 500.f, 440.f }, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Config", &this->open, ImGuiWindowFlags_MenuBar)) {
         if (ImGui::BeginMenuBar()) {
             if (ImGui::BeginMenu("Config")) {
                 if (ImGui::MenuItem("Clear..", nullptr)) {
-                    this->selfConfig = ConfigManager::Config{};
+                    this->selfConfig = ConfigManager::Config {};
                 }
                 ImGui::EndMenu();
             }
@@ -85,9 +85,9 @@ void WindowConfig::Update() {
         }
 
         // Left
-        static uint8_t selected{ 0 };
+        static uint8_t selected { 0 };
         {
-            ImGui::BeginChild("Categories", ImVec2(150, 0), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
+            ImGui::BeginChild("Categories", { 150.f, 0.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
             for (unsigned i = 0; i < Categories_End; i++) {
                 if (ImGui::Selectable(categoryNames[i], selected == i))
                     selected = i;
@@ -99,9 +99,9 @@ void WindowConfig::Update() {
         // Right
         {
             ImGui::BeginGroup();
-            ImGui::BeginChild("Properties", ImVec2(0.f, -ImGui::GetFrameHeightWithSpacing()));
+            ImGui::BeginChild("Properties", { 0.f, -ImGui::GetFrameHeightWithSpacing() });
 
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, -2 });
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, -2.f });
 
             ImGui::TextWrapped("Category");
 
@@ -111,9 +111,9 @@ void WindowConfig::Update() {
 
             ImGui::PopStyleVar();
 
-            ImGui::Dummy({ 0, 5 });
+            ImGui::Dummy({ 0.f, 5.f });
             ImGui::Separator();
-            ImGui::Dummy({ 0, 5 });
+            ImGui::Dummy({ 0.f, 5.f });
 
             switch (selected) {
                 case Category_General: {
@@ -129,7 +129,11 @@ void WindowConfig::Update() {
 
                     ImGui::Separator();
 
-                    const char* backupOptions[] = { "Don't backup", "Backup (don't overwrite last backup)", "Backup (always overwrite last backup)" };
+                    const char* backupOptions[] {
+                        "Don't backup",
+                        "Backup (don't overwrite last backup)",
+                        "Backup (always overwrite last backup)"
+                    };
                     ImGui::Combo("Backup behaviour", reinterpret_cast<int*>(&this->selfConfig.backupBehaviour), backupOptions, 3);
                 } break;
 
@@ -164,7 +168,7 @@ void WindowConfig::Update() {
                         clName = levelNames[selectedLevel];
                     else {
                         static char buf[64];
-                        snprintf(buf, 64, "Other (lvl %i)", this->selfConfig.compressionLevel);
+                        snprintf(buf, sizeof(buf), "Other (lvl %i)", this->selfConfig.compressionLevel);
     
                         clName = buf;
                     }
@@ -175,7 +179,7 @@ void WindowConfig::Update() {
                 } break;
 
                 case Category_Theming: {
-                    const static char* themeOptions[] = { "Light", "Dark" };
+                    const static char* themeOptions[] { "Light", "Dark" };
                     ImGui::Combo("Theme", reinterpret_cast<int*>(&this->selfConfig.theme), themeOptions, 2);
                 } break;
 

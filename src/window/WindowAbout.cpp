@@ -31,7 +31,7 @@ enum CreditsLineCommand {
 };
 struct CreditsLine {
     CreditsLineCommand command;
-    const char* string{ nullptr };
+    const char* string { nullptr };
 };
 
 static const CreditsLine creditStrings[] = {
@@ -70,7 +70,7 @@ void WindowAbout::Update() {
     if (!this->open)
         return;
 
-    static bool imageLoaded{ false };
+    static bool imageLoaded { false };
 
     if (!imageLoaded) {
         image.LoadFromMem(toastIcon_title_png, toastIcon_title_png_size);
@@ -88,37 +88,37 @@ void WindowAbout::Update() {
 
     const ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
     const ImVec2 canvasSize = ImGui::GetContentRegionAvail();
-    const ImVec2 canvasBottomRight = ImVec2(
+    const ImVec2 canvasBottomRight {
         canvasTopLeft.x + canvasSize.x,
         canvasTopLeft.y + canvasSize.y
-    );
+    };
 
-    const ImVec2 imageSize = ImVec2(350, 350);
+    const ImVec2 imageSize { 350.f, 350.f };
 
-    const ImVec2 imageTopLeft = ImVec2(
-        canvasTopLeft.x - 20,
+    const ImVec2 imageTopLeft {
+        canvasTopLeft.x - 20.f,
 
         canvasTopLeft.y + ((canvasSize.y - imageSize.y) / 2) -
-        ((cosf(ImGui::GetTime()) + 1) * 15) + 8
-    );
-    const ImVec2 imageBottomRight = ImVec2(
+        ((cosf(ImGui::GetTime()) + 1) * 15.f) + 8.f
+    };
+    const ImVec2 imageBottomRight {
         imageTopLeft.x + imageSize.x,
         imageTopLeft.y + imageSize.y
-    );
+    };
 
     drawList->AddImage((void*)(uintptr_t)this->image.texture, imageTopLeft, imageBottomRight);
 
     // Text
-    ImVec2 textPosition = ImVec2(
+    ImVec2 textPosition {
         imageBottomRight.x + 10,
         canvasTopLeft.y + 20
-    );
+    };
 
     // Set button position
-    ImGui::SetCursorPos(ImVec2(
+    ImGui::SetCursorPos({
         window->WorkRect.Max.x - 25.f - 30.f - window->Pos.x,
         textPosition.y + (30.f / 2) - window->Pos.y
-    ));
+    });
 
     GET_APP_STATE;
 
@@ -134,7 +134,7 @@ void WindowAbout::Update() {
     if (ImGui::Button(githubButton, { 30.f, 30.f })) {
         char buf[256];
 
-        snprintf(buf, 256, "%s %s",
+        snprintf(buf, sizeof(buf), "%s %s",
     #ifdef _WIN32
             "start ",
     #elif __APPLE__
@@ -155,9 +155,9 @@ void WindowAbout::Update() {
 
     ///////////////////////////////////////////////////////////////
 
-    float additiveLineHeight{ 0.f };
-    float totalLineWidth{ 0.f };
-    float additiveLineX{ 0.f };
+    float additiveLineHeight { 0.f };
+    float totalLineWidth { 0.f };
+    float additiveLineX { 0.f };
 
     for (unsigned i = 0; i < ARRAY_LENGTH(creditStrings); i++) {
         switch (creditStrings[i].command) {
@@ -165,14 +165,14 @@ void WindowAbout::Update() {
                 textPosition.y += ImGui::GetTextLineHeight();
 
                 const ImRect bounding(
-                    ImVec2(
+                    {
                         textPosition.x, textPosition.y + additiveLineHeight -
-                        ( ImGui::GetTextLineHeight() / 2 )
-                    ),
-                    ImVec2(
+                        ( ImGui::GetTextLineHeight() / 2.f )
+                    },
+                    {
                         window->WorkRect.Max.x - 25.f, textPosition.y + additiveLineHeight -
-                        ( ImGui::GetTextLineHeight() / 2 ) + 1.f
-                    )
+                        ( ImGui::GetTextLineHeight() / 2.f ) + 1.f
+                    }
                 );
 
                 drawList->AddRectFilled(bounding.Min, bounding.Max, ImGui::GetColorU32(ImGuiCol_Separator));

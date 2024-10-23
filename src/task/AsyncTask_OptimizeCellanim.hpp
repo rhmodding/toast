@@ -176,7 +176,7 @@ protected:
 
             delete[] originalPixels;
 
-            GLuint newTexture{ 0 };
+            GLuint newTexture { 0 };
 
             std::future<void> futureB = mtCommandManager.enqueueCommand([&sheet, &newTexture, downscaledPixels, newWidth, newHeight]() {
                 sheet->FreeTexture();

@@ -74,7 +74,8 @@ void WindowHybridList::Update() {
 
     char label[32];
     snprintf(
-        label, 32, "%s###HybridList",
+        label, sizeof(label),
+        "%s###HybridList",
         appState.getArrangementMode() ?
             "Arrangements" : "Animations"
     );
@@ -83,13 +84,13 @@ void WindowHybridList::Update() {
 
     ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Border);
     {
-        int deleteArrangement{ -1 };
+        int deleteArrangement { -1 };
 
         static RvlCellAnim::Arrangement copyArrangement;
-        static bool allowPasteArrangement{ false };
+        static bool allowPasteArrangement { false };
 
         static RvlCellAnim::Animation copyAnimation;
-        static bool allowPasteAnimation{ false };
+        static bool allowPasteAnimation { false };
 
         std::shared_ptr<BaseCommand> command;
 
@@ -158,7 +159,7 @@ void WindowHybridList::Update() {
         else
             for (unsigned n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
                 char buffer[48];
-                snprintf(buffer, 48, "Arrangement no. %d", n+1);
+                snprintf(buffer, sizeof(buffer), "Arrangement no. %d", n+1);
 
                 RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 

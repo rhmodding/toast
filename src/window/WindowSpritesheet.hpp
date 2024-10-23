@@ -18,20 +18,20 @@ public:
 
         GridType_Custom
     } gridType;
-    ImVec4 customGridColor{ 1.f, 1.f, 1.f, 1.f };
+    ImVec4 customGridColor { 1.f, 1.f, 1.f, 1.f };
 
-    bool drawBounding{ true };
+    bool drawBounding { true };
 
 private:
-    bool sheetZoomEnabled{ false };
-    bool sheetZoomTriggered{ false };
-    float sheetZoomTimer{ 0.f };
+    bool sheetZoomEnabled { false };
+    bool sheetZoomTriggered { false };
+    float sheetZoomTimer { 0.f };
 
-    float userSheetZoom{ 1.f };
+    float userSheetZoom { 1.f };
 
-    ImVec2 sheetZoomedOffset{ 0.f, 0.f };
+    ImVec2 sheetZoomedOffset { 0.f, 0.f };
 
-    bool showPaletteWindow{ false };
+    bool showPaletteWindow { false };
 
 private:
     void RunEditor();

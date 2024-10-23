@@ -32,7 +32,6 @@
 #include "PlayerManager.hpp"
 
 #include "command/CommandSwitchCellanim.hpp"
-#include "command/CommandModifyArrangement.hpp"
 #include "command/CommandDeleteArrangement.hpp"
 #include "command/CommandDeleteArrangementPart.hpp"
 #include "command/CommandModifyAnimationKey.hpp"
@@ -57,7 +56,7 @@
 #include "_binary/images/toastIcon.png.h"
 #endif
 
-App* gAppPtr{ nullptr };
+App* gAppPtr { nullptr };
 
 void App::AttemptExit(bool force) {
     GET_SESSION_MANAGER;
@@ -94,27 +93,27 @@ App::App() {
         __builtin_trap();
     }
 
-    #if defined(IMGUI_IMPL_OPENGL_ES2)
-        // GL ES 2.0 + GLSL 100
-        const char* glslVersion = "#version 100";
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-    #elif defined(__APPLE__)
-        // GL 3.2 + GLSL 150
-        const char* glslVersion = "#version 150";
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
-    #else
-        // GL 3.0 + GLSL 130
-        const char* glslVersion = "#version 130";
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-        // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-        // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
-    #endif
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+    // GL ES 2.0 + GLSL 100
+    const char* glslVersion = "#version 100";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+#elif defined(__APPLE__)
+    // GL 3.2 + GLSL 150
+    const char* glslVersion = "#version 150";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+#else
+    // GL 3.0 + GLSL 130
+    const char* glslVersion = "#version 130";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+#endif
 
     // Config
     GET_CONFIG_MANAGER;
@@ -298,9 +297,9 @@ void App::Menubar() {
 
                     char label[128];
                     if (none)
-                        snprintf(label, 128, "%u. -", i + 1);
+                        snprintf(label, sizeof(label), "%u. -", i + 1);
                     else
-                        snprintf(label, 128, "%u. %s", i + 1, recentlyOpened[j].c_str());
+                        snprintf(label, sizeof(label), "%u. %s", i + 1, recentlyOpened[j].c_str());
 
                     if (ImGui::MenuItem(label) && !none) {
                         AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
@@ -354,18 +353,20 @@ void App::Menubar() {
 
         if (ImGui::BeginMenu("Cellanim", sessionAvaliable)) {
             if (ImGui::BeginMenu("Select")) {
-                for (unsigned i = 0; i < sessionManager.getCurrentSession()->cellanims.size(); i++) {
-                    const std::string& str = sessionManager.getCurrentSession()->cellanims.at(i).name;
+                auto* currentSession = sessionManager.getCurrentSession();
+
+                for (unsigned i = 0; i < currentSession->cellanims.size(); i++) {
+                    const std::string& str = currentSession->cellanims[i].name;
 
                     std::ostringstream fmtStream;
                     fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
 
                     if (ImGui::MenuItem(
                         fmtStream.str().c_str(), nullptr,
-                        sessionManager.getCurrentSession()->currentCellanim == i
+                        currentSession->currentCellanim == i
                     )) {
-                        if (sessionManager.getCurrentSession()->currentCellanim != i) {
-                            sessionManager.getCurrentSession()->executeCommand(
+                        if (currentSession->currentCellanim != i) {
+                            currentSession->executeCommand(
                             std::make_shared<CommandSwitchCellanim>(
                                 sessionManager.currentSession, i
                             ));
@@ -385,11 +386,11 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("Spritesheets", sessionAvaliable)) {
-            ImGui::MenuItem("Switch sheet ..");
+            ImGui::MenuItem("Switch sheet .."); // TODO
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Remove unused sheets ..");
+            ImGui::MenuItem("Remove unused sheets .."); // TODO
 
             ImGui::EndMenu();
         }
@@ -628,7 +629,7 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Set name (identifier) ..");
+            ImGui::MenuItem("Set name (identifier) .."); // TODO
 
             ImGui::Separator();
 
@@ -685,12 +686,14 @@ void App::Menubar() {
             for (unsigned n = 0; n < sessionManager.sessionList.size(); n++) {
                 ImGui::PushID(n);
 
+                auto& session = sessionManager.sessionList[n];
+
                 bool sessionOpen{ true };
                 bool tabVisible = ImGui::BeginTabItem(
-                    sessionManager.sessionList.at(n).mainPath.c_str(),
+                    session.mainPath.c_str(),
                     &sessionOpen,
                     ImGuiTabItemFlags_None | (
-                        sessionManager.sessionList.at(n).modified ?
+                        session.modified ?
                         ImGuiTabItemFlags_UnsavedDocument : 0
                     )
                 );
@@ -706,22 +709,22 @@ void App::Menubar() {
                 if (tabVisible && ImGui::BeginPopupContextItem()) {
                     ImGui::Text("Select a Cellanim:");
                     ImGui::Separator();
-                    for (unsigned i = 0; i < sessionManager.sessionList.at(n).cellanims.size(); i++) {
-                        const std::string& str = sessionManager.sessionList.at(n).cellanims.at(i).name;
+                    for (unsigned i = 0; i < session.cellanims.size(); i++) {
+                        const std::string& str = session.cellanims[i].name;
 
                         std::ostringstream fmtStream;
                         fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
 
                         if (ImGui::MenuItem(
                             fmtStream.str().c_str(), nullptr,
-                            sessionManager.sessionList.at(n).currentCellanim == i
+                            session.currentCellanim == i
                         )) {
                             ImGui::CloseCurrentPopup();
 
-                            if (sessionManager.sessionList.at(n).currentCellanim != i) {
+                            if (session.currentCellanim != i) {
                                 sessionManager.currentSession = n;
 
-                                sessionManager.sessionList.at(n).executeCommand(
+                                session.executeCommand(
                                 std::make_shared<CommandSwitchCellanim>(
                                     n, i
                                 ));
@@ -732,19 +735,19 @@ void App::Menubar() {
                     ImGui::EndPopup();
                 }
 
-                const std::string& cellanimName = sessionManager.sessionList.at(n).cellanims.at(
-                    sessionManager.sessionList.at(n).currentCellanim
+                const std::string& cellanimName = session.cellanims.at(
+                    session.currentCellanim
                 ).name;
                 ImGui::SetItemTooltip(
                     "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
-                    sessionManager.sessionList.at(n).mainPath.c_str(),
+                    session.mainPath.c_str(),
                     cellanimName.substr(0, cellanimName.size() - 6).c_str()
                 );
 
                 if (!sessionOpen) {
                     sessionManager.sessionClosing = n;
 
-                    if (sessionManager.sessionList.at(n).modified)
+                    if (session.modified)
                         AppState::getInstance().OpenGlobalPopup("###CloseModifiedSession");
                     else {
                         sessionManager.FreeSessionIndex(n);

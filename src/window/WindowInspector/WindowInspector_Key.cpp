@@ -35,9 +35,9 @@ void WindowInspector::Level_Key() {
         query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
             query->second.c_str() : nullptr;
 
-    ImGui::BeginChild("LevelHeader", { 0, 0 }, ImGuiChildFlags_AutoResizeY);
+    ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
         ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex+1);
 
@@ -55,7 +55,7 @@ void WindowInspector::Level_Key() {
 
     // Arrangement Input
     {
-        static uint16_t oldArrangement{ 0 };
+        static uint16_t oldArrangement { 0 };
         uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
 
         ImGui::SetNextItemWidth(
@@ -159,8 +159,9 @@ void WindowInspector::Level_Key() {
     ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
 
     {
-        static uint16_t oldHoldFrames{ 0 };
+        static uint16_t oldHoldFrames { 0 };
         uint16_t holdFrames = animKey->holdFrames;
+
         if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
             if (holdFrames <= 1)
                 holdFrames = 1;
@@ -183,11 +184,12 @@ void WindowInspector::Level_Key() {
 
     // Position XY
     {
-        static int oldPosition[2]{ 0, 0 };
-        int positionValues[2] = {
+        static int oldPosition[2] { 0, 0 };
+        int positionValues[2] {
             animKey->transform.positionX,
             animKey->transform.positionY
         };
+
         if (ImGui::DragInt2(
             "Position XY",
             positionValues, 1.f,
@@ -216,8 +218,9 @@ void WindowInspector::Level_Key() {
 
     // Scale XY
     {
-        static float oldScale[2]{ 0.f, 0.f };
-        float scaleValues[2] = { animKey->transform.scaleX, animKey->transform.scaleY };
+        static float oldScale[2] { 0.f, 0.f };
+        float scaleValues[2] { animKey->transform.scaleX, animKey->transform.scaleY };
+
         if (ImGui::DragFloat2("Scale XY", scaleValues, .01f)) {
             animKey->transform.scaleX = scaleValues[0];
             animKey->transform.scaleY = scaleValues[1];
@@ -241,8 +244,9 @@ void WindowInspector::Level_Key() {
 
     // Angle Z slider
     {
-        static float oldAngle{ 0.f };
+        static float oldAngle { 0.f };
         float newAngle = animKey->transform.angle;
+
         if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
             animKey->transform.angle = newAngle;
 
@@ -261,10 +265,10 @@ void WindowInspector::Level_Key() {
 
     // Opacity slider
     {
-        static const uint8_t min{ 0 };
-        static const uint8_t max{ 0xFF };
+        static const uint8_t min { 0 };
+        static const uint8_t max { 0xFF };
 
-        static uint8_t oldOpacity{ 0 };
+        static uint8_t oldOpacity { 0 };
         uint8_t newOpacity = animKey->opacity;
         if (ImGui::SliderScalar("Opacity", ImGuiDataType_U8, &newOpacity, &min, &max, "%u"))
             animKey->opacity = newOpacity;

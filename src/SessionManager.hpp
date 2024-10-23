@@ -38,13 +38,13 @@ public:
         std::vector<CellanimData> cellanims;
         std::vector<std::shared_ptr<Common::Image>> sheets;
 
-        unsigned currentCellanim{ 0 };
+        unsigned currentCellanim { 0 };
 
         ///////////////////////////
 
         std::string mainPath;
 
-        bool traditionalMethod{ false }; // Has this session been opened with a brcad, png and h file?
+        bool traditionalMethod { false }; // Has this session been opened with a brcad, png and h file?
         std::unique_ptr<std::string> pngPath;
         std::unique_ptr<std::string> headerPath;
 
@@ -63,9 +63,9 @@ public:
             return this->cellanims.at(this->currentCellanim).animNames;
         }
 
-        bool arrangementMode{ false };
+        bool arrangementMode { false };
 
-        bool modified{ false };
+        bool modified { false };
 
     private:
         std::deque<std::shared_ptr<BaseCommand>> undoStack;
@@ -128,10 +128,10 @@ public:
     };
     std::deque<Session> sessionList;
 
-    int currentSession{ -1 };
+    int currentSession { -1 };
 
     // Current session being closed. Used for closing while modified warning.
-    int sessionClosing{ -1 };
+    int sessionClosing { -1 };
 
     Session* getCurrentSession() {
         if (this->currentSession >= 0)

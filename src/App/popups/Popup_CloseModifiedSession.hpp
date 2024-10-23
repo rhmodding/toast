@@ -21,22 +21,22 @@ void Popup_CloseModifiedSession() {
 
     char popupTitle[512];
     snprintf(
-        popupTitle, 512 - 1,
+        popupTitle, sizeof(popupTitle),
         "%s###CloseModifiedSession",
         sessionPath.c_str()
     );
 
     CENTER_NEXT_WINDOW;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Dummy({ImGui::CalcTextSize(sessionPath.c_str()).x - 40, 0 });
+        ImGui::Dummy({ ImGui::CalcTextSize(sessionPath.c_str()).x - 40.f, 0.f });
 
         ImGui::Text("Are you sure you want to close this session?\nYour changes will be lost.");
 
-        ImGui::Dummy({ 0, 15 });
+        ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();
-        ImGui::Dummy({ 0, 5 });
+        ImGui::Dummy({ 0.f, 5.f });
 
         if (ImGui::Button("Cancel"))
             ImGui::CloseCurrentPopup();

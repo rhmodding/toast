@@ -15,15 +15,15 @@ class PlayerManager : public Singleton<PlayerManager> {
 
 private:
     std::chrono::steady_clock::time_point previous;
-    float timeLeft{ 0.f };
+    float timeLeft { 0.f };
 public:
-    bool playing{ false };
+    bool playing { false };
 
-    bool looping{ false };
+    bool looping { false };
 
-    unsigned currentFrame{ 0 };
+    unsigned currentFrame { 0 };
 
-    unsigned frameRate{ 60 };
+    unsigned frameRate { 60 };
 
 public:
     void Update();

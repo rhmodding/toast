@@ -67,7 +67,10 @@ void Popup_SessionErr() {
             break;
 
         default:
-            snprintf(errorMessage, 256, "An unknown error has occurred (code %i).", errorCode);
+            snprintf(
+                errorMessage, sizeof(errorMessage),
+                "An unknown error has occurred (code %i).", errorCode
+            );
             errorType = 2;
             break;
     }
@@ -76,14 +79,14 @@ void Popup_SessionErr() {
     switch (errorType)  {
         case 0:
             snprintf(
-                popupTitle, 256,
+                popupTitle, sizeof(popupTitle),
                 "There was an error opening the session (code %i).###SessionErr",
                 errorCode
             );
             break;
         case 1:
             snprintf(
-                popupTitle, 256,
+                popupTitle, sizeof(popupTitle),
                 "There was an error exporting the session (code %i).###SessionErr",
                 errorCode
             );
@@ -91,22 +94,22 @@ void Popup_SessionErr() {
 
         default:
             snprintf(
-                popupTitle, 256,
+                popupTitle, sizeof(popupTitle),
                 "There was an unknown session-related error (code %i).###SessionErr",
                 errorCode
             );
             break;
     }
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25, 20 });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
 
     CENTER_NEXT_WINDOW;
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted(errorMessage);
 
-        ImGui::Dummy({ ImGui::CalcTextSize(popupTitle, nullptr, true).x - 40, 5});
+        ImGui::Dummy({ ImGui::CalcTextSize(popupTitle, nullptr, true).x - 40, 5.f });
 
-        if (ImGui::Button("Alright", ImVec2(120, 0)))
+        if (ImGui::Button("Alright", { 120.f, 0.f }))
             ImGui::CloseCurrentPopup();
         ImGui::SetItemDefaultFocus();
 

@@ -14,15 +14,15 @@
 
 class Animatable {
 private:
-    bool animating{ false };
+    bool animating { false };
 
-    RvlCellAnim::Animation* currentAnimation{ nullptr };
-    RvlCellAnim::AnimationKey* currentKey{ nullptr };
+    RvlCellAnim::Animation* currentAnimation { nullptr };
+    RvlCellAnim::AnimationKey* currentKey { nullptr };
 
-    int holdKey{ 0 };
+    int holdKey { 0 };
 
-    unsigned currentAnimationIndex{ 0 };
-    unsigned currentKeyIndex{ 0 };
+    unsigned currentAnimationIndex { 0 };
+    unsigned currentKeyIndex { 0 };
 
     void DrawKey(
         const RvlCellAnim::AnimationKey* key,
@@ -37,12 +37,12 @@ public:
     std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim;
     std::shared_ptr<Common::Image> texture;
 
-    ImVec2 offset{ CANVAS_ORIGIN, CANVAS_ORIGIN };
+    ImVec2 offset { CANVAS_ORIGIN, CANVAS_ORIGIN };
 
-    float scaleX{ 1.f };
-    float scaleY{ 1.f };
+    float scaleX { 1.f };
+    float scaleY { 1.f };
 
-    bool visible{ true };
+    bool visible { true };
 
     Animatable(
         std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim,

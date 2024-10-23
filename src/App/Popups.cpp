@@ -2,10 +2,10 @@
 
 namespace Popups {
 
-bool _openExitWithChangesPopup{ false };
+bool _openExitWithChangesPopup { false };
 
-int  _editAnimationNameIdx{ -1 };
-int  _swapAnimationIdx{ -1 };
+int  _editAnimationNameIdx { -1 };
+int  _swapAnimationIdx { -1 };
 
 } // namespace Popups
 

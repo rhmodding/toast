@@ -10,15 +10,15 @@
 
 #include "../common.hpp"
 
-#define CANVAS_ORIGIN 512
+#define CANVAS_ORIGIN (512)
 
 namespace RvlCellAnim {
 
 // Do not change this structure!!
 struct TransformValues {
-    int16_t positionX{ 0 }, positionY{ 0 };
-    float scaleX{ 1.f }, scaleY{ 1.f };
-    float angle{ 0.f }; // Angle in degrees
+    int16_t positionX { 0 }, positionY { 0 };
+    float scaleX { 1.f }, scaleY { 1.f };
+    float angle { 0.f }; // Angle in degrees
 
     TransformValues getByteswapped() const {
         TransformValues transform;
@@ -79,24 +79,24 @@ struct TransformValues {
 } __attribute__((packed));
 
 struct ArrangementPart {
-    uint16_t regionX{ 8 }, regionY{ 8 };
-    uint16_t regionW{ 32 }, regionH{ 32 };
+    uint16_t regionX { 8 }, regionY { 8 };
+    uint16_t regionW { 32 }, regionH { 32 };
 
     uint16_t unknown;
 
-    TransformValues transform{
+    TransformValues transform {
         .positionX = CANVAS_ORIGIN,
         .positionY = CANVAS_ORIGIN
     };
 
-    bool flipX{ false }, flipY{ false };
+    bool flipX { false }, flipY { false };
 
-    uint8_t opacity{ 0xFFu };
+    uint8_t opacity { 0xFFu };
 
-    bool editorVisible{ true };
-    bool editorLocked{ false };
+    bool editorVisible { true };
+    bool editorLocked { false };
 
-    char editorName[32]{ '\0' };
+    char editorName[32] { '\0' };
 
     bool operator==(const ArrangementPart& other) const {
         return
@@ -123,8 +123,8 @@ struct ArrangementPart {
 struct Arrangement {
     std::vector<ArrangementPart> parts;
 
-    int tempOffset[2]{ 0, 0 };
-    float tempScale[2]{ 1.f, 1.f };
+    int tempOffset[2] { 0, 0 };
+    float tempScale[2] { 1.f, 1.f };
 
     bool operator==(const Arrangement& other) const {
         return other.parts == this->parts;
@@ -132,13 +132,13 @@ struct Arrangement {
 };
 
 struct AnimationKey {
-    uint16_t arrangementIndex{ 0 };
+    uint16_t arrangementIndex { 0 };
 
-    uint16_t holdFrames{ 1 };
+    uint16_t holdFrames { 1 };
 
     TransformValues transform;
 
-    uint8_t opacity{ 0xFFu };
+    uint8_t opacity { 0xFFu };
 
     bool operator==(const AnimationKey& other) const {
         return
@@ -162,7 +162,7 @@ struct Animation {
 
 class RvlCellAnimObject {
 public:
-    bool ok{ false };
+    bool ok { false };
 
     uint16_t sheetIndex;
 
@@ -176,7 +176,7 @@ public:
     // The supplemental editor data (TOAST.DAT) is expected.
     // The end of the cellanim binary will contain EXPECTDT
     // if this is true.
-    bool expectEditorData{ true };
+    bool expectEditorData { true };
 
     std::vector<unsigned char> Reserialize();
 

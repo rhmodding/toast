@@ -8,9 +8,9 @@ public:
     void Update() override;
 
 private:
-    bool flashWindow{ false };
-    bool flashTrigger{ false };
-    float flashTimer{ 0.f };
+    bool  flashWindow  { false };
+    bool  flashTrigger { false };
+    float flashTimer   { 0.f };
 
     void FlashWindow();
     void ResetFlash();

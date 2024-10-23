@@ -62,8 +62,8 @@ private:
     void updateAnimationState() {
         GET_APP_STATE;
 
-        unsigned newSelectedAnimation{ 0 };
-        bool selectedDifferentAnimation{ false };
+        unsigned newSelectedAnimation { 0 };
+        bool selectedDifferentAnimation { false };
 
         if (
             appState.selectedAnimation == animationIndexA ||

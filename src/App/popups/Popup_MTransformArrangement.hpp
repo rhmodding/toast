@@ -16,18 +16,18 @@
 void Popup_MTransformArrangement() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
-    static bool lateOpen{ false };
+    static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MTransformArrangement");
 
     GET_ANIMATABLE;
 
-    RvlCellAnim::Arrangement* arrangement{ nullptr };
+    RvlCellAnim::Arrangement* arrangement { nullptr };
 
     if (globalAnimatable && globalAnimatable->cellanim)
         arrangement = globalAnimatable->getCurrentArrangement();
 
-    static const int noOffset[2] = { 0, 0 };
-    static const float noScale[2] = { 1.f, 1.f };
+    static const int noOffset[2] { 0, 0 };
+    static const float noScale[2] { 1.f, 1.f };
 
     if (!active && lateOpen && arrangement) {
         memcpy(arrangement->tempOffset, noOffset, sizeof(int)*2);
@@ -41,10 +41,10 @@ void Popup_MTransformArrangement() {
 
         ImGui::SeparatorText("Transform Arrangement");
 
-        static int offset[2]{ 0, 0 };
-        static float scale[2]{ 1.f, 1.f };
+        static int offset[2] { 0, 0 };
+        static float scale[2] { 1.f, 1.f };
 
-        static bool uniformScale{ true };
+        static bool uniformScale { true };
 
         ImGui::DragInt2("Offset XY", offset, 1.f);
 

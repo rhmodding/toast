@@ -57,7 +57,7 @@ private: // Methods
 private: // Windows
     template <typename T>
     struct AppWindow {
-        bool shy{ false };
+        bool shy { false };
         std::unique_ptr<T> window;
 
         void Update() {
@@ -84,10 +84,10 @@ private: // Windows
 
     AppWindow<WindowImguiDemo> windowDemo;
 
-    GLFWwindow* window{ nullptr };
+    GLFWwindow* window { nullptr };
 
 private: // Flags
-    bool running{ true };
+    bool running { true };
 
 private:
     std::thread::id mainThreadId;
