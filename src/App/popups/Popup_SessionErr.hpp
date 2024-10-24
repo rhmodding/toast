@@ -16,7 +16,7 @@ void Popup_SessionErr() {
     unsigned errorType; // 0 = open, 1 = export, 2 = unknown
     switch (errorCode) {
         case SessionManager::SessionOpenError_FailOpenArchive:
-            strcpy(errorMessage, "The archive file could not be opened.");
+            strcpy(errorMessage, "The archive file could not be opened. Does the file exist?");
             errorType = 0;
             break;
         case SessionManager::SessionOpenError_FailFindTPL:
