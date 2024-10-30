@@ -56,12 +56,12 @@ void WindowHybridList::Update() {
     lastArrangementMode = appState.getArrangementMode();
 
     if (
-        UNLIKELY(this->flashWindow) &&
+        this->flashWindow &&
         (static_cast<float>(ImGui::GetTime()) - this->flashTimer > WINDOW_FLASH_TIME)
     )
         ResetFlash();
 
-    if (UNLIKELY(this->flashWindow)) {
+    if (this->flashWindow) {
         ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
         ImGui::PushStyleColor(
             ImGuiCol_WindowBg,

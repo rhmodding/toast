@@ -231,7 +231,7 @@ void WindowCanvas::Menubar() {
 
 void WindowCanvas::Update() {
     static bool firstOpen { true };
-    if (UNLIKELY(firstOpen)) {
+    if (firstOpen) {
         this->gridType = AppState::getInstance().getDarkThemeEnabled() ?
             GridType_Dark : GridType_Light;
 

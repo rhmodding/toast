@@ -42,11 +42,11 @@ bool SaveBackupFile(const char* filePath, bool once) {
     std::ifstream src(filePath,    std::ios::binary);
     std::ofstream dst(newFileName, std::ios::binary);
 
-    if (UNLIKELY(!src.is_open())) {
+    if (!src.is_open()) {
         std::cerr << "[Common::SaveBackupFile] Error opening source file at path: " << filePath << '\n';
         return false;
     }
-    if (UNLIKELY(!dst.is_open())) {
+    if (!dst.is_open()) {
         std::cerr << "[Common::SaveBackupFile] Error opening destination file at path: " << newFileName << '\n';
         return false;
     }
@@ -77,8 +77,7 @@ std::string randomString(const unsigned length) {
 }
 
 bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* outWidth, int* outHeight)  {
-    int imageWidth{ 0 };
-    int imageHeight{ 0 };
+    int imageWidth { 0 }, imageHeight { 0 };
 
     unsigned char* imagePtr = stbi_load(filename, &imageWidth, &imageHeight, nullptr, 4);
     if (imagePtr == nullptr) {

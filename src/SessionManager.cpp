@@ -30,7 +30,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;
 
     auto __archiveResult = U8::readYaz0U8Archive(filePath);
-    if (UNLIKELY(!__archiveResult.has_value())) {
+    if (!__archiveResult.has_value()) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_FailOpenArchive;
 
@@ -39,7 +39,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     U8::U8ArchiveObject archiveObject = std::move(*__archiveResult);
 
-    if (UNLIKELY(archiveObject.structure.subdirectories.size() < 1)) {
+    if (archiveObject.structure.subdirectories.empty()) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_RootDirNotFound;
 
@@ -74,7 +74,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         }
     }
 
-    if (UNLIKELY(brcadFiles.empty())) {
+    if (brcadFiles.empty()) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_NoBXCADsFound;
 
@@ -100,7 +100,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
                 file->data.data(), file->data.size()
             );
 
-        if (UNLIKELY(!cellanim.object->ok)) {
+        if (!cellanim.object->ok) {
             std::lock_guard<std::mutex> lock(this->mtx);
             this->lastSessionError = SessionOpenError_FailOpenBXCAD;
 
@@ -325,7 +325,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
             for (unsigned i = 0; i < session->sheets.size(); i++) {
                 auto tplTexture = session->sheets.at(i)->ExportToTPLTexture();
 
-                if (UNLIKELY(!tplTexture.has_value())) {
+                if (!tplTexture.has_value()) {
                     this->lastSessionError = SessionOutError_FailTPLTextureExport;
                     return -1;
                 }
