@@ -309,7 +309,7 @@ void Animatable::DrawKey(
             static_cast<uint8_t>((static_cast<uint16_t>(part.opacity) * key->opacity) / 255) : 255;
 
         drawList->AddImageQuad(
-            (void*)(intptr_t)this->texture->texture,
+            (ImTextureID)(uintptr_t)this->texture->texture,
             transformedQuad[0], transformedQuad[1], transformedQuad[2], transformedQuad[3],
             uvs[0], uvs[1], uvs[2], uvs[3],
             IM_COL32(

@@ -354,7 +354,7 @@ void WindowSpritesheet::FormatPopup() {
             );
 
             ImGui::GetWindowDrawList()->AddImage(
-                (void*)(intptr_t)sessionManager.getCurrentSession()->getCellanimSheet()->texture,
+                (ImTextureID)(uintptr_t)sessionManager.getCurrentSession()->getCellanimSheet()->texture,
                 imagePosition,
                 { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
             );
@@ -795,7 +795,7 @@ void WindowSpritesheet::Update() {
     };
 
     drawList->AddImage(
-        (void*)(intptr_t)sessionManager.getCurrentSession()->getCellanimSheet()->texture,
+        (ImTextureID)(uintptr_t)sessionManager.getCurrentSession()->getCellanimSheet()->texture,
         imagePosition,
         { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
     );

@@ -106,7 +106,7 @@ void WindowAbout::Update() {
         imageTopLeft.y + imageSize.y
     };
 
-    drawList->AddImage((void*)(uintptr_t)this->image.texture, imageTopLeft, imageBottomRight);
+    drawList->AddImage((ImTextureID)(uintptr_t)this->image.texture, imageTopLeft, imageBottomRight);
 
     // Text
     ImVec2 textPosition {
