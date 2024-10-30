@@ -45,9 +45,8 @@ public:
         if (!appState.getArrangementMode())
             PlayerManager::getInstance().clampCurrentKeyIndex();
         else
-            appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
+            appState.controlKey.arrangementIndex = std::min<uint16_t>(
                 appState.controlKey.arrangementIndex,
-                0,
                 arrangements.size() - 1
             );
 
@@ -74,9 +73,8 @@ public:
         if (!appState.getArrangementMode())
             PlayerManager::getInstance().clampCurrentKeyIndex();
         else
-            appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
+            appState.controlKey.arrangementIndex = std::min<uint16_t>(
                 appState.controlKey.arrangementIndex,
-                0,
                 arrangements.size() - 1
             );
 

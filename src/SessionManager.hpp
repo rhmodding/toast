@@ -57,7 +57,7 @@ public:
             return this->cellanims.at(this->currentCellanim).name;
         }
         std::shared_ptr<Common::Image>& getCellanimSheet() {
-            return this->sheets.at(this->getCellanimObject()->sheetIndex % this->sheets.size());
+            return this->sheets.at(std::min<unsigned>(this->getCellanimObject()->sheetIndex, this->sheets.size() - 1));
         }
         std::unordered_map<uint16_t, std::string>& getAnimationNames() {
             return this->cellanims.at(this->currentCellanim).animNames;

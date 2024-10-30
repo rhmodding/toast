@@ -440,9 +440,8 @@ void SessionManager::SessionChanged() {
     globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
 
     if (appState.getArrangementMode()) {
-        appState.controlKey.arrangementIndex = std::clamp<uint16_t>(
+        appState.controlKey.arrangementIndex = std::min<uint16_t>(
             appState.controlKey.arrangementIndex,
-            0,
             globalAnimatable->cellanim->arrangements.size() - 1
         );
 

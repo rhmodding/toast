@@ -62,7 +62,7 @@ void WindowInspector::Level_Arrangement() {
                     "%u"
                 )) {
                     globalAnimatable->getCurrentKey()->arrangementIndex =
-                        std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size() - 1);
+                        std::min<uint16_t>(newArrangement - 1, globalAnimatable->cellanim->arrangements.size() - 1);
 
                     appState.correctSelectedPart();
                 }
@@ -75,7 +75,7 @@ void WindowInspector::Level_Arrangement() {
 
                     originalKey.arrangementIndex = oldArrangement;
                     newKey.arrangementIndex =
-                        std::clamp<uint16_t>(newArrangement - 1, 0, globalAnimatable->cellanim->arrangements.size() - 1);
+                        std::min<uint16_t>(newArrangement - 1, globalAnimatable->cellanim->arrangements.size() - 1);
                 }
 
                 // Start +- Buttons

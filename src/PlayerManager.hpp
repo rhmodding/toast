@@ -60,9 +60,8 @@ public:
     }
 
     inline void clampCurrentKeyIndex() {
-        this->setCurrentKeyIndex(std::clamp<unsigned>(
+        this->setCurrentKeyIndex(std::min<unsigned>(
             this->getCurrentKeyIndex(),
-            0,
             AppState::getInstance().globalAnimatable->getCurrentAnimation()->keys.size() - 1
         ));
     }
