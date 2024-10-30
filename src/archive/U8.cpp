@@ -124,8 +124,9 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t 
 
     const char* stringPool = reinterpret_cast<const char*>(nodes + nodeCount);
 
+    //                   ptr         nextEntry
     std::stack<std::pair<Directory*, unsigned>> dirStack;
-    Directory* currentDirectory{ &this->structure };
+    Directory* currentDirectory { &this->structure };
 
     dirStack.push({ currentDirectory, 0 });
 
@@ -175,7 +176,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
         bool isDir;
     };
     std::vector<FlatEntry> flattenedArchive = {
-        { nullptr, 0, 0, true } // Root node
+        { &this->structure, 0, 0, true } // Root node
     };
 
     std::stack<std::pair<Directory*, unsigned>> directoryStack;
@@ -220,17 +221,17 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
         }
     }
 
-    unsigned stringPoolSize { 1 }; // Root node string's null terminator
+    unsigned stringPoolSize { 0 };
     unsigned dataSize { 0 };
 
-    std::vector<unsigned> stringOffsets(1, 0);
+    std::vector<unsigned> stringOffsets(flattenedArchive.size(), 0);
     std::vector<unsigned> dataOffsets(flattenedArchive.size(), 0);
 
     // Calculate string offsets
-    for (unsigned i = 1; i < flattenedArchive.size(); ++i) {
+    for (unsigned i = 0; i < flattenedArchive.size(); ++i) {
         const FlatEntry& entry = flattenedArchive[i];
 
-        stringOffsets.push_back(stringPoolSize);
+        stringOffsets[i] = stringPoolSize;
         stringPoolSize += (entry.isDir ?
             reinterpret_cast<Directory*>(entry.ptr)->name.size() :
             reinterpret_cast<File*>(entry.ptr)->name.size()

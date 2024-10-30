@@ -47,7 +47,7 @@ public:
 
 class U8ArchiveObject {
 public:
-    Directory structure { "root" };
+    Directory structure { "" };
 
     std::vector<unsigned char> Reserialize();
 
