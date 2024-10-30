@@ -30,7 +30,7 @@ protected:
     }
 
     void Effect() override {
-        if (UNLIKELY(this->result < 0)) {
+        if (this->result < 0) {
             AppState::getInstance().OpenGlobalPopup("###SessionErr");
 
             return;

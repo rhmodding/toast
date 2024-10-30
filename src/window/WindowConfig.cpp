@@ -64,7 +64,7 @@ void WindowConfig::Update() {
     if (!this->open)
         return;
 
-    if (UNLIKELY(firstOpen)) {
+    if (firstOpen) {
         this->selfConfig = ConfigManager::getInstance().getConfig();
 
         firstOpen = false;

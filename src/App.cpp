@@ -88,7 +88,7 @@ App::App() {
     glfwSetErrorCallback([](int code, const char* description) {
         std::cerr << "GLFW Error (" << code << "): " << description << '\n';
     });
-    if (UNLIKELY(!glfwInit())) {
+    if (!glfwInit()) {
         std::cerr << "[App:App] Failed to init GLFW!\n";
         __builtin_trap();
     }
@@ -128,7 +128,7 @@ App::App() {
         nullptr, nullptr
     );
 
-    if (UNLIKELY(!this->window)) {
+    if (!this->window) {
         std::cerr << "[App::App] Window failed to init!\n";
         __builtin_trap();
     }

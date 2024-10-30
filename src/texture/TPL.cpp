@@ -108,7 +108,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
 
     const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
 
-    if (UNLIKELY(palette->versionNumber != TPL_VERSION_NUMBER)) {
+    if (palette->versionNumber != TPL_VERSION_NUMBER) {
         std::cerr << "[TPLObject::TPLObject] Invalid TPL binary: invalid version number!\n";
         return;
     }
@@ -367,7 +367,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
 std::optional<TPLObject> readTPLFile(const std::string& filePath) {
     std::ifstream file(filePath, std::ios::binary);
-    if (UNLIKELY(!file.is_open())) {
+    if (!file.is_open()) {
         std::cerr << "[TPL::readTPLFile] Error opening file at path: " << filePath << '\n';
         return std::nullopt;
     }

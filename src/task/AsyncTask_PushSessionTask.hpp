@@ -32,7 +32,7 @@ protected:
     void Effect() override {
         GET_SESSION_MANAGER;
 
-        if (UNLIKELY(this->result < 0)) {
+        if (this->result < 0) {
             AppState::getInstance().OpenGlobalPopup("###SessionErr");
 
             return;

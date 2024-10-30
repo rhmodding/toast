@@ -298,7 +298,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
 
 std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char* filePath) {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-    if (UNLIKELY(!file.is_open())) {
+    if (!file.is_open()) {
         std::cerr << "[RvlCellAnim::readRvlCellAnimFile] Could not open file at path: " << filePath << '\n';
         return nullptr;
     }

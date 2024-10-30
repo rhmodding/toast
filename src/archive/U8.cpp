@@ -110,7 +110,7 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t 
     }
 
     const U8ArchiveHeader* header = reinterpret_cast<const U8ArchiveHeader*>(archiveData);
-    if (UNLIKELY(header->magic != HEADER_MAGIC)) {
+    if (header->magic != HEADER_MAGIC) {
         std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: header magic failed check!\n";
         return;
     }

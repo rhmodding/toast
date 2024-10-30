@@ -39,7 +39,7 @@ public:
     void RenderPopup() {
         ImGui::PushID(this->imguiID);
 
-        if (LIKELY(!isComplete))
+        if (!isComplete)
             ImGui::OpenPopup("###WORKING");
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
@@ -66,7 +66,7 @@ public:
     }
 
     void TryRunEffect() {
-        if (UNLIKELY(this->isComplete) && !UNLIKELY(this->hasEffectRun)) {
+        if (this->isComplete && !this->hasEffectRun) {
             this->Effect();
             this->hasEffectRun = true;
         }

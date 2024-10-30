@@ -124,7 +124,7 @@ public:
 
     void Load() {
         std::ifstream file(configPath);
-        if (UNLIKELY(!file.is_open())) {
+        if (!file.is_open()) {
             this->firstTime = true;
 
             this->Reset();
@@ -142,7 +142,7 @@ public:
 
     void Save() {
         std::ofstream file(this->configPath);
-        if (UNLIKELY(!file.is_open())) {
+        if (!file.is_open()) {
             std::cerr << "[ConfigManager::Save] Unable to open file for saving.\n";
             return;
         }
@@ -162,7 +162,7 @@ public:
     }
 
     void Reset() {
-        config = Config{};
+        config = Config {};
     }
 
 private:
