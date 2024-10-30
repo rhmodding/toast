@@ -9,14 +9,14 @@
 
 #include <cstdint>
 
-#include <mutex>
-
 #include <string>
 
 #include <unordered_map>
 #include <deque>
 
 #include <memory>
+
+#include <mutex>
 
 #include "common.hpp"
 
@@ -168,7 +168,7 @@ public:
         SessionOutError_FailTPLTextureExport,
     } lastSessionError{ SessionError_None };
 
-    // Push session from a Yaz0-compressed Arc file (SZS).
+    // Push session from a Yaz0-compressed U8 archive (SZS).
     int PushSessionFromCompressedArc(const char* filePath);
     // Push session from BRCAD, PNG, and H file respectively
     int PushSessionTraditional(const char* paths[3]);

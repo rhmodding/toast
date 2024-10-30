@@ -16,6 +16,8 @@
 
 #include "texture/TPL.hpp"
 
+#include "EditorDataPackage.hpp"
+
 #include "ConfigManager.hpp"
 #include "PlayerManager.hpp"
 #include "MtCommandManager.hpp"
@@ -23,296 +25,6 @@
 #include "AppState.hpp"
 
 #include "common.hpp"
-
-#define EDITORDATA_RESOURCE_NAME "TOAST.DAT"
-
-namespace EditorData {
-
-struct FileHeader {
-    char magic[6] { 'T', 'O', 'A', 'S', 'T', 'D' };
-    uint16_t entryCount { 0 };
-} __attribute__((packed));
-
-struct StandardHeader {
-    char identifier[4];
-    uint16_t entryCount;
-    uint32_t nextHeaderOffset;
-} __attribute__((packed));
-
-struct PartLocationEntry {
-    uint16_t cellanimIndex;
-    uint16_t arrangementIndex;
-    uint16_t partIndex;
-} __attribute__((packed));
-
-struct PartAlphaEntry {
-    uint16_t cellanimIndex;
-    uint16_t arrangementIndex;
-    uint16_t partIndex;
-
-    uint8_t opacity;
-
-    uint8_t _pad8 { 0x00 };
-} __attribute__((packed));
-
-struct NamedPartEntry {
-    uint16_t cellanimIndex;
-    uint16_t arrangementIndex;
-    uint16_t partIndex;
-
-    char name[32];
-} __attribute__((packed));
-
-void Apply(const unsigned char* data, SessionManager::Session* session) {
-    const FileHeader* fileHeader = reinterpret_cast<const FileHeader*>(data);
-
-    if (UNLIKELY(memcmp(fileHeader->magic, "TOASTD", 6) != 0)) {
-        std::cerr << "[EditorData::Apply] Invalid editor data binary: header magic failed check!\n";
-        return;
-    }
-
-    if (fileHeader->entryCount == 0)
-        return;
-
-    const StandardHeader* currentHeader =
-        reinterpret_cast<const StandardHeader*>(data + sizeof(FileHeader));
-
-    auto getPart = [&session](
-        uint16_t cellIndex, uint16_t arrngIndex, uint16_t partIndex
-    ) -> RvlCellAnim::ArrangementPart* {
-        if (cellIndex >= session->cellanims.size()) {
-            std::cerr <<
-                "[EditorData::Apply] Invalid editor data binary: oob cellanim index!:\n" <<
-                "   - Cellanim Index: " << cellIndex << '\n';
-            return nullptr;
-        }
-
-        auto& arrangements = session->cellanims.at(cellIndex).object->arrangements;
-        if (arrngIndex >= arrangements.size()) {
-            std::cerr <<
-                "[EditorData::Apply] Invalid editor data binary: oob arrangement index!:" <<
-                "   - Cellanim Index: " << cellIndex << '\n' <<
-                "   - Arrangement Index: " << arrngIndex << '\n';
-            return nullptr;
-        }
-
-        auto& arrangement = arrangements.at(arrngIndex);
-        if (partIndex >= arrangement.parts.size()) {
-            std::cerr <<
-                "[EditorData::Apply] Invalid editor data binary: oob part index!:" <<
-                "   - Cellanim Index: " << cellIndex << '\n' <<
-                "   - Arrangement Index: " << arrngIndex << '\n' <<
-                "   - Part Index: " << partIndex << '\n';
-            return nullptr;
-        }
-
-        return &arrangement.parts.at(partIndex);
-    };
-
-    for (uint16_t i = 0; i < fileHeader->entryCount; i++) {
-        switch (*reinterpret_cast<const uint32_t*>(currentHeader->identifier)) {
-            case IDENTIFIER_TO_U32('E', 'L', 'P', 'T'): {
-                const PartLocationEntry* currentEntry = reinterpret_cast<const PartLocationEntry*>(
-                    currentHeader + 1
-                );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = getPart(
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
-                    );
-
-                    if (LIKELY(!!part))
-                        part->editorLocked = true;
-                    else
-                        return;
-
-                    currentEntry++;
-                }
-            } break;
-
-            case IDENTIFIER_TO_U32('E', 'I', 'P', 'T'): {
-                const PartAlphaEntry* currentEntry = reinterpret_cast<const PartAlphaEntry*>(
-                    currentHeader + 1
-                );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = getPart(
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
-                    );
-
-                    if (LIKELY(!!part)) {
-                        part->opacity = currentEntry->opacity;
-                        part->editorVisible = false;
-                    }
-                    else
-                        return;
-
-                    currentEntry++;
-                }
-            } break;
-
-            case IDENTIFIER_TO_U32('A', 'P', 'N', 'T'): {
-                const NamedPartEntry* currentEntry = reinterpret_cast<const NamedPartEntry*>(
-                    currentHeader + 1
-                );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = getPart(
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
-                    );
-
-                    if (LIKELY(!!part))
-                        strncpy(part->editorName, currentEntry->name, 32);
-                    else
-                        return;
-
-                    currentEntry++;
-                }
-            } break;
-
-            default:
-                std::cerr << "[EditorData::Apply] Unimplemented entry type: " <<
-                    currentHeader->identifier[0] <<
-                    currentHeader->identifier[1] <<
-                    currentHeader->identifier[2] <<
-                    currentHeader->identifier[3] <<
-                '\n';
-                break;
-        }
-
-        if (i + 1 < fileHeader->entryCount)
-            currentHeader =
-                reinterpret_cast<const StandardHeader*>(data + currentHeader->nextHeaderOffset);
-    }
-}
-
-std::vector<unsigned char> Write(SessionManager::Session* session) {
-    std::vector<unsigned char> result(sizeof(FileHeader));
-
-    FileHeader* fileHeader = reinterpret_cast<FileHeader*>(result.data());
-    *fileHeader = FileHeader{};
-
-    std::vector<PartLocationEntry> lockedParts;
-    std::vector<PartAlphaEntry> invisibleParts;
-    std::vector<NamedPartEntry> namedParts;
-
-    for (uint16_t i = 0; i < session->cellanims.size(); i++) {
-        const auto cellanim = session->cellanims[i].object;
-
-        for (uint16_t j = 0; j < cellanim->arrangements.size(); j++) {
-            const auto& arrangement = cellanim->arrangements.at(j);
-
-            for (uint16_t n = 0; n < arrangement.parts.size(); n++) {
-                const auto& part = arrangement.parts.at(n);
-
-                if (part.editorLocked)
-                    lockedParts.push_back({ i, j, n });
-                if (!part.editorVisible)
-                    invisibleParts.push_back({ i, j, n, part.opacity });
-
-                if (part.editorName[0] != '\0') {
-                    NamedPartEntry entry { i, j, n };
-                    strncpy(entry.name, part.editorName, 32);
-
-                    namedParts.push_back(entry);
-                }
-            }
-        }
-    }
-
-    unsigned writeOffset { sizeof(FileHeader) };
-
-    if (!invisibleParts.empty()) {
-        fileHeader->entryCount++;
-
-        uint32_t endOffset =
-            writeOffset + sizeof(StandardHeader) +
-            (sizeof(PartAlphaEntry) * invisibleParts.size());
-
-        result.resize(endOffset);
-
-        StandardHeader* header =
-            reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
-        *header = StandardHeader {
-            .identifier = { 'E', 'I', 'P', 'T' },
-            .entryCount = (uint16_t)invisibleParts.size(),
-            .nextHeaderOffset = endOffset
-        };
-
-        writeOffset += sizeof(StandardHeader);
-
-        for (unsigned i = 0; i < header->entryCount; i++) {
-            *reinterpret_cast<PartAlphaEntry*>(
-                result.data() + writeOffset
-            ) = invisibleParts[i];
-
-            writeOffset += sizeof(PartAlphaEntry);
-        }
-    }
-
-    if (!lockedParts.empty()) {
-        fileHeader->entryCount++;
-
-        uint32_t endOffset =
-            writeOffset + sizeof(StandardHeader) +
-            (sizeof(PartLocationEntry) * lockedParts.size());
-
-        result.resize(endOffset);
-
-        StandardHeader* header =
-            reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
-        *header = StandardHeader {
-            .identifier = { 'E', 'L', 'P', 'T' },
-            .entryCount = (uint16_t)lockedParts.size(),
-            .nextHeaderOffset = endOffset
-        };
-
-        writeOffset += sizeof(StandardHeader);
-
-        for (unsigned i = 0; i < header->entryCount; i++) {
-            *reinterpret_cast<PartLocationEntry*>(
-                result.data() + writeOffset
-            ) = lockedParts[i];
-
-            writeOffset += sizeof(PartLocationEntry);
-        }
-    }
-
-    if (!namedParts.empty()) {
-        fileHeader->entryCount++;
-
-        uint32_t endOffset =
-            writeOffset + sizeof(StandardHeader) +
-            (sizeof(NamedPartEntry) * namedParts.size());
-
-        result.resize(endOffset);
-
-        StandardHeader* header =
-            reinterpret_cast<StandardHeader*>(result.data() + writeOffset);
-        *header = StandardHeader {
-                .identifier = { 'A', 'P', 'N', 'T' },
-            .entryCount = (uint16_t)namedParts.size(),
-            .nextHeaderOffset = endOffset
-        };
-
-        writeOffset += sizeof(StandardHeader);
-
-        for (unsigned i = 0; i < header->entryCount; i++) {
-            *reinterpret_cast<NamedPartEntry*>(
-                result.data() + writeOffset
-            ) = namedParts[i];
-
-            writeOffset += sizeof(NamedPartEntry);
-        }
-    }
-
-    return result;
-}
-
-}; // namespace EditorData
 
 int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     Session newSession;
@@ -459,27 +171,15 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     }
 
     // internal editor data
-
-    bool dataExpected{ false };
-    for (const auto& cd : newSession.cellanims)
-        if (cd.object->expectEditorData) {
-            dataExpected = true;
-            break;
+    {
+        U8::File* tedSearch = U8::findFile("./" TED_ARC_FILENAME, archiveObject.structure);
+        if (tedSearch)
+            TedApply(tedSearch->data.data(), &newSession);
+        else {
+            U8::File* datSearch = U8::findFile("./" TED_ARC_FILENAME_OLD, archiveObject.structure);
+            if (datSearch)
+                TedApply(datSearch->data.data(), &newSession);
         }
-
-    U8::File* __datSearch = U8::findFile(
-        EDITORDATA_RESOURCE_NAME,
-        archiveObject.structure.subdirectories[0]
-    );
-    if (__datSearch && dataExpected) {
-        EditorData::Apply(__datSearch->data.data(), &newSession);
-    }
-    else if (dataExpected) {
-        std::cerr << "[SessionManager::PushSessionFromCompressedArc] Supplemental editor data is expected but was not found!\n";
-
-        MtCommandManager::getInstance().enqueueCommand([]() {
-            AppState::getInstance().OpenGlobalPopup("###EditorDataExpected");
-        }).get();
     }
 
     newSession.mainPath = filePath;
@@ -610,11 +310,8 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
                 "_labels.h"
             );
 
-            {
-                char c;
-                while (stream.get(c))
-                    file.data.push_back(c);
-            }
+            const std::string str = stream.str();
+            file.data.insert(file.data.end(), str.begin(), str.end());
 
             directory.AddFile(std::move(file));
         }
@@ -643,9 +340,10 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 
         // supplemental editor data
         {
-            U8::File file(EDITORDATA_RESOURCE_NAME);
+            U8::File file(TED_ARC_FILENAME);
 
-            file.data = EditorData::Write(session);
+            file.data.resize(TedPrecomputeSize(session));
+            TedWrite(session, file.data.data());
 
             directory.AddFile(file);
         }
@@ -664,7 +362,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         configManager.getConfig().compressionLevel
     );
 
-    if (UNLIKELY(!compressedArchive.has_value())) {
+    if (!compressedArchive.has_value()) {
         this->lastSessionError = SessionOutError_ZlibError;
         return -1;
     }
@@ -680,7 +378,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         std::cerr << "[SessionManager::ExportSessionCompressedArc] Failed to save backup of file!\n";
 
     std::ofstream file(outPath, std::ios::binary);
-    if (LIKELY(file.is_open())) {
+    if (file.is_open()) {
         file.write(
             reinterpret_cast<const char*>((*compressedArchive).data()),
             (*compressedArchive).size()
@@ -700,14 +398,6 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 
 void SessionManager::FreeSessionIndex(int index) {
     std::lock_guard<std::mutex> lock(this->mtx);
-
-    /*
-    if (
-        UNLIKELY(index >= this->sessionList.size()) ||
-        UNLIKELY(index < 0)
-    )
-        return;
-    */
 
     auto it = this->sessionList.begin() + index;
     this->sessionList.erase(it);
@@ -742,9 +432,8 @@ void SessionManager::SessionChanged() {
         this->sessionList[this->currentSession].getCellanimSheet()
     );
 
-    appState.selectedAnimation = std::clamp<unsigned>(
+    appState.selectedAnimation = std::min<unsigned>(
         appState.selectedAnimation,
-        0,
         globalAnimatable->cellanim->animations.size() - 1
     );
 

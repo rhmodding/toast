@@ -25,8 +25,6 @@ int  _swapAnimationIdx { -1 };
 
 #include "popups/Popup_ExitWithChanges.hpp"
 
-#include "popups/Popup_EditorDataExpected.hpp"
-
 #include "popups/Popup_CloseModifiedSession.hpp"
 
 #include "popups/Popup_EditAnimationName.hpp"
@@ -53,8 +51,6 @@ void Popups::Update() {
     }
 
     Popup_ExitWithChanges();
-
-    Popup_EditorDataExpected();
 
     Popup_CloseModifiedSession();
 

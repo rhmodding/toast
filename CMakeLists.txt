@@ -52,11 +52,13 @@ set(SOURCES
 
     src/window/WindowImguiDemo.cpp
 
-    src/common.cpp
+    src/EditorDataPackage.cpp
 
     src/SessionManager.cpp
 
     src/PlayerManager.cpp
+
+    src/common.cpp
 )
 
 IF (APPLE)
