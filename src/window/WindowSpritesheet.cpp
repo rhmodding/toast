@@ -622,6 +622,23 @@ void WindowSpritesheet::Update() {
                 }
             }
 
+            if (ImGui::MenuItem("Export image to file...", nullptr, false)) {
+                const char* filterPatterns[] = { "*.png" };
+                char* saveFileDialog = tinyfd_saveFileDialog(
+                    "Select a file to save the image to",
+                    nullptr,
+                    ARRAY_LENGTH(filterPatterns), filterPatterns,
+                    "Image file (.png)"
+                );
+
+                if (saveFileDialog) {
+                    GET_SESSION_MANAGER;
+
+                    sessionManager.getCurrentSession()->getCellanimSheet()
+                        ->ExportToFile(saveFileDialog);
+                }
+            }
+
             if (ImGui::MenuItem((char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
                 RepackSheet();
             }
