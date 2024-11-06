@@ -27,21 +27,6 @@ void WindowHybridList::ResetFlash() {
     this->flashTrigger = false;
 }
 
-ImVec4 adjustBrightness(const ImVec4& color, float factor) {
-    ImVec4 adjustedColor;
-
-    adjustedColor.x = std::lerp(color.x, 1.f, factor);
-    adjustedColor.y = std::lerp(color.y, 1.f, factor);
-    adjustedColor.z = std::lerp(color.z, 1.f, factor);
-    adjustedColor.w = color.w;
-
-    adjustedColor.x = std::min(std::max(adjustedColor.x, 0.f), 1.f);
-    adjustedColor.y = std::min(std::max(adjustedColor.y, 0.f), 1.f);
-    adjustedColor.z = std::min(std::max(adjustedColor.z, 0.f), 1.f);
-
-    return adjustedColor;
-}
-
 #define WINDOW_FLASH_TIME .3f // seconds
 
 void WindowHybridList::Update() {
@@ -63,13 +48,16 @@ void WindowHybridList::Update() {
 
     if (this->flashWindow) {
         ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-        ImGui::PushStyleColor(
-            ImGuiCol_WindowBg,
-            adjustBrightness(
-                color,
-                (this->flashTimer - static_cast<float>(ImGui::GetTime())) + WINDOW_FLASH_TIME
-            )
-        );
+
+        float factor = (this->flashTimer - static_cast<float>(ImGui::GetTime())) + WINDOW_FLASH_TIME;
+        if (factor > 1.f)
+            factor = 1.f;
+
+        color.x = std::lerp(color.x, 1.f, factor);
+        color.y = std::lerp(color.y, 1.f, factor);
+        color.z = std::lerp(color.z, 1.f, factor);
+
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, color);
     }
 
     char label[32];
