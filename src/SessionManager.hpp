@@ -20,7 +20,7 @@
 
 #include "common.hpp"
 
-#define SESSION_MAX_COMMANDS 128
+#define SESSION_MAX_COMMANDS 512
 
 // Stores instance of SessionManager in local sessionManager.
 #define GET_SESSION_MANAGER SessionManager& sessionManager = SessionManager::getInstance()
@@ -74,9 +74,9 @@ public:
     public:
         void executeCommand(std::shared_ptr<BaseCommand> command) {
             command->Execute();
-            if (undoStack.size() == SESSION_MAX_COMMANDS) {
+            if (undoStack.size() == SESSION_MAX_COMMANDS)
                 undoStack.pop_front();
-            }
+
             undoStack.push_back(command);
 
             redoStack.clear();

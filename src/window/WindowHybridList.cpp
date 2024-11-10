@@ -105,7 +105,7 @@ void WindowHybridList::Update() {
 
                     PlayerManager::getInstance().setCurrentKeyIndex(0);
 
-                    appState.correctSelectedPart();
+                    appState.correctSelectedParts();
                 }
 
                 if (ImGui::BeginPopupContextItem()) {
@@ -157,7 +157,7 @@ void WindowHybridList::Update() {
                     // Update arrangementPtr
                     arrangementPtr = globalAnimatable->getCurrentArrangement();
 
-                    appState.correctSelectedPart();
+                    appState.correctSelectedParts();
                 }
 
                 if (ImGui::BeginPopupContextItem()) {

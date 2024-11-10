@@ -275,7 +275,7 @@ void Popup_MInterpolateKeys() {
 
     bool condition = globalAnimatable && globalAnimatable->cellanim.get();
 
-    static RvlCellAnim::Animation animationBackup { RvlCellAnim::Animation{} };
+    static RvlCellAnim::Animation animationBackup { RvlCellAnim::Animation {} };
 
     RvlCellAnim::Animation* currentAnimation { nullptr };
     unsigned animationIndex;
@@ -312,7 +312,7 @@ void Popup_MInterpolateKeys() {
 
         lateOpen = true;
 
-        ImGui::SeparatorText("Interpolate keys");
+        ImGui::SeparatorText("Tweening options");
 
         static std::array<float, 4> v { 0.f, 0.f, 1.f, 1.f };
         static int interval = 1;
@@ -446,7 +446,7 @@ void Popup_MInterpolateKeys() {
                     for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
                         auto& part = newArrangement.parts.at(j);
 
-                        unsigned jClamp = std::clamp<unsigned>(j, 0, endArrangement->parts.size() - 1);
+                        unsigned jClamp = std::min<unsigned>(j, endArrangement->parts.size() - 1);
                         int mnpi = appState.getMatchingNamePartIndex(part, *endArrangement);
 
                         const auto* endPart = &endArrangement->parts.at(mnpi >= 0 ? mnpi : jClamp);
@@ -496,8 +496,6 @@ void Popup_MInterpolateKeys() {
                 animationIndex,
                 newAnim
             ));
-
-            globalAnimatable->refreshPointers();
 
             currentAnimation = globalAnimatable->getCurrentAnimation();
             currentKey = globalAnimatable->getCurrentKey();

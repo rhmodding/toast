@@ -9,28 +9,24 @@
 void PlayerManager::setCurrentKeyIndex(unsigned index) {
     GET_APP_STATE;
 
-    RvlCellAnim::ArrangementPart* part{ nullptr };
-    if (
-        appState.selectedPart >= 0 &&
-        appState.selectedPart <
-            appState.globalAnimatable->getCurrentArrangement()->parts.size()
-    )
-        part = &appState.globalAnimatable->getCurrentArrangement()->
-            parts.at(appState.selectedPart);
+    const auto* arrangeA = appState.globalAnimatable->getCurrentArrangement();
 
     appState.globalAnimatable->setAnimationKeyFromIndex(index);
 
-    if (part) {
-        int p = appState.getMatchingNamePartIndex(
-            *part,
-            *appState.globalAnimatable->getCurrentArrangement()
-        );
+    const auto* arrangeB = appState.globalAnimatable->getCurrentArrangement();
 
-        if (p >= 0)
-            appState.selectedPart = p;
+    if (arrangeA != arrangeB) {
+        for (auto& part : appState.selectedParts) {
+            int p = appState.getMatchingNamePartIndex(
+                arrangeA->parts.at(part.index), *arrangeB
+            );
+
+            if (p >= 0)
+                part.index = p;
+        }
+
+        appState.correctSelectedParts();
     }
-
-    appState.correctSelectedPart();
 }
 
 void PlayerManager::ResetTimer() {
@@ -90,12 +86,11 @@ void PlayerManager::Update() {
     this->previous = now;
 
     while (delta >= this->timeLeft) {
-        RvlCellAnim::ArrangementPart* part{ nullptr };
-        if (appState.selectedPart >= 0)
-            part = &appState.globalAnimatable->getCurrentArrangement()->
-                parts.at(appState.selectedPart);
+        const auto* arrangeA = appState.globalAnimatable->getCurrentArrangement();
 
         globalAnimatable->Update();
+
+        const auto* arrangeB = appState.globalAnimatable->getCurrentArrangement();
 
         delta -= this->timeLeft;
         this->timeLeft = 1.f / frameRate;
@@ -108,17 +103,18 @@ void PlayerManager::Update() {
         this->playing = globalAnimatable->getAnimating();
         this->currentFrame = globalAnimatable->getCurrentKeyIndex();
 
-        if (part) {
-            int p = appState.getMatchingNamePartIndex(
-                *part,
-                *appState.globalAnimatable->getCurrentArrangement()
-            );
+        if (arrangeA != arrangeB) {
+            for (auto& part : appState.selectedParts) {
+                int p = appState.getMatchingNamePartIndex(
+                    arrangeA->parts.at(part.index), *arrangeB
+                );
 
-            if (p >= 0)
-                appState.selectedPart = p;
+                if (p >= 0)
+                    part.index = p;
+            }
+
+            appState.correctSelectedParts();
         }
-
-        appState.correctSelectedPart();
     }
 
     this->timeLeft -= delta;

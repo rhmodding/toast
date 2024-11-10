@@ -58,7 +58,7 @@ void Popup_MTransformArrangement() {
 
         if (ImGui::Checkbox("Uniform Scale", &uniformScale)) {
             if (scale[0] != scale[1]) {
-                float v = (scale[0] + scale[1]) / 2.f;
+                float v = AVERAGE_FLOATS(scale[0], scale[1]);
 
                 scale[0] = v;
                 scale[1] = v;

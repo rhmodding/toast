@@ -396,23 +396,6 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
     return 0;
 }
 
-void SessionManager::FreeSessionIndex(int index) {
-    std::lock_guard<std::mutex> lock(this->mtx);
-
-    auto it = this->sessionList.begin() + index;
-    this->sessionList.erase(it);
-
-    this->currentSession =
-        std::clamp<int>(this->currentSession, -1, this->sessionList.size() - 1);
-}
-
-void SessionManager::FreeAllSessions() {
-    std::lock_guard<std::mutex> lock(this->mtx);
-    this->sessionList.clear();
-
-    this->currentSession = -1;
-}
-
 void SessionManager::SessionChanged() {
     std::lock_guard<std::mutex> lock(this->mtx);
 
@@ -449,5 +432,22 @@ void SessionManager::SessionChanged() {
         globalAnimatable->overrideAnimationKey(&appState.controlKey);
     }
 
-    appState.correctSelectedPart();
+    appState.correctSelectedParts();
+}
+
+void SessionManager::FreeSessionIndex(int index) {
+    std::lock_guard<std::mutex> lock(this->mtx);
+
+    auto it = this->sessionList.begin() + index;
+    this->sessionList.erase(it);
+
+    this->currentSession =
+        std::clamp<int>(this->currentSession, -1, this->sessionList.size() - 1);
+}
+
+void SessionManager::FreeAllSessions() {
+    std::lock_guard<std::mutex> lock(this->mtx);
+    this->sessionList.clear();
+
+    this->currentSession = -1;
 }

@@ -25,7 +25,7 @@ public:
     void Execute() override {
         this->getKey() = this->newKey;
 
-        AppState::getInstance().correctSelectedPart();
+        AppState::getInstance().correctSelectedParts();
     }
 
     void Rollback() override {

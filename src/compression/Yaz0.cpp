@@ -26,8 +26,9 @@
 #define ZLIB_MIN_MATCH 3
 
 struct Yaz0Header {
-    // Magic string (should always equal to "Yaz0" if valid)
-    char magic[4];
+    // Magic value (should always equal to "Yaz0" if valid)
+    // Compare to HEADER_MAGIC
+    uint32_t magic;
 
     // Size of the file before compression in bytes
     uint32_t uncompressedSize;
@@ -44,13 +45,13 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
     result.reserve(dataSize);
 
     Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
+    *header = Yaz0Header {
+        .magic = HEADER_MAGIC,
 
-    *reinterpret_cast<uint32_t*>(header->magic) = HEADER_MAGIC;
+        .uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize)),
 
-    header->uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize));
-
-    header->reserved[0] = 0x0000;
-    header->reserved[1] = 0x0000;
+        .reserved = { 0x0000, 0x0000 }
+    };
 
     // Compression
     {
@@ -105,7 +106,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                     if (++compressionState->pendingChunks == CHUNKS_PER_GROUP) {
                         // Write group header
                         compressionState->buffer[compressionState->groupHeaderOffset] =
-                            static_cast<char>(compressionState->groupHeader.to_ulong());
+                            static_cast<unsigned char>(compressionState->groupHeader.to_ulong());
 
                         // Reset values
                         compressionState->pendingChunks = 0;
@@ -133,7 +134,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
 std::optional<std::vector<unsigned char>> decompress(const unsigned char* compressedData, const size_t dataSize) {
     if (dataSize < sizeof(Yaz0Header)) {
-        std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: data size smaller than header size!\n";
+        std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: data size smaller than header size!\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -141,8 +142,8 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
 
     uint32_t uncompressedSize = BYTESWAP_32(header->uncompressedSize);
 
-    if (*reinterpret_cast<const uint32_t*>(header->magic) != HEADER_MAGIC) {
-        std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: header magic failed check!\n";
+    if (header->magic != HEADER_MAGIC) {
+        std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: header magic failed check!\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -165,11 +166,11 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
         }
 
         if (UNLIKELY((currentByte - compressedData) >= dataSize)) {
-            // We've reached the end of the uncompressed file but we're not finished reading yet;
+            // We've reached the end of the file but we're not finished reading yet;
             // Usually this means the file is invalid.
 
-            std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the read offset is larger than the data size!\n";
-            std::cerr << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
+            std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: the read offset is larger than the data size!\n";
+            std::cerr << "[Yaz0::decompress] The Yaz0 binary might be corrupted.\n";
             return std::nullopt; // return nothing (std::optional)
         }
 
@@ -185,8 +186,8 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
             int copySource = destOffset - (dist + 1);
 
             if (UNLIKELY(copySource < 0)) {
-                std::cerr << "[Yaz0::uncompress] Invalid Yaz0 binary: the destination offset is out of bounds (negative)!\n";
-                std::cerr << "[Yaz0::uncompress] The Yaz0 binary might be corrupted.\n";
+                std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: the destination offset is out of bounds (negative)!\n";
+                std::cerr << "[Yaz0::decompress] The Yaz0 binary might be corrupted.\n";
                 return std::nullopt; // return nothing (std::optional)
             }
 

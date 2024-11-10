@@ -90,7 +90,7 @@ void WindowSpritesheet::PaletteWindow() {
             ImGui::BeginChild("ColorList", { 250.f, 0.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
 
             for (unsigned i = 0; i < colors.size(); i++) {
-                const uint32_t& color = colors.at(i);
+                const uint32_t& color = colors[i];
 
                 const uint8_t r = (color >> 24) & 0xFF;
                 const uint8_t g = (color >> 16) & 0xFF;
@@ -825,13 +825,13 @@ void WindowSpritesheet::Update() {
         RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
         for (unsigned i = 0; i < arrangementPtr->parts.size(); i++) {
-            if (appState.focusOnSelectedPart && i != appState.selectedPart)
+            if (appState.focusOnSelectedPart && !appState.isPartSelected(i))
                 continue;
 
-            RvlCellAnim::ArrangementPart* partPtr = &arrangementPtr->parts.at(i);
+            RvlCellAnim::ArrangementPart& part = arrangementPtr->parts[i];
 
             uint16_t sourceRect[4] {
-                partPtr->regionX, partPtr->regionY, partPtr->regionW, partPtr->regionH
+                part.regionX, part.regionY, part.regionW, part.regionH
             };
 
             float mismatchScaleX = static_cast<float>(globalAnimatable->texture->width) / globalAnimatable->cellanim->textureW;

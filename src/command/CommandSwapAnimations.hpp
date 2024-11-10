@@ -78,14 +78,12 @@ private:
 
             appState.selectedAnimation = newSelectedAnimation;
 
-            appState.globalAnimatable->refreshPointers();
-
             appState.globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
 
             if (selectedDifferentAnimation)
                 PlayerManager::getInstance().setCurrentKeyIndex(0);
 
-            appState.correctSelectedPart();
+            appState.correctSelectedParts();
         }
     }
 

@@ -32,7 +32,7 @@ void CLUTtoRGBA32Palette(
 
     switch (format) {
         case TPL::TPL_CLUT_FORMAT_IA8: {
-            for (uint16_t i = 0; i < numEntries; i++) {
+            for (unsigned i = 0; i < numEntries; i++) {
                 const uint8_t alpha = data[(i * 2) + 0];
                 const uint8_t intensity = data[(i * 2) + 1];
 
@@ -44,7 +44,7 @@ void CLUTtoRGBA32Palette(
             }
         } break;
         case TPL::TPL_CLUT_FORMAT_RGB565: {
-            for (uint16_t i = 0; i < numEntries; i++) {
+            for (unsigned i = 0; i < numEntries; i++) {
                 const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + (i * 2)));
 
                 buffer[i] =
@@ -55,7 +55,7 @@ void CLUTtoRGBA32Palette(
             }
         } break;
         case TPL::TPL_CLUT_FORMAT_RGB5A3: {
-            for (uint16_t i = 0; i < numEntries; i++) {
+            for (unsigned i = 0; i < numEntries; i++) {
                 const uint16_t sourcePixel = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + (i * 2)));
 
                 uint8_t r, g, b, a;

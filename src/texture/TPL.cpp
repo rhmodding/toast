@@ -190,6 +190,8 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             unsigned colorCount = PaletteUtils::countUniqueColors(
                 (uint32_t*)texture.data.data(), texture.width, texture.height
             );
+
+            // Convieniently, every palette format's pixel is 16-bit
             paletteEntriesSize += colorCount * 2;
         }
     }
@@ -205,22 +207,32 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     );
 
     unsigned dataSectionStart = headerSectionStart + (sizeof(TPLHeader) * textureCount);
-    result.resize(dataSectionStart);
+    
+    unsigned fullSize = dataSectionStart;
+
+    // Precompute size of data section
+    for (unsigned i = 0; i < textureCount; i++) {
+        const unsigned imageSize = ImageConvert::getImageByteSize(this->textures[i]);
+
+        fullSize = (fullSize + 63) & ~63; // Align to 64
+        fullSize += imageSize;
+    }
+
+    result.resize(fullSize);
 
     TPLPalette* palette = reinterpret_cast<TPLPalette*>(result.data());
     palette->versionNumber = TPL_VERSION_NUMBER;
     palette->descriptorCount = BYTESWAP_32(textureCount);
     palette->descriptorsOffset = BYTESWAP_32(sizeof(TPLPalette));
 
-    unsigned nextColorPaletteOffset = 0;
-    if (!paletteTextures.empty()) {
-        nextColorPaletteOffset = (
+    unsigned nextClutOffset;
+    if (!paletteTextures.empty())
+        nextClutOffset = (
             sizeof(TPLPalette) +
             (sizeof(TPLDescriptor) * textureCount) +
             (sizeof(TPLClutHeader) * paletteTextures.size())
             + 31
         ) & ~31;
-    }
 
     TPLHeader* headers = reinterpret_cast<TPLHeader*>(result.data() + headerSectionStart);
     TPLDescriptor* descriptors = reinterpret_cast<TPLDescriptor*>(result.data() + sizeof(TPLPalette));
@@ -257,7 +269,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
         TPLClutHeader* clutHeader = clutHeaders + clutIndex;
 
         clutHeader->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
-        clutHeader->dataOffset = BYTESWAP_32(nextColorPaletteOffset);
+        clutHeader->dataOffset = BYTESWAP_32(nextClutOffset);
 
         auto& texture = this->textures[paletteTextures[clutIndex]];
 
@@ -266,12 +278,12 @@ std::vector<unsigned char> TPLObject::Reserialize() {
         );
         clutHeader->numEntries = BYTESWAP_16(colorCount);
 
-        nextColorPaletteOffset += colorCount * 2; // size of RGB5A3 pixel
+        nextClutOffset += colorCount * 2; // size of RGB5A3 pixel
     }
 
     // Texture Headers
     for (unsigned i = 0; i < textureCount; i++) {
-        TPL::TPLTexture& texture = this->textures.at(i);
+        const TPL::TPLTexture& texture = this->textures[i];
 
         TPLHeader* header = headers + i;
 
@@ -321,45 +333,32 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     }
 
     // Image Data
-    {
-        unsigned writeOffset = result.size();
 
-        for (unsigned i = 0; i < textureCount; i++) {
-            TPL::TPLTexture& texture = this->textures[i];
+    unsigned writeOffset = dataSectionStart;
+    for (unsigned i = 0; i < textureCount; i++) {
+        TPL::TPLTexture& texture = this->textures[i];
 
-            // Align writeOffset to 64 bytes
-            writeOffset = (writeOffset + 63) & ~63;
+        // Align writeOffset to 64 bytes
+        writeOffset = (writeOffset + 63) & ~63;
+        headers[i].dataOffset = BYTESWAP_32(writeOffset);
 
-            headers[i].dataOffset = BYTESWAP_32(writeOffset);
+        const unsigned imageSize = ImageConvert::getImageByteSize(texture);
 
-            const unsigned imageSize = ImageConvert::getImageByteSize(texture);
+        unsigned char* imageData = result.data() + writeOffset;
+        ImageConvert::fromRGBA32(texture, imageData);
 
-            result.resize(writeOffset + imageSize);
+        auto it = std::find(paletteTextures.begin(), paletteTextures.end(), i);
+        if (it != paletteTextures.end()) {
+            TPLClutHeader* clutHeader = clutHeaders + std::distance(paletteTextures.begin(), it);
 
-            // pointers must be re-assigned due to the data realloc
-            headers = reinterpret_cast<TPLHeader*>(result.data() + headerSectionStart);
-            clutHeaders = reinterpret_cast<TPLClutHeader*>(
-                result.data() +
-                sizeof(TPLPalette) +
-                (sizeof(TPLDescriptor) * textureCount)
+            PaletteUtils::WriteRGBA32Palette(
+                texture.palette.data(), texture.palette.size(),
+                TPL_CLUT_FORMAT_RGB5A3,
+                result.data() + BYTESWAP_32(clutHeader->dataOffset)
             );
-
-            unsigned char* imageData = result.data() + writeOffset;
-            ImageConvert::fromRGBA32(texture, imageData);
-
-            auto it = std::find(paletteTextures.begin(), paletteTextures.end(), i);
-            if (it != paletteTextures.end()) {
-                TPLClutHeader* clutHeader = clutHeaders + std::distance(paletteTextures.begin(), it);
-
-                PaletteUtils::WriteRGBA32Palette(
-                    texture.palette.data(), texture.palette.size(),
-                    TPL_CLUT_FORMAT_RGB5A3,
-                    result.data() + BYTESWAP_32(clutHeader->dataOffset)
-                );
-            }
-
-            writeOffset += imageSize;
         }
+
+        writeOffset += imageSize;
     }
 
     return result;

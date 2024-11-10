@@ -35,8 +35,8 @@ public:
                 arrangement.parts.at(nSwap)
             );
 
-        if (appState.selectedPart == this->partIndex)
-            appState.selectedPart = nSwap;
+        if (appState.selectedParts.at(0).index == this->partIndex)
+            appState.selectedParts[0].index = nSwap;
     }
 
     void Rollback() override {
@@ -51,8 +51,8 @@ public:
                 arrangement.parts.at(nSwap)
             );
 
-        if (appState.selectedPart == nSwap)
-            appState.selectedPart = this->partIndex;
+        if (appState.selectedParts.at(0).index == nSwap)
+            appState.selectedParts[0].index = this->partIndex;
     }
 
 private:

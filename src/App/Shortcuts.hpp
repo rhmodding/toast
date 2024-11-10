@@ -11,63 +11,47 @@
     #define SCST_CTRL "Ctrl"
 #endif
 
-#define SCT_CTRL ImGui::GetIO().KeyCtrl
-
 #define SCS_LAUNCH_OPEN_SZS_DIALOG SCST_CTRL "+O"
-#define SC_LAUNCH_OPEN_SZS_DIALOG \
-            SCT_CTRL && \
-            !ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_O)
+#define SC_LAUNCH_OPEN_SZS_DIALOG (ImGuiKey_O | ImGuiMod_Ctrl)
 
 #define SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG SCST_CTRL "+Shift+O"
-#define SC_LAUNCH_OPEN_TRADITIONAL_DIALOG \
-            SCT_CTRL && \
-            ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_O)
+#define SC_LAUNCH_OPEN_TRADITIONAL_DIALOG (ImGuiKey_O | ImGuiMod_Ctrl | ImGuiMod_Shift)
 
 #define SCS_SAVE_CURRENT_SESSION_SZS SCST_CTRL "+S"
-#define SC_SAVE_CURRENT_SESSION_SZS \
-            SCT_CTRL && \
-            !ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_S)
+#define SC_SAVE_CURRENT_SESSION_SZS (ImGuiKey_S | ImGuiMod_Ctrl)
 
 #define SCS_LAUNCH_SAVE_AS_SZS_DIALOG SCST_CTRL "+Shift+S"
-#define SC_LAUNCH_SAVE_AS_SZS_DIALOG \
-            SCT_CTRL && \
-            ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_S)
+#define SC_LAUNCH_SAVE_AS_SZS_DIALOG (ImGuiKey_S | ImGuiMod_Ctrl | ImGuiMod_Shift)
 
 #define SCS_UNDO SCST_CTRL "+Z"
-#define SC_UNDO \
-            SCT_CTRL && \
-            !ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_Z)
+#define SC_UNDO (ImGuiKey_Z | ImGuiMod_Ctrl)
 
 #define SCS_REDO SCST_CTRL "+Shift+Z"
-#define SC_REDO \
-            SCT_CTRL && \
-            ImGui::GetIO().KeyShift && \
-            ImGui::IsKeyReleased(ImGuiKey_Z)
+#define SC_REDO (ImGuiKey_Z | ImGuiMod_Ctrl | ImGuiMod_Shift)
 
 namespace Shortcuts {
 
 void Handle() {
-    if (SC_LAUNCH_OPEN_SZS_DIALOG)
-        Actions::Dialog_CreateCompressedArcSession();
-    if (SC_LAUNCH_OPEN_TRADITIONAL_DIALOG)
-        Actions::Dialog_CreateTraditionalSession();
-    if (SC_SAVE_CURRENT_SESSION_SZS)
-        Actions::SaveCurrentSessionSzs();
-    if (SC_LAUNCH_SAVE_AS_SZS_DIALOG)
-        Actions::Dialog_SaveCurrentSessionAsSzs();
+    // ImGui::Shortcut must be called with flag ImGuiInputFlags_RouteAlways,
+    // otherwise the input will not be registered
+
+    if (ImGui::Shortcut(SC_LAUNCH_OPEN_SZS_DIALOG, ImGuiInputFlags_RouteAlways))
+        return Actions::Dialog_CreateCompressedArcSession();
+    else if (ImGui::Shortcut(SC_LAUNCH_OPEN_TRADITIONAL_DIALOG, ImGuiInputFlags_RouteAlways))
+        return Actions::Dialog_CreateTraditionalSession();
+
+    if (ImGui::Shortcut(SC_SAVE_CURRENT_SESSION_SZS, ImGuiInputFlags_RouteAlways))
+        return Actions::SaveCurrentSessionSzs();
+    else if (ImGui::Shortcut(SC_LAUNCH_SAVE_AS_SZS_DIALOG, ImGuiInputFlags_RouteAlways))
+        return Actions::Dialog_SaveCurrentSessionAsSzs();
 
     GET_SESSION_MANAGER;
 
     if (sessionManager.getSessionAvaliable()) {
-        if (SC_UNDO)
-            sessionManager.getCurrentSession()->undo();
-        else if (SC_REDO)
-            sessionManager.getCurrentSession()->redo();
+        if (ImGui::Shortcut(SC_UNDO, ImGuiInputFlags_RouteAlways | ImGuiInputFlags_Repeat))
+            return sessionManager.getCurrentSession()->undo();
+        else if (ImGui::Shortcut(SC_REDO, ImGuiInputFlags_RouteAlways | ImGuiInputFlags_Repeat))
+            return sessionManager.getCurrentSession()->redo();
     }
 }
 

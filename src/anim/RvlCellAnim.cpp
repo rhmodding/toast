@@ -99,7 +99,7 @@ namespace RvlCellAnim {
 RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
     const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
-    if (UNLIKELY(header->revisionDate != RCAD_REVISION_DATE)) {
+    if (header->revisionDate != RCAD_REVISION_DATE) {
         std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: revision date failed check!\n";
         return;
     }
@@ -187,9 +187,6 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
             };
         }
     }
-
-    this->expectEditorData =
-        memcmp(RvlCellAnimData + dataSize - 8, EXPECT_DATA_FOOTER, 8) == 0;
 
     this->ok = true;
 }
@@ -287,11 +284,6 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
             };
         }
     }
-
-    snprintf(
-        reinterpret_cast<char*>(result.data() + result.size() - 8), 8,
-        "%.8s", EXPECT_DATA_FOOTER
-    );
 
     return result;
 }

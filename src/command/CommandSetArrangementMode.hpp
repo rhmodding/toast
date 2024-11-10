@@ -35,7 +35,7 @@ private:
     void UpdateState(bool lEnabled) {
         GET_APP_STATE;
 
-        appState.correctSelectedPart();
+        appState.correctSelectedParts();
 
         auto& globalAnimatable = appState.globalAnimatable;
 

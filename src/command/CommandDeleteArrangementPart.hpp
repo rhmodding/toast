@@ -25,7 +25,7 @@ public:
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.erase(it);
 
-        AppState::getInstance().correctSelectedPart();
+        AppState::getInstance().correctSelectedParts();
     }
 
     void Rollback() override {

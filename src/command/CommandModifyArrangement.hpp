@@ -27,9 +27,7 @@ public:
 
         GET_APP_STATE;
 
-        appState.globalAnimatable->refreshPointers();
-
-        appState.correctSelectedPart();
+        appState.correctSelectedParts();
     }
 
     void Rollback() override {
@@ -37,9 +35,7 @@ public:
 
         GET_APP_STATE;
 
-        appState.globalAnimatable->refreshPointers();
-
-        appState.correctSelectedPart();
+        appState.correctSelectedParts();
     }
 
 private:

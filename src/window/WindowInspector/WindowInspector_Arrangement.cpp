@@ -5,6 +5,7 @@
 
 #include "../../anim/Animatable.hpp"
 
+#include "../../command/CommandModifyArrangement.hpp"
 #include "../../command/CommandModifyArrangementPart.hpp"
 #include "../../command/CommandInsertArrangementPart.hpp"
 #include "../../command/CommandDeleteArrangementPart.hpp"
@@ -25,8 +26,7 @@ void WindowInspector::Level_Arrangement() {
 
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
-    static RvlCellAnim::ArrangementPart copyPart;
-    static bool allowPastePart { false };
+    static std::vector<RvlCellAnim::ArrangementPart> copyParts;
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
@@ -64,7 +64,7 @@ void WindowInspector::Level_Arrangement() {
                     globalAnimatable->getCurrentKey()->arrangementIndex =
                         std::min<uint16_t>(newArrangement - 1, globalAnimatable->cellanim->arrangements.size() - 1);
 
-                    appState.correctSelectedPart();
+                    appState.correctSelectedParts();
                 }
 
                 if (ImGui::IsItemActivated())
@@ -94,7 +94,7 @@ void WindowInspector::Level_Arrangement() {
                     else
                         globalAnimatable->getCurrentKey()->arrangementIndex--;
 
-                    appState.correctSelectedPart();
+                    appState.correctSelectedParts();
                 }
                 ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
                 if (
@@ -106,7 +106,7 @@ void WindowInspector::Level_Arrangement() {
                     else
                         globalAnimatable->getCurrentKey()->arrangementIndex++;
 
-                    appState.correctSelectedPart();
+                    appState.correctSelectedParts();
                 }
 
                 ImGui::PopButtonRepeat();
@@ -163,7 +163,7 @@ void WindowInspector::Level_Arrangement() {
 
         RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
 
-        RvlCellAnim::ArrangementPart* partPtr = appState.selectedPart >= 0 ? &arrangementPtr->parts.at(appState.selectedPart) : nullptr;
+        RvlCellAnim::ArrangementPart* partPtr = appState.singlePartSelected() ? &arrangementPtr->parts.at(appState.selectedParts[0].index) : nullptr;
 
         if (partPtr) {
             RvlCellAnim::ArrangementPart newPart = *partPtr;
@@ -365,7 +365,10 @@ void WindowInspector::Level_Arrangement() {
             ImGui::EndDisabled();
         }
         else {
-            ImGui::Text("No part selected.");
+            if (appState.multiplePartsSelected())
+                ImGui::TextWrapped("Multiple parts selected -- inspector unavaliable.");
+            else
+                ImGui::TextWrapped("No part selected.");
         }
     }
     ImGui::EndChild();
@@ -375,122 +378,197 @@ void WindowInspector::Level_Arrangement() {
     ImGui::BeginChild("ArrangementParts", { 0.f, 0.f }, ImGuiChildFlags_Border);
     ImGui::PopStyleVar();
     {
-        ImVec2 childSize = ImGui::GetContentRegionAvail();
-
         ImGui::SeparatorText((char*)ICON_FA_IMAGE " Parts");
+        ImGui::Text("Selected size : %u, next : %i", (unsigned)appState.selectedParts.size(), appState.spSelectionOrder);
 
         RvlCellAnim::Arrangement* arrangementPtr =
             &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
 
+        ImGui::BeginChild("PartList", { 0.f, 0.f }, ImGuiChildFlags_None);
+
+        const ImVec2 listChildSize = ImGui::GetContentRegionAvail();
+
+        ImGuiMultiSelectFlags msFlags =
+            ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_ClearOnClickVoid |
+            ImGuiMultiSelectFlags_BoxSelect1d;
+        ImGuiMultiSelectIO* msIo = ImGui::BeginMultiSelect(msFlags, appState.selectedParts.size(), arrangementPtr->parts.size());
+
+        appState.processMultiSelectRequests(msIo);
+
+        bool wantDeleteSelected = (
+            ImGui::Shortcut(ImGuiKey_Backspace | ImGuiKey_ModCtrl, ImGuiInputFlags_Repeat) ||
+            ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat)
+        ) && appState.anyPartsSelected();
+
+        int itemCurrentIndexToFocus = wantDeleteSelected ?
+            appState.getNextPartIndexAfterDeletion(msIo, arrangementPtr->parts.size()) :
+            -1;
+
+        int selDeleteSingle = -1; // part index to delete
+        int insertNewPart = -1; // new part index
+
         for (int n = arrangementPtr->parts.size() - 1; n >= 0; n--) {
             ImGui::PushID(n);
 
-            char buffer[32];
-            snprintf(
-                buffer, sizeof(buffer),
-                "Part no. %u", n+1
-            );
+            RvlCellAnim::ArrangementPart& part = arrangementPtr->parts.at(n);
+
+            char selectableLabel[128];
+            if (part.editorName[0] == '\0')
+                snprintf(
+                    selectableLabel, sizeof(selectableLabel),
+                    "Part no. %u", n+1
+                );
+            else
+                snprintf(
+                    selectableLabel, sizeof(selectableLabel),
+                    "Part no. %u (%s)", n+1, part.editorName
+                );
+
+            const bool isPartSelected = appState.isPartSelected(n);
 
             ImGui::SetNextItemAllowOverlap();
-            if (ImGui::Selectable("###PartSelectable", appState.selectedPart == n, ImGuiSelectableFlags_SelectOnNav))
-                appState.selectedPart = n;
 
-            bool deletePart { false };
+            ImGui::SetNextItemSelectionUserData(n);
+            ImGui::Selectable("###PartSelectable", isPartSelected, 0);
+            if (itemCurrentIndexToFocus == n)
+                ImGui::SetKeyboardFocusHere(-1);
+
+            //bool deletePart { false };
             if (ImGui::BeginPopupContextItem()) {
-                ImGui::TextUnformatted(buffer);
+                char label[128];
 
-                bool visible = arrangementPtr->parts.at(n).editorVisible;
-                bool locked = arrangementPtr->parts.at(n).editorLocked;
+                if (isPartSelected) {
+                    snprintf(
+                        label, sizeof(label),
+                        "%zu selected parts",
+                        appState.selectedParts.size()
+                    );
+                }
+                else
+                    strcpy(label, selectableLabel);
 
-                ImGui::BulletText("Visible: %s", visible ? "yes" : "no");
-                ImGui::BulletText("Locked: %s", locked ? "yes" : "no");
+                ImGui::TextUnformatted(label);
+
+                // 0 = disabled, 1 = enabled, anything else = mixed
+                int visible = -1;
+                int locked = -1;
+
+                if (isPartSelected) {
+                    for (unsigned i = 0; i < appState.selectedParts.size(); i++) {
+                        const auto& sp = appState.selectedParts[i];
+                        const auto& part = arrangementPtr->parts.at(sp.index);
+
+                        if (visible == -1)
+                            visible = part.editorVisible;
+                        else if (visible != part.editorVisible)
+                            visible = 2; // Set mixed
+
+                        if (locked == -1)
+                            locked = part.editorLocked;
+                        else if (locked != part.editorLocked)
+                            locked = 2; // Set mixed
+                    }
+                }
+                else {
+                    visible = part.editorVisible;
+                    locked = part.editorLocked;
+                }
+
+                ImGui::BulletText("Visible: %s", (visible == 0) ? "no" : (visible == 1) ? "yes" : "mixed");
+                ImGui::BulletText("Locked: %s", (locked == 0) ? "no" : (locked == 1) ? "yes" : "mixed");
                 ImGui::Separator();
 
                 ImGui::BeginDisabled(locked);
 
-                if (ImGui::Selectable("Insert new part above")) {
-                    sessionManager.getCurrentSession()->executeCommand(
-                    std::make_shared<CommandInsertArrangementPart>(
-                        sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable->getCurrentKey()->arrangementIndex,
-                        n + 1,
-                        RvlCellAnim::ArrangementPart()
-                    ));
-
-                    changed = true;
-
-                    appState.selectedPart = n + 1;
-                }
-                if (ImGui::Selectable("Insert new part below")) {
-                    sessionManager.getCurrentSession()->executeCommand(
-                    std::make_shared<CommandInsertArrangementPart>(
-                        sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable->getCurrentKey()->arrangementIndex,
-                        n,
-                        RvlCellAnim::ArrangementPart()
-                    ));
-
-                    changed = true;
-
-                    appState.selectedPart = n;
-                };
+                if (ImGui::Selectable("Insert new part above"))
+                    insertNewPart = n + 1;
+                if (ImGui::Selectable("Insert new part below"))
+                    insertNewPart = n;
 
                 ImGui::Separator();
 
-                if (ImGui::BeginMenu("Paste part..", allowPastePart)) {
+                snprintf(
+                    label, sizeof(label),
+                    "Paste %zu part%s..",
+                    copyParts.size(), copyParts.size() == 1 ? "" : "s"
+                );
+
+                if (ImGui::BeginMenu(label, !copyParts.empty())) {
                     if (ImGui::MenuItem("..above")) {
+                        auto newArrangement = *appState.globalAnimatable->getCurrentArrangement();
+                        newArrangement.parts.insert(
+                            newArrangement.parts.begin() + n + 1,
+                            copyParts.begin(),
+                            copyParts.end()
+                        );
+
                         sessionManager.getCurrentSession()->executeCommand(
-                        std::make_shared<CommandInsertArrangementPart>(
+                        std::make_shared<CommandModifyArrangement>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable->getCurrentKey()->arrangementIndex,
-                            n + 1,
-                            copyPart
+                            newArrangement
                         ));
 
                         changed = true;
 
-                        appState.selectedPart = n + 1;
+                        appState.clearSelectedParts();
+                        for (unsigned i = 0; i < copyParts.size(); i++)
+                            appState.setPartSelected(n + 1 + i, true);
+                        //appState.setPartSelected(n + 1, true);
                     }
                     if (ImGui::MenuItem("..below")) {
+                        auto newArrangement = *appState.globalAnimatable->getCurrentArrangement();
+                        newArrangement.parts.insert(
+                            newArrangement.parts.begin() + n,
+                            copyParts.begin(),
+                            copyParts.end()
+                        );
+
                         sessionManager.getCurrentSession()->executeCommand(
-                        std::make_shared<CommandInsertArrangementPart>(
+                        std::make_shared<CommandModifyArrangement>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable->getCurrentKey()->arrangementIndex,
-                            n,
-                            copyPart
+                            newArrangement
                         ));
 
                         changed = true;
 
-                        appState.selectedPart = n;
+                        appState.clearSelectedParts();
+                        for (unsigned i = 0; i < copyParts.size(); i++)
+                            appState.setPartSelected(n + i, true);
+                        //appState.setPartSelected(n, true);
                     }
 
                     ImGui::Separator();
 
                     if (ImGui::MenuItem("..here (replace)")) {
-                        sessionManager.getCurrentSession()->executeCommand(
-                        std::make_shared<CommandModifyArrangementPart>(
-                            sessionManager.getCurrentSession()->currentCellanim,
-                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
-                            n,
-                            copyPart
-                        ));
+                        auto newArrangement = *appState.globalAnimatable->getCurrentArrangement();
+
+                        newArrangement.parts.erase(newArrangement.parts.begin() + n);
+                        newArrangement.parts.insert(
+                            newArrangement.parts.begin() + n,
+                            copyParts.begin(),
+                            copyParts.end()
+                        );
 
                         changed = true;
 
-                        appState.selectedPart = n;
+                        appState.clearSelectedParts();
+                        for (unsigned i = 0; i < copyParts.size(); i++)
+                            appState.setPartSelected(n + i, true);
+                        //appState.setPartSelected(n, true);
                     }
                     ImGui::EndMenu();
                 }
 
-                if (ImGui::BeginMenu("Paste part (special)..", allowPastePart)) {
+                if (ImGui::BeginMenu("Paste single part (special)..", copyParts.size() == 1)) {
                     if (ImGui::MenuItem("..transform")) {
-                        RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(n);
+                        RvlCellAnim::ArrangementPart newPart = part;
 
-                        newPart.transform = copyPart.transform;
+                        newPart.transform = copyParts[0].transform;
 
-                        newPart.flipX = copyPart.flipX;
-                        newPart.flipY = copyPart.flipY;
+                        newPart.flipX = copyParts[0].flipX;
+                        newPart.flipY = copyParts[0].flipY;
 
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyArrangementPart>(
@@ -502,12 +580,13 @@ void WindowInspector::Level_Arrangement() {
 
                         changed = true;
 
-                        appState.selectedPart = n;
+                        appState.clearSelectedParts();
+                        appState.setPartSelected(n, true);
                     }
 
                     if (ImGui::MenuItem("..opacity")) {
-                        RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(n);
-                        newPart.opacity = copyPart.opacity;
+                        RvlCellAnim::ArrangementPart newPart = part;
+                        newPart.opacity = copyParts[0].opacity;
 
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyArrangementPart>(
@@ -519,17 +598,18 @@ void WindowInspector::Level_Arrangement() {
 
                         changed = true;
 
-                        appState.selectedPart = n;
+                        appState.clearSelectedParts();
+                        appState.setPartSelected(n, true);
                     }
 
                     if (ImGui::MenuItem("..region")) {
-                        RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(n);
+                        RvlCellAnim::ArrangementPart newPart = part;
 
-                        newPart.regionX = copyPart.regionX;
-                        newPart.regionY = copyPart.regionY;
+                        newPart.regionX = copyParts[0].regionX;
+                        newPart.regionY = copyParts[0].regionY;
 
-                        newPart.regionW = copyPart.regionW;
-                        newPart.regionH = copyPart.regionH;
+                        newPart.regionW = copyParts[0].regionW;
+                        newPart.regionH = copyParts[0].regionH;
 
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyArrangementPart>(
@@ -541,28 +621,69 @@ void WindowInspector::Level_Arrangement() {
 
                         changed = true;
 
-                        appState.selectedPart = n;
+                        appState.clearSelectedParts();
+                        appState.setPartSelected(n, true);
                     }
 
                     ImGui::EndMenu();
                 }
 
                 ImGui::Separator();
-                if (ImGui::Selectable("Copy part")) {
-                    copyPart = arrangementPtr->parts.at(n);
-                    allowPastePart = true;
+
+                if (isPartSelected) {
+                    snprintf(
+                        label, sizeof(label),
+                        "Copy %zu part%s",
+                        appState.selectedParts.size(),
+                        appState.selectedParts.size() == 1 ? "" : "s"
+                    );
+                }
+                else
+                    strcpy(label, "Copy part");
+
+                if (ImGui::Selectable(label)) {
+                    if (isPartSelected) {
+                        copyParts.resize(appState.selectedParts.size());
+                        for (unsigned i = 0; i < appState.selectedParts.size(); i++) {
+                            const auto& sp = appState.selectedParts[i];
+                            copyParts[i] = arrangementPtr->parts.at(sp.index);
+                        }
+                    }
+                    else {
+                        copyParts.resize(1);
+                        copyParts[0] = part;
+                    }
                 }
 
                 ImGui::Separator();
-                if (ImGui::Selectable("Delete part", false, ImGuiSelectableFlags_DontClosePopups))
-                    deletePart = true;
+
+                if (isPartSelected) {
+                    snprintf(
+                        label, sizeof(label),
+                        "Delete %zu part%s",
+                        appState.selectedParts.size(),
+                        appState.selectedParts.size() == 1 ? "" : "s"
+                    );
+                }
+                else
+                    strcpy(label, "Delete part");
+
+                if (ImGui::Selectable(label)) {
+                    if (isPartSelected) {
+                        wantDeleteSelected = true;
+                        itemCurrentIndexToFocus =
+                            appState.getNextPartIndexAfterDeletion(msIo, arrangementPtr->parts.size());
+                    }
+                    else
+                        selDeleteSingle = n;
+                }
 
                 ImGui::EndDisabled();
 
                 ImGui::EndPopup();
             }
 
-            auto partToggle = [](const char* label, bool& condition, bool flip) {
+            auto partToggle = [](const char* label, bool toggled) -> bool {
                 ImGuiWindow* window = ImGui::GetCurrentWindow();
 
                 const ImGuiID id = window->GetID(label);
@@ -585,19 +706,16 @@ void WindowInspector::Level_Arrangement() {
 
                 ImGui::ItemSize(size, 0.f);
                 if (!ImGui::ItemAdd(bb, id))
-                    return;
+                    return false;
 
                 bool hovered { false }, held { false };
                 bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
 
-                if (pressed)
-                    condition ^= true;
-
                 uint32_t textColor { 0xFFFFFFFF };
 
-                ImVec4 color = (flip ? condition : !condition) ?
-                    style.Colors[ImGuiCol_Text] :
-                    ImVec4(1.f, 0.f, 0.f, 1.f);
+                ImVec4 color = toggled ?
+                    ImVec4(1.f, 0.f, 0.f, 1.f) :
+                    style.Colors[ImGuiCol_Text];
                 color.w *= style.Alpha * (hovered ? 1.f : .5f);
 
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertFloat4ToU32(color));
@@ -611,29 +729,47 @@ void WindowInspector::Level_Arrangement() {
                     &bb
                 );
                 ImGui::PopStyleColor();
+
+                return pressed;
             };
 
-            ImGui::SameLine(0.f, 0.f);
-            partToggle((char*)ICON_FA_EYE "##Visible", arrangementPtr->parts.at(n).editorVisible, true);
+            ImGui::SameLine(4.f, 0.f);
+            if (partToggle((char*)ICON_FA_EYE "##Visible", !part.editorVisible)) {
+                if (!isPartSelected)
+                    part.editorVisible ^= true;
+                else {
+                    for (const auto& part : appState.selectedParts)
+                        arrangementPtr->parts.at(part.index).editorVisible ^= true;
+                }
+            }
 
             ImGui::SameLine();
-            partToggle((char*)ICON_FA_LOCK "##Locked", arrangementPtr->parts.at(n).editorLocked, false);
+            if (partToggle((char*)ICON_FA_LOCK "##Locked", part.editorLocked)) {
+                if (!isPartSelected)
+                    part.editorLocked ^= true;
+                else {
+                    for (const auto& part : appState.selectedParts)
+                        arrangementPtr->parts.at(part.index).editorLocked ^= true;
+                }
+            }
 
             ImGui::SameLine();
 
-            ImGui::BeginDisabled(arrangementPtr->parts.at(n).editorLocked);
-            ImGui::TextUnformatted(buffer);
+            ImGui::BeginDisabled(part.editorLocked);
+            ImGui::TextUnformatted(selectableLabel);
             ImGui::EndDisabled();
 
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6, ImGui::GetStyle().ItemSpacing.y });
+            const ImGuiStyle& style = ImGui::GetStyle();
 
-            float firstButtonWidth = ImGui::CalcTextSize((char*) ICON_FA_ARROW_DOWN "").x + (ImGui::GetStyle().FramePadding.x * 2);
-            float basePositionX = childSize.x - (ImGui::GetStyle().FramePadding.x * 2);
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6.f, style.ItemSpacing.y });
+
+            float firstButtonWidth = ImGui::CalcTextSize((char*) ICON_FA_ARROW_DOWN "").x + (style.FramePadding.x * 2);
+            float basePositionX = listChildSize.x - (style.FramePadding.x * 2) - style.ScrollbarSize;
 
             ImGui::SameLine();
-            ImGui::SetCursorPosX(basePositionX - firstButtonWidth - ImGui::GetStyle().ItemSpacing.x);
+            ImGui::SetCursorPosX(basePositionX - firstButtonWidth - style.ItemSpacing.x);
 
-            ImGui::BeginDisabled(arrangementPtr->parts.at(n).editorLocked);
+            ImGui::BeginDisabled(part.editorLocked);
 
             ImGui::BeginDisabled(n == arrangementPtr->parts.size() - 1);
             if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
@@ -671,22 +807,58 @@ void WindowInspector::Level_Arrangement() {
             ImGui::PopStyleVar();
 
             ImGui::PopID();
-
-            if (deletePart) {
-                sessionManager.getCurrentSession()->executeCommand(
-                std::make_shared<CommandDeleteArrangementPart>(
-                    sessionManager.getCurrentSession()->currentCellanim,
-                    appState.globalAnimatable->getCurrentKey()->arrangementIndex,
-                    n
-                ));
-            }
         }
 
-        if (
-            (arrangementPtr->parts.size() == 0) &&
-            ImGui::Selectable("Click here to create a new part.")
-        )
-            arrangementPtr->parts.push_back(RvlCellAnim::ArrangementPart());
+        msIo = ImGui::EndMultiSelect();
+        appState.processMultiSelectRequests(msIo);
+
+        ImGui::EndChild();
+
+        if (wantDeleteSelected) {
+            auto newArrangement = *arrangementPtr;
+            appState.deleteSelectedParts(msIo, newArrangement.parts, itemCurrentIndexToFocus);
+
+            sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandModifyArrangement>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    globalAnimatable->getCurrentKey()->arrangementIndex,
+                    newArrangement
+                )
+            );
+
+            changed = true;
+        }
+
+        if (selDeleteSingle >= 0) {
+            sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandDeleteArrangementPart>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    globalAnimatable->getCurrentKey()->arrangementIndex,
+                    selDeleteSingle
+                )
+            );
+
+            changed = true;
+        }
+
+        if (arrangementPtr->parts.size() == 0)
+        if (ImGui::Selectable("Click here to create a new part."))
+            insertNewPart = 0;
+
+        if (insertNewPart >= 0) {
+            sessionManager.getCurrentSession()->executeCommand(
+            std::make_shared<CommandInsertArrangementPart>(
+                sessionManager.getCurrentSession()->currentCellanim,
+                appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                insertNewPart,
+                RvlCellAnim::ArrangementPart {}
+            ));
+
+            changed = true;
+
+            appState.clearSelectedParts();
+            appState.setPartSelected(insertNewPart, true);
+        }
     }
     ImGui::EndChild();
 }

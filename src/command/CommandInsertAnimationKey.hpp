@@ -29,8 +29,6 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.insert(it, this->key);
 
-        AppState::getInstance().globalAnimatable->refreshPointers();
-
         PlayerManager::getInstance().clampCurrentKeyIndex();
     }
 
@@ -39,8 +37,6 @@ public:
 
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.erase(it);
-
-        AppState::getInstance().globalAnimatable->refreshPointers();
 
         PlayerManager::getInstance().clampCurrentKeyIndex();
     }

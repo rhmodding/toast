@@ -11,4 +11,4 @@ bool getArrangementUnique(unsigned arrangementIndex);
 
 } // namespace CellanimHelpers
 
-#endif
+#endif // CELLANIMHELPERS_HPP

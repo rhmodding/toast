@@ -215,28 +215,34 @@ void App::SetupFonts() {
     { // SegoeUI (18px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
+        //fontConfig.OversampleH = 1;
+
         appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
     }
 
     { // Font Awesome
-        static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+        static const ImWchar range[] { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
         ImFontConfig fontConfig;
         fontConfig.MergeMode = true;
         fontConfig.PixelSnapH = true;
 
-        appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, icons_ranges);
+        appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range);
     }
 
     { // SegoeUI (24px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
+        //fontConfig.OversampleH = 1;
+
         appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
     }
 
     { // SegoeUI (52px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
+        //fontConfig.OversampleH = 1;
+
         appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
     }
 }
@@ -435,7 +441,7 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem(
-                "Interpolate ..",
+                "Tween ..",
                 nullptr, nullptr,
 
                 keyIndex + 1 <
@@ -601,16 +607,16 @@ void App::Menubar() {
 
         if (ImGui::BeginMenu("Part",
             sessionAvaliable &&
-            appState.selectedPart >= 0 &&
+            appState.singlePartSelected() &&
             !playerManager.playing
         )) {
             auto* part =
                 &appState.globalAnimatable->getCurrentArrangement()
-                ->parts.at(appState.selectedPart);
+                ->parts.at(appState.selectedParts[0].index);
 
             ImGui::Text(
                 "Selected part (no. %u)",
-                appState.selectedPart + 1
+                appState.selectedParts[0].index + 1
             );
 
             ImGui::Separator();
@@ -638,7 +644,7 @@ void App::Menubar() {
                 std::make_shared<CommandDeleteArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     appState.globalAnimatable->getCurrentKey()->arrangementIndex,
-                    appState.selectedPart
+                    appState.selectedParts[0].index
                 ));
 
                 sessionManager.getCurrentSessionModified() = true;

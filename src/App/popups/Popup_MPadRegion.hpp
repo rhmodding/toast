@@ -25,9 +25,9 @@ void Popup_MPadRegion() {
 
     if (
         globalAnimatable && globalAnimatable->cellanim &&
-        appState.selectedPart != -1
+        appState.singlePartSelected()
     )
-        part = &globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedPart);
+        part = &globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedParts[0].index);
 
     static uint16_t origOffset[2] { 8, 8 };
     static uint16_t origSize[2] { 32, 32 };
@@ -101,7 +101,7 @@ void Popup_MPadRegion() {
             std::make_shared<CommandModifyArrangementPart>(
                 sessionManager.getCurrentSession()->currentCellanim,
                 globalAnimatable->getCurrentKey()->arrangementIndex,
-                appState.selectedPart,
+                appState.selectedParts[0].index,
                 newPart
             ));
 

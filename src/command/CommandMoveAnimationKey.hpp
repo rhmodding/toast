@@ -42,8 +42,8 @@ public:
                 );
         }
 
-        if (appState.selectedPart == this->keyIndex)
-            appState.selectedPart = nSwap;
+        if (appState.selectedParts.at(0).index == this->keyIndex)
+            appState.selectedParts[0].index = nSwap;
     }
 
     void Rollback() override {
@@ -65,10 +65,8 @@ public:
                 );
         }
 
-       appState.globalAnimatable->refreshPointers();
-
-        if (appState.selectedPart == nSwap)
-            appState.selectedPart = this->keyIndex;
+        if (appState.selectedParts.at(0).index == nSwap)
+            appState.selectedParts[0].index = this->keyIndex;
     }
 
 private:

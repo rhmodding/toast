@@ -25,8 +25,6 @@ public:
 
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.insert(it, this->part);
-
-        AppState::getInstance().globalAnimatable->refreshPointers();
     }
 
     void Rollback() override {
@@ -35,9 +33,7 @@ public:
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.erase(it);
 
-        AppState::getInstance().globalAnimatable->refreshPointers();
-
-        AppState::getInstance().correctSelectedPart();
+        AppState::getInstance().correctSelectedParts();
     }
 
 private:

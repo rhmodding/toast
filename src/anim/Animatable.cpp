@@ -27,24 +27,28 @@ void Animatable::setAnimationFromIndex(unsigned animIndex) {
     SAFE_ASSERT(this->cellanim, true);
     SAFE_ASSERT(this->cellanim->animations.size() >= animIndex, true);
 
-    this->currentAnimation = &this->cellanim->animations.at(animIndex);
+    //this->currentAnimation = &this->cellanim->animations.at(animIndex);
     this->currentAnimationIndex = animIndex;
 
-    this->currentKey = &this->currentAnimation->keys.at(0);
+    //this->currentKey = &this->currentAnimation->keys.at(0);
     this->currentKeyIndex = 0;
 
-    this->holdKey = this->currentKey->holdFrames;
+    this->holdKey = this->getCurrentKey()->holdFrames;
+
+    this->overrideKey = nullptr;
 }
 
 void Animatable::setAnimationKeyFromIndex(unsigned keyIndex) {
     SAFE_ASSERT(this->cellanim, true);
-    SAFE_ASSERT(this->currentAnimation, true);
+    //SAFE_ASSERT(this->currentAnimation, true);
 
-    SAFE_ASSERT(this->currentAnimation->keys.size() >= keyIndex, true);
+    SAFE_ASSERT(this->getCurrentAnimation()->keys.size() >= keyIndex, true);
 
-    this->currentKey = &this->currentAnimation->keys.at(keyIndex);
+    //this->currentKey = &this->currentAnimation->keys.at(keyIndex);
     this->currentKeyIndex = keyIndex;
-    this->holdKey = this->currentKey->holdFrames;
+    this->holdKey = this->getCurrentKey()->holdFrames;
+
+    this->overrideKey = nullptr;
 }
 
 void Animatable::setAnimating(bool animating) {
@@ -59,15 +63,13 @@ void Animatable::Update() {
         return;
 
     if (this->holdKey < 1) {
-        if (this->currentKeyIndex + 1 >= this->currentAnimation->keys.size()) {
+        if (this->currentKeyIndex + 1 >= this->getCurrentAnimation()->keys.size()) {
             this->animating = false;
             return;
         }
 
         this->currentKeyIndex++;
-        this->currentKey = &this->currentAnimation->keys[currentKeyIndex];
-
-        this->holdKey = this->currentKey->holdFrames;
+        this->holdKey = this->getCurrentKey()->holdFrames;
     }
 
     this->holdKey--;
@@ -81,30 +83,36 @@ unsigned Animatable::getCurrentKeyIndex() const {
 }
 
 RvlCellAnim::AnimationKey* Animatable::getCurrentKey() const {
-    return this->currentKey;
+    //return this->currentKey;
+    if (this->overrideKey)
+        return this->overrideKey;
+    return &this->cellanim->animations.at(this->currentAnimationIndex).keys.at(this->currentKeyIndex);
 }
 
 RvlCellAnim::Animation* Animatable::getCurrentAnimation() const {
-    return this->currentAnimation;
+    //return this->currentAnimation;
+    return &this->cellanim->animations.at(this->currentAnimationIndex);
 }
 
 RvlCellAnim::Arrangement* Animatable::getCurrentArrangement() const {
     return &this->cellanim->arrangements.at(this->getCurrentKey()->arrangementIndex);
 }
 
+/*
 void Animatable::refreshPointers() {
-    this->currentAnimationIndex = std::clamp<unsigned>(
+    this->currentAnimationIndex = std::min<unsigned>(
         this->currentAnimationIndex,
-        0, this->cellanim->animations.size() - 1
+        this->cellanim->animations.size() - 1
     );
     this->currentAnimation = &this->cellanim->animations.at(this->currentAnimationIndex);
 
-    this->currentKeyIndex = std::clamp<unsigned>(
+    this->currentKeyIndex = std::min<unsigned>(
         this->currentKeyIndex,
-        0, this->currentAnimation->keys.size() - 1
+        this->currentAnimation->keys.size() - 1
     );
     this->currentKey = &this->currentAnimation->keys.at(this->currentKeyIndex);
 }
+*/
 
 int Animatable::getHoldFramesLeft() const {
     return this->holdKey;
@@ -226,19 +234,19 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationK
 
 bool Animatable::getDoesDraw(bool allowOpacity) const {
     SAFE_ASSERT_RET(this->cellanim, false);
-    SAFE_ASSERT_RET(this->currentAnimation, false);
+    //SAFE_ASSERT_RET(this->currentAnimation, false);
 
     if (!this->visible)
         return false;
 
-    RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(this->currentKey->arrangementIndex);
+    const RvlCellAnim::Arrangement& arrangement =
+        this->cellanim->arrangements.at(this->getCurrentKey()->arrangementIndex);
 
-    for (auto part : arrangement.parts) {
-        if (allowOpacity) {
-            if (part.opacity > 0)
-                return true;
-        }
-        else
+    if (!allowOpacity && !arrangement.parts.empty())
+        return true;
+
+    for (const auto& part : arrangement.parts) {
+        if (part.opacity > 0)
             return true;
     }
 
@@ -250,7 +258,7 @@ void Animatable::overrideAnimationKey(RvlCellAnim::AnimationKey* key) {
     SAFE_ASSERT(key, true);
 
     this->animating = false;
-    this->currentKey = key;
+    this->overrideKey = key;
 }
 
 void Animatable::DrawKey(
@@ -262,18 +270,18 @@ void Animatable::DrawKey(
     bool allowOpacity
 ) {
     SAFE_ASSERT(this->cellanim, true);
-    SAFE_ASSERT(this->currentAnimation, true);
+    //SAFE_ASSERT(this->currentAnimation, true);
 
-    const RvlCellAnim::Arrangement* arrangement = &this->cellanim->arrangements.at(key->arrangementIndex);
+    const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
     const float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
     const float mismatchScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
 
-    for (unsigned i = 0; i < arrangement->parts.size(); i++) {
+    for (unsigned i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex != -1 && partIndex != i)
             continue;
 
-        const RvlCellAnim::ArrangementPart& part = arrangement->parts.at(i);
+        const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(i);
 
         // Skip invisible parts
         if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)
@@ -289,12 +297,12 @@ void Animatable::DrawKey(
         auto transformedQuad = this->getPartWorldQuad(key, i);
 
         ImVec2 uvTopLeft = {
-            sourceRect[0] / static_cast<float>(this->texture->width),
-            sourceRect[1] / static_cast<float>(this->texture->height)
+            sourceRect[0] / static_cast<float>(this->cellanim->textureW),
+            sourceRect[1] / static_cast<float>(this->cellanim->textureH)
         };
         ImVec2 uvBottomRight = {
-            uvTopLeft.x + (sourceRect[2] / static_cast<float>(this->texture->width)),
-            uvTopLeft.y + (sourceRect[3] / static_cast<float>(this->texture->height))
+            uvTopLeft.x + (sourceRect[2] / static_cast<float>(this->cellanim->textureW)),
+            uvTopLeft.y + (sourceRect[3] / static_cast<float>(this->cellanim->textureH))
         };
 
         ImVec2 uvs[4] = {
@@ -324,43 +332,45 @@ void Animatable::DrawKey(
 
 void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
     SAFE_ASSERT(this->cellanim, true);
-    SAFE_ASSERT(this->currentAnimation, true);
+    //SAFE_ASSERT(this->currentAnimation, true);
 
     if (!this->visible)
         return;
 
-    this->DrawKey(this->currentKey, drawList, -1, 0xFFFFFFFFu, allowOpacity);
+    this->DrawKey(this->getCurrentKey(), drawList, -1, 0xFFFFFFFFu, allowOpacity);
 }
 
 void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, bool rollOver, uint8_t opacity) {
     SAFE_ASSERT(this->cellanim, true);
-    SAFE_ASSERT(this->currentAnimation, true);
+    //SAFE_ASSERT(this->currentAnimation, true);
 
     if (!this->visible)
         return;
 
+    auto* currentAnimation = this->getCurrentAnimation();
+
     const unsigned keyIndex = this->currentKeyIndex;
-    const unsigned keyCount = this->currentAnimation->keys.size();
+    const unsigned keyCount = currentAnimation->keys.size();
 
     auto _drawOnionSkin = [&](int startIndex, int endIndex, int step, ImU32 color) {
         int i = startIndex;
         while ((step < 0) ? (i >= endIndex) : (i <= endIndex)) {
             int wrappedIndex = i;
 
-            // Handle roll over logic
             if (rollOver) {
-                if (wrappedIndex < 0) {
-                    wrappedIndex = (keyCount + (wrappedIndex % keyCount)) % keyCount; // Roll backwards
-                } else if (wrappedIndex >= keyCount) {
-                    wrappedIndex = wrappedIndex % keyCount; // Roll forwards
-                }
+                // Roll backwards
+                if (wrappedIndex < 0)
+                    wrappedIndex = (keyCount + (wrappedIndex % keyCount)) % keyCount;
+                // Roll forwards
+                else if (wrappedIndex >= keyCount)
+                    wrappedIndex = wrappedIndex % keyCount;
             }
 
-            // Break if out of bounds and roll over is not enabled
+            // Break out if rollover is disabled
             if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= keyCount))
                 break;
 
-            this->DrawKey(&this->currentAnimation->keys.at(wrappedIndex), drawList, -1, color);
+            this->DrawKey(&currentAnimation->keys.at(wrappedIndex), drawList, -1, color);
             i += step;
         }
     };

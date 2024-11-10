@@ -15,15 +15,15 @@
 #include "../AppState.hpp"
 
 struct OptimizeCellanimOptions {
-    bool removeAnimationNames{ false };
-    bool removeUnusedArrangements{ true };
+    bool removeAnimationNames { false };
+    bool removeUnusedArrangements { true };
 
     enum DownscaleOption: int {
         DownscaleOption_None,
         DownscaleOption_0_875x,
         DownscaleOption_0_75x,
         DownscaleOption_0_5x
-    } downscaleSpritesheet{ DownscaleOption_None };
+    } downscaleSpritesheet { DownscaleOption_None };
 };
 
 class OptimizeCellanimTask : public AsyncTask {

@@ -50,7 +50,7 @@ public:
                 arrangements.size() - 1
             );
 
-        appState.correctSelectedPart();
+        appState.correctSelectedParts();
     }
 
     void Rollback() override {
@@ -78,7 +78,7 @@ public:
                 arrangements.size() - 1
             );
 
-        appState.correctSelectedPart();
+        appState.correctSelectedParts();
     }
 
 private:

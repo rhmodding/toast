@@ -28,10 +28,8 @@ public:
 
         this->getArrangements() = this->newArrangements;
 
-        appState.globalAnimatable->refreshPointers();
-
         PlayerManager::getInstance().clampCurrentKeyIndex();
-        appState.correctSelectedPart();
+        appState.correctSelectedParts();
     }
 
     void Rollback() override {
@@ -39,10 +37,8 @@ public:
 
         this->getArrangements() = this->oldArrangements;
 
-        appState.globalAnimatable->refreshPointers();
-
         PlayerManager::getInstance().clampCurrentKeyIndex();
-        appState.correctSelectedPart();
+        appState.correctSelectedParts();
     }
 
 private:

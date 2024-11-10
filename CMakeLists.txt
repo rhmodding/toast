@@ -132,6 +132,12 @@ ELSE() # Generic
     )
 ENDIF()
 
+IF (APPLE)
+    set_target_properties(toast PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/Info.plist"
+    )
+ENDIF()
+
 # zeldamods zlib for Yaz0
 option(ZLIB_ENABLE_TESTS "" OFF)
 

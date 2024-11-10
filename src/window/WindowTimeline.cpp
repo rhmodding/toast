@@ -259,6 +259,8 @@ void WindowTimeline::Update() {
                             playerManager.setCurrentKeyIndex(i);
                         }
 
+                        RvlCellAnim::AnimationKey& key = globalAnimatable->getCurrentAnimation()->keys.at(i);
+
                         enum DeleteKeyMode: uint16_t {
                             DeleteKeyMode_None,
 
@@ -292,7 +294,7 @@ void WindowTimeline::Update() {
 
                                 if (i+1 < playerManager.getKeyCount()) {
                                     arrangementA = &globalAnimatable->cellanim->arrangements.at(
-                                        globalAnimatable->getCurrentAnimation()->keys.at(i).arrangementIndex
+                                        key.arrangementIndex
                                     );
                                     arrangementB = &globalAnimatable->cellanim->arrangements.at(
                                         globalAnimatable->getCurrentAnimation()->keys.at(i+1).arrangementIndex
@@ -305,7 +307,7 @@ void WindowTimeline::Update() {
                                 if (ImGui::Selectable("Split key (interp, new arrange)")) {
                                     changed = true;
 
-                                    RvlCellAnim::AnimationKey newKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                                    RvlCellAnim::AnimationKey newKey = key;
                                     RvlCellAnim::Arrangement newArrangement = *arrangementA;
 
                                     unsigned maxParts = std::min(arrangementA->parts.size(), arrangementB->parts.size());
@@ -323,12 +325,12 @@ void WindowTimeline::Update() {
 
                                     globalAnimatable->cellanim->arrangements.push_back(newArrangement);
 
-                                    RvlCellAnim::AnimationKey modKey = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                                    RvlCellAnim::AnimationKey modKey = key;
 
                                     {
                                         newKey.arrangementIndex = globalAnimatable->cellanim->arrangements.size() - 1;
 
-                                        const auto& keyA = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                                        const auto& keyA = key;
                                         const auto& keyB = globalAnimatable->getCurrentAnimation()->keys.at(i+1);
 
                                         newKey.transform = keyA.transform.average(keyB.transform);
@@ -377,7 +379,7 @@ void WindowTimeline::Update() {
                                     sessionManager.getCurrentSession()->currentCellanim,
                                     appState.globalAnimatable->getCurrentAnimationIndex(),
                                     i + 1,
-                                    io.KeyAlt ? globalAnimatable->getCurrentAnimation()->keys.at(i) : RvlCellAnim::AnimationKey()
+                                    io.KeyAlt ? key : RvlCellAnim::AnimationKey()
                                 ));
 
                                 playerManager.setCurrentKeyIndex(i + 1);
@@ -391,7 +393,7 @@ void WindowTimeline::Update() {
                                     sessionManager.getCurrentSession()->currentCellanim,
                                     appState.globalAnimatable->getCurrentAnimationIndex(),
                                     i,
-                                    io.KeyAlt ? globalAnimatable->getCurrentAnimation()->keys.at(i) : RvlCellAnim::AnimationKey()
+                                    io.KeyAlt ? key : RvlCellAnim::AnimationKey()
                                 ));
 
                                 playerManager.setCurrentKeyIndex(i);
@@ -461,17 +463,15 @@ void WindowTimeline::Update() {
 
                             ImGui::Separator();
 
-                            RvlCellAnim::AnimationKey* key = &globalAnimatable->getCurrentAnimation()->keys.at(i);
-
-                            ImGui::BulletText("Arrangement Index: %u", key->arrangementIndex);
+                            ImGui::BulletText("Arrangement Index: %u", key.arrangementIndex);
                             ImGui::Dummy({ 0.f, 10.f });
-                            ImGui::BulletText("Held for: %u frame(s)", key->holdFrames);
+                            ImGui::BulletText("Held for: %u frame(s)", key.holdFrames);
                             ImGui::Dummy({ 0.f, 10.f });
-                            ImGui::BulletText("Scale X: %f", key->transform.scaleX);
-                            ImGui::BulletText("Scale Y: %f", key->transform.scaleY);
-                            ImGui::BulletText("Angle: %f", key->transform.angle);
+                            ImGui::BulletText("Scale X: %f", key.transform.scaleX);
+                            ImGui::BulletText("Scale Y: %f", key.transform.scaleY);
+                            ImGui::BulletText("Angle: %f", key.transform.angle);
                             ImGui::Dummy({ 0.f, 10.f });
-                            ImGui::BulletText("Opacity: %u/255", key->opacity);
+                            ImGui::BulletText("Opacity: %u/255", key.opacity);
 
                             ImGui::EndTooltip();
                         }
@@ -480,11 +480,9 @@ void WindowTimeline::Update() {
                             ImGui::PopStyleColor();
 
                         // Hold frame dummy
-
-                        uint16_t holdFrames = globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames;
-                        if (holdFrames > 1) {
+                        if (key.holdFrames > 1) {
                             ImGui::SameLine();
-                            ImGui::Dummy({ static_cast<float>(10 * holdFrames), buttonDimensions.y });
+                            ImGui::Dummy({ static_cast<float>(10 * key.holdFrames), buttonDimensions.y });
                         }
 
                         ImGui::SameLine();
@@ -505,7 +503,7 @@ void WindowTimeline::Update() {
                                 } break;
 
                                 case DeleteKeyMode_ToLeft: {
-                                    RvlCellAnim::Animation newAnimation{
+                                    RvlCellAnim::Animation newAnimation {
                                         .keys = globalAnimatable->getCurrentAnimation()->keys
                                     };
                                     newAnimation.keys.erase(newAnimation.keys.begin(), newAnimation.keys.begin() + i);

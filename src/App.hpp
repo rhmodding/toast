@@ -24,7 +24,7 @@
 
 #include "common.hpp"
 
-#define WINDOW_TITLE "Toast Beta"
+#define WINDOW_TITLE "toast"
 
 class App {
 public:

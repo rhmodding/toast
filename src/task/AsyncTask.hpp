@@ -45,7 +45,7 @@ public:
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
 
         CENTER_NEXT_WINDOW;
-        if (ImGui::BeginPopupModal((char*)ICON_FA_WAND_MAGIC_SPARKLES "  Working..###WORKING", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginPopupModal((char*)ICON_FA_WAND_MAGIC_SPARKLES "  Toasting ..###WORKING", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::TextUnformatted(this->message);
 
             ImGui::Dummy({ 0.f, 1.f });
