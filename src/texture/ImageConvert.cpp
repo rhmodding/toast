@@ -53,8 +53,8 @@ void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned s
                 for (unsigned x = 0; x < 8; x += 2) {
                     if (xx + x >= srcWidth) break;
 
-                    const uint8_t intensityA = ((data[readOffset + (y * 8) + x] & 0xF0) >> 4) * 0x11;
-                    const uint8_t intensityB = (data[readOffset + (y * 8) + x] & 0x0F) * 0x11;
+                    const uint8_t intensityA = ((data[readOffset + (y * 4) + (x / 2)] & 0xF0) >> 4) * 0x11;
+                    const uint8_t intensityB = (data[readOffset + (y * 4) + (x / 2)] & 0x0F) * 0x11;
 
                     const unsigned destIndex = (rowBase + xx + x) * 4;
 
@@ -69,7 +69,7 @@ void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned s
                     result[destIndex + 7] = 0xFFu;
                 }
             }
-            readOffset += 1 * 8 * 8;
+            readOffset += 4 * 8;
         }
     }
 }
@@ -327,62 +327,81 @@ void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned s
 void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
-    // TODO: fix CMPR
+    for (unsigned yy = 0; yy < srcHeight; yy += 8) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
+            // 4 4x4 RGBA blocks. Makes up one whole CMPR block
+            uint8_t blocks[4][4][4][4];
 
-    for (unsigned y = 0; y < srcHeight; y += 4) {
-        for (unsigned x = 0; x < srcWidth; x += 4) {
-            const uint16_t color1 = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
-            readOffset += sizeof(uint16_t);
+            // Decode each CMPR-subblock
+            for (unsigned i = 0; i < 4; i++) {
+                const unsigned char* blockData = data + readOffset + (i * 8);
+                uint8_t (*result)[4][4] = blocks[i];
 
-            const uint16_t color2 = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(data + readOffset));
-            readOffset += sizeof(uint16_t);
+                const uint16_t color1    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 0));
+                const uint16_t color2    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 2));
+                const uint32_t indexBits = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(blockData + 4));
 
-            uint32_t bits = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(data + readOffset));
-            readOffset += sizeof(uint32_t);
+                uint8_t colors[4][4];
+                colors[0][0] = ((color1 >> 11) & 0x1f) << 3;
+                colors[0][1] = ((color1 >> 5) & 0x3f) << 2;
+                colors[0][2] = ((color1 >> 0) & 0x1f) << 3;
+                colors[0][3] = 0xFFu;
+                colors[1][0] = ((color2 >> 11) & 0x1f) << 3;
+                colors[1][1] = ((color2 >> 5) & 0x3f) << 2;
+                colors[1][2] = ((color2 >> 0) & 0x1f) << 3;
+                colors[1][3] = 0xFFu;
 
-            uint8_t table[4][4] = {};
+                if (color1 > color2) {
+                    for (unsigned i = 0; i < 4; ++i)
+                        colors[2][i] = colors[0][i] * 2 / 3 + colors[1][i] / 3;
+                    for (unsigned i = 0; i < 4; ++i)
+                        colors[3][i] = colors[0][i] / 3 + colors[1][i] * 2 / 3;
+                } else {
+                    for (unsigned i = 0; i < 4; ++i)
+                        colors[2][i] = (colors[0][i] + colors[1][i]) / 2;
+                    colors[3][0] = colors[3][1] = colors[3][2] = colors[3][3] = 0x00;
+                }
 
-            RGB565ToRGBA32(color1, table[0]);
-            RGB565ToRGBA32(color2, table[1]);
+                uint8_t indices[16];
+                for (unsigned i = 0; i < 16; i++)
+                    indices[i] = (indexBits >> (i * 2)) & 0b11;
 
-            if (color1 > color2) {
-                table[2][0] = (2 * table[0][0] + table[1][0] + 1) / 3;
-                table[2][1] = (2 * table[0][1] + table[1][1] + 1) / 3;
-                table[2][2] = (2 * table[0][2] + table[1][2] + 1) / 3;
-                table[2][3] = 0xFFu;
+                for (unsigned y = 0; y < 4; y++) {
+                    for (unsigned x = 0; x < 4; x++) {
+                        unsigned index = 15 - ((y * 4) + x);
 
-                table[3][0] = (table[0][0] + 2 * table[1][0] + 1) / 3;
-                table[3][1] = (table[0][1] + 2 * table[1][1] + 1) / 3;
-                table[3][2] = (table[0][2] + 2 * table[1][2] + 1) / 3;
-                table[3][3] = 0xFFu;
-            }
-            else {
-                table[2][0] = (table[0][0] + table[1][0] + 1) / 2;
-                table[2][1] = (table[0][1] + table[1][1] + 1) / 2;
-                table[2][2] = (table[0][2] + table[1][2] + 1) / 2;
-                table[2][3] = 0xFFu;
-
-                table[3][0] = (table[0][0] + 2 * table[1][0] + 1) / 3;
-                table[3][1] = (table[0][1] + 2 * table[1][1] + 1) / 3;
-                table[3][2] = (table[0][2] + 2 * table[1][2] + 1) / 3;
-                table[3][3] = 0x00u;
-            }
-
-            for (unsigned iy = 0; iy < 4; ++iy) {
-                for (unsigned ix = 0; ix < 4; ++ix) {
-                    if (((x + ix) < srcWidth) && ((y + iy) < srcHeight)) {
-                        uint32_t di = 4 * ((y + iy) * srcWidth + x + ix);
-                        uint32_t si = bits & 0x3;
-
-                        result[di + 0] = table[si][0];
-                        result[di + 1] = table[si][1];
-                        result[di + 2] = table[si][2];
-                        result[di + 3] = table[si][3];
+                        result[y][x][0] = colors[indices[index]][0];
+                        result[y][x][1] = colors[indices[index]][1];
+                        result[y][x][2] = colors[indices[index]][2];
+                        result[y][x][3] = colors[indices[index]][3];
                     }
-
-                    bits >>= 2;
                 }
             }
+
+            // Copy decoded pixels
+            for (unsigned y = 0; y < 8; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
+                for (unsigned x = 0; x < 8; x++) {
+                    if (xx + x >= srcWidth) break;
+
+                    const unsigned writeOffset = (rowBase + xx + x) * 4;
+
+                    unsigned blockIdx = (y >= 4) * 2 + (x >= 4);
+
+                    const unsigned localY = y % 4;
+                    const unsigned localX = x % 4;
+
+                    result[writeOffset + 0] = blocks[blockIdx][localY][localX][0];
+                    result[writeOffset + 1] = blocks[blockIdx][localY][localX][1];
+                    result[writeOffset + 2] = blocks[blockIdx][localY][localX][2];
+                    result[writeOffset + 3] = blocks[blockIdx][localY][localX][3];
+                }
+            }
+
+            readOffset += 8 * 4; // Advance sizeof sub-block * sub-block count
         }
     }
 }
