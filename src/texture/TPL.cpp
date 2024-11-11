@@ -175,7 +175,13 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
     // Precompute size required & texture indexes for color palettes
     unsigned paletteEntriesSize { 0 };
-    std::vector<unsigned> paletteTextures;
+
+    struct PaletteTexEntry {
+        unsigned texIndex;
+        std::set<uint32_t> palette;
+    };
+    std::vector<PaletteTexEntry> paletteTextures;
+    paletteTextures.reserve(textureCount);
 
     for (unsigned i = 0; i < textureCount; i++) {
         const auto& texture = this->textures[i];
@@ -185,14 +191,16 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             texture.format == TPL_IMAGE_FORMAT_C8 ||
             texture.format == TPL_IMAGE_FORMAT_C14X2
         ) {
-            paletteTextures.push_back(i);
-
-            unsigned colorCount = PaletteUtils::countUniqueColors(
-                (uint32_t*)texture.data.data(), texture.width, texture.height
-            );
+            paletteTextures.push_back(PaletteTexEntry {
+                .texIndex = i,
+                .palette = PaletteUtils::generatePalette(
+                    (uint32_t*)texture.data.data(), texture.width, texture.height
+                )
+            });
 
             // Convieniently, every palette format's pixel is 16-bit
-            paletteEntriesSize += colorCount * 2;
+            paletteEntriesSize +=
+                paletteTextures[paletteTextures.size() - 1].palette.size() * 2;
         }
     }
 
@@ -246,7 +254,12 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             (sizeof(TPLHeader) * textureIndex)
         ));
 
-        auto it = std::find(paletteTextures.begin(), paletteTextures.end(), textureIndex);
+        auto it = std::find_if(
+            paletteTextures.begin(), paletteTextures.end(),
+            [textureIndex](const PaletteTexEntry& entry) {
+                return entry.texIndex == textureIndex;
+            }
+        );
         if (it != paletteTextures.end()) {
             descriptor->CLUTHeaderOffset = BYTESWAP_32(static_cast<uint32_t>(
                 sizeof(TPLPalette) +
@@ -271,14 +284,11 @@ std::vector<unsigned char> TPLObject::Reserialize() {
         clutHeader->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
         clutHeader->dataOffset = BYTESWAP_32(nextClutOffset);
 
-        auto& texture = this->textures[paletteTextures[clutIndex]];
-
-        unsigned colorCount = PaletteUtils::countUniqueColors(
-            (uint32_t*)texture.data.data(), texture.width, texture.height
-        );
+        unsigned colorCount = paletteTextures[clutIndex].palette.size();
         clutHeader->numEntries = BYTESWAP_16(colorCount);
 
-        nextClutOffset += colorCount * 2; // size of RGB5A3 pixel
+        // Convieniently, every palette format's pixel is 16-bit
+        nextClutOffset += colorCount * 2;
     }
 
     // Texture Headers
@@ -347,7 +357,12 @@ std::vector<unsigned char> TPLObject::Reserialize() {
         unsigned char* imageData = result.data() + writeOffset;
         ImageConvert::fromRGBA32(texture, imageData);
 
-        auto it = std::find(paletteTextures.begin(), paletteTextures.end(), i);
+        auto it = std::find_if(
+            paletteTextures.begin(), paletteTextures.end(),
+            [i](const PaletteTexEntry& entry) {
+                return entry.texIndex == i;
+            }
+        );
         if (it != paletteTextures.end()) {
             TPLClutHeader* clutHeader = clutHeaders + std::distance(paletteTextures.begin(), it);
 

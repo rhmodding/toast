@@ -12,12 +12,12 @@
 
 namespace PaletteUtils {
 
-unsigned countUniqueColors(const uint32_t* rgbaImage, unsigned width, unsigned height) {
+std::set<uint32_t> generatePalette(const uint32_t* rgbaImage, unsigned width, unsigned height) {
     std::set<uint32_t> uniqueColors;
     for (unsigned i = 0; i < width * height; ++i)
         uniqueColors.insert(rgbaImage[i]);
     
-    return uniqueColors.size();
+    return uniqueColors;
 }
 
 void CLUTtoRGBA32Palette(
