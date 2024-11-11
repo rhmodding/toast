@@ -3,6 +3,8 @@
 
 #include "Singleton.hpp"
 
+#include "texture/Texture.hpp"
+
 #include "anim/RvlCellAnim.hpp"
 
 #include "command/BaseCommand.hpp"
@@ -36,7 +38,7 @@ public:
             std::unordered_map<uint16_t, std::string> animNames;
         };
         std::vector<CellanimData> cellanims;
-        std::vector<std::shared_ptr<Common::Image>> sheets;
+        std::vector<std::shared_ptr<Texture>> sheets;
 
         unsigned currentCellanim { 0 };
 
@@ -56,7 +58,7 @@ public:
         std::string& getCellanimName() {
             return this->cellanims.at(this->currentCellanim).name;
         }
-        std::shared_ptr<Common::Image>& getCellanimSheet() {
+        std::shared_ptr<Texture>& getCellanimSheet() {
             return this->sheets.at(std::min<unsigned>(this->getCellanimObject()->sheetIndex, this->sheets.size() - 1));
         }
         std::unordered_map<uint16_t, std::string>& getAnimationNames() {
@@ -144,7 +146,7 @@ public:
         return this->getCurrentSession()->modified;
     }
 
-    inline bool getSessionAvaliable() {
+    bool getSessionAvaliable() {
         return this->currentSession >= 0;
     }
 

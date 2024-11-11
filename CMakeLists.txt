@@ -34,6 +34,8 @@ set(SOURCES
 
     src/compression/Yaz0.cpp
 
+    src/texture/Texture.cpp
+
     src/texture/ImageConvert.cpp
     src/texture/TPL.cpp
 

@@ -3,16 +3,16 @@
 
 #include "BaseWindow.hpp"
 
-#include "../common.hpp"
+#include "../texture/Texture.hpp"
 
 class WindowAbout : public BaseWindow {
 public:
     void Update() override;
 
-    bool open{ false };
+    bool open { false };
 
 private:
-    Common::Image image;
+    Texture image;
 };
 
 #endif // WINDOWABOUT_HPP

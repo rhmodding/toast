@@ -87,62 +87,11 @@ void deleteIfNotNullptr(T*& ptr, bool setNullptr = true) {
 
 std::string randomString(const unsigned length);
 
-void fitRectangle(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
+void FitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
 
 float EaseInOut(float t);
 float EaseIn(float t);
 float EaseOut(float t);
-
-constexpr ImVec4 RGBAtoImVec4(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    return ImVec4(r / 255.f, g / 255.f, b / 255.f, a / 255.f);
-}
-
-bool IsMouseInRegion(const ImVec2 point, float radius = 10.f);
-
-// Simple helper function to load an image into a OpenGL texture with common settings
-bool LoadTextureFromFile(const char* filename, GLuint* texturePtr, int* outWidth, int* outHeight);
-bool LoadTextureFromMem(const unsigned char* buffer, const uint32_t size, GLuint* texturePtr, int* outWidth, int* outHeight);
-
-struct Image {
-    int width { 0 };
-    int height { 0 };
-
-    GLuint texture { 0 };
-
-    // Used when converting to a TPL texture.
-    TPL::TPLImageFormat tplOutFormat{ TPL::TPL_IMAGE_FORMAT_RGBA32 };
-    // Used when converting to a TPL texture.
-    std::vector<uint32_t> tplColorPalette;
-
-    // TODO: find a better solution for this ^
-
-    Image() = default;
-    Image(int width, int height, GLuint texture) : width(width), height(height), texture(texture) {}
-
-    ~Image() {
-        this->FreeTexture();
-    }
-
-    bool LoadFromFile(const char* filename) {
-        return LoadTextureFromFile(filename, &this->texture, &this->width, &this->height);
-    }
-
-    bool LoadFromMem(const unsigned char* buffer, uint32_t size) {
-        return LoadTextureFromMem(buffer, size, &this->texture, &this->width, &this->height);
-    }
-
-    void FreeTexture() {
-        if (this->texture == 0)
-            return;
-
-        glDeleteTextures(1, &this->texture);
-        this->texture = 0;
-    }
-
-    std::optional<TPL::TPLTexture> ExportToTPLTexture();
-
-    bool ExportToFile(const char* filename);
-};
 
 } // namespace Common
 

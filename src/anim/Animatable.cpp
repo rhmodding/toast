@@ -274,8 +274,8 @@ void Animatable::DrawKey(
 
     const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
-    const float mismatchScaleX = static_cast<float>(this->texture->width) / this->cellanim->textureW;
-    const float mismatchScaleY = static_cast<float>(this->texture->height) / this->cellanim->textureH;
+    const float mismatchScaleX = static_cast<float>(this->texture->getWidth()) / this->cellanim->textureW;
+    const float mismatchScaleY = static_cast<float>(this->texture->getHeight()) / this->cellanim->textureH;
 
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex != -1 && partIndex != i)
@@ -317,7 +317,7 @@ void Animatable::DrawKey(
             static_cast<uint8_t>((static_cast<uint16_t>(part.opacity) * key->opacity) / 255) : 255;
 
         drawList->AddImageQuad(
-            (ImTextureID)(uintptr_t)this->texture->texture,
+            (ImTextureID)this->texture->getTextureId(),
             transformedQuad[0], transformedQuad[1], transformedQuad[2], transformedQuad[3],
             uvs[0], uvs[1], uvs[2], uvs[3],
             IM_COL32(

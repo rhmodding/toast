@@ -173,8 +173,10 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
                     (1 - P[i*2+1]) * bb.GetHeight() + bb.Min.y
                 };
 
-                hoveredHandle[i] =
-                    Common::IsMouseInRegion(pos, GRAB_RADIUS);
+                hoveredHandle[i] = ImGui::IsMouseHoveringRect(
+                    { pos.x - GRAB_RADIUS, pos.y - GRAB_RADIUS },
+                    { pos.x + GRAB_RADIUS, pos.y + GRAB_RADIUS }
+                );
 
                 if (hoveredHandle[i] || handleBeingDragged == i)
                     ImGui::SetTooltip("(%4.3f, %4.3f)", P[i*2+0], P[i*2+1]);

@@ -161,13 +161,11 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
         auto& texture = tplObject.textures[i];
 
-        sheet = std::make_shared<Common::Image>(
+        sheet = std::make_shared<Texture>(
             texture.width, texture.height,
             TPL::LoadTPLTextureIntoGLTexture(texture)
         );
-
-        sheet->tplOutFormat = tplObject.textures.at(i).format;
-        sheet->tplColorPalette = tplObject.textures.at(i).palette;
+        sheet->setTPLOutputFormat(texture.format);
     }
 
     // internal editor data
@@ -218,10 +216,10 @@ int SessionManager::PushSessionTraditional(const char* paths[3]) {
         cellanim.name = filePath.filename().string();
     }
 
-    sheet = std::make_shared<Common::Image>();
-    sheet->LoadFromFile(paths[1]);
+    sheet = std::make_shared<Texture>();
+    bool loadOk = sheet->LoadSTBFile(paths[1]);
 
-    if (!sheet->texture) {
+    if (!loadOk) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->lastSessionError = SessionOpenError_FailOpenPNG;
 
@@ -323,7 +321,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
             TPL::TPLObject tplObject;
 
             for (unsigned i = 0; i < session->sheets.size(); i++) {
-                auto tplTexture = session->sheets.at(i)->ExportToTPLTexture();
+                auto tplTexture = session->sheets.at(i)->TPLTexture();
 
                 if (!tplTexture.has_value()) {
                     this->lastSessionError = SessionOutError_FailTPLTextureExport;

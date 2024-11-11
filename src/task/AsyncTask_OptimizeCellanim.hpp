@@ -98,8 +98,8 @@ protected:
         if (this->options.downscaleSpritesheet) {
             auto sheet = this->session->getCellanimSheet();
 
-            unsigned newWidth = sheet->width;
-            unsigned newHeight = sheet->height;
+            unsigned newWidth = sheet->getWidth();
+            unsigned newHeight = sheet->getHeight();
 
             switch (this->options.downscaleSpritesheet) {
                 case OptimizeCellanimOptions::DownscaleOption_0_875x:
@@ -123,10 +123,10 @@ protected:
             if (newHeight & 1) newHeight++;
 
             // RGBA image
-            unsigned char* originalPixels = new unsigned char[sheet->width * sheet->height * 4];
+            unsigned char* originalPixels = new unsigned char[sheet->getWidth() * sheet->getHeight() * 4];
 
             std::future<void> futureA = mtCommandManager.enqueueCommand([&sheet, originalPixels]() {
-                glBindTexture(GL_TEXTURE_2D, sheet->texture);
+                glBindTexture(GL_TEXTURE_2D, sheet->getTextureId());
                 glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, originalPixels);
                 glBindTexture(GL_TEXTURE_2D, 0);
             });
@@ -134,20 +134,20 @@ protected:
             futureA.get();
 
             // RGBA image
-            unsigned char* downscaledPixels = new unsigned char[sheet->width * sheet->height * 4];
+            unsigned char* downscaledPixels = new unsigned char[sheet->getWidth() * sheet->getHeight() * 4];
 
             // Bilinear scale
             {
-                const float ratioX = static_cast<float>(sheet->width - 1) / newWidth;
-                const float ratioY = static_cast<float>(sheet->height - 1) / newHeight;
+                const float ratioX = static_cast<float>(sheet->getWidth() - 1) / newWidth;
+                const float ratioY = static_cast<float>(sheet->getHeight() - 1) / newHeight;
 
                 for (unsigned _y = 0; _y < newHeight; _y++) {
                     const float scaledY = ratioY * _y;
                     const unsigned y    = static_cast<unsigned>(scaledY);
                     const float diffY   = scaledY - y;
 
-                    const unsigned yOffset     = y * sheet->width * 4;
-                    const unsigned yOffsetNext = (y + 1) * sheet->width * 4;
+                    const unsigned yOffset     = y * sheet->getWidth() * 4;
+                    const unsigned yOffsetNext = (y + 1) * sheet->getWidth() * 4;
 
                     for (unsigned _x = 0; _x < newWidth; _x++) {
                         const float scaledX = ratioX * _x;
@@ -176,27 +176,7 @@ protected:
 
             delete[] originalPixels;
 
-            GLuint newTexture { 0 };
-
-            std::future<void> futureB = mtCommandManager.enqueueCommand([&sheet, &newTexture, downscaledPixels, newWidth, newHeight]() {
-                sheet->FreeTexture();
-
-                glGenTextures(1, &newTexture);
-                glBindTexture(GL_TEXTURE_2D, newTexture);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newWidth, newHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, downscaledPixels);
-
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-                sheet->texture = newTexture;
-
-                sheet->width = newWidth;
-                sheet->height = newHeight;
-            });
-
-            futureB.get();
+            sheet->LoadRGBA32(downscaledPixels, newWidth, newHeight);
 
             delete[] downscaledPixels;
         }

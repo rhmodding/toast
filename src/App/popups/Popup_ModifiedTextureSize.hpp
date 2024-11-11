@@ -26,8 +26,8 @@ void Popup_ModifiedTextureSize() {
         if (ImGui::Button("No region scaling")) {
             SessionManager::Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
-            currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->width;
-            currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->height;
+            currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->getWidth();
+            currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->getHeight();
 
             ImGui::CloseCurrentPopup();
         }
@@ -45,10 +45,10 @@ void Popup_ModifiedTextureSize() {
                 currentSession->getCellanimObject()->arrangements;
 
             float scaleX =
-                static_cast<float>(currentSession->getCellanimSheet()->width) /
+                static_cast<float>(currentSession->getCellanimSheet()->getWidth()) /
                 currentSession->getCellanimObject()->textureW;
             float scaleY =
-                static_cast<float>(currentSession->getCellanimSheet()->height) /
+                static_cast<float>(currentSession->getCellanimSheet()->getHeight()) /
                 currentSession->getCellanimObject()->textureH;
 
             for (auto& arrangement : newArrangements)
@@ -62,8 +62,8 @@ void Popup_ModifiedTextureSize() {
                     part.transform.scaleY /= scaleY;
                 }
 
-            currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->width;
-            currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->height;
+            currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->getWidth();
+            currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->getHeight();
 
             sessionManager.getCurrentSession()->executeCommand(
             std::make_shared<CommandModifyArrangements>(

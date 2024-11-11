@@ -73,7 +73,7 @@ void WindowAbout::Update() {
     static bool imageLoaded { false };
 
     if (!imageLoaded) {
-        image.LoadFromMem(toastIcon_title_png, toastIcon_title_png_size);
+        image.LoadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
         imageLoaded = true;
     }
 
@@ -106,7 +106,7 @@ void WindowAbout::Update() {
         imageTopLeft.y + imageSize.y
     };
 
-    drawList->AddImage((ImTextureID)(uintptr_t)this->image.texture, imageTopLeft, imageBottomRight);
+    drawList->AddImage((ImTextureID)this->image.getTextureId(), imageTopLeft, imageBottomRight);
 
     // Text
     ImVec2 textPosition {

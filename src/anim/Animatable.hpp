@@ -10,7 +10,7 @@
 
 #include "RvlCellAnim.hpp"
 
-#include "../common.hpp"
+#include "../texture/Texture.hpp"
 
 class Animatable {
 private:
@@ -37,7 +37,7 @@ private:
 
 public:
     std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim;
-    std::shared_ptr<Common::Image> texture;
+    std::shared_ptr<Texture> texture;
 
     ImVec2 offset { CANVAS_ORIGIN, CANVAS_ORIGIN };
 
@@ -48,7 +48,7 @@ public:
 
     Animatable(
         std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim,
-        std::shared_ptr<Common::Image> texture
+        std::shared_ptr<Texture> texture
     ) :
         cellanim(cellanim), texture(texture)
     {}

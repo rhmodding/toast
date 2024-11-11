@@ -36,26 +36,24 @@ void Popup_WaitForModifiedTexture() {
         if (ImGui::Button("Ready", { 120.f, 0.f })) {
             GET_SESSION_MANAGER;
 
-            std::shared_ptr<Common::Image> newImage =
-                std::make_shared<Common::Image>(Common::Image());
-            newImage->LoadFromFile(ConfigManager::getInstance().getConfig().textureEditPath.c_str());
+            std::shared_ptr<Texture> newImage = std::make_shared<Texture>();
+            bool ok = newImage->LoadSTBFile(ConfigManager::getInstance().getConfig().textureEditPath.c_str());
 
-            if (newImage->texture) {
+            if (ok) {
                 auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
 
                 bool diffSize =
-                    newImage->width  != cellanimSheet->width ||
-                    newImage->height != cellanimSheet->height;
+                    newImage->getWidth()  != cellanimSheet->getWidth() ||
+                    newImage->getHeight() != cellanimSheet->getHeight();
 
                 cellanimSheet = newImage;
 
                 switch (selectedFormatIndex) {
                     case 0:
-                        cellanimSheet->tplOutFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
+                        cellanimSheet->setTPLOutputFormat(TPL::TPL_IMAGE_FORMAT_RGBA32);
                         break;
-
                     case 1:
-                        cellanimSheet->tplOutFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
+                        cellanimSheet->setTPLOutputFormat(TPL::TPL_IMAGE_FORMAT_RGB5A3);
                         break;
 
                     default:

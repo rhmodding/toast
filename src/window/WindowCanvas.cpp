@@ -184,7 +184,7 @@ void WindowCanvas::Menubar() {
                 ImVec2 rect = { RVL_SAFE_X, RVL_SAFE_Y };
 
                 float scale;
-                Common::fitRectangle(rect, this->canvasSize, scale);
+                Common::FitRect(rect, this->canvasSize, scale);
 
                 this->canvasZoom = scale - 1.f - .1f;
             }
@@ -497,7 +497,10 @@ void WindowCanvas::Update() {
                         for (unsigned i = 0; i < 4; i++) {
                             point = AVERAGE_IMVEC2_ROUND(bounding[i], bounding[(i+1) % 4]);
 
-                            if (Common::IsMouseInRegion(point))
+                            if (ImGui::IsMouseHoveringRect(
+                                { point.x - 10.f, point.y - 10.f },
+                                { point.x + 10.f, point.y + 10.f }
+                            ))
                                 *(short*)&hoveredPartHandle = PartHandle_Top + i;
 
                             DrawRotatedBox(
@@ -511,7 +514,10 @@ void WindowCanvas::Update() {
                         for (unsigned i = 0; i < 4; i++) {
                             point = ROUND_IMVEC2(bounding[i]);
 
-                            if (Common::IsMouseInRegion(point))
+                            if (ImGui::IsMouseHoveringRect(
+                                { point.x - 10.f, point.y - 10.f },
+                                { point.x + 10.f, point.y + 10.f }
+                            ))
                                 *(short*)&hoveredPartHandle = PartHandle_TopLeft + i;
 
                             DrawRotatedBox(

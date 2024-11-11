@@ -36,8 +36,6 @@ private:
 private:
     void RunEditor();
 
-    void PaletteWindow();
-
     void FormatPopup();
 };
 
