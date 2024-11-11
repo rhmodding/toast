@@ -1,7 +1,10 @@
 #include "MtCommandManager.hpp"
 
 std::future<void> MtCommandManager::enqueueCommand(std::function<void()> func) {
-    if (std::this_thread::get_id() == gAppPtr->getMainThreadId()) {
+    if (
+        std::this_thread::get_id() == gAppPtr->getMainThreadId() ||
+        this->isDestroyed
+    ) {
         func();
 
         std::promise<void> promise;
@@ -12,7 +15,7 @@ std::future<void> MtCommandManager::enqueueCommand(std::function<void()> func) {
 
     std::lock_guard<std::mutex> lock(this->mtx);
 
-    MtCommand command{ func, std::promise<void>() };
+    MtCommand command { func, std::promise<void>() };
     auto future = command.promise.get_future();
 
     this->commandQueue.push(std::move(command));

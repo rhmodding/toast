@@ -1,6 +1,16 @@
 #ifndef MTCOMMANDMANAGER_HPP
 #define MTCOMMANDMANAGER_HPP
 
+/*
+    * MtCommandManager
+    *
+    * MtCommandManager enables threads to queue 'commands' on the main thread and await the result.
+    * If MtCommandManager::enqueueCommand is called on the main thread, the passed command will
+    * be executed immediately.
+    * 
+    * This is primarily used for GL calls, which will no-op if invoked outside of the main thread.
+*/
+
 #include "Singleton.hpp"
 
 #include <mutex>
@@ -21,6 +31,8 @@ class MtCommandManager : public Singleton<MtCommandManager> {
     friend class Singleton<MtCommandManager>; // Allow access to base class constructor
 
 private:
+    bool isDestroyed { false };
+
     std::mutex mtx;
     std::condition_variable queueCondition;
 public:
@@ -36,6 +48,7 @@ public:
     void Update();
 private:
     MtCommandManager() {} // Private constructor to prevent instantiation
+    ~MtCommandManager() { this->isDestroyed = true; };
 };
 
 #endif // MTCOMMANDMANAGER_HPP
