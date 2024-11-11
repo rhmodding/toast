@@ -37,24 +37,27 @@ struct U8ArchiveHeader {
 } __attribute__((packed));
 
 struct U8ArchiveNode {
-    uint32_t attributes{ 0x00000000 }; // | isDir (1b) |    name offset (3b)   |
+private:
+    uint32_t isDir : 8;
+    uint32_t nameOffset : 24;
 
-    // 0x00: file, 0x01: directory
-    inline bool getIsDir() const {
-        return (this->attributes & 0x000000FF) == 0 ? false : true;
+public:
+    bool getIsDir() const {
+        return this->isDir != 0x00;
     }
 
-    // Offset into the string pool for the name of the node.
-    // Returns LE value
-    inline unsigned getNameOffset() const {
-        return BYTESWAP_32(this->attributes >> 8 << 8);
+    // Offset is relative to string pool start
+    unsigned getNameOffset() const {
+        return BYTESWAP_32(this->nameOffset << 8);
     }
 
-    // Offset must be LE
-    inline void setAttributes(bool isDir, unsigned offset) {
-        this->attributes = (BYTESWAP_32(offset) & 0xFFFFFF00) | static_cast<uint8_t>(isDir);
+    // nameOffset is relative to string pool start
+    void setAttributes(bool isDir, unsigned nameOffset) {
+        this->isDir = isDir ? 0x01 : 0x00;
+        this->nameOffset = BYTESWAP_32(nameOffset) >> 8;
     }
 
+public:
     // File: Offset of begin of data
     // Directory: Index of the parent directory
     uint32_t dataOffsetOrParent;
@@ -295,7 +298,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
             unsigned char* data = reinterpret_cast<File*>(entry.ptr)->data.data();
             unsigned dataSize = reinterpret_cast<File*>(entry.ptr)->data.size();
 
-            node->setAttributes(0x00, stringOffsets[i]);
+            node->setAttributes(false, stringOffsets[i]);
             node->sizeOrNextEntry = BYTESWAP_32(dataSize);
             node->dataOffsetOrParent = BYTESWAP_32(dataOffsets[i]);
 
