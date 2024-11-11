@@ -74,7 +74,7 @@ void WindowTimeline::Update() {
                         playerManager.setCurrentKeyIndex(0);
 
                     playerManager.ResetTimer();
-                    playerManager.setAnimating(!playerManager.playing);
+                    playerManager.setPlaying(!playerManager.playing);
                 }
                 ImGui::SameLine();
 
@@ -98,7 +98,7 @@ void WindowTimeline::Update() {
 
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
                 if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", smallButtonSize)) {
-                    playerManager.setAnimating(false);
+                    playerManager.setPlaying(false);
                     playerManager.setCurrentKeyIndex(0);
                 } ImGui::SameLine();
 

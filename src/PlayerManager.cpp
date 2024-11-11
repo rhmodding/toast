@@ -34,7 +34,7 @@ void PlayerManager::ResetTimer() {
     this->previous = std::chrono::steady_clock::now();
 }
 
-void PlayerManager::setAnimating(bool animating) {
+void PlayerManager::setPlaying(bool animating) {
     GET_ANIMATABLE;
 
     this->playing = animating;

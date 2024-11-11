@@ -30,36 +30,35 @@ public:
 
     void ResetTimer();
 
-    inline unsigned getCurrentKeyIndex() {
+    unsigned getCurrentKeyIndex() {
         return AppState::getInstance().globalAnimatable->
             getCurrentKeyIndex();
     }
-    inline unsigned getKeyCount() {
+    unsigned getKeyCount() {
         return AppState::getInstance().globalAnimatable->
             getCurrentAnimation()->keys.size();
     }
     
-    inline int getHoldFramesLeft() {
+    int getHoldFramesLeft() {
         return AppState::getInstance().globalAnimatable->
             getHoldFramesLeft();
     }
 
     void setCurrentKeyIndex(unsigned index);
-
-    void setAnimating(bool animating);
+    void setPlaying(bool animating);
 
     // Pseudoframes are animation keys + their hold time.
     unsigned getTotalPseudoFrames();
     unsigned getElapsedPseudoFrames();
 
     // 0.f - 1.f
-    inline float getAnimationProgression() {
+    float getAnimationProgression() {
         return
             this->getElapsedPseudoFrames() /
             static_cast<float>(this->getTotalPseudoFrames());
     }
 
-    inline void clampCurrentKeyIndex() {
+    void clampCurrentKeyIndex() {
         this->setCurrentKeyIndex(std::min<unsigned>(
             this->getCurrentKeyIndex(),
             AppState::getInstance().globalAnimatable->getCurrentAnimation()->keys.size() - 1

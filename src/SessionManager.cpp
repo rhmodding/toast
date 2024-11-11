@@ -428,7 +428,7 @@ void SessionManager::SessionChanged() {
             globalAnimatable->cellanim->arrangements.size() - 1
         );
 
-        PlayerManager::getInstance().setAnimating(false);
+        PlayerManager::getInstance().setPlaying(false);
         globalAnimatable->overrideAnimationKey(&appState.controlKey);
     }
 

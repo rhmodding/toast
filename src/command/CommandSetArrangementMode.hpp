@@ -42,7 +42,7 @@ private:
         if (lEnabled) {
             appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
 
-            PlayerManager::getInstance().setAnimating(false);
+            PlayerManager::getInstance().setPlaying(false);
             globalAnimatable->overrideAnimationKey(&appState.controlKey);
         }
         else {
