@@ -379,7 +379,8 @@ void WindowInspector::Level_Arrangement() {
     ImGui::PopStyleVar();
     {
         ImGui::SeparatorText((char*)ICON_FA_IMAGE " Parts");
-        ImGui::Text("Selected size : %u, next : %i", (unsigned)appState.selectedParts.size(), appState.spSelectionOrder);
+
+        //ImGui::Text("Selected size : %u, next : %i", (unsigned)appState.selectedParts.size(), appState.spSelectionOrder);
 
         RvlCellAnim::Arrangement* arrangementPtr =
             &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
