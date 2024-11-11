@@ -58,6 +58,8 @@ set(SOURCES
 
     src/PlayerManager.cpp
 
+    src/MtCommandManager.cpp
+
     src/common.cpp
 )
 
