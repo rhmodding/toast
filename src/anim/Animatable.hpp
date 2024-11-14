@@ -46,6 +46,7 @@ public:
 
     bool visible { true };
 
+    Animatable() = default;
     Animatable(
         std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim,
         std::shared_ptr<Texture> texture
