@@ -92,6 +92,24 @@ unsigned char* Texture::GetRGBA32() {
     return imageData;
 }
 
+bool Texture::GetRGBA32(unsigned char* buffer) {
+    if (this->textureId == 0) {
+        std::cerr << "[Texture::GetRGBA32] Failed to download image data: textureId is 0\n";
+        return false;
+    }
+
+    std::future<void> future = MtCommandManager::getInstance().enqueueCommand([this, buffer]() {
+        glBindTexture(GL_TEXTURE_2D, this->textureId);
+
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+    });
+    future.get();
+
+    return true;  
+}
+
 bool Texture::ExportToFile(const char* filename) {
     unsigned char* imageData = this->GetRGBA32();
     if (imageData == nullptr) {
