@@ -5,15 +5,20 @@ template<typename T>
 class Singleton {
 public:
     static T& getInstance() {
-        static T instance; // Static instance created once
+        // Static instance created once
+        static T instance;
+
         return instance;
     }
 
-    Singleton(const Singleton&) = delete; // Delete copy constructor
-    Singleton& operator=(const Singleton&) = delete; // Delete assignment operator
+    Singleton(const Singleton&) = delete;            // Delete copy constructor
+    Singleton(Singleton&&) = delete;                 // Delete move constructor
+    Singleton& operator=(const Singleton&) = delete; // Delete copy assignment
+    Singleton& operator=(Singleton&&) = delete;      // Delete move assignment
 
 protected:
-    Singleton() {} // Protected constructor to prevent instantiation
+    Singleton() = default;           // Protected default constructor
+    virtual ~Singleton() = default;  // Protected virtual destructor
 };
 
 #endif // SINGLETON_HPP
