@@ -126,7 +126,7 @@ void DrawRotatedBox(ImDrawList* drawList, ImVec2 center, float radius, float rot
 
 // Screen safe area for Fever (RVL)
 #define RVL_SAFE_X (832)
-#define RVL_SAFE_Y (832)
+#define RVL_SAFE_Y (456)
 
 // Screen safe area for Megamix (CTR)
 #define CTR_SAFE_X (440)
