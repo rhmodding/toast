@@ -10,58 +10,58 @@
 #include "../../common.hpp"
 
 void Popup_SessionErr() {
-    SessionManager::SessionError errorCode = SessionManager::getInstance().lastSessionError;
+    auto error = SessionManager::getInstance().currentError;
 
     char errorMessage[256];
-    unsigned errorType; // 0 = open, 1 = export, 2 = unknown
-    switch (errorCode) {
-        case SessionManager::SessionOpenError_FailOpenArchive:
+    unsigned errorType { 2 }; // 0 = open, 1 = export, 2 = unknown
+    switch (error) {
+        case SessionManager::OpenError_FailOpenArchive:
             strcpy(errorMessage, "The archive file could not be opened. Does the file exist?");
             errorType = 0;
             break;
-        case SessionManager::SessionOpenError_FailFindTPL:
+        case SessionManager::OpenError_FailFindTPL:
             strcpy(errorMessage, "The archive does not contain the cellanim.tpl file.");
             errorType = 0;
             break;
-        case SessionManager::SessionOpenError_RootDirNotFound:
+        case SessionManager::OpenError_RootDirNotFound:
             strcpy(errorMessage, "The archive does not contain a root directory.");
             errorType = 0;
             break;
-        case SessionManager::SessionOpenError_NoBXCADsFound:
+        case SessionManager::OpenError_NoBXCADsFound:
             strcpy(errorMessage, "The archive does not contain any brcad/bccad files.");
             errorType = 0;
             break;
-        case SessionManager::SessionOpenError_FailOpenBXCAD:
+        case SessionManager::OpenError_FailOpenBXCAD:
             // TODO: replace brcad with brcad/bccad when Megamix support is implemented
             strcpy(errorMessage, "The brcad file could not be opened.");
             errorType = 0;
             break;
-        case SessionManager::SessionOpenError_FailOpenTPL:
+        case SessionManager::OpenError_FailOpenTPL:
             strcpy(errorMessage, "The TPL file could not be opened.");
             errorType = 0;
             break; 
-        case SessionManager::SessionOpenError_FailOpenPNG:
-            strcpy(errorMessage, "The image file (.png) could not be opened.");
+        case SessionManager::OpenError_FailOpenImage:
+            strcpy(errorMessage, "The image file could not be opened.");
             errorType = 0;
             break;
-        case SessionManager::SessionOpenError_FailOpenHFile:
+        case SessionManager::OpenError_FailOpenHFile:
             strcpy(errorMessage, "The header file (.h) could not be opened.");
             errorType = 0;
             break;
-        case SessionManager::SessionOpenError_SessionsFull:
+        case SessionManager::OpenError_SessionsFull:
             strcpy(errorMessage, "The maximum amount of sessions are already open.");
             errorType = 0;
             break;
 
-        case SessionManager::SessionOutError_FailOpenFile:
+        case SessionManager::OutError_FailOpenFile:
             strcpy(errorMessage, "The destination file could not be opened for reading.");
             errorType = 1;
             break;
-        case SessionManager::SessionOutError_ZlibError:
+        case SessionManager::OutError_ZlibError:
             strcpy(errorMessage, "Zlib raised an error while compressing the file.\nPlease check the log for more details.");
             errorType = 1;
             break;
-        case SessionManager::SessionOutError_FailTPLTextureExport:
+        case SessionManager::OutError_FailTPLTextureExport:
             strcpy(errorMessage, "There was an error exporting a texture.");
             errorType = 1;
             break;
@@ -69,7 +69,7 @@ void Popup_SessionErr() {
         default:
             snprintf(
                 errorMessage, sizeof(errorMessage),
-                "An unknown error has occurred (code %i).", errorCode
+                "An unknown error has occurred (code %i).", (int)error
             );
             errorType = 2;
             break;
@@ -81,14 +81,14 @@ void Popup_SessionErr() {
             snprintf(
                 popupTitle, sizeof(popupTitle),
                 "There was an error opening the session (code %i).###SessionErr",
-                errorCode
+                (int)error
             );
             break;
         case 1:
             snprintf(
                 popupTitle, sizeof(popupTitle),
                 "There was an error exporting the session (code %i).###SessionErr",
-                errorCode
+                (int)error
             );
             break;
 
@@ -96,7 +96,7 @@ void Popup_SessionErr() {
             snprintf(
                 popupTitle, sizeof(popupTitle),
                 "There was an unknown session-related error (code %i).###SessionErr",
-                errorCode
+                (int)error
             );
             break;
     }
