@@ -143,7 +143,7 @@ void WindowTimeline::Update() {
                 unsigned keyNo = playerManager.getCurrentKeyIndex() + 1;
 
                 ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
-                if (ImGui::InputScalar("Key No.", ImGuiDataType_U32, &keyNo, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                if (ImGui::InputScalar("Key No.", ImGuiDataType_U32, &keyNo, nullptr, nullptr, "%u")) {
                     playerManager.setCurrentKeyIndex(std::clamp<unsigned>(
                         keyNo - 1, 1, std::numeric_limits<unsigned>::max()
                     ));
@@ -163,7 +163,7 @@ void WindowTimeline::Update() {
                 ImGui::SameLine();
 
                 ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
-                ImGui::InputScalar("FPS", ImGuiDataType_U16, &playerManager.frameRate, nullptr, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+                ImGui::InputScalar("FPS", ImGuiDataType_U16, &playerManager.frameRate, nullptr, nullptr, "%u");
             }
 
             ImGui::TableSetColumnIndex(2);

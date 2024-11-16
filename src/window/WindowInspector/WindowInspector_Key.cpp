@@ -158,7 +158,7 @@ void WindowInspector::Level_Key() {
         static uint16_t oldHoldFrames { 0 };
         uint16_t holdFrames = animKey->holdFrames;
 
-        if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u", ImGuiInputTextFlags_EnterReturnsTrue)) {
+        if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u")) {
             if (holdFrames <= 1)
                 holdFrames = 1;
 
