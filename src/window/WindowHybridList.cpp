@@ -13,9 +13,13 @@
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
 
+#include "../App/Popups.hpp"
+
 #include "../command/CommandDeleteArrangement.hpp"
 #include "../command/CommandInsertArrangement.hpp"
 #include "../command/CommandModifyArrangement.hpp"
+#include "../command/CommandModifyAnimation.hpp"
+#include "../command/CommandDeleteAnimation.hpp"
 
 void WindowHybridList::FlashWindow() {
     this->flashWindow = true;
@@ -110,18 +114,31 @@ void WindowHybridList::Update() {
 
                     ImGui::Separator();
 
-                    if (ImGui::BeginMenu("Paste animation..", allowPasteAnimation)) {
-                        ImGui::MenuItem("..above");
-                        ImGui::MenuItem("..below");
-
-                        ImGui::Separator();
-
-                        ImGui::MenuItem("..here (replace)");
-
-                        ImGui::EndMenu();
+                    if (ImGui::Selectable("Paste animation..", allowPasteAnimation)) {
+                        command = std::make_shared<CommandModifyAnimation>(
+                            sessionManager.getCurrentSession()->currentCellanim,
+                            n,
+                            copyAnimation
+                        );
                     }
                     if (ImGui::BeginMenu("Paste animation (special)..", allowPasteAnimation)) {
-                        ImGui::MenuItem("..key timing");
+                        if (ImGui::MenuItem("..key timing")) {
+                            auto newAnimation = globalAnimatable.cellanim->animations[n];
+
+                            for (
+                                unsigned i = 0;
+                                i < newAnimation.keys.size() && i < copyAnimation.keys.size();
+                                i++
+                            ) {
+                                newAnimation.keys[i].holdFrames = copyAnimation.keys[i].holdFrames;
+                            }
+
+                            command = std::make_shared<CommandModifyAnimation>(
+                                sessionManager.getCurrentSession()->currentCellanim,
+                                n,
+                                newAnimation
+                            );
+                        }
 
                         ImGui::EndMenu();
                     }
@@ -135,7 +152,10 @@ void WindowHybridList::Update() {
 
                     ImGui::Separator();
 
-                    ImGui::Selectable("Delete animation");
+                    if (ImGui::Selectable("Delete animation")) {
+                        Popups::_deleteAnimationIdx = n;
+                        appState.OpenGlobalPopup("###DeleteAnimation");
+                    }
 
                     ImGui::EndPopup();
                 }
