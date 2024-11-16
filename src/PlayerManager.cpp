@@ -9,16 +9,23 @@
 void PlayerManager::setCurrentKeyIndex(unsigned index) {
     GET_APP_STATE;
 
-    const auto* arrangeA = appState.globalAnimatable.getCurrentArrangement();
+    if (this->getCurrentKeyIndex() >= this->getKeyCount()) {
+        appState.globalAnimatable.setAnimationKeyFromIndex(index);
+        appState.correctSelectedParts();
+
+        return;
+    }
+
+    const auto* arrangeBefore = appState.globalAnimatable.getCurrentArrangement();
 
     appState.globalAnimatable.setAnimationKeyFromIndex(index);
 
-    const auto* arrangeB = appState.globalAnimatable.getCurrentArrangement();
+    const auto* arrangeAfter = appState.globalAnimatable.getCurrentArrangement();
 
-    if (arrangeA != arrangeB) {
+    if (arrangeBefore != arrangeAfter) {
         for (auto& part : appState.selectedParts) {
             int p = appState.getMatchingNamePartIndex(
-                arrangeA->parts.at(part.index), *arrangeB
+                arrangeBefore->parts.at(part.index), *arrangeAfter
             );
 
             if (p >= 0)
@@ -87,12 +94,10 @@ void PlayerManager::Update() {
 
     this->previous = now;
 
+    const auto* arrangeBefore = appState.globalAnimatable.getCurrentArrangement();
+
     while (delta >= this->timeLeft) {
-        const auto* arrangeA = appState.globalAnimatable.getCurrentArrangement();
-
         globalAnimatable.Update();
-
-        const auto* arrangeB = appState.globalAnimatable.getCurrentArrangement();
 
         delta -= this->timeLeft;
         this->timeLeft = 1.f / frameRate;
@@ -103,19 +108,21 @@ void PlayerManager::Update() {
         }
 
         this->playing = globalAnimatable.getAnimating();
+    }
 
-        if (arrangeA != arrangeB) {
-            for (auto& part : appState.selectedParts) {
-                int p = appState.getMatchingNamePartIndex(
-                    arrangeA->parts.at(part.index), *arrangeB
-                );
+    const auto* arrangeAfter = appState.globalAnimatable.getCurrentArrangement();
 
-                if (p >= 0)
-                    part.index = p;
-            }
+    if (arrangeBefore != arrangeAfter) {
+        for (auto& part : appState.selectedParts) {
+            int p = appState.getMatchingNamePartIndex(
+                arrangeBefore->parts.at(part.index), *arrangeAfter
+            );
 
-            appState.correctSelectedParts();
+            if (p >= 0)
+                part.index = p;
         }
+
+        appState.correctSelectedParts();
     }
 
     this->timeLeft -= delta;
