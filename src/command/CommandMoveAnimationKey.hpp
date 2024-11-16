@@ -42,8 +42,7 @@ public:
                 );
         }
 
-        if (appState.selectedParts.at(0).index == this->keyIndex)
-            appState.selectedParts[0].index = nSwap;
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -65,8 +64,7 @@ public:
                 );
         }
 
-        if (appState.selectedParts.at(0).index == nSwap)
-            appState.selectedParts[0].index = this->keyIndex;
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

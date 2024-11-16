@@ -75,8 +75,6 @@ void Popup_SwapAnimation(int animationIndex) {
                     swapNames
                 ));
 
-                sessionManager.getCurrentSessionModified() = true;
-
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndDisabled();

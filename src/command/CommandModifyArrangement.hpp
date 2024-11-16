@@ -6,6 +6,7 @@
 #include "../anim/RvlCellAnim.hpp"
 
 #include "../SessionManager.hpp"
+#include "../PlayerManager.hpp"
 
 #include "../AppState.hpp"
 
@@ -27,7 +28,11 @@ public:
 
         GET_APP_STATE;
 
-        appState.correctSelectedParts();
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -35,7 +40,11 @@ public:
 
         GET_APP_STATE;
 
-        appState.correctSelectedParts();
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

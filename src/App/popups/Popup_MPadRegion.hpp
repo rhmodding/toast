@@ -105,8 +105,6 @@ void Popup_MPadRegion() {
                 newPart
             ));
 
-            sessionManager.getCurrentSessionModified() = true;
-
             padBy[0] = 0;
             padBy[1] = 0;
 

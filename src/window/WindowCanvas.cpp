@@ -239,8 +239,6 @@ void WindowCanvas::Update() {
         firstOpen = false;
     }
 
-    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
-
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
     ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_MenuBar);
     ImGui::PopStyleVar();
@@ -764,8 +762,6 @@ void WindowCanvas::Update() {
                     newArrange
                 )
             );
-
-            changed = true;
         }
     }
 
@@ -778,8 +774,6 @@ void WindowCanvas::Update() {
         panningCanvas = false;
 
     if (interactionDeactivated && activePartHandle != PartHandle_None) { // Submit command
-        changed = true;
-
         GET_SESSION_MANAGER;
         GET_ANIMATABLE;
 

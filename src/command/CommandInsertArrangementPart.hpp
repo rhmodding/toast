@@ -25,6 +25,10 @@ public:
 
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.insert(it, this->part);
+
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -34,6 +38,8 @@ public:
         arrangement.parts.erase(it);
 
         AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

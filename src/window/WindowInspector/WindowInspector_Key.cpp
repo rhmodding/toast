@@ -19,8 +19,6 @@ void WindowInspector::Level_Key() {
     GET_ANIMATABLE;
     GET_SESSION_MANAGER;
 
-    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
-
     DrawPreview(&globalAnimatable);
 
     ImGui::SameLine();
@@ -79,8 +77,6 @@ void WindowInspector::Level_Key() {
             oldArrangement = originalKey.arrangementIndex;
 
         if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
-            changed = true;
-
             originalKey.arrangementIndex = oldArrangement;
             newKey.arrangementIndex =
                 std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
@@ -173,8 +169,6 @@ void WindowInspector::Level_Key() {
             oldHoldFrames = originalKey.holdFrames;
 
         if (ImGui::IsItemDeactivated()) {
-            changed = true;
-
             originalKey.holdFrames = oldHoldFrames;
             newKey.holdFrames = holdFrames;
         }
@@ -206,8 +200,6 @@ void WindowInspector::Level_Key() {
         }
 
         if (ImGui::IsItemDeactivated()) {
-            changed = true;
-
             originalKey.transform.positionX = oldPosition[0];
             originalKey.transform.positionY = oldPosition[1];
 
@@ -232,8 +224,6 @@ void WindowInspector::Level_Key() {
         }
 
         if (ImGui::IsItemDeactivated()) {
-            changed = true;
-
             originalKey.transform.scaleX = oldScale[0];
             originalKey.transform.scaleY = oldScale[1];
 
@@ -254,8 +244,6 @@ void WindowInspector::Level_Key() {
             oldAngle = originalKey.transform.angle;
 
         if (ImGui::IsItemDeactivated()) {
-            changed = true;
-
             originalKey.transform.angle = oldAngle;
             newKey.transform.angle = newAngle;
         }
@@ -277,8 +265,6 @@ void WindowInspector::Level_Key() {
             oldOpacity = originalKey.opacity;
 
         if (ImGui::IsItemDeactivated()) {
-            changed = true;
-
             originalKey.opacity = oldOpacity;
             newKey.opacity = newOpacity;
         }

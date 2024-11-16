@@ -24,8 +24,6 @@ void WindowInspector::Level_Arrangement() {
     GET_ANIMATABLE;
     GET_SESSION_MANAGER;
 
-    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
-
     static std::vector<RvlCellAnim::ArrangementPart> copyParts;
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
@@ -71,8 +69,6 @@ void WindowInspector::Level_Arrangement() {
                     oldArrangement = originalKey.arrangementIndex;
 
                 if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
-                    changed = true;
-
                     originalKey.arrangementIndex = oldArrangement;
                     newKey.arrangementIndex =
                         std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
@@ -206,8 +202,6 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        changed = true;
-
                         originalPart.transform.positionX = oldPosition[0];
                         originalPart.transform.positionY = oldPosition[1];
 
@@ -236,8 +230,6 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        changed = true;
-
                         originalPart.transform.scaleX = oldScale[0];
                         originalPart.transform.scaleY = oldScale[1];
 
@@ -259,15 +251,13 @@ void WindowInspector::Level_Arrangement() {
                     oldAngle = originalPart.transform.angle;
 
                 if (ImGui::IsItemDeactivated()) {
-                    changed = true;
-
                     originalPart.transform.angle = oldAngle;
                     newPart.transform.angle = newAngle;
                 }
             }
 
-            changed |= ImGui::Checkbox("Flip X", &newPart.flipX);
-            changed |= ImGui::Checkbox("Flip Y", &newPart.flipY);
+            ImGui::Checkbox("Flip X", &newPart.flipX);
+            ImGui::Checkbox("Flip Y", &newPart.flipY);
 
             ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
 
@@ -286,8 +276,6 @@ void WindowInspector::Level_Arrangement() {
                     oldOpacity = originalPart.opacity;
 
                 if (ImGui::IsItemDeactivated()) {
-                    changed = true;
-
                     originalPart.opacity = oldOpacity;
                     newPart.opacity = newOpacity;
                 }
@@ -314,8 +302,6 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        changed = true;
-
                         originalPart.regionX = static_cast<uint16_t>(oldPosition[0]);
                         originalPart.regionY = static_cast<uint16_t>(oldPosition[1]);
 
@@ -343,8 +329,6 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        changed = true;
-
                         originalPart.regionW = static_cast<uint16_t>(oldSize[0]);
                         originalPart.regionH = static_cast<uint16_t>(oldSize[1]);
 
@@ -510,8 +494,6 @@ void WindowInspector::Level_Arrangement() {
                             newArrangement
                         ));
 
-                        changed = true;
-
                         appState.clearSelectedParts();
                         for (unsigned i = 0; i < copyParts.size(); i++)
                             appState.setPartSelected(n + 1 + i, true);
@@ -532,8 +514,6 @@ void WindowInspector::Level_Arrangement() {
                             newArrangement
                         ));
 
-                        changed = true;
-
                         appState.clearSelectedParts();
                         for (unsigned i = 0; i < copyParts.size(); i++)
                             appState.setPartSelected(n + i, true);
@@ -551,8 +531,6 @@ void WindowInspector::Level_Arrangement() {
                             copyParts.begin(),
                             copyParts.end()
                         );
-
-                        changed = true;
 
                         appState.clearSelectedParts();
                         for (unsigned i = 0; i < copyParts.size(); i++)
@@ -579,8 +557,6 @@ void WindowInspector::Level_Arrangement() {
                             newPart
                         ));
 
-                        changed = true;
-
                         appState.clearSelectedParts();
                         appState.setPartSelected(n, true);
                     }
@@ -596,8 +572,6 @@ void WindowInspector::Level_Arrangement() {
                             n,
                             newPart
                         ));
-
-                        changed = true;
 
                         appState.clearSelectedParts();
                         appState.setPartSelected(n, true);
@@ -619,8 +593,6 @@ void WindowInspector::Level_Arrangement() {
                             n,
                             newPart
                         ));
-
-                        changed = true;
 
                         appState.clearSelectedParts();
                         appState.setPartSelected(n, true);
@@ -781,8 +753,6 @@ void WindowInspector::Level_Arrangement() {
                     n,
                     false
                 ));
-
-                changed = true;
             }
             ImGui::EndDisabled();
 
@@ -798,8 +768,6 @@ void WindowInspector::Level_Arrangement() {
                     n,
                     true
                 ));
-
-                changed = true;
             }
             ImGui::EndDisabled();
 
@@ -826,8 +794,6 @@ void WindowInspector::Level_Arrangement() {
                     newArrangement
                 )
             );
-
-            changed = true;
         }
 
         if (selDeleteSingle >= 0) {
@@ -838,8 +804,6 @@ void WindowInspector::Level_Arrangement() {
                     selDeleteSingle
                 )
             );
-
-            changed = true;
         }
 
         if (arrangementPtr->parts.size() == 0)
@@ -854,8 +818,6 @@ void WindowInspector::Level_Arrangement() {
                 insertNewPart,
                 RvlCellAnim::ArrangementPart {}
             ));
-
-            changed = true;
 
             appState.clearSelectedParts();
             appState.setPartSelected(insertNewPart, true);

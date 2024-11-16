@@ -98,8 +98,6 @@ void Popup_MTransformArrangement() {
                 newArrangement
             ));
 
-            sessionManager.getCurrentSessionModified() = true;
-
             offset[0] = 0; offset[1] = 0;
             scale[0] = 1.f; scale[1] = 1.f;
 

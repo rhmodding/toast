@@ -35,8 +35,12 @@ public:
                 arrangement.parts.at(nSwap)
             );
 
+        // TODO:
+
         if (appState.selectedParts.at(0).index == this->partIndex)
             appState.selectedParts[0].index = nSwap;
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -51,8 +55,12 @@ public:
                 arrangement.parts.at(nSwap)
             );
 
+        // TODO:
+
         if (appState.selectedParts.at(0).index == nSwap)
             appState.selectedParts[0].index = this->partIndex;
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

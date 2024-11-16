@@ -20,8 +20,6 @@ void WindowInspector::Level_Animation() {
     GET_ANIMATABLE;
     GET_SESSION_MANAGER;
 
-    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
-
     this->DrawPreview(&globalAnimatable);
 
     ImGui::SameLine();

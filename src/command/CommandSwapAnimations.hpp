@@ -46,9 +46,12 @@ public:
         }
 
         this->updateAnimationState();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
+        // Re-swap
         this->Execute();
     }
 

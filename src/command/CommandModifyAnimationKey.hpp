@@ -26,10 +26,16 @@ public:
         this->getKey() = this->newKey;
 
         AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
         this->getKey() = this->oldKey;
+
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

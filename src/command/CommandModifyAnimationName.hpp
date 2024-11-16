@@ -30,6 +30,8 @@ public:
         }
 
         this->getAnimationNames()[animationIndex] = this->newName;
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -42,6 +44,8 @@ public:
         }
 
         this->getAnimationNames()[animationIndex] = this->oldName;
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

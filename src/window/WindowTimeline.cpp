@@ -27,8 +27,6 @@ void WindowTimeline::Update() {
 
     GET_PLAYER_MANAGER;
 
-    bool& changed = SessionManager::getInstance().getCurrentSessionModified();
-
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
     ImGui::Begin("Timeline");
     ImGui::PopStyleVar();
@@ -305,8 +303,6 @@ void WindowTimeline::Update() {
 
                                 ImGui::BeginDisabled(!splitPossible);
                                 if (ImGui::Selectable("Split key (interp, new arrange)")) {
-                                    changed = true;
-
                                     RvlCellAnim::AnimationKey newKey = key;
                                     RvlCellAnim::Arrangement newArrangement = *arrangementA;
 
@@ -372,8 +368,6 @@ void WindowTimeline::Update() {
                             ImGui::Separator();
 
                             if (ImGui::Selectable(!io.KeyAlt ? "Push key after" : "Duplicate key after")) {
-                                changed = true;
-
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandInsertAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
@@ -386,8 +380,6 @@ void WindowTimeline::Update() {
                             }
 
                             if (ImGui::Selectable(!io.KeyAlt ? "Push key before" : "Duplicate key before")) {
-                                changed = true;
-
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandInsertAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
@@ -403,8 +395,6 @@ void WindowTimeline::Update() {
 
                             ImGui::BeginDisabled(i == (playerManager.getKeyCount() - 1));
                             if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
-                                changed = true;
-
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandMoveAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
@@ -420,8 +410,6 @@ void WindowTimeline::Update() {
 
                             ImGui::BeginDisabled(i == 0);
                             if (ImGui::Selectable(!io.KeyAlt ? "Move back" : "Move back (without hold frames)")) {
-                                changed = true;
-
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandMoveAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
@@ -490,8 +478,6 @@ void WindowTimeline::Update() {
                         ImGui::PopID();
 
                         if (deleteKeyMode) {
-                            changed = true;
-
                             switch (deleteKeyMode) {
                                 case DeleteKeyMode_Current: {
                                     sessionManager.getCurrentSession()->executeCommand(

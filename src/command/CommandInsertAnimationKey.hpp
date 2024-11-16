@@ -3,12 +3,11 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
-
 #include "../AppState.hpp"
 
 #include "../SessionManager.hpp"
-#include "../PlayerManager.hpp"
+
+#include "../anim/RvlCellAnim.hpp"
 
 class CommandInsertAnimationKey : public BaseCommand {
 public:
@@ -29,7 +28,13 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.insert(it, this->key);
 
-        PlayerManager::getInstance().clampCurrentKeyIndex();
+        GET_APP_STATE;
+
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -38,7 +43,13 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.erase(it);
 
-        PlayerManager::getInstance().clampCurrentKeyIndex();
+        GET_APP_STATE;
+
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

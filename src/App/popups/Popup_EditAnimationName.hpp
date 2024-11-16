@@ -68,8 +68,6 @@ void Popup_EditAnimationName(int animationIndex) {
                 newMacro
             ));
 
-            sessionManager.getCurrentSessionModified() = true;
-
             ImGui::CloseCurrentPopup();
         } ImGui::SetItemDefaultFocus();
 

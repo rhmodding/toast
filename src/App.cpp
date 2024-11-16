@@ -463,8 +463,6 @@ void App::Menubar() {
                         false
                     ));
 
-                    sessionManager.getCurrentSessionModified() = true;
-
                     playerManager.setCurrentKeyIndex(keyIndex + 1);
                 }
                 ImGui::EndDisabled();
@@ -479,8 +477,6 @@ void App::Menubar() {
                         true,
                         false
                     ));
-
-                    sessionManager.getCurrentSessionModified() = true;
 
                     playerManager.setCurrentKeyIndex(keyIndex - 1);
                 }
@@ -500,8 +496,6 @@ void App::Menubar() {
                     ));
 
                     playerManager.setCurrentKeyIndex(keyIndex + 1);
-
-                    sessionManager.getCurrentSessionModified() = true;
                 }
 
                 if (ImGui::MenuItem(".. before")) {
@@ -514,8 +508,6 @@ void App::Menubar() {
                     ));
 
                     playerManager.setCurrentKeyIndex(keyIndex);
-
-                    sessionManager.getCurrentSessionModified() = true;
                 }
 
                 ImGui::EndMenu();
@@ -530,8 +522,6 @@ void App::Menubar() {
                     appState.globalAnimatable.getCurrentAnimationIndex(),
                     appState.globalAnimatable.getCurrentKeyIndex()
                 ));
-
-                sessionManager.getCurrentSessionModified() = true;
             }
 
             ImGui::EndMenu();
@@ -598,8 +588,6 @@ void App::Menubar() {
                     sessionManager.getCurrentSession()->currentCellanim,
                     arrangementIndex
                 ));
-
-                sessionManager.getCurrentSessionModified() = true;
             }
 
             ImGui::EndMenu();
@@ -646,8 +634,6 @@ void App::Menubar() {
                     appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                     appState.selectedParts[0].index
                 ));
-
-                sessionManager.getCurrentSessionModified() = true;
             }
 
             ImGui::EndMenu();

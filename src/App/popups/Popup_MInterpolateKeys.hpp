@@ -508,8 +508,6 @@ void Popup_MInterpolateKeys() {
             currentKey = globalAnimatable.getCurrentKey();
             nextKey = currentKey + 1;
 
-            sessionManager.getCurrentSessionModified() = true;
-
             ImGui::CloseCurrentPopup();
             lateOpen = false;
         }

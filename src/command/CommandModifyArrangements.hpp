@@ -24,21 +24,27 @@ public:
     }
 
     void Execute() override {
-        GET_APP_STATE;
-
         this->getArrangements() = this->newArrangements;
 
-        PlayerManager::getInstance().clampCurrentKeyIndex();
-        appState.correctSelectedParts();
+        GET_APP_STATE;
+
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
-        GET_APP_STATE;
-
         this->getArrangements() = this->oldArrangements;
 
-        PlayerManager::getInstance().clampCurrentKeyIndex();
-        appState.correctSelectedParts();
+        GET_APP_STATE;
+
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

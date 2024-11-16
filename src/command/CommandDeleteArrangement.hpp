@@ -51,6 +51,8 @@ public:
             );
 
         appState.correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -79,6 +81,8 @@ public:
             );
 
         appState.correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

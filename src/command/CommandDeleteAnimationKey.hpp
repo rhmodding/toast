@@ -25,8 +25,13 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.erase(it);
 
-        PlayerManager::getInstance().clampCurrentKeyIndex();
+        GET_APP_STATE;
+
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
         AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -35,8 +40,13 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.insert(it, this->key);
 
-        PlayerManager::getInstance().clampCurrentKeyIndex();
+        GET_APP_STATE;
+
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
         AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:

@@ -5,9 +5,10 @@
 
 #include "../AppState.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
-
 #include "../SessionManager.hpp"
+#include "../PlayerManager.hpp"
+
+#include "../anim/RvlCellAnim.hpp"
 
 class CommandInsertArrangement : public BaseCommand {
 public:
@@ -26,6 +27,14 @@ public:
 
         auto it = arrangements.begin() + this->arrangementIndex;
         arrangements.insert(it, this->arrangement);
+
+        GET_APP_STATE;
+
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
@@ -39,6 +48,14 @@ public:
                 if (key.arrangementIndex >= arrangements.size())
                     key.arrangementIndex = 0;
             }
+
+        GET_APP_STATE;
+
+        if (!appState.getArrangementMode())
+            PlayerManager::getInstance().clampCurrentKeyIndex();
+        AppState::getInstance().correctSelectedParts();
+
+        SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
 private:
