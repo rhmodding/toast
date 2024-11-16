@@ -7,6 +7,9 @@ bool _openExitWithChangesPopup { false };
 int  _editAnimationNameIdx { -1 };
 int  _swapAnimationIdx { -1 };
 
+int _oldTextureSizeX { -1 };
+int _oldTextureSizeY { -1 };
+
 int _deleteAnimationIdx { -1 };
 
 } // namespace Popups
@@ -49,7 +52,7 @@ void Popups::Update() {
     Popup_TextureExportFailed();
     Popup_SheetRepackFailed();
 
-    Popup_ModifiedTextureSize();
+    Popup_ModifiedTextureSize(_oldTextureSizeX, _oldTextureSizeY);
 
     Popup_WaitForModifiedTexture();
 

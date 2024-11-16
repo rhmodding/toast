@@ -8,29 +8,27 @@
 
 #include "../../common.hpp"
 
-void Popup_ModifiedTextureSize() {
+void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) {
+    if (oldTextureSizeX < 0 || oldTextureSizeY < 0)
+        return;
+    
     CENTER_NEXT_WINDOW;
 
-    // TODO: allow modified image undo
-
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
-    if (ImGui::BeginPopupModal("Texture size mismatch###DialogModifiedPNGSizeDiff", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    const bool active =
+        ImGui::BeginPopupModal("Texture size mismatch###ModifiedTextureSize", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::PopStyleVar();
+
+    if (active) {
         ImGui::TextUnformatted("The new texture's size is different from the existing texture.\nPlease select the wanted behavior:");
 
         ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();
         ImGui::Dummy({ 0.f, 5.f });
 
-        ImGui::PopStyleVar();
-
-        if (ImGui::Button("No region scaling")) {
-            SessionManager::Session* currentSession = SessionManager::getInstance().getCurrentSession();
-
-            currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->getWidth();
-            currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->getHeight();
-
+        if (ImGui::Button("No region scaling"))
             ImGui::CloseCurrentPopup();
-        }
+
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
             ImGui::SetTooltip("Select this option for texture extensions.");
 
@@ -46,10 +44,10 @@ void Popup_ModifiedTextureSize() {
 
             float scaleX =
                 static_cast<float>(currentSession->getCellanimSheet()->getWidth()) /
-                currentSession->getCellanimObject()->textureW;
+                oldTextureSizeX;
             float scaleY =
                 static_cast<float>(currentSession->getCellanimSheet()->getHeight()) /
-                currentSession->getCellanimObject()->textureH;
+                oldTextureSizeY;
 
             for (auto& arrangement : newArrangements)
                 for (auto& part : arrangement.parts) {
@@ -61,9 +59,6 @@ void Popup_ModifiedTextureSize() {
                     part.transform.scaleX /= scaleX;
                     part.transform.scaleY /= scaleY;
                 }
-
-            currentSession->getCellanimObject()->textureW = currentSession->getCellanimSheet()->getWidth();
-            currentSession->getCellanimObject()->textureH = currentSession->getCellanimSheet()->getHeight();
 
             sessionManager.getCurrentSession()->executeCommand(
             std::make_shared<CommandModifyArrangements>(
@@ -77,10 +72,7 @@ void Popup_ModifiedTextureSize() {
             ImGui::SetTooltip("Select this option for texture upscales.");
 
         ImGui::EndPopup();
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f }); // sigh
     }
-    ImGui::PopStyleVar();
 }
 
 #endif // POPUP_MODIFIEDTEXTURESIZE
