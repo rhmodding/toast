@@ -427,7 +427,7 @@ void TedWrite(SessionManager::Session* session, unsigned char* output) {
                         entry.nameOffset = nextNameOffset;
                         nameOffsets[name] = nextNameOffset;
 
-                        nextNameOffset += strlen(part.editorName);
+                        nextNameOffset += strlen(part.editorName) + 1;
                         nextNameOffset = (nextNameOffset + 3) & ~3;
                     }
                     // Name not unique, reuse offset
