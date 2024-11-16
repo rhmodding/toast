@@ -21,14 +21,14 @@ void WindowInspector::Level_Key() {
 
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
-    DrawPreview(globalAnimatable);
+    DrawPreview(&globalAnimatable);
 
     ImGui::SameLine();
 
-    RvlCellAnim::AnimationKey newKey = *globalAnimatable->getCurrentKey();
-    RvlCellAnim::AnimationKey originalKey = *globalAnimatable->getCurrentKey();
+    RvlCellAnim::AnimationKey newKey = *globalAnimatable.getCurrentKey();
+    RvlCellAnim::AnimationKey originalKey = *globalAnimatable.getCurrentKey();
 
-    uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
+    uint16_t animationIndex = globalAnimatable.getCurrentAnimationIndex();
     auto query = sessionManager.getCurrentSession()->getAnimationNames().find(animationIndex);
 
     const char* animationName =
@@ -42,21 +42,21 @@ void WindowInspector::Level_Key() {
         ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex+1);
 
         ImGui::PushFont(appState.fonts.large);
-        ImGui::TextWrapped("Key no. %u", globalAnimatable->getCurrentKeyIndex() + 1);
+        ImGui::TextWrapped("Key no. %u", globalAnimatable.getCurrentKeyIndex() + 1);
         ImGui::PopFont();
 
         ImGui::PopStyleVar();
     }
     ImGui::EndChild();
 
-    RvlCellAnim::AnimationKey* animKey = globalAnimatable->getCurrentKey();
+    RvlCellAnim::AnimationKey* animKey = globalAnimatable.getCurrentKey();
 
     ImGui::SeparatorText((char*)ICON_FA_IMAGE " Arrangement");
 
     // Arrangement Input
     {
         static uint16_t oldArrangement { 0 };
-        uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
+        uint16_t newArrangement = globalAnimatable.getCurrentKey()->arrangementIndex + 1;
 
         ImGui::SetNextItemWidth(
             ImGui::CalcItemWidth() -
@@ -69,8 +69,8 @@ void WindowInspector::Level_Key() {
             nullptr, nullptr,
             "%u"
         )) {
-            globalAnimatable->getCurrentKey()->arrangementIndex =
-                std::min<uint16_t>(newArrangement - 1, globalAnimatable->cellanim->arrangements.size() - 1);
+            globalAnimatable.getCurrentKey()->arrangementIndex =
+                std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
 
             appState.correctSelectedParts();
         }
@@ -83,7 +83,7 @@ void WindowInspector::Level_Key() {
 
             originalKey.arrangementIndex = oldArrangement;
             newKey.arrangementIndex =
-                std::min<uint16_t>(newArrangement - 1, globalAnimatable->cellanim->arrangements.size() - 1);
+                std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
         }
 
         // Start +- Buttons
@@ -95,24 +95,24 @@ void WindowInspector::Level_Key() {
         ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
         if (
             ImGui::Button("-##Arrangement No._dec", buttonSize) &&
-            globalAnimatable->getCurrentKey()->arrangementIndex > 0
+            globalAnimatable.getCurrentKey()->arrangementIndex > 0
         ) {
             if (!appState.getArrangementMode())
                 newKey.arrangementIndex--;
             else
-                globalAnimatable->getCurrentKey()->arrangementIndex--;
+                globalAnimatable.getCurrentKey()->arrangementIndex--;
 
             appState.correctSelectedParts();
         }
         ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
         if (
             ImGui::Button("+##Arrangement No._inc", buttonSize) &&
-            (globalAnimatable->getCurrentKey()->arrangementIndex + 1) < globalAnimatable->cellanim->arrangements.size()
+            (globalAnimatable.getCurrentKey()->arrangementIndex + 1) < globalAnimatable.cellanim->arrangements.size()
         ) {
             if (!appState.getArrangementMode())
                 newKey.arrangementIndex++;
             else
-                globalAnimatable->getCurrentKey()->arrangementIndex++;
+                globalAnimatable.getCurrentKey()->arrangementIndex++;
 
             appState.correctSelectedParts();
         }
@@ -124,7 +124,7 @@ void WindowInspector::Level_Key() {
     }
 
     {
-        bool arrangementUnique = CellanimHelpers::getArrangementUnique(globalAnimatable->getCurrentKey()->arrangementIndex);
+        bool arrangementUnique = CellanimHelpers::getArrangementUnique(globalAnimatable.getCurrentKey()->arrangementIndex);
         ImGui::BeginDisabled(arrangementUnique);
 
         if (ImGui::Button("Make arrangement unique (duplicate)"))
@@ -285,13 +285,13 @@ void WindowInspector::Level_Key() {
     }
 
     if (newKey != originalKey) {
-        *globalAnimatable->getCurrentKey() = originalKey;
+        *globalAnimatable.getCurrentKey() = originalKey;
 
         SessionManager::getInstance().getCurrentSession()->executeCommand(
         std::make_shared<CommandModifyAnimationKey>(
             sessionManager.getCurrentSession()->currentCellanim,
-            appState.globalAnimatable->getCurrentAnimationIndex(),
-            appState.globalAnimatable->getCurrentKeyIndex(),
+            appState.globalAnimatable.getCurrentAnimationIndex(),
+            appState.globalAnimatable.getCurrentKeyIndex(),
             newKey
         ));
     }

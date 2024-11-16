@@ -33,7 +33,7 @@ void WindowInspector::Level_Arrangement() {
     ImGui::BeginChild("ArrangementOverview", { 0.f, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY);
     ImGui::PopStyleVar();
     {
-        this->DrawPreview(globalAnimatable);
+        this->DrawPreview(&globalAnimatable);
 
         ImGui::SameLine();
 
@@ -47,11 +47,11 @@ void WindowInspector::Level_Arrangement() {
 
             // Arrangement Input
             {
-                auto originalKey = *globalAnimatable->getCurrentKey();
-                auto newKey = *globalAnimatable->getCurrentKey();
+                auto originalKey = *globalAnimatable.getCurrentKey();
+                auto newKey = *globalAnimatable.getCurrentKey();
 
                 static uint16_t oldArrangement { 0 };
-                uint16_t newArrangement = globalAnimatable->getCurrentKey()->arrangementIndex + 1;
+                uint16_t newArrangement = globalAnimatable.getCurrentKey()->arrangementIndex + 1;
 
                 ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
                 if (ImGui::InputScalar(
@@ -61,8 +61,8 @@ void WindowInspector::Level_Arrangement() {
                     nullptr, nullptr,
                     "%u"
                 )) {
-                    globalAnimatable->getCurrentKey()->arrangementIndex =
-                        std::min<uint16_t>(newArrangement - 1, globalAnimatable->cellanim->arrangements.size() - 1);
+                    globalAnimatable.getCurrentKey()->arrangementIndex =
+                        std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
 
                     appState.correctSelectedParts();
                 }
@@ -75,7 +75,7 @@ void WindowInspector::Level_Arrangement() {
 
                     originalKey.arrangementIndex = oldArrangement;
                     newKey.arrangementIndex =
-                        std::min<uint16_t>(newArrangement - 1, globalAnimatable->cellanim->arrangements.size() - 1);
+                        std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
                 }
 
                 // Start +- Buttons
@@ -87,24 +87,24 @@ void WindowInspector::Level_Arrangement() {
                 ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
                 if (
                     ImGui::Button("-##ArrangementInput_dec", buttonSize) &&
-                    globalAnimatable->getCurrentKey()->arrangementIndex > 0
+                    globalAnimatable.getCurrentKey()->arrangementIndex > 0
                 ) {
                     if (!appState.getArrangementMode())
                         newKey.arrangementIndex--;
                     else
-                        globalAnimatable->getCurrentKey()->arrangementIndex--;
+                        globalAnimatable.getCurrentKey()->arrangementIndex--;
 
                     appState.correctSelectedParts();
                 }
                 ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
                 if (
                     ImGui::Button("+##ArrangementInput_inc", buttonSize) &&
-                    (globalAnimatable->getCurrentKey()->arrangementIndex + 1) < globalAnimatable->cellanim->arrangements.size()
+                    (globalAnimatable.getCurrentKey()->arrangementIndex + 1) < globalAnimatable.cellanim->arrangements.size()
                 ) {
                     if (!appState.getArrangementMode())
                         newKey.arrangementIndex++;
                     else
-                        globalAnimatable->getCurrentKey()->arrangementIndex++;
+                        globalAnimatable.getCurrentKey()->arrangementIndex++;
 
                     appState.correctSelectedParts();
                 }
@@ -112,7 +112,7 @@ void WindowInspector::Level_Arrangement() {
                 ImGui::PopButtonRepeat();
 
                 {
-                    bool arrangementUnique = CellanimHelpers::getArrangementUnique(globalAnimatable->getCurrentKey()->arrangementIndex);
+                    bool arrangementUnique = CellanimHelpers::getArrangementUnique(globalAnimatable.getCurrentKey()->arrangementIndex);
                     ImGui::BeginDisabled(arrangementUnique);
 
                     if (ImGui::Button("Make arrangement unique (duplicate)"))
@@ -145,13 +145,13 @@ void WindowInspector::Level_Arrangement() {
                 }
 
                 if (newKey != originalKey) {
-                    *globalAnimatable->getCurrentKey() = originalKey;
+                    *globalAnimatable.getCurrentKey() = originalKey;
 
                     SessionManager::getInstance().getCurrentSession()->executeCommand(
                     std::make_shared<CommandModifyAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable->getCurrentAnimationIndex(),
-                        appState.globalAnimatable->getCurrentKeyIndex(),
+                        appState.globalAnimatable.getCurrentAnimationIndex(),
+                        appState.globalAnimatable.getCurrentKeyIndex(),
                         newKey
                     ));
                 }
@@ -161,7 +161,7 @@ void WindowInspector::Level_Arrangement() {
         }
         ImGui::EndChild();
 
-        RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
+        RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
 
         RvlCellAnim::ArrangementPart* partPtr = appState.singlePartSelected() ? &arrangementPtr->parts.at(appState.selectedParts[0].index) : nullptr;
 
@@ -383,7 +383,7 @@ void WindowInspector::Level_Arrangement() {
         //ImGui::Text("Selected size : %u, next : %i", (unsigned)appState.selectedParts.size(), appState.spSelectionOrder);
 
         RvlCellAnim::Arrangement* arrangementPtr =
-            &globalAnimatable->cellanim->arrangements.at(globalAnimatable->getCurrentKey()->arrangementIndex);
+            &globalAnimatable.cellanim->arrangements.at(globalAnimatable.getCurrentKey()->arrangementIndex);
 
         ImGui::BeginChild("PartList", { 0.f, 0.f }, ImGuiChildFlags_None);
 
@@ -496,7 +496,7 @@ void WindowInspector::Level_Arrangement() {
 
                 if (ImGui::BeginMenu(label, !copyParts.empty())) {
                     if (ImGui::MenuItem("..above")) {
-                        auto newArrangement = *appState.globalAnimatable->getCurrentArrangement();
+                        auto newArrangement = *appState.globalAnimatable.getCurrentArrangement();
                         newArrangement.parts.insert(
                             newArrangement.parts.begin() + n + 1,
                             copyParts.begin(),
@@ -506,7 +506,7 @@ void WindowInspector::Level_Arrangement() {
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyArrangement>(
                             sessionManager.getCurrentSession()->currentCellanim,
-                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                             newArrangement
                         ));
 
@@ -518,7 +518,7 @@ void WindowInspector::Level_Arrangement() {
                         //appState.setPartSelected(n + 1, true);
                     }
                     if (ImGui::MenuItem("..below")) {
-                        auto newArrangement = *appState.globalAnimatable->getCurrentArrangement();
+                        auto newArrangement = *appState.globalAnimatable.getCurrentArrangement();
                         newArrangement.parts.insert(
                             newArrangement.parts.begin() + n,
                             copyParts.begin(),
@@ -528,7 +528,7 @@ void WindowInspector::Level_Arrangement() {
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyArrangement>(
                             sessionManager.getCurrentSession()->currentCellanim,
-                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                             newArrangement
                         ));
 
@@ -543,7 +543,7 @@ void WindowInspector::Level_Arrangement() {
                     ImGui::Separator();
 
                     if (ImGui::MenuItem("..here (replace)")) {
-                        auto newArrangement = *appState.globalAnimatable->getCurrentArrangement();
+                        auto newArrangement = *appState.globalAnimatable.getCurrentArrangement();
 
                         newArrangement.parts.erase(newArrangement.parts.begin() + n);
                         newArrangement.parts.insert(
@@ -574,7 +574,7 @@ void WindowInspector::Level_Arrangement() {
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyArrangementPart>(
                             sessionManager.getCurrentSession()->currentCellanim,
-                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                             n,
                             newPart
                         ));
@@ -592,7 +592,7 @@ void WindowInspector::Level_Arrangement() {
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyArrangementPart>(
                             sessionManager.getCurrentSession()->currentCellanim,
-                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                             n,
                             newPart
                         ));
@@ -615,7 +615,7 @@ void WindowInspector::Level_Arrangement() {
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyArrangementPart>(
                             sessionManager.getCurrentSession()->currentCellanim,
-                            appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                            appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                             n,
                             newPart
                         ));
@@ -777,7 +777,7 @@ void WindowInspector::Level_Arrangement() {
                 sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandMoveArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
-                    appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                    appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                     n,
                     false
                 ));
@@ -794,7 +794,7 @@ void WindowInspector::Level_Arrangement() {
                 sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandMoveArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
-                    appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                    appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                     n,
                     true
                 ));
@@ -822,7 +822,7 @@ void WindowInspector::Level_Arrangement() {
             sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandModifyArrangement>(
                     sessionManager.getCurrentSession()->currentCellanim,
-                    globalAnimatable->getCurrentKey()->arrangementIndex,
+                    globalAnimatable.getCurrentKey()->arrangementIndex,
                     newArrangement
                 )
             );
@@ -834,7 +834,7 @@ void WindowInspector::Level_Arrangement() {
             sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandDeleteArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
-                    globalAnimatable->getCurrentKey()->arrangementIndex,
+                    globalAnimatable.getCurrentKey()->arrangementIndex,
                     selDeleteSingle
                 )
             );
@@ -850,7 +850,7 @@ void WindowInspector::Level_Arrangement() {
             sessionManager.getCurrentSession()->executeCommand(
             std::make_shared<CommandInsertArrangementPart>(
                 sessionManager.getCurrentSession()->currentCellanim,
-                appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                 insertNewPart,
                 RvlCellAnim::ArrangementPart {}
             ));

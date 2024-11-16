@@ -78,7 +78,7 @@ private:
 
             appState.selectedAnimation = newSelectedAnimation;
 
-            appState.globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
+            appState.globalAnimatable.setAnimationFromIndex(appState.selectedAnimation);
 
             if (selectedDifferentAnimation)
                 PlayerManager::getInstance().setCurrentKeyIndex(0);

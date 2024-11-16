@@ -101,7 +101,7 @@ void Popup_SwapAnimation(int animationIndex) {
 
             GET_ANIMATABLE;
 
-            for (unsigned n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
+            for (unsigned n = 0; n < globalAnimatable.cellanim->animations.size(); n++) {
                 std::ostringstream fmtStream;
 
                 GET_SESSION_MANAGER;

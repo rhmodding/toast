@@ -86,7 +86,7 @@ void WindowHybridList::Update() {
         GET_ANIMATABLE;
 
         if (!appState.getArrangementMode())
-            for (unsigned n = 0; n < globalAnimatable->cellanim->animations.size(); n++) {
+            for (unsigned n = 0; n < globalAnimatable.cellanim->animations.size(); n++) {
                 std::ostringstream fmtStream;
 
                 auto query = sessionManager.getCurrentSession()->getAnimationNames().find(n);
@@ -101,7 +101,7 @@ void WindowHybridList::Update() {
                 if (ImGui::Selectable(fmtStream.str().c_str(), appState.selectedAnimation == n, ImGuiSelectableFlags_SelectOnNav)) {
                     appState.selectedAnimation = n;
 
-                    globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
+                    globalAnimatable.setAnimationFromIndex(appState.selectedAnimation);
 
                     PlayerManager::getInstance().setCurrentKeyIndex(0);
 
@@ -133,7 +133,7 @@ void WindowHybridList::Update() {
                     ImGui::Separator();
 
                     if (ImGui::Selectable("Copy animation")) {
-                        copyAnimation = globalAnimatable->cellanim->animations.at(n);
+                        copyAnimation = globalAnimatable.cellanim->animations[n];
                         allowPasteAnimation = true;
                     }
 
@@ -145,17 +145,17 @@ void WindowHybridList::Update() {
                 }
             }
         else
-            for (unsigned n = 0; n < globalAnimatable->cellanim->arrangements.size(); n++) {
+            for (unsigned n = 0; n < globalAnimatable.cellanim->arrangements.size(); n++) {
                 char buffer[48];
                 snprintf(buffer, sizeof(buffer), "Arrangement no. %d", n+1);
 
-                RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
+                RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
 
                 if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n, ImGuiSelectableFlags_SelectOnNav)) {
                     appState.controlKey.arrangementIndex = n;
 
                     // Update arrangementPtr
-                    arrangementPtr = globalAnimatable->getCurrentArrangement();
+                    arrangementPtr = globalAnimatable.getCurrentArrangement();
 
                     appState.correctSelectedParts();
                 }
@@ -219,7 +219,7 @@ void WindowHybridList::Update() {
                     }
 
                     if (ImGui::Selectable("Copy arrangement")) {
-                        copyArrangement = globalAnimatable->cellanim->arrangements.at(n);
+                        copyArrangement = globalAnimatable.cellanim->arrangements.at(n);
                         allowPasteArrangement = true;
                     }
 

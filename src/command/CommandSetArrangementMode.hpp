@@ -40,13 +40,13 @@ private:
         auto& globalAnimatable = appState.globalAnimatable;
 
         if (lEnabled) {
-            appState.controlKey.arrangementIndex = globalAnimatable->getCurrentKey()->arrangementIndex;
+            appState.controlKey.arrangementIndex = globalAnimatable.getCurrentKey()->arrangementIndex;
 
             PlayerManager::getInstance().setPlaying(false);
-            globalAnimatable->overrideAnimationKey(&appState.controlKey);
+            globalAnimatable.overrideAnimationKey(&appState.controlKey);
         }
         else {
-            globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
+            globalAnimatable.setAnimationFromIndex(appState.selectedAnimation);
         }
     }
 

@@ -275,7 +275,7 @@ void Popup_MInterpolateKeys() {
     GET_APP_STATE;
     GET_ANIMATABLE;
 
-    bool condition = globalAnimatable && globalAnimatable->cellanim.get();
+    bool condition = globalAnimatable.cellanim.get();
 
     static RvlCellAnim::Animation animationBackup { RvlCellAnim::Animation {} };
 
@@ -288,13 +288,13 @@ void Popup_MInterpolateKeys() {
     RvlCellAnim::AnimationKey* nextKey { nullptr };
 
     if (condition) {
-        currentAnimation = globalAnimatable->getCurrentAnimation();
-        animationIndex = globalAnimatable->getCurrentAnimationIndex();
+        currentAnimation = globalAnimatable.getCurrentAnimation();
+        animationIndex = globalAnimatable.getCurrentAnimationIndex();
 
-        currentKey = globalAnimatable->getCurrentKey();
+        currentKey = globalAnimatable.getCurrentKey();
         nextKey = currentKey + 1;
 
-        currentKeyIndex = static_cast<int>(globalAnimatable->getCurrentKeyIndex());
+        currentKeyIndex = static_cast<int>(globalAnimatable.getCurrentKeyIndex());
 
         // Does next key exist?
         condition = currentKeyIndex + 1 < currentAnimation->keys.size();
@@ -426,7 +426,7 @@ void Popup_MInterpolateKeys() {
         ImGui::Separator();
 
         if (ImGui::Button("Apply")) {
-            const RvlCellAnim::Arrangement* endArrangement = &globalAnimatable->cellanim->arrangements.at(nextKey->arrangementIndex);
+            const RvlCellAnim::Arrangement* endArrangement = &globalAnimatable.cellanim->arrangements.at(nextKey->arrangementIndex);
 
             std::vector<RvlCellAnim::AnimationKey> addKeys((currentKey->holdFrames / interval) - 1);
 
@@ -443,7 +443,7 @@ void Popup_MInterpolateKeys() {
                     currentKey->arrangementIndex != nextKey->arrangementIndex
                 ) {
                     RvlCellAnim::Arrangement newArrangement =
-                        globalAnimatable->cellanim->arrangements.at(currentKey->arrangementIndex);
+                        globalAnimatable.cellanim->arrangements.at(currentKey->arrangementIndex);
 
                     for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
                         auto& part = newArrangement.parts.at(j);
@@ -478,10 +478,10 @@ void Popup_MInterpolateKeys() {
                         part.opacity = static_cast<uint8_t>(std::lerp(part.opacity, endPart->opacity, t));
                     }
 
-                    newKey.arrangementIndex = globalAnimatable->cellanim->arrangements.size();
-                    globalAnimatable->cellanim->arrangements.push_back(newArrangement);
+                    newKey.arrangementIndex = globalAnimatable.cellanim->arrangements.size();
+                    globalAnimatable.cellanim->arrangements.push_back(newArrangement);
 
-                    endArrangement = &globalAnimatable->cellanim->arrangements.at(nextKey->arrangementIndex);
+                    endArrangement = &globalAnimatable.cellanim->arrangements.at(nextKey->arrangementIndex);
                 }
             }
 
@@ -499,8 +499,8 @@ void Popup_MInterpolateKeys() {
                 newAnim
             ));
 
-            currentAnimation = globalAnimatable->getCurrentAnimation();
-            currentKey = globalAnimatable->getCurrentKey();
+            currentAnimation = globalAnimatable.getCurrentAnimation();
+            currentKey = globalAnimatable.getCurrentKey();
             nextKey = currentKey + 1;
 
             sessionManager.getCurrentSessionModified() = true;

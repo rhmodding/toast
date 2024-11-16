@@ -23,8 +23,8 @@ void Popup_MTransformArrangement() {
 
     RvlCellAnim::Arrangement* arrangement { nullptr };
 
-    if (globalAnimatable && globalAnimatable->cellanim)
-        arrangement = globalAnimatable->getCurrentArrangement();
+    if (globalAnimatable.cellanim)
+        arrangement = globalAnimatable.getCurrentArrangement();
 
     static const int noOffset[2] { 0, 0 };
     static const float noScale[2] { 1.f, 1.f };
@@ -94,7 +94,7 @@ void Popup_MTransformArrangement() {
             sessionManager.getCurrentSession()->executeCommand(
             std::make_shared<CommandModifyArrangement>(
                 sessionManager.getCurrentSession()->currentCellanim,
-                globalAnimatable->getCurrentKey()->arrangementIndex,
+                globalAnimatable.getCurrentKey()->arrangementIndex,
                 newArrangement
             ));
 

@@ -403,7 +403,7 @@ void App::Menubar() {
 
         if (ImGui::BeginMenu("Animation", sessionAvaliable)) {
             const unsigned animIndex =
-                appState.globalAnimatable->getCurrentAnimationIndex();
+                appState.globalAnimatable.getCurrentAnimationIndex();
 
             ImGui::Text("Selected animation (no. %u)", animIndex + 1);
 
@@ -430,8 +430,8 @@ void App::Menubar() {
             !playerManager.playing
         )) {
             const unsigned keyIndex =
-                appState.globalAnimatable->getCurrentKeyIndex();
-            auto* key = appState.globalAnimatable->getCurrentKey();
+                appState.globalAnimatable.getCurrentKeyIndex();
+            auto* key = appState.globalAnimatable.getCurrentKey();
 
             ImGui::Text(
                 "Selected key (no. %u)",
@@ -445,7 +445,7 @@ void App::Menubar() {
                 nullptr, nullptr,
 
                 keyIndex + 1 <
-                appState.globalAnimatable->getCurrentAnimation()->keys.size()
+                appState.globalAnimatable.getCurrentAnimation()->keys.size()
             ))
                 appState.OpenGlobalPopup("MInterpolateKeys");
 
@@ -457,7 +457,7 @@ void App::Menubar() {
                     sessionManager.getCurrentSession()->executeCommand(
                     std::make_shared<CommandMoveAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        appState.globalAnimatable.getCurrentAnimationIndex(),
                         keyIndex,
                         false,
                         false
@@ -474,7 +474,7 @@ void App::Menubar() {
                     sessionManager.getCurrentSession()->executeCommand(
                     std::make_shared<CommandMoveAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        appState.globalAnimatable.getCurrentAnimationIndex(),
                         keyIndex,
                         true,
                         false
@@ -494,7 +494,7 @@ void App::Menubar() {
                     sessionManager.getCurrentSession()->executeCommand(
                     std::make_shared<CommandInsertAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        appState.globalAnimatable.getCurrentAnimationIndex(),
                         keyIndex + 1,
                         *key
                     ));
@@ -508,7 +508,7 @@ void App::Menubar() {
                     sessionManager.getCurrentSession()->executeCommand(
                     std::make_shared<CommandInsertAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                        appState.globalAnimatable.getCurrentAnimationIndex(),
                         keyIndex,
                         *key
                     ));
@@ -527,8 +527,8 @@ void App::Menubar() {
                 sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandDeleteAnimationKey>(
                     sessionManager.getCurrentSession()->currentCellanim,
-                    appState.globalAnimatable->getCurrentAnimationIndex(),
-                    appState.globalAnimatable->getCurrentKeyIndex()
+                    appState.globalAnimatable.getCurrentAnimationIndex(),
+                    appState.globalAnimatable.getCurrentKeyIndex()
                 ));
 
                 sessionManager.getCurrentSessionModified() = true;
@@ -542,7 +542,7 @@ void App::Menubar() {
             !playerManager.playing
         )) {
             const unsigned arrangementIndex =
-                appState.globalAnimatable->getCurrentKey()->arrangementIndex;
+                appState.globalAnimatable.getCurrentKey()->arrangementIndex;
 
             ImGui::Text(
                 "Current arrangement (no. %u)",
@@ -554,8 +554,8 @@ void App::Menubar() {
             // Duplicate option
             {
                 const unsigned keyIndex =
-                    appState.globalAnimatable->getCurrentKeyIndex();
-                auto* key = appState.globalAnimatable->getCurrentKey();
+                    appState.globalAnimatable.getCurrentKeyIndex();
+                auto* key = appState.globalAnimatable.getCurrentKey();
 
                 bool arrangementUnique = CellanimHelpers::getArrangementUnique(key->arrangementIndex);
                 ImGui::BeginDisabled(arrangementUnique);
@@ -570,7 +570,7 @@ void App::Menubar() {
                         sessionManager.getCurrentSession()->executeCommand(
                         std::make_shared<CommandModifyAnimationKey>(
                             sessionManager.getCurrentSession()->currentCellanim,
-                            appState.globalAnimatable->getCurrentAnimationIndex(),
+                            appState.globalAnimatable.getCurrentAnimationIndex(),
                             keyIndex,
                             newKey
                         ));
@@ -611,7 +611,7 @@ void App::Menubar() {
             !playerManager.playing
         )) {
             auto* part =
-                &appState.globalAnimatable->getCurrentArrangement()
+                &appState.globalAnimatable.getCurrentArrangement()
                 ->parts.at(appState.selectedParts[0].index);
 
             ImGui::Text(
@@ -643,7 +643,7 @@ void App::Menubar() {
                 sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandDeleteArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
-                    appState.globalAnimatable->getCurrentKey()->arrangementIndex,
+                    appState.globalAnimatable.getCurrentKey()->arrangementIndex,
                     appState.selectedParts[0].index
                 ));
 

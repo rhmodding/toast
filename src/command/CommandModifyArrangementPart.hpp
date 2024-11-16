@@ -29,7 +29,7 @@ public:
         newPart(newPart)
     {
         this->cellanimIndex = SessionManager::getInstance().getCurrentSession()->currentCellanim;
-        this->arrangementIndex = AppState::getInstance().globalAnimatable->getCurrentKey()->arrangementIndex;
+        this->arrangementIndex = AppState::getInstance().globalAnimatable.getCurrentKey()->arrangementIndex;
         this->partIndex = AppState::getInstance().selectedParts.at(0).index;
 
         this->oldPart = this->getPart();

@@ -23,7 +23,7 @@
 #define GET_APP_STATE AppState& appState = AppState::getInstance()
 
 // Stores globalAnimatable refpointer in local globalAnimatable.
-#define GET_ANIMATABLE Animatable*& globalAnimatable = AppState::getInstance().globalAnimatable
+#define GET_ANIMATABLE Animatable& globalAnimatable = AppState::getInstance().globalAnimatable
 
 #define BEGIN_GLOBAL_POPUP ImGui::PushOverrideID(AppState::getInstance().globalPopupID)
 #define END_GLOBAL_POPUP ImGui::PopID()
@@ -260,7 +260,7 @@ public:
     }
 
     inline void correctSelectedParts() {
-        unsigned size = this->globalAnimatable->getCurrentArrangement()->parts.size();
+        unsigned size = this->globalAnimatable.getCurrentArrangement()->parts.size();
 
         // Create local clone of selectedParts since
         // setPartSelected will mutate the original
@@ -274,7 +274,7 @@ public:
 
     bool focusOnSelectedPart { false };
 
-    Animatable* globalAnimatable { nullptr };
+    Animatable globalAnimatable {};
 
     struct OnionSkinState {
         bool enabled { false };
@@ -312,9 +312,7 @@ private:
 
 private:
     AppState() {} // Private constructor to prevent instantiation
-    ~AppState() {
-        Common::deleteIfNotNullptr(this->globalAnimatable, false);
-    }
+    ~AppState() {}
 };
 
 #endif // APPSTATE_HPP

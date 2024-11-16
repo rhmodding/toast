@@ -24,10 +24,10 @@ void Popup_MPadRegion() {
     RvlCellAnim::ArrangementPart* part { nullptr };
 
     if (
-        globalAnimatable && globalAnimatable->cellanim &&
+        globalAnimatable.cellanim &&
         appState.singlePartSelected()
     )
-        part = &globalAnimatable->getCurrentArrangement()->parts.at(appState.selectedParts[0].index);
+        part = &globalAnimatable.getCurrentArrangement()->parts.at(appState.selectedParts[0].index);
 
     static uint16_t origOffset[2] { 8, 8 };
     static uint16_t origSize[2] { 32, 32 };
@@ -100,7 +100,7 @@ void Popup_MPadRegion() {
             sessionManager.getCurrentSession()->executeCommand(
             std::make_shared<CommandModifyArrangementPart>(
                 sessionManager.getCurrentSession()->currentCellanim,
-                globalAnimatable->getCurrentKey()->arrangementIndex,
+                globalAnimatable.getCurrentKey()->arrangementIndex,
                 appState.selectedParts[0].index,
                 newPart
             ));

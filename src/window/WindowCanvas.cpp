@@ -338,7 +338,7 @@ void WindowCanvas::Update() {
     GET_ANIMATABLE;
     GET_APP_STATE;
 
-    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
+    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
 
     const int firstSelectedPart = appState.anyPartsSelected() ?
         appState.selectedParts[0].index :
@@ -352,10 +352,10 @@ void WindowCanvas::Update() {
         true;
 
     {
-        globalAnimatable->offset = origin;
+        globalAnimatable.offset = origin;
 
-        globalAnimatable->scaleX = this->canvasZoom + 1;
-        globalAnimatable->scaleY = this->canvasZoom + 1;
+        globalAnimatable.scaleX = this->canvasZoom + 1;
+        globalAnimatable.scaleY = this->canvasZoom + 1;
     }
 
     // All drawing operations (and handle calculation)
@@ -403,7 +403,7 @@ void WindowCanvas::Update() {
                 bool drawUnder = appState.onionSkinState.drawUnder;
 
                 if (drawOnionSkin && drawUnder) {
-                    globalAnimatable->DrawOnionSkin(
+                    globalAnimatable.DrawOnionSkin(
                         drawList,
                         appState.onionSkinState.backCount,
                         appState.onionSkinState.frontCount,
@@ -412,10 +412,10 @@ void WindowCanvas::Update() {
                     );
                 }
 
-                globalAnimatable->Draw(drawList, this->allowOpacity);
+                globalAnimatable.Draw(drawList, this->allowOpacity);
 
                 if (drawOnionSkin && !drawUnder) {
-                    globalAnimatable->DrawOnionSkin(
+                    globalAnimatable.DrawOnionSkin(
                         drawList,
                         appState.onionSkinState.backCount,
                         appState.onionSkinState.frontCount,
@@ -473,7 +473,7 @@ void WindowCanvas::Update() {
                             partBoundingDrawColor.w * 255
                         );
 
-                    auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), part.index);
+                    auto bounding = globalAnimatable.getPartWorldQuad(globalAnimatable.getCurrentKey(), part.index);
                     drawList->AddQuad(
                         ROUND_IMVEC2(bounding[0]), ROUND_IMVEC2(bounding[1]),
                         ROUND_IMVEC2(bounding[2]), ROUND_IMVEC2(bounding[3]),
@@ -488,8 +488,8 @@ void WindowCanvas::Update() {
                     // If quad is too small or the part is locked, only draw the bounding.
                     if (thrLength >= 35.f && !partLocked) {
                         float angle =
-                            globalAnimatable->getCurrentArrangement()->parts.at(part.index).transform.angle +
-                            globalAnimatable->getCurrentKey()->transform.angle;
+                            globalAnimatable.getCurrentArrangement()->parts.at(part.index).transform.angle +
+                            globalAnimatable.getCurrentKey()->transform.angle;
 
                         ImVec2 point;
 
@@ -548,7 +548,7 @@ void WindowCanvas::Update() {
                         partBoundingDrawColor.w * 255
                     );
 
-                    auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), i);
+                    auto bounding = globalAnimatable.getPartWorldQuad(globalAnimatable.getCurrentKey(), i);
                     drawList->AddQuad(
                         ROUND_IMVEC2(bounding[0]), ROUND_IMVEC2(bounding[1]),
                         ROUND_IMVEC2(bounding[2]), ROUND_IMVEC2(bounding[3]),
@@ -596,7 +596,7 @@ void WindowCanvas::Update() {
         !PlayerManager::getInstance().playing
     ) {
         for (const auto& part : appState.selectedParts) {
-            auto bounding = globalAnimatable->getPartWorldQuad(globalAnimatable->getCurrentKey(), part.index);
+            auto bounding = globalAnimatable.getPartWorldQuad(globalAnimatable.getCurrentKey(), part.index);
             ImVec2 polygon[5] {
                 bounding[0],
                 bounding[1],
@@ -634,10 +634,10 @@ void WindowCanvas::Update() {
     if (activePartHandle == PartHandle_Whole) {
         dragPartOffset.x +=
             io.MouseDelta.x / ((canvasZoom) + 1.f) /
-            globalAnimatable->getCurrentKey()->transform.scaleX;
+            globalAnimatable.getCurrentKey()->transform.scaleX;
         dragPartOffset.y +=
             io.MouseDelta.y / ((canvasZoom) + 1.f) /
-            globalAnimatable->getCurrentKey()->transform.scaleY;
+            globalAnimatable.getCurrentKey()->transform.scaleY;
 
         for (const auto& sPart : appState.selectedParts) {
             const auto& oldTransform = arrangementBeforehand.parts.at(sPart.index).transform;
@@ -680,11 +680,11 @@ void WindowCanvas::Update() {
         int16_t* position, int16_t partBeforePosition
     ) {
         if (flipped ? !positiveCase : positiveCase) {
-            size += mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable->getCurrentKey()->transform.scaleY;
+            size += mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable.getCurrentKey()->transform.scaleY;
             *scale = (size / regionSize) + partBeforeScale - 1.f;
         }
         else {
-            size -= mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable->getCurrentKey()->transform.scaleY;
+            size -= mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable.getCurrentKey()->transform.scaleY;
             *scale = (size / regionSize) + partBeforeScale - 1.f;
             *position = partBeforePosition - (size - regionSize);
         }
@@ -719,8 +719,8 @@ void WindowCanvas::Update() {
         for (const auto& sPart : appState.selectedParts) {
             RvlCellAnim::ArrangementPart& part = newArrange.parts.at(sPart.index);
             
-            bool flipX = globalAnimatable->getCurrentKey()->transform.scaleX < 0.f;
-            bool flipY = globalAnimatable->getCurrentKey()->transform.scaleY < 0.f;
+            bool flipX = globalAnimatable.getCurrentKey()->transform.scaleX < 0.f;
+            bool flipY = globalAnimatable.getCurrentKey()->transform.scaleY < 0.f;
 
             GET_SESSION_MANAGER;
 
@@ -760,7 +760,7 @@ void WindowCanvas::Update() {
             sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandModifyArrangement>(
                     sessionManager.getCurrentSession()->currentCellanim,
-                    globalAnimatable->getCurrentKey()->arrangementIndex,
+                    globalAnimatable.getCurrentKey()->arrangementIndex,
                     newArrange
                 )
             );
@@ -791,7 +791,7 @@ void WindowCanvas::Update() {
         sessionManager.getCurrentSession()->executeCommand(
             std::make_shared<CommandModifyArrangement>(
                 sessionManager.getCurrentSession()->currentCellanim,
-                globalAnimatable->getCurrentKey()->arrangementIndex,
+                globalAnimatable.getCurrentKey()->arrangementIndex,
                 arrangementBeforehand
             )
         );
@@ -884,7 +884,7 @@ void WindowCanvas::DrawCanvasText() {
         textDrawHeight += 3.f + ImGui::CalcTextSize(fmtStream.str().c_str()).y;
     }
 
-    if (!AppState::getInstance().globalAnimatable->getDoesDraw(this->allowOpacity)) {
+    if (!AppState::getInstance().globalAnimatable.getDoesDraw(this->allowOpacity)) {
         const char* text = "Nothing to draw on this frame";
 
         drawList->AddText(

@@ -259,7 +259,7 @@ void WindowTimeline::Update() {
                             playerManager.setCurrentKeyIndex(i);
                         }
 
-                        RvlCellAnim::AnimationKey& key = globalAnimatable->getCurrentAnimation()->keys.at(i);
+                        RvlCellAnim::AnimationKey& key = globalAnimatable.getCurrentAnimation()->keys.at(i);
 
                         enum DeleteKeyMode: uint16_t {
                             DeleteKeyMode_None,
@@ -293,11 +293,11 @@ void WindowTimeline::Update() {
                                 RvlCellAnim::Arrangement* arrangementB { nullptr };
 
                                 if (i+1 < playerManager.getKeyCount()) {
-                                    arrangementA = &globalAnimatable->cellanim->arrangements.at(
+                                    arrangementA = &globalAnimatable.cellanim->arrangements.at(
                                         key.arrangementIndex
                                     );
-                                    arrangementB = &globalAnimatable->cellanim->arrangements.at(
-                                        globalAnimatable->getCurrentAnimation()->keys.at(i+1).arrangementIndex
+                                    arrangementB = &globalAnimatable.cellanim->arrangements.at(
+                                        globalAnimatable.getCurrentAnimation()->keys.at(i+1).arrangementIndex
                                     );
 
                                     splitPossible = arrangementA->parts.size() == arrangementB->parts.size();
@@ -323,15 +323,15 @@ void WindowTimeline::Update() {
                                         );
                                     }
 
-                                    globalAnimatable->cellanim->arrangements.push_back(newArrangement);
+                                    globalAnimatable.cellanim->arrangements.push_back(newArrangement);
 
                                     RvlCellAnim::AnimationKey modKey = key;
 
                                     {
-                                        newKey.arrangementIndex = globalAnimatable->cellanim->arrangements.size() - 1;
+                                        newKey.arrangementIndex = globalAnimatable.cellanim->arrangements.size() - 1;
 
                                         const auto& keyA = key;
-                                        const auto& keyB = globalAnimatable->getCurrentAnimation()->keys.at(i+1);
+                                        const auto& keyB = globalAnimatable.getCurrentAnimation()->keys.at(i+1);
 
                                         newKey.transform = keyA.transform.average(keyB.transform);
 
@@ -351,7 +351,7 @@ void WindowTimeline::Update() {
                                     sessionManager.getCurrentSession()->executeCommand(
                                     std::make_shared<CommandModifyAnimationKey>(
                                         sessionManager.getCurrentSession()->currentCellanim,
-                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        appState.globalAnimatable.getCurrentAnimationIndex(),
                                         i,
                                         modKey
                                     ));
@@ -361,7 +361,7 @@ void WindowTimeline::Update() {
                                     sessionManager.getCurrentSession()->executeCommand(
                                     std::make_shared<CommandInsertAnimationKey>(
                                         sessionManager.getCurrentSession()->currentCellanim,
-                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        appState.globalAnimatable.getCurrentAnimationIndex(),
                                         i + 1,
                                         newKey
                                     ));
@@ -377,7 +377,7 @@ void WindowTimeline::Update() {
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandInsertAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
-                                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                                    appState.globalAnimatable.getCurrentAnimationIndex(),
                                     i + 1,
                                     io.KeyAlt ? key : RvlCellAnim::AnimationKey()
                                 ));
@@ -391,7 +391,7 @@ void WindowTimeline::Update() {
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandInsertAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
-                                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                                    appState.globalAnimatable.getCurrentAnimationIndex(),
                                     i,
                                     io.KeyAlt ? key : RvlCellAnim::AnimationKey()
                                 ));
@@ -408,7 +408,7 @@ void WindowTimeline::Update() {
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandMoveAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
-                                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                                    appState.globalAnimatable.getCurrentAnimationIndex(),
                                     i,
                                     false,
                                     io.KeyAlt
@@ -425,7 +425,7 @@ void WindowTimeline::Update() {
                                 sessionManager.getCurrentSession()->executeCommand(
                                 std::make_shared<CommandMoveAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
-                                    appState.globalAnimatable->getCurrentAnimationIndex(),
+                                    appState.globalAnimatable.getCurrentAnimationIndex(),
                                     i,
                                     true,
                                     io.KeyAlt
@@ -497,34 +497,34 @@ void WindowTimeline::Update() {
                                     sessionManager.getCurrentSession()->executeCommand(
                                     std::make_shared<CommandDeleteAnimationKey>(
                                         sessionManager.getCurrentSession()->currentCellanim,
-                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        appState.globalAnimatable.getCurrentAnimationIndex(),
                                         i
                                     ));
                                 } break;
 
                                 case DeleteKeyMode_ToLeft: {
                                     RvlCellAnim::Animation newAnimation {
-                                        .keys = globalAnimatable->getCurrentAnimation()->keys
+                                        .keys = globalAnimatable.getCurrentAnimation()->keys
                                     };
                                     newAnimation.keys.erase(newAnimation.keys.begin(), newAnimation.keys.begin() + i);
 
                                     sessionManager.getCurrentSession()->executeCommand(
                                     std::make_shared<CommandModifyAnimation>(
                                         sessionManager.getCurrentSession()->currentCellanim,
-                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        appState.globalAnimatable.getCurrentAnimationIndex(),
                                         newAnimation
                                     ));
                                 } break;
                                 case DeleteKeyMode_ToRight: {
                                     RvlCellAnim::Animation newAnimation {
-                                        .keys = globalAnimatable->getCurrentAnimation()->keys
+                                        .keys = globalAnimatable.getCurrentAnimation()->keys
                                     };
                                     newAnimation.keys.erase(newAnimation.keys.begin() + i + 1, newAnimation.keys.end());
 
                                     sessionManager.getCurrentSession()->executeCommand(
                                     std::make_shared<CommandModifyAnimation>(
                                         sessionManager.getCurrentSession()->currentCellanim,
-                                        appState.globalAnimatable->getCurrentAnimationIndex(),
+                                        appState.globalAnimatable.getCurrentAnimationIndex(),
                                         newAnimation
                                     ));
                                 } break;
@@ -558,7 +558,7 @@ void WindowTimeline::Update() {
                         // Key button dummy
                         ImGui::Dummy(buttonDimensions);
 
-                        uint16_t holdFrames = globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames;
+                        uint16_t holdFrames = globalAnimatable.getCurrentAnimation()->keys.at(i).holdFrames;
                         if (holdFrames > 1) {
                             ImGui::SameLine();
 
@@ -621,7 +621,7 @@ void WindowTimeline::Update() {
                             ImGui::EndDisabled();
 
                             // Hold frame dummy
-                            uint16_t holdFrames = globalAnimatable->getCurrentAnimation()->keys.at(i).holdFrames;
+                            uint16_t holdFrames = globalAnimatable.getCurrentAnimation()->keys.at(i).holdFrames;
                             if (holdFrames > 1) {
                                 ImGui::SameLine();
                                 ImGui::Dummy({ static_cast<float>(10 * holdFrames), buttonDimensions.y });

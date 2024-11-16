@@ -720,7 +720,7 @@ void WindowSpritesheet::Update() {
     if (this->drawBounding) {
         GET_ANIMATABLE;
 
-        RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable->getCurrentArrangement();
+        RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
 
         for (unsigned i = 0; i < arrangementPtr->parts.size(); i++) {
             if (appState.focusOnSelectedPart && !appState.isPartSelected(i))
@@ -733,9 +733,9 @@ void WindowSpritesheet::Update() {
             };
 
             float mismatchScaleX =
-                static_cast<float>(globalAnimatable->texture->getWidth()) / globalAnimatable->cellanim->textureW;
+                static_cast<float>(globalAnimatable.texture->getWidth()) / globalAnimatable.cellanim->textureW;
             float mismatchScaleY =
-                static_cast<float>(globalAnimatable->texture->getHeight()) / globalAnimatable->cellanim->textureH;
+                static_cast<float>(globalAnimatable.texture->getHeight()) / globalAnimatable.cellanim->textureH;
 
             ImVec2 topLeftOffset {
                 (sourceRect[0] * scale * mismatchScaleX) + imagePosition.x,

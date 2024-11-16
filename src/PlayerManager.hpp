@@ -31,16 +31,16 @@ public:
     void ResetTimer();
 
     unsigned getCurrentKeyIndex() {
-        return AppState::getInstance().globalAnimatable->
+        return AppState::getInstance().globalAnimatable.
             getCurrentKeyIndex();
     }
     unsigned getKeyCount() {
-        return AppState::getInstance().globalAnimatable->
+        return AppState::getInstance().globalAnimatable.
             getCurrentAnimation()->keys.size();
     }
     
     int getHoldFramesLeft() {
-        return AppState::getInstance().globalAnimatable->
+        return AppState::getInstance().globalAnimatable.
             getHoldFramesLeft();
     }
 

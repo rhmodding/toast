@@ -22,11 +22,11 @@ void WindowInspector::Level_Animation() {
 
     bool& changed = SessionManager::getInstance().getCurrentSessionModified();
 
-    this->DrawPreview(globalAnimatable);
+    this->DrawPreview(&globalAnimatable);
 
     ImGui::SameLine();
 
-    const uint16_t animationIndex = globalAnimatable->getCurrentAnimationIndex();
+    const uint16_t animationIndex = globalAnimatable.getCurrentAnimationIndex();
     auto query = sessionManager.getCurrentSession()->getAnimationNames().find(animationIndex);
 
     const char* animationName =
@@ -48,7 +48,7 @@ void WindowInspector::Level_Animation() {
     ImGui::EndChild();
 
 
-    RvlCellAnim::Animation* animation = globalAnimatable->getCurrentAnimation();
+    RvlCellAnim::Animation* animation = globalAnimatable.getCurrentAnimation();
 
     ImGui::SeparatorText((char*)ICON_FA_PENCIL " Properties");
     if (ImGui::Button("Edit macro name..")) {

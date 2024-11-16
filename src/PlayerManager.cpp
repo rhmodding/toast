@@ -9,11 +9,11 @@
 void PlayerManager::setCurrentKeyIndex(unsigned index) {
     GET_APP_STATE;
 
-    const auto* arrangeA = appState.globalAnimatable->getCurrentArrangement();
+    const auto* arrangeA = appState.globalAnimatable.getCurrentArrangement();
 
-    appState.globalAnimatable->setAnimationKeyFromIndex(index);
+    appState.globalAnimatable.setAnimationKeyFromIndex(index);
 
-    const auto* arrangeB = appState.globalAnimatable->getCurrentArrangement();
+    const auto* arrangeB = appState.globalAnimatable.getCurrentArrangement();
 
     if (arrangeA != arrangeB) {
         for (auto& part : appState.selectedParts) {
@@ -38,12 +38,12 @@ void PlayerManager::setPlaying(bool animating) {
     GET_ANIMATABLE;
 
     this->playing = animating;
-    globalAnimatable->setAnimating(animating);
+    globalAnimatable.setAnimating(animating);
 }
 
 unsigned PlayerManager::getTotalPseudoFrames() {
     const auto& keys =
-        AppState::getInstance().globalAnimatable->getCurrentAnimation()->keys;
+        AppState::getInstance().globalAnimatable.getCurrentAnimation()->keys;
 
     return std::accumulate(
         keys.begin(), keys.end(), 0u,
@@ -56,19 +56,21 @@ unsigned PlayerManager::getTotalPseudoFrames() {
 unsigned PlayerManager::getElapsedPseudoFrames() {
     GET_ANIMATABLE;
 
-    if (!this->playing && this->currentFrame == 0 && globalAnimatable->getHoldFramesLeft() < 1)
+    unsigned currentKeyIndex = this->getCurrentKeyIndex();
+
+    if (!this->playing && currentKeyIndex == 0 && globalAnimatable.getHoldFramesLeft() < 1)
         return 0;
 
     unsigned result = std::accumulate(
-        globalAnimatable->getCurrentAnimation()->keys.begin(),
-        globalAnimatable->getCurrentAnimation()->keys.begin() + this->currentFrame,
+        globalAnimatable.getCurrentAnimation()->keys.begin(),
+        globalAnimatable.getCurrentAnimation()->keys.begin() + currentKeyIndex,
         0u,
         [](unsigned sum, const RvlCellAnim::AnimationKey& key) {
             return sum + key.holdFrames;
         }
     );
 
-    result += globalAnimatable->getCurrentKey()->holdFrames - globalAnimatable->getHoldFramesLeft();
+    result += globalAnimatable.getCurrentKey()->holdFrames - globalAnimatable.getHoldFramesLeft();
 
     return result;
 }
@@ -77,7 +79,7 @@ void PlayerManager::Update() {
     GET_APP_STATE;
     GET_ANIMATABLE;
 
-    if (!this->playing || !globalAnimatable)
+    if (!this->playing)
         return;
 
     auto now = std::chrono::steady_clock::now();
@@ -86,22 +88,21 @@ void PlayerManager::Update() {
     this->previous = now;
 
     while (delta >= this->timeLeft) {
-        const auto* arrangeA = appState.globalAnimatable->getCurrentArrangement();
+        const auto* arrangeA = appState.globalAnimatable.getCurrentArrangement();
 
-        globalAnimatable->Update();
+        globalAnimatable.Update();
 
-        const auto* arrangeB = appState.globalAnimatable->getCurrentArrangement();
+        const auto* arrangeB = appState.globalAnimatable.getCurrentArrangement();
 
         delta -= this->timeLeft;
         this->timeLeft = 1.f / frameRate;
 
-        if (!globalAnimatable->getAnimating() && this->looping) {
-            globalAnimatable->setAnimationFromIndex(globalAnimatable->getCurrentAnimationIndex());
-            globalAnimatable->setAnimating(true);
+        if (!globalAnimatable.getAnimating() && this->looping) {
+            globalAnimatable.setAnimationFromIndex(globalAnimatable.getCurrentAnimationIndex());
+            globalAnimatable.setAnimating(true);
         }
 
-        this->playing = globalAnimatable->getAnimating();
-        this->currentFrame = globalAnimatable->getCurrentKeyIndex();
+        this->playing = globalAnimatable.getAnimating();
 
         if (arrangeA != arrangeB) {
             for (auto& part : appState.selectedParts) {
