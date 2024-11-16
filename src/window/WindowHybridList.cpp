@@ -60,15 +60,11 @@ void WindowHybridList::Update() {
         ImGui::PushStyleColor(ImGuiCol_WindowBg, color);
     }
 
-    char label[32];
-    snprintf(
-        label, sizeof(label),
-        "%s###HybridList",
-        appState.getArrangementMode() ?
-            "Arrangements" : "Animations"
-    );
-
-    ImGui::Begin(label);
+    const char* windowLabel = appState.getArrangementMode() ?
+        "Arrangements" "###HybridList" :
+        "Animations"   "###HybridList";
+    
+    ImGui::Begin(windowLabel);
 
     ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Border);
     {
