@@ -34,7 +34,7 @@ class AppState : public Singleton<AppState> {
 private:
     std::array<float, 4> windowClearColor;
 public:
-    inline bool getDarkThemeEnabled() {
+    bool getDarkThemeEnabled() const {
         return ConfigManager::getInstance().getConfig().theme == ThemeChoice_Dark;
     }
 
@@ -52,16 +52,16 @@ public:
         ImGui::GetStyle().Colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4();
     }
 
-    inline const std::array<float, 4>& getWindowClearColor() {
+    const std::array<float, 4>& getWindowClearColor() const {
         return this->windowClearColor;
     }
 
-    inline unsigned getUpdateRate() {
+    unsigned getUpdateRate() const {
         return ConfigManager::getInstance().getConfig().updateRate;
     }
 
     ImGuiID globalPopupID { 0xBEEFAB1E };
-    inline void OpenGlobalPopup(const char* popupId) {
+    void OpenGlobalPopup(const char* popupId) {
         ImGui::PushOverrideID(this->globalPopupID);
         ImGui::OpenPopup(popupId);
         ImGui::PopID();
@@ -102,13 +102,13 @@ public:
         this->spSelectionOrder = 0;
     }
 
-    inline bool multiplePartsSelected() const {
+    bool multiplePartsSelected() const {
         return this->selectedParts.size() > 1;
     }
-    inline bool anyPartsSelected() const {
+    bool anyPartsSelected() const {
         return !this->selectedParts.empty();
     }
-    inline bool singlePartSelected() const {
+    bool singlePartSelected() const {
         return this->selectedParts.size() == 1;
     }
 
@@ -261,14 +261,13 @@ public:
         return -1;
     }
 
-    inline void correctSelectedParts() {
+    void correctSelectedParts() {
         unsigned size = this->globalAnimatable.getCurrentArrangement()->parts.size();
 
-        // Create local clone of selectedParts since
-        // setPartSelected will mutate the original
+        // Create local clone of selectedParts since setPartSelected
+        // will mutate the original
         auto sp = this->selectedParts;
-
-        for (auto& part : sp) {
+        for (const auto& part : sp) {
             if (part.index >= size)
                 this->setPartSelected(part.index, false);
         }

@@ -36,7 +36,7 @@ public:
 
     void AttemptExit(bool force = false);
 
-    inline bool isRunning() const {
+    bool isRunning() const {
         return this->running;
     }
 
