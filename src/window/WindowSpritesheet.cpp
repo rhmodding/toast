@@ -28,6 +28,11 @@
 
 #include "../texture/ImageConvert.hpp"
 
+#include "../command/CommandModifySpritesheet.hpp"
+#include "../command/CommandModifyArrangements.hpp"
+
+#include "../App/Popups.hpp"
+
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "../stb/stb_rect_pack.h"
 
@@ -503,26 +508,28 @@ void WindowSpritesheet::Update() {
                 if (openFileDialog) {
                     GET_SESSION_MANAGER;
 
-                    std::shared_ptr<Texture> newImage = std::make_shared<Texture>();
-                    bool ok = newImage->LoadSTBFile(openFileDialog);
+                    std::shared_ptr<Texture> newTexture = std::make_shared<Texture>();
+                    bool ok = newTexture->LoadSTBFile(openFileDialog);
 
                     if (ok) {
-                        auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
-
                         bool diffSize =
-                            newImage->getWidth()  != cellanimSheet->getWidth() ||
-                            newImage->getHeight() != cellanimSheet->getHeight();
+                            newTexture->getWidth()  != cellanimSheet->getWidth() ||
+                            newTexture->getHeight() != cellanimSheet->getHeight();
 
-                        cellanimSheet = newImage;
+                        Popups::_oldTextureSizeX = cellanimSheet->getWidth();
+                        Popups::_oldTextureSizeY = cellanimSheet->getHeight();
+
+                        sessionManager.getCurrentSession()->executeCommand(
+                        std::make_shared<CommandModifySpritesheet>(
+                            sessionManager.getCurrentSession()->getCellanimObject()->sheetIndex,
+                            newTexture
+                        ));
 
                         if (diffSize) {
                             ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                            ImGui::OpenPopup("###DialogModifiedPNGSizeDiff");
+                            ImGui::OpenPopup("###ModifiedTextureSize");
                             ImGui::PopID();
                         }
-
-                        sessionManager.SessionChanged();
-                        sessionManager.getCurrentSessionModified() = true;
                     }
                 }
             }
