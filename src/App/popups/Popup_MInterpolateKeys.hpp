@@ -437,6 +437,11 @@ void Popup_MInterpolateKeys() {
                 float t = Bezier::BezierValueY(((i * interval) + 1) / (float)currentKey->holdFrames, v.data());
 
                 newKey.transform = newKey.transform.lerp(nextKey->transform, t);
+                newKey.opacity = std::clamp<int>(
+                    std::lerp((int)currentKey->opacity, (int)nextKey->opacity, t),
+                    0,
+                    255
+                );
                 newKey.holdFrames = interval;
 
                 if (
