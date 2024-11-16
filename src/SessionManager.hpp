@@ -46,8 +46,8 @@ public:
 
         std::string mainPath;
 
-        bool traditionalMethod { false }; // Has this session been opened with a brcad, png and h file?
-        std::unique_ptr<std::string> pngPath;
+        bool traditionalMethod { false }; // Has this session been opened with separate files on the FS?
+        std::unique_ptr<std::string> imagePath;
         std::unique_ptr<std::string> headerPath;
 
         ///////////////////////////
@@ -70,74 +70,51 @@ public:
         bool modified { false };
 
     private:
-        std::deque<std::shared_ptr<BaseCommand>> undoStack;
-        std::deque<std::shared_ptr<BaseCommand>> redoStack;
+        std::deque<std::shared_ptr<BaseCommand>> undoQueue;
+        std::deque<std::shared_ptr<BaseCommand>> redoQueue;
 
     public:
-        void executeCommand(std::shared_ptr<BaseCommand> command) {
-            command->Execute();
-            if (undoStack.size() == SESSION_MAX_COMMANDS)
-                undoStack.pop_front();
+        void executeCommand(std::shared_ptr<BaseCommand> command);
 
-            undoStack.push_back(command);
+        void undo();
+        void redo();
 
-            redoStack.clear();
-        }
+        bool canUndo() { return !this->undoQueue.empty(); }
+        bool canRedo() { return !this->redoQueue.empty(); }
 
-        void undo() {
-            if (undoStack.empty())
-                return;
-
-            auto command = undoStack.back();
-            undoStack.pop_back();
-
-            command->Rollback();
-
-            redoStack.push_back(command);
-
-            this->modified = true;
-        }
-
-        void redo() {
-            if (redoStack.empty())
-                return;
-
-            auto command = redoStack.back();
-            redoStack.pop_back();
-
-            command->Execute();
-
-            if (undoStack.size() == SESSION_MAX_COMMANDS)
-                undoStack.pop_front();
-
-            undoStack.push_back(command);
-
-            this->modified = true;
-        }
-
-        bool canUndo() {
-            return !this->undoStack.empty();
-        }
-
-        bool canRedo() {
-            return !this->redoStack.empty();
-        }
-
-        void clearUndoRedoStack() {
-            this->undoStack.clear();
-            this->redoStack.clear();
-        }
+        void clearUndoRedo();
     };
+    
+    enum Error {
+        Error_None = 0,
+
+        OpenError_FailOpenArchive = -0xFF,
+        OpenError_FailFindTPL,
+        OpenError_RootDirNotFound,
+        OpenError_NoBXCADsFound,
+        OpenError_FailOpenBXCAD,
+        OpenError_FailOpenTPL,
+        OpenError_FailOpenImage,
+        OpenError_FailOpenHFile,
+        OpenError_SessionsFull,
+
+        OutError_FailOpenFile,
+        OutError_ZlibError,
+        OutError_FailTPLTextureExport,
+    };
+
+public:
     std::deque<Session> sessionList;
 
-    int currentSession { -1 };
-
+    int currentSessionIndex { -1 };
     // Current session being closed. Used for closing while modified warning.
-    int sessionClosing { -1 };
+    int sessionClosingIndex { -1 };
+
+    Error currentError { Error_None };
 
     Session* getCurrentSession() {
-        if (this->currentSession >= 0)
-            return &this->sessionList.at(this->currentSession);
+        if (this->currentSessionIndex >= 0)
+            return &this->sessionList.at(this->currentSessionIndex);
 
         return nullptr;
     }
@@ -147,33 +124,15 @@ public:
     }
 
     bool getSessionAvaliable() {
-        return this->currentSession >= 0;
+        return this->currentSessionIndex >= 0;
     }
 
     void SessionChanged();
 
-    enum SessionError {
-        SessionError_None = 0,
-
-        SessionOpenError_FailOpenArchive = -0xFF,
-        SessionOpenError_FailFindTPL,
-        SessionOpenError_RootDirNotFound,
-        SessionOpenError_NoBXCADsFound,
-        SessionOpenError_FailOpenBXCAD,
-        SessionOpenError_FailOpenTPL,
-        SessionOpenError_FailOpenPNG,
-        SessionOpenError_FailOpenHFile,
-        SessionOpenError_SessionsFull,
-
-        SessionOutError_FailOpenFile,
-        SessionOutError_ZlibError,
-        SessionOutError_FailTPLTextureExport,
-    } lastSessionError{ SessionError_None };
-
     // Push session from a Yaz0-compressed U8 archive (SZS).
     int PushSessionFromCompressedArc(const char* filePath);
-    // Push session from BRCAD, PNG, and H file respectively
-    int PushSessionTraditional(const char* paths[3]);
+    // Push session from separated files on FS.
+    int PushSessionTraditional(const char* brcadPath, const char* imagePath, const char* headerPath);
 
     int ExportSessionCompressedArc(Session* session, const char* outPath);
 

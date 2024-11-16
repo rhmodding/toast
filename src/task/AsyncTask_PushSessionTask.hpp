@@ -38,7 +38,7 @@ protected:
             return;
         }
 
-        sessionManager.currentSession = result;
+        sessionManager.currentSessionIndex = result;
         sessionManager.SessionChanged();
 
         GET_CONFIG_MANAGER;

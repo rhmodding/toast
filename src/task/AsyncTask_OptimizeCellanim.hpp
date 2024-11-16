@@ -183,7 +183,7 @@ protected:
     }
 
     void Effect() override {
-        SessionManager::getInstance().getCurrentSession()->clearUndoRedoStack();
+        SessionManager::getInstance().getCurrentSession()->clearUndoRedo();
         SessionManager::getInstance().SessionChanged();
     }
 

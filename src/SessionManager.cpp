@@ -32,7 +32,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     auto __archiveResult = U8::readYaz0U8Archive(filePath);
     if (!__archiveResult.has_value()) {
         std::lock_guard<std::mutex> lock(this->mtx);
-        this->lastSessionError = SessionOpenError_FailOpenArchive;
+        this->currentError = OpenError_FailOpenArchive;
 
         return -1;
     }
@@ -41,7 +41,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     if (archiveObject.structure.subdirectories.empty()) {
         std::lock_guard<std::mutex> lock(this->mtx);
-        this->lastSessionError = SessionOpenError_RootDirNotFound;
+        this->currentError = OpenError_RootDirNotFound;
 
         return -1;
     }
@@ -49,7 +49,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     U8::File* __tplSearch = U8::findFile("./cellanim.tpl", archiveObject.structure);
     if (!__tplSearch) {
         std::lock_guard<std::mutex> lock(this->mtx);
-        this->lastSessionError = SessionOpenError_FailFindTPL;
+        this->currentError = OpenError_FailFindTPL;
 
         return -1;
     }
@@ -59,7 +59,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     if (!tplObject.ok) {
         std::lock_guard<std::mutex> lock(this->mtx);
-        this->lastSessionError = SessionOpenError_FailOpenTPL;
+        this->currentError = OpenError_FailOpenTPL;
 
         return -1;
     }
@@ -76,7 +76,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     if (brcadFiles.empty()) {
         std::lock_guard<std::mutex> lock(this->mtx);
-        this->lastSessionError = SessionOpenError_NoBXCADsFound;
+        this->currentError = OpenError_NoBXCADsFound;
 
         return -1;
     }
@@ -102,7 +102,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
         if (!cellanim.object->ok) {
             std::lock_guard<std::mutex> lock(this->mtx);
-            this->lastSessionError = SessionOpenError_FailOpenBXCAD;
+            this->currentError = OpenError_FailOpenBXCAD;
 
             return -1;
         }
@@ -186,12 +186,12 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     this->sessionList.push_back(std::move(newSession));
 
-    this->lastSessionError = SessionError_None;
+    this->currentError = Error_None;
 
     return static_cast<int>(this->sessionList.size() - 1);
 }
 
-int SessionManager::PushSessionTraditional(const char* paths[3]) {
+int SessionManager::PushSessionTraditional(const char* brcadPath, const char* imagePath, const char* headerPath) {
     Session newSession;
 
     newSession.cellanims.resize(1);
@@ -200,28 +200,25 @@ int SessionManager::PushSessionTraditional(const char* paths[3]) {
     newSession.sheets.resize(1);
     auto& sheet = newSession.sheets[0];
 
-    cellanim.object = RvlCellAnim::readRvlCellAnimFile(paths[0]);
+    cellanim.object = RvlCellAnim::readRvlCellAnimFile(brcadPath);
     if (
         !cellanim.object ||
         !cellanim.object->ok
     ) {
         std::lock_guard<std::mutex> lock(this->mtx);
-        this->lastSessionError = SessionOpenError_FailOpenBXCAD;
+        this->currentError = OpenError_FailOpenBXCAD;
 
         return -1;
     }
 
-    {
-        std::filesystem::path filePath(paths[0]);
-        cellanim.name = filePath.filename().string();
-    }
+    cellanim.name = std::string(brcadPath);
 
     sheet = std::make_shared<Texture>();
-    bool loadOk = sheet->LoadSTBFile(paths[1]);
+    bool loadOk = sheet->LoadSTBFile(imagePath);
 
     if (!loadOk) {
         std::lock_guard<std::mutex> lock(this->mtx);
-        this->lastSessionError = SessionOpenError_FailOpenPNG;
+        this->currentError = OpenError_FailOpenImage;
 
         return -1;
     }
@@ -229,10 +226,10 @@ int SessionManager::PushSessionTraditional(const char* paths[3]) {
     // animationNames
     auto& animationNames = newSession.cellanims.at(0).animNames;
     {
-        std::ifstream headerFile(paths[2]);
+        std::ifstream headerFile(headerPath);
         if (!headerFile.is_open()) {
             std::lock_guard<std::mutex> lock(this->mtx);
-            this->lastSessionError = SessionOpenError_FailOpenHFile;
+            this->currentError = OpenError_FailOpenHFile;
             return -1;
         }
 
@@ -254,17 +251,17 @@ int SessionManager::PushSessionTraditional(const char* paths[3]) {
         }
     }
 
-    newSession.mainPath = paths[0];
+    newSession.mainPath = std::string(brcadPath);
 
     newSession.traditionalMethod = true;
-    newSession.pngPath = std::make_unique<std::string>(std::string(paths[1]));
-    newSession.headerPath = std::make_unique<std::string>(std::string(paths[2]));
+    newSession.imagePath = std::make_unique<std::string>(std::string(imagePath));
+    newSession.headerPath = std::make_unique<std::string>(std::string(headerPath));
 
     std::lock_guard<std::mutex> lock(this->mtx);
 
     this->sessionList.push_back(std::move(newSession));
 
-    this->lastSessionError = SessionError_None;
+    this->currentError = Error_None;
 
     return static_cast<int>(this->sessionList.size() - 1);
 }
@@ -324,7 +321,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
                 auto tplTexture = session->sheets.at(i)->TPLTexture();
 
                 if (!tplTexture.has_value()) {
-                    this->lastSessionError = SessionOutError_FailTPLTextureExport;
+                    this->currentError = OutError_FailTPLTextureExport;
                     return -1;
                 }
 
@@ -361,7 +358,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
     );
 
     if (!compressedArchive.has_value()) {
-        this->lastSessionError = SessionOutError_ZlibError;
+        this->currentError = OutError_ZlibError;
         return -1;
     }
 
@@ -385,7 +382,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         file.close();
     }
     else {
-        this->lastSessionError = SessionOutError_FailOpenFile;
+        this->currentError = OutError_FailOpenFile;
         return -1;
     }
 
@@ -397,37 +394,38 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 void SessionManager::SessionChanged() {
     std::lock_guard<std::mutex> lock(this->mtx);
 
-    this->currentSession =
-        std::clamp<int>(this->currentSession, -1, this->sessionList.size() - 1);
+    this->currentSessionIndex = std::clamp<int>(
+        this->currentSessionIndex,
+        -1, this->sessionList.size() - 1
+    );
 
-    if (this->currentSession < 0)
+    if (this->currentSessionIndex < 0)
         return;
 
     GET_APP_STATE;
     GET_ANIMATABLE;
 
-    Common::deleteIfNotNullptr(globalAnimatable, false);
-
-    globalAnimatable = new Animatable(
-        this->sessionList[this->currentSession].getCellanimObject(),
-        this->sessionList[this->currentSession].getCellanimSheet()
+    //Common::deleteIfNotNullptr(globalAnimatable, false);
+    globalAnimatable = Animatable(
+        this->sessionList[this->currentSessionIndex].getCellanimObject(),
+        this->sessionList[this->currentSessionIndex].getCellanimSheet()
     );
 
     appState.selectedAnimation = std::min<unsigned>(
         appState.selectedAnimation,
-        globalAnimatable->cellanim->animations.size() - 1
+        globalAnimatable.cellanim->animations.size() - 1
     );
 
-    globalAnimatable->setAnimationFromIndex(appState.selectedAnimation);
+    globalAnimatable.setAnimationFromIndex(appState.selectedAnimation);
 
     if (appState.getArrangementMode()) {
         appState.controlKey.arrangementIndex = std::min<uint16_t>(
             appState.controlKey.arrangementIndex,
-            globalAnimatable->cellanim->arrangements.size() - 1
+            globalAnimatable.cellanim->arrangements.size() - 1
         );
 
         PlayerManager::getInstance().setPlaying(false);
-        globalAnimatable->overrideAnimationKey(&appState.controlKey);
+        globalAnimatable.overrideAnimationKey(&appState.controlKey);
     }
 
     appState.correctSelectedParts();
@@ -439,13 +437,58 @@ void SessionManager::FreeSessionIndex(int index) {
     auto it = this->sessionList.begin() + index;
     this->sessionList.erase(it);
 
-    this->currentSession =
-        std::clamp<int>(this->currentSession, -1, this->sessionList.size() - 1);
+    this->currentSessionIndex =
+        std::clamp<int>(this->currentSessionIndex, -1, this->sessionList.size() - 1);
 }
 
 void SessionManager::FreeAllSessions() {
     std::lock_guard<std::mutex> lock(this->mtx);
     this->sessionList.clear();
 
-    this->currentSession = -1;
+    this->currentSessionIndex = -1;
+}
+
+void SessionManager::Session::executeCommand(std::shared_ptr<BaseCommand> command) {
+    command->Execute();
+    if (this->undoQueue.size() == SESSION_MAX_COMMANDS)
+        this->undoQueue.pop_front();
+
+    this->undoQueue.push_back(command);
+    this->redoQueue.clear();
+}
+
+void SessionManager::Session::undo() {
+    if (this->undoQueue.empty())
+        return;
+
+    auto command = undoQueue.back();
+    this->undoQueue.pop_back();
+
+    command->Rollback();
+
+    this->redoQueue.push_back(command);
+
+    this->modified = true;
+}
+
+void SessionManager::Session::redo() {
+    if (this->redoQueue.empty())
+        return;
+
+    auto command = redoQueue.back();
+    this->redoQueue.pop_back();
+
+    command->Execute();
+
+    if (this->undoQueue.size() == SESSION_MAX_COMMANDS)
+        this->undoQueue.pop_front();
+
+    this->undoQueue.push_back(command);
+
+    this->modified = true;
+}
+
+void SessionManager::Session::clearUndoRedo() {
+    this->undoQueue.clear();
+    this->redoQueue.clear();
 }

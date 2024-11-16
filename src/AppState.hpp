@@ -74,9 +74,11 @@ public:
         ImFont* icon;
     } fonts;
 
-    bool getArrangementMode() {
-        if (SessionManager::getInstance().currentSession >= 0)
-            return SessionManager::getInstance().getCurrentSession()->arrangementMode;
+    bool getArrangementMode() const {
+        GET_SESSION_MANAGER;
+
+        if (sessionManager.getSessionAvaliable())
+            return sessionManager.getCurrentSession()->arrangementMode;
         else
             return false;
     }

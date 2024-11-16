@@ -355,7 +355,7 @@ void App::Menubar() {
             ImGui::EndMenu();
         }
 
-        const bool sessionAvaliable = sessionManager.currentSession >= 0;
+        const bool sessionAvaliable = sessionManager.getSessionAvaliable();
 
         if (ImGui::BeginMenu("Cellanim", sessionAvaliable)) {
             if (ImGui::BeginMenu("Select")) {
@@ -374,7 +374,7 @@ void App::Menubar() {
                         if (currentSession->currentCellanim != i) {
                             currentSession->executeCommand(
                             std::make_shared<CommandSwitchCellanim>(
-                                sessionManager.currentSession, i
+                                sessionManager.currentSessionIndex, i
                             ));
                         }
                     }
@@ -707,8 +707,8 @@ void App::Menubar() {
                 if (tabVisible)
                     ImGui::EndTabItem();
 
-                if (ImGui::IsItemClicked() && sessionManager.currentSession != n) {
-                    sessionManager.currentSession = n;
+                if (ImGui::IsItemClicked() && sessionManager.currentSessionIndex != n) {
+                    sessionManager.currentSessionIndex = n;
                     sessionManager.SessionChanged();
                 }
 
@@ -728,7 +728,7 @@ void App::Menubar() {
                             ImGui::CloseCurrentPopup();
 
                             if (session.currentCellanim != i) {
-                                sessionManager.currentSession = n;
+                                sessionManager.currentSessionIndex = n;
 
                                 session.executeCommand(
                                 std::make_shared<CommandSwitchCellanim>(
@@ -751,7 +751,7 @@ void App::Menubar() {
                 );
 
                 if (!sessionOpen) {
-                    sessionManager.sessionClosing = n;
+                    sessionManager.sessionClosingIndex = n;
 
                     if (session.modified)
                         AppState::getInstance().OpenGlobalPopup("###CloseModifiedSession");

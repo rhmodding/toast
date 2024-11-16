@@ -36,63 +36,64 @@ void Dialog_CreateCompressedArcSession() {
 }
 
 void Dialog_CreateTraditionalSession() {
-    char* pathList[3];
+    char* brcadPath, *imagePath, *headerPath;
 
     const char* vFiltersBrcad[] { "*.brcad" };
     const char* tFiltersBrcad = "Binary Revolution CellAnim Data file (.brcad)";
 
     const char* vFiltersImage[] { "*.png", "*.tga", "*.bmp", "*.psd", "*.jpg" };
-    const char* tFiltersImage = "Image files (.png, .tga, .bmp, .psd, .jpg)";
+    const char* tFiltersImage = "Image file (.png, .tga, .bmp, .psd, .jpg)";
 
     const char* vFiltersHeader[] { "*.h" };
     const char* tFiltersHeader = "Header file (.h)";
 
-    char* brcadDialog = tinyfd_openFileDialog(
+    char* tempStr;
+
+    tempStr = tinyfd_openFileDialog(
         "Select the BRCAD file",
         nullptr,
         ARRAY_LENGTH(vFiltersBrcad), vFiltersBrcad,
         tFiltersBrcad,
         false
     );
-    if (!brcadDialog)
+    if (!tempStr)
         return;
 
-    pathList[0] = new char[strlen(brcadDialog) + 1];
-    strcpy(pathList[0], brcadDialog);
+    brcadPath = strdup(tempStr);
 
-    char* imageDialog = tinyfd_openFileDialog(
+    tempStr = tinyfd_openFileDialog(
         "Select the image file",
         nullptr,
         ARRAY_LENGTH(vFiltersImage), vFiltersImage,
         tFiltersImage,
         false
     );
-    if (!imageDialog)
+    if (!tempStr)
         return;
 
-    pathList[1] = new char[strlen(imageDialog) + 1];
-    strcpy(pathList[1], imageDialog);
+    imagePath = strdup(tempStr);
 
-    char* headerDialog = tinyfd_openFileDialog(
+    tempStr = tinyfd_openFileDialog(
         "Select the header file",
         nullptr,
         ARRAY_LENGTH(vFiltersHeader), vFiltersHeader,
         tFiltersHeader,
         false
     );
-    if (!headerDialog)
+    if (!tempStr)
         return;
 
-    pathList[2] = new char[strlen(headerDialog) + 1];
-    strcpy(pathList[2], headerDialog);
+    headerPath = strdup(tempStr);
 
     GET_SESSION_MANAGER;
 
-    int result = sessionManager.PushSessionTraditional((const char **)pathList);
+    // TODO: separate this into Task
+
+    int result = sessionManager.PushSessionTraditional(brcadPath, imagePath, headerPath);
     if (result < 0)
         AppState::getInstance().OpenGlobalPopup("###SessionErr");
     else {
-        sessionManager.currentSession = result;
+        sessionManager.currentSessionIndex = result;
         sessionManager.SessionChanged();
     }
 }
