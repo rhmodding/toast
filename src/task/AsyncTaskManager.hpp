@@ -22,7 +22,7 @@ public:
         auto task = std::make_unique<TaskType>(this->GenerateId(), std::forward<Args>(args)...);
         task->Start();
 
-        tasks.emplace_back(std::move(task));
+        this->tasks.emplace_back(std::move(task));
     }
 
     void UpdateTasks() {
