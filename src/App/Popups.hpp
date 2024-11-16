@@ -8,6 +8,8 @@ extern bool _openExitWithChangesPopup;
 extern int  _editAnimationNameIdx;
 extern int  _swapAnimationIdx;
 
+extern int _deleteAnimationIdx;
+
 void Update();
 
 } // namespace Popups

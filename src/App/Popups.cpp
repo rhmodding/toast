@@ -7,6 +7,8 @@ bool _openExitWithChangesPopup { false };
 int  _editAnimationNameIdx { -1 };
 int  _swapAnimationIdx { -1 };
 
+int _deleteAnimationIdx { -1 };
+
 } // namespace Popups
 
 #include "../AppState.hpp"
@@ -17,11 +19,15 @@ int  _swapAnimationIdx { -1 };
 #include "popups/Popup_MInterpolateKeys.hpp"
 
 #include "popups/Popup_SessionErr.hpp"
+
 #include "popups/Popup_TextureExportFailed.hpp"
+#include "popups/Popup_SheetRepackFailed.hpp"
 
 #include "popups/Popup_ModifiedTextureSize.hpp"
 
 #include "popups/Popup_WaitForModifiedTexture.hpp"
+
+#include "popups/Popup_DeleteAnimation.hpp"
 
 #include "popups/Popup_ExitWithChanges.hpp"
 
@@ -39,11 +45,15 @@ void Popups::Update() {
     Popup_MInterpolateKeys();
 
     Popup_SessionErr();
+
     Popup_TextureExportFailed();
+    Popup_SheetRepackFailed();
 
     Popup_ModifiedTextureSize();
 
     Popup_WaitForModifiedTexture();
+
+    Popup_DeleteAnimation(_deleteAnimationIdx);
 
     if (_openExitWithChangesPopup) {
         AppState::getInstance().OpenGlobalPopup("###ExitWithChanges");
