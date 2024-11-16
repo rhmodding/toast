@@ -27,7 +27,7 @@ void WindowHybridList::ResetFlash() {
     this->flashTrigger = false;
 }
 
-#define WINDOW_FLASH_TIME .3f // seconds
+#define WINDOW_FLASH_TIME (.3f) // seconds
 
 void WindowHybridList::Update() {
     GET_APP_STATE;

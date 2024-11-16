@@ -38,7 +38,7 @@ bool operator==(const stbrp_rect& lhs, const stbrp_rect& rhs) {
            lhs.y == rhs.y;
 }
 
-#define SHEET_ZOOM_TIME .3f // seconds
+#define SHEET_ZOOM_TIME (.3f) // seconds
 
 void WindowSpritesheet::RunEditor() {
     GET_CONFIG_MANAGER;

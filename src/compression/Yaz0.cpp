@@ -21,9 +21,9 @@
 
 #define HEADER_MAGIC IDENTIFIER_TO_U32('Y', 'a', 'z', '0')
 
-#define CHUNKS_PER_GROUP 8
-#define MAX_MATCH_LENGTH 0xFF + 0x12
-#define ZLIB_MIN_MATCH 3
+#define CHUNKS_PER_GROUP (8)
+#define MAX_MATCH_LENGTH (0xFF + 0x12)
+#define ZLIB_MIN_MATCH (3)
 
 struct Yaz0Header {
     // Magic value (should always equal to "Yaz0" if valid)
