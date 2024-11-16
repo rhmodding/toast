@@ -1,5 +1,5 @@
-#ifndef POPUP_SWAPANIMATION
-#define POPUP_SWAPANIMATION
+#ifndef POPUP_SWAPANIMATION_HPP
+#define POPUP_SWAPANIMATION_HPP
 
 #include <imgui.h>
 
@@ -143,4 +143,4 @@ void Popup_SwapAnimation(int animationIndex) {
     }
 }
 
-#endif // POPUP_SWAPANIMATION
+#endif // POPUP_SWAPANIMATION_HPP

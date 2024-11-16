@@ -1,5 +1,5 @@
-#ifndef POPUP_MINTERPOLATEKEYS
-#define POPUP_MINTERPOLATEKEYS
+#ifndef POPUP_MINTERPOLATEKEYS_HPP
+#define POPUP_MINTERPOLATEKEYS_HPP
 
 #include <imgui.h>
 
@@ -525,4 +525,4 @@ void Popup_MInterpolateKeys() {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_MINTERPOLATEKEYS
+#endif // POPUP_MINTERPOLATEKEYS_HPP

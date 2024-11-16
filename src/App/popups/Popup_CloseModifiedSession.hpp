@@ -1,5 +1,5 @@
-#ifndef POPUP_CLOSEMODIFIEDSESSION
-#define POPUP_CLOSEMODIFIEDSESSION
+#ifndef POPUP_CLOSEMODIFIEDSESSION_HPP
+#define POPUP_CLOSEMODIFIEDSESSION_HPP
 
 #include <imgui.h>
 
@@ -56,4 +56,4 @@ void Popup_CloseModifiedSession() {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_CLOSEMODIFIEDSESSION
+#endif // POPUP_CLOSEMODIFIEDSESSION_HPP

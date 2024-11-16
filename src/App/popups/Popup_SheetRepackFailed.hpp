@@ -1,5 +1,5 @@
-#ifndef POPUP_SHEETREPACKFAILED
-#define POPUP_SHEETREPACKFAILED
+#ifndef POPUP_SHEETREPACKFAILED_HPP
+#define POPUP_SHEETREPACKFAILED_HPP
 
 #include <imgui.h>
 
@@ -26,4 +26,4 @@ void Popup_SheetRepackFailed() {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_TEXTUREEXPORTFAILED
+#endif // POPUP_SHEETREPACKFAILED_HPP

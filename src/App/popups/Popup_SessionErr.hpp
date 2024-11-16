@@ -1,5 +1,5 @@
-#ifndef POPUP_SESSIONERR
-#define POPUP_SESSIONERR
+#ifndef POPUP_SESSIONERR_HPP
+#define POPUP_SESSIONERR_HPP
 
 #include <imgui.h>
 
@@ -119,4 +119,4 @@ void Popup_SessionErr() {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_SESSIONERR
+#endif // POPUP_SESSIONERR_HPP

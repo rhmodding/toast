@@ -1,5 +1,5 @@
-#ifndef POPUP_EDITANIMATIONNAME
-#define POPUP_EDITANIMATIONNAME
+#ifndef POPUP_EDITANIMATIONNAME_HPP
+#define POPUP_EDITANIMATIONNAME_HPP
 
 #include <imgui.h>
 
@@ -82,4 +82,4 @@ void Popup_EditAnimationName(int animationIndex) {
     lateOpen = open;
 }
 
-#endif // POPUP_EDITANIMATIONNAME
+#endif // POPUP_EDITANIMATIONNAME_HPP

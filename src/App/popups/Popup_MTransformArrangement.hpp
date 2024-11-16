@@ -1,5 +1,5 @@
-#ifndef POPUP_MTRANSFORMARRANGEMENT
-#define POPUP_MTRANSFORMARRANGEMENT
+#ifndef POPUP_MTRANSFORMARRANGEMENT_HPP
+#define POPUP_MTRANSFORMARRANGEMENT_HPP
 
 #include <cstdint>
 #include <cstring>
@@ -123,4 +123,4 @@ void Popup_MTransformArrangement() {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_MTRANSFORMARRANGEMENT
+#endif // POPUP_MTRANSFORMARRANGEMENT_HPP

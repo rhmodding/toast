@@ -1,5 +1,5 @@
-#ifndef POPUP_MODIFIEDTEXTURESIZE
-#define POPUP_MODIFIEDTEXTURESIZE
+#ifndef POPUP_MODIFIEDTEXTURESIZE_HPP
+#define POPUP_MODIFIEDTEXTURESIZE_HPP
 
 #include <imgui.h>
 
@@ -75,4 +75,4 @@ void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) {
     }
 }
 
-#endif // POPUP_MODIFIEDTEXTURESIZE
+#endif // POPUP_MODIFIEDTEXTURESIZE_HPP

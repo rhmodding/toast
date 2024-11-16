@@ -1,5 +1,5 @@
-#ifndef POPUP_TEXTUREEXPORTFAILED
-#define POPUP_TEXTUREEXPORTFAILED
+#ifndef POPUP_TEXTUREEXPORTFAILED_HPP
+#define POPUP_TEXTUREEXPORTFAILED_HPP
 
 #include <imgui.h>
 
@@ -26,4 +26,4 @@ void Popup_TextureExportFailed() {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_TEXTUREEXPORTFAILED
+#endif // POPUP_TEXTUREEXPORTFAILED_HPP

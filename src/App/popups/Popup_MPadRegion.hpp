@@ -1,5 +1,5 @@
-#ifndef POPUP_MPADREGION
-#define POPUP_MPADREGION
+#ifndef POPUP_MPADREGION_HPP
+#define POPUP_MPADREGION_HPP
 
 #include <cstdint>
 
@@ -143,4 +143,4 @@ void Popup_MPadRegion() {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_MPADREGION
+#endif // POPUP_MPADREGION_HPP

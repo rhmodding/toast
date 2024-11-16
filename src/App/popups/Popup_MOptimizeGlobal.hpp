@@ -1,5 +1,5 @@
-#ifndef POPUP_MOPTIMIZEGLOBAL
-#define POPUP_MOPTIMIZEGLOBAL
+#ifndef POPUP_MOPTIMIZEGLOBAL_HPP
+#define POPUP_MOPTIMIZEGLOBAL_HPP
 
 #include <imgui.h>
 
@@ -79,4 +79,4 @@ void Popup_MOptimizeGlobal() {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_MOPTIMIZEGLOBAL
+#endif // POPUP_MOPTIMIZEGLOBAL_HPP

@@ -1,5 +1,5 @@
-#ifndef POPUP_DELETEANIMATION
-#define POPUP_DELETEANIMATION
+#ifndef POPUP_DELETEANIMATION_HPP
+#define POPUP_DELETEANIMATION_HPP
 
 #include <imgui.h>
 
@@ -48,4 +48,4 @@ void Popup_DeleteAnimation(int animationIndex) {
     ImGui::PopStyleVar();
 }
 
-#endif // POPUP_TEXTUREEXPORTFAILED
+#endif // POPUP_TEXTUREEXPORTFAILED_HPP
