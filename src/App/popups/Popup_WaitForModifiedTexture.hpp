@@ -8,7 +8,11 @@
 
 #include "../../AppState.hpp"
 
+#include "../../command/CommandModifySpritesheet.hpp"
+
 #include "../../common.hpp"
+
+#include "../Popups.hpp"
 
 void Popup_WaitForModifiedTexture() {
     CENTER_NEXT_WINDOW;
@@ -36,18 +40,13 @@ void Popup_WaitForModifiedTexture() {
         if (ImGui::Button("Ready", { 120.f, 0.f })) {
             GET_SESSION_MANAGER;
 
-            std::shared_ptr<Texture> newImage = std::make_shared<Texture>();
-            bool ok = newImage->LoadSTBFile(ConfigManager::getInstance().getConfig().textureEditPath.c_str());
+            const char* texturePath = ConfigManager::getInstance().getConfig().textureEditPath.c_str();
+
+            std::shared_ptr<Texture> newTexture = std::make_shared<Texture>();
+            bool ok = newTexture->LoadSTBFile(texturePath);
 
             if (ok) {
                 auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
-
-                bool diffSize =
-                    newImage->getWidth()  != cellanimSheet->getWidth() ||
-                    newImage->getHeight() != cellanimSheet->getHeight();
-
-                cellanimSheet = newImage;
-
                 switch (selectedFormatIndex) {
                     case 0:
                         cellanimSheet->setTPLOutputFormat(TPL::TPL_IMAGE_FORMAT_RGBA32);
@@ -60,13 +59,23 @@ void Popup_WaitForModifiedTexture() {
                         break;
                 }
 
+                bool diffSize =
+                    newTexture->getWidth()  != cellanimSheet->getWidth() ||
+                    newTexture->getHeight() != cellanimSheet->getHeight();
+
+                Popups::_oldTextureSizeX = cellanimSheet->getWidth();
+                Popups::_oldTextureSizeY = cellanimSheet->getHeight();
+
+                sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandModifySpritesheet>(
+                    sessionManager.getCurrentSession()->getCellanimObject()->sheetIndex,
+                    newTexture
+                ));
+
                 ImGui::CloseCurrentPopup();
 
                 if (diffSize)
-                    AppState::getInstance().OpenGlobalPopup("###DialogModifiedPNGSizeDiff");
-
-                sessionManager.SessionChanged();
-                sessionManager.getCurrentSessionModified() = true;
+                    AppState::getInstance().OpenGlobalPopup("###ModifiedTextureSize");
             }
             else
                 ImGui::CloseCurrentPopup();
