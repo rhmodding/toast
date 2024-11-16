@@ -27,7 +27,6 @@ public:
 
         RvlCellAnim::Arrangement& arrangement = this->getArrangement();
 
-        // An integer is used since nSwap can be negative.
         int nSwap = this->partIndex + (moveDown ? -1 : 1);
         if (nSwap >= 0 && nSwap < arrangement.parts.size())
             std::swap(
@@ -35,32 +34,21 @@ public:
                 arrangement.parts.at(nSwap)
             );
 
-        // TODO:
-
-        if (appState.selectedParts.at(0).index == this->partIndex)
-            appState.selectedParts[0].index = nSwap;
+        if (appState.isPartSelected(this->partIndex)) {
+            appState.setPartSelected(this->partIndex, false);
+            appState.setPartSelected(nSwap, true);
+        }
+        else if (appState.isPartSelected(nSwap)) {
+            appState.setPartSelected(nSwap, false);
+            appState.setPartSelected(this->partIndex, true);
+        }
 
         SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
-        GET_APP_STATE;
-
-        RvlCellAnim::Arrangement& arrangement = this->getArrangement();
-
-        int nSwap = this->partIndex + (moveDown ? -1 : 1);
-        if (nSwap >= 0 && nSwap < arrangement.parts.size())
-            std::swap(
-                arrangement.parts.at(this->partIndex),
-                arrangement.parts.at(nSwap)
-            );
-
-        // TODO:
-
-        if (appState.selectedParts.at(0).index == nSwap)
-            appState.selectedParts[0].index = this->partIndex;
-
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        // Re-swap
+        this->Execute();
     }
 
 private:
