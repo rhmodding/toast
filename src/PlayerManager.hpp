@@ -21,8 +21,6 @@ public:
 
     bool looping { false };
 
-    unsigned currentFrame { 0 };
-
     unsigned frameRate { 60 };
 
 public:
@@ -61,7 +59,7 @@ public:
     void clampCurrentKeyIndex() {
         this->setCurrentKeyIndex(std::min<unsigned>(
             this->getCurrentKeyIndex(),
-            AppState::getInstance().globalAnimatable->getCurrentAnimation()->keys.size() - 1
+            this->getKeyCount() - 1
         ));
     }
 
