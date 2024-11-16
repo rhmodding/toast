@@ -275,143 +275,111 @@ void WindowSpritesheet::FormatPopup() {
     ImGui::PopID();
 }
 
-/* TODO: reimplement with undo support
-void RepackSheet() {
-    const unsigned padding = 4;
-    const unsigned paddingHalf = padding / 2;
-
-    const uint32_t borderCol = 0xFF000000;
+// TODO: move this somewhere else
+bool RepackSheet() {
+    constexpr int PADDING = 4;
+    constexpr int PADDING_HALF = PADDING / 2;
+    constexpr uint32_t BORDER_COLOR = 0xFF000000;
 
     GET_SESSION_MANAGER;
 
-    auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
-
-    const auto& cellanimObject = sessionManager.getCurrentSession()->getCellanimObject();
-    auto arrangements = cellanimObject->arrangements; // Create copy instead of reference, move when finished
+    auto& session = *sessionManager.getCurrentSession();
+    auto& cellanimSheet = session.getCellanimSheet();
+    auto cellanimObject = session.getCellanimObject();
+    auto arrangements = cellanimObject->arrangements; // Copy
 
     struct RectComparator {
         bool operator()(const stbrp_rect& lhs, const stbrp_rect& rhs) const {
-            if (lhs.w != rhs.w) return lhs.w < rhs.w;
-            if (lhs.h != rhs.h) return lhs.h < rhs.h;
-            if (lhs.x != rhs.x) return lhs.x < rhs.x;
-            return lhs.y < rhs.y;
+            return std::tie(lhs.w, lhs.h, lhs.x, lhs.y) < std::tie(rhs.w, rhs.h, rhs.x, rhs.y);
         }
     };
-    std::set<stbrp_rect, RectComparator> _rectsSet;
+
+    std::set<stbrp_rect, RectComparator> uniqueRects;
 
     for (const auto& arrangement : arrangements) {
         for (const auto& part : arrangement.parts) {
-            stbrp_rect rect;
-            rect.w = part.regionW + padding;
-            rect.h = part.regionH + padding;
-            rect.x = part.regionX - paddingHalf;
-            rect.y = part.regionY - paddingHalf;
-
-            _rectsSet.insert(rect);
+            stbrp_rect rect = {
+                .x = (int)part.regionX - PADDING_HALF,
+                .y = (int)part.regionY - PADDING_HALF,
+                .w = (int)part.regionW + PADDING,
+                .h = (int)part.regionH + PADDING
+            };
+            uniqueRects.insert(rect);
         }
     }
 
-    const unsigned numRects = _rectsSet.size();
+    const unsigned numRects = uniqueRects.size();
+    std::vector<stbrp_rect> sortedRects(uniqueRects.begin(), uniqueRects.end());
+    auto originalRects = sortedRects;
 
-    std::vector<stbrp_rect> rects(_rectsSet.begin(), _rectsSet.end());
-    std::vector<stbrp_rect> originalRects = rects;
-
-    // _rectsSet not used from here on out
-    _rectsSet.clear();
-
-    // Internal storage for stbrp
+    // Initialize packing context
     std::vector<stbrp_node> nodes(numRects);
-
     stbrp_context context;
-    stbrp_init_target(&context, cellanimSheet->width, cellanimSheet->height, nodes.data(), numRects);
+    stbrp_init_target(&context, cellanimSheet->getWidth(), cellanimSheet->getHeight(), nodes.data(), numRects);
 
-    int successful = stbrp_pack_rects(&context, rects.data(), numRects);
-    if (!successful)
-        return;
+    if (!stbrp_pack_rects(&context, sortedRects.data(), numRects))
+        return false;
 
-    unsigned char* newImage = new unsigned char[cellanimSheet->width * cellanimSheet->height * 4];
-    memset(newImage, 0, cellanimSheet->width * cellanimSheet->height * 4);
+    const unsigned pixelCount = cellanimSheet->getPixelCount();
+    std::unique_ptr<unsigned char[]> newImage(new unsigned char[pixelCount * 4]());
+    std::unique_ptr<unsigned char[]> srcImage(new unsigned char[pixelCount * 4]);
+    cellanimSheet->GetRGBA32(srcImage.get());
 
-    unsigned char* srcImage = new unsigned char[cellanimSheet->width * cellanimSheet->height * 4];
-
-    // Copy cellanim sheet to srcImage
-    std::future<void> futureA = MtCommandManager::getInstance().enqueueCommand([&cellanimSheet, srcImage]() {
-        glBindTexture(GL_TEXTURE_2D, cellanimSheet->texture);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImage);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    });
-    futureA.get();
-
-    // Create new image data
+    // Copy image data to the new layout
     for (unsigned i = 0; i < numRects; ++i) {
-        stbrp_rect* rect = &rects[i];
-        stbrp_rect* originalRect = &originalRects[i];
+        const auto& rect = sortedRects[i];
+        const auto& origRect = originalRects[i];
 
-        int ox = originalRect->x;
-        int oy = originalRect->y;
-        
-        int nx = rect->x;
-        int ny = rect->y;
+        const int ox = origRect.x, oy = origRect.y, nx = rect.x, ny = rect.y;
+        const int w = origRect.w, h = origRect.h;
 
-        int w = originalRect->w;
-        int h = originalRect->h;
-
-        // Copy the image rect
-        for (unsigned row = 0; row < h; row++) {
-            unsigned char* src = srcImage + ((oy + row) * cellanimSheet->width + ox) * 4;
-            unsigned char* dst = newImage + ((ny + row) * cellanimSheet->width + nx) * 4;
-
+        for (int row = 0; row < h; ++row) {
+            auto* src = srcImage.get() + ((oy + row) * cellanimSheet->getWidth() + ox) * 4;
+            auto* dst = newImage.get() + ((ny + row) * cellanimSheet->getWidth() + nx) * 4;
             memcpy(dst, src, w * 4);
         }
 
-        // Vertical borders
-        for (unsigned col = 0; col < w; col++) {
-            ((uint32_t*)newImage)[(ny * cellanimSheet->width) + nx + col] = borderCol;
-            ((uint32_t*)newImage)[((ny + h - 1) * cellanimSheet->width) + nx + col] = borderCol;
+        // Add borders in one loop
+        for (int col = 0; col < w; ++col) {
+            ((uint32_t*)newImage.get())[ny * cellanimSheet->getWidth() + nx + col] = BORDER_COLOR;
+            ((uint32_t*)newImage.get())[(ny + h - 1) * cellanimSheet->getWidth() + nx + col] = BORDER_COLOR;
         }
-
-        // Horizontal borders
-        for (unsigned row = 0; row < h; row++) {
-            ((uint32_t*)newImage)[((ny + row) * cellanimSheet->width) + nx] = borderCol;
-            ((uint32_t*)newImage)[((ny + row) * cellanimSheet->width) + nx + w - 1] = borderCol;
+        for (int row = 0; row < h; ++row) {
+            ((uint32_t*)newImage.get())[(ny + row) * cellanimSheet->getWidth() + nx] = BORDER_COLOR;
+            ((uint32_t*)newImage.get())[(ny + row) * cellanimSheet->getWidth() + nx + w - 1] = BORDER_COLOR;
         }
     }
 
-    // Assign new rects
+    // Update texture
+    auto newTexture = std::make_shared<Texture>();
+    newTexture->LoadRGBA32(newImage.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
+
+    // Update arrangements
     for (auto& arrangement : arrangements) {
         for (auto& part : arrangement.parts) {
-            stbrp_rect rect;
-            rect.w = part.regionW + padding;
-            rect.h = part.regionH + padding;
-            rect.x = part.regionX - paddingHalf;
-            rect.y = part.regionY - paddingHalf;
+            stbrp_rect rect = {
+                .x = (int)part.regionX - PADDING_HALF,
+                .y = (int)part.regionY - PADDING_HALF,
+                .w = (int)part.regionW + PADDING,
+                .h = (int)part.regionH + PADDING
+            };
 
-            auto findRect = std::find(originalRects.begin(), originalRects.end(), rect);
-            if (findRect != originalRects.end()) {
-                stbrp_rect& newRect = rects[findRect - originalRects.begin()];
-
-                part.regionW = newRect.w - padding;
-                part.regionH = newRect.h - padding;
-                part.regionX = newRect.x + paddingHalf;
-                part.regionY = newRect.y + paddingHalf;
+            auto it = std::find(originalRects.begin(), originalRects.end(), rect);
+            if (it != originalRects.end()) {
+                const auto& newRect = sortedRects[std::distance(originalRects.begin(), it)];
+                part.regionW = newRect.w - PADDING;
+                part.regionH = newRect.h - PADDING;
+                part.regionX = newRect.x + PADDING_HALF;
+                part.regionY = newRect.y + PADDING_HALF;
             }
         }
     }
 
-    // Copy new image to cellanim sheet & move new arrangements
-    std::future<void> futureB = MtCommandManager::getInstance().enqueueCommand([&cellanimSheet, &newImage, &cellanimObject, &arrangements]() {
-        glBindTexture(GL_TEXTURE_2D, cellanimSheet->texture);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cellanimSheet->width, cellanimSheet->height, GL_RGBA, GL_UNSIGNED_BYTE, newImage);
-        glBindTexture(GL_TEXTURE_2D, 0);
+    session.executeCommand(std::make_shared<CommandModifySpritesheet>(cellanimObject->sheetIndex, newTexture));
+    session.executeCommand(std::make_shared<CommandModifyArrangements>(session.currentCellanim, std::move(arrangements)));
 
-        cellanimObject->arrangements = std::move(arrangements);
-    });
-    futureB.get();
-
-    delete[] srcImage;
-    delete[] newImage;
+    return true;
 }
-*/
 
 void WindowSpritesheet::Update() {
     static bool firstOpen { true };
@@ -552,8 +520,9 @@ void WindowSpritesheet::Update() {
             }
 
             if (ImGui::MenuItem((char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
-                //RepackSheet();
-                std::cerr << "Not implemented (repack sheet)\n";
+                bool ok = RepackSheet();
+                if (!ok)
+                    AppState::getInstance().OpenGlobalPopup("###SheetRepackFailed");
             }
 
             ImGui::EndMenu();
