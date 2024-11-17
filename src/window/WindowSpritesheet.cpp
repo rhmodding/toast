@@ -80,15 +80,17 @@ void WindowSpritesheet::FormatPopup() {
 
     ImGui::SetNextWindowSize({ 800.f, 550.f }, ImGuiCond_Appearing);
 
-    if (ImGui::BeginPopupModal("Re-encode image..###ReencodePopup", nullptr)) {
+    static bool lateOpen { false };
+    bool open = ImGui::BeginPopupModal("Re-encode image..###ReencodePopup", nullptr);
+
+    if (open) {
         GET_SESSION_MANAGER;
 
         auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
 
-        static const char* formatList[] {
-            "RGBA32",
-            "RGB5A3",
-        };
+        static std::shared_ptr<Texture> newTexture;
+
+        constexpr const char* formats = "RGBA32\0RGB5A3\0";
         static int selectedFormatIndex { 0 };
 
         TPL::TPLImageFormat tplFormat;
@@ -104,6 +106,82 @@ void WindowSpritesheet::FormatPopup() {
                 tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
                 break;
         }
+
+        auto updateTextureData = [&]() {
+            // Re-evaluate
+            switch (selectedFormatIndex) {
+                case 0:
+                    tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
+                    break;
+                case 1:
+                    tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
+                    break;
+
+                default:
+                    tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
+                    break;
+            }
+
+            unsigned char* imageData = cellanimSheet->GetRGBA32();
+            if (!imageData)
+                return;
+
+            unsigned bufferSize = ImageConvert::getImageByteSize(
+                tplFormat, cellanimSheet->getWidth(), cellanimSheet->getHeight()
+            );
+            unsigned char* imageBuffer = new unsigned char[bufferSize];
+
+            ImageConvert::fromRGBA32(
+                imageBuffer, nullptr, nullptr, tplFormat,
+                cellanimSheet->getWidth(), cellanimSheet->getHeight(),
+                imageData
+            );
+
+            // Swap buffers.
+            ImageConvert::toRGBA32(
+                imageData, tplFormat,
+                cellanimSheet->getWidth(), cellanimSheet->getHeight(),
+                imageBuffer, nullptr
+            );
+
+            delete[] imageBuffer;
+
+            newTexture->LoadRGBA32(
+                imageData,
+                cellanimSheet->getWidth(), cellanimSheet->getHeight()
+            );
+            newTexture->setTPLOutputFormat(tplFormat);
+
+            delete[] imageData;
+        };
+
+        if (!lateOpen) {
+            newTexture = std::make_shared<Texture>();
+
+            unsigned char* imageData = cellanimSheet->GetRGBA32();
+            if (imageData) {
+                newTexture->LoadRGBA32(
+                    imageData,
+                    cellanimSheet->getWidth(), cellanimSheet->getHeight()
+                );
+                delete[] imageData;
+
+                switch (cellanimSheet->getTPLOutputFormat()) {
+                case TPL::TPL_IMAGE_FORMAT_RGBA32:
+                    selectedFormatIndex = 0;
+                    break;
+                case TPL::TPL_IMAGE_FORMAT_RGB5A3:
+                    selectedFormatIndex = 1;
+                    break;
+                
+                default:
+                    break;
+                }
+
+                updateTextureData();
+            }
+        }
+        lateOpen = true;
 
         // Left
         {
@@ -188,7 +266,12 @@ void WindowSpritesheet::FormatPopup() {
                             alphaDesc = "Alpha: 8-bit, ranged 0 to 255";
                             break;
                         case TPL::TPL_IMAGE_FORMAT_RGB5A3:
-                            colorDesc = "Color:\n   Opaque pixels:\n      15-bit, 32768 colors\n   Transparent pixels:\n      12-bit, 4096 colors";
+                            colorDesc =
+                                "Color:\n"
+                                "   Opaque pixels:\n"
+                                "      15-bit, 32768 colors\n"
+                                "   Transparent pixels:\n"
+                                "      12-bit, 4096 colors";
                             alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
                             break;
                         default:
@@ -203,11 +286,13 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::EndChild();
             }
 
-            ImGui::Dummy({ 0, 5 });
+            ImGui::Dummy({ 0.f, 5.f });
             ImGui::Separator();
-            ImGui::Dummy({ 0, 5 });
+            ImGui::Dummy({ 0.f, 5.f });
 
-            ImGui::Combo("Format", &selectedFormatIndex, formatList, ARRAY_LENGTH(formatList));
+            if (ImGui::Combo("Format", &selectedFormatIndex, formats)) {
+                updateTextureData();
+            }
 
             ImGui::EndChild();
 
@@ -216,7 +301,14 @@ void WindowSpritesheet::FormatPopup() {
             ImGui::SameLine();
 
             if (ImGui::Button("Apply")) {
-                cellanimSheet->setTPLOutputFormat(tplFormat);
+                sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandModifySpritesheet>(
+                    sessionManager.getCurrentSession()->getCellanimObject()->sheetIndex,
+                    newTexture
+                ));
+
+                newTexture.reset();
+
                 ImGui::CloseCurrentPopup();
             }
 
@@ -260,17 +352,20 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::ColorConvertFloat4ToU32({ bgScale, bgScale, bgScale, 1.f })
             );
 
-            ImGui::GetWindowDrawList()->AddImage(
-                (ImTextureID)cellanimSheet->getTextureId(),
-                imagePosition,
-                { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
-            );
+            if (newTexture)
+                ImGui::GetWindowDrawList()->AddImage(
+                    (ImTextureID)newTexture->getTextureId(),
+                    imagePosition,
+                    { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
+                );
 
             ImGui::EndChild();
         }
 
         ImGui::EndPopup();
     }
+    else
+        lateOpen = false;
 
     ImGui::PopID();
 }
