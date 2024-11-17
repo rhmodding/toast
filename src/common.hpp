@@ -76,15 +76,6 @@ float byteswapFloat(float value);
 
 bool SaveBackupFile(const char* filePath, bool once);
 
-template <typename T>
-void deleteIfNotNullptr(T*& ptr, bool setNullptr = true) {
-    if (ptr)
-        delete ptr;
-
-    if (setNullptr)
-        ptr = nullptr;
-}
-
 void FitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
 
 float EaseInOut(float t);

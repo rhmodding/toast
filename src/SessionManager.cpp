@@ -405,7 +405,6 @@ void SessionManager::SessionChanged() {
     GET_APP_STATE;
     GET_ANIMATABLE;
 
-    //Common::deleteIfNotNullptr(globalAnimatable, false);
     globalAnimatable = Animatable(
         this->sessionList[this->currentSessionIndex].getCellanimObject(),
         this->sessionList[this->currentSessionIndex].getCellanimSheet()
