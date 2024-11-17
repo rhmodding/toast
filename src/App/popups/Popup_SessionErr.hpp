@@ -107,7 +107,7 @@ void Popup_SessionErr() {
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted(errorMessage);
 
-        ImGui::Dummy({ ImGui::CalcTextSize(popupTitle, nullptr, true).x - 40, 5.f });
+        ImGui::Dummy({ ImGui::CalcTextSize(popupTitle, nullptr, true).x - 40.f, 5.f });
 
         if (ImGui::Button("Alright", { 120.f, 0.f }))
             ImGui::CloseCurrentPopup();
