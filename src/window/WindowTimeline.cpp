@@ -590,20 +590,38 @@ void WindowTimeline::Update() {
                             ImGui::PushID(i);
 
                             char buffer[24];
-                            snprintf(
-                                buffer, sizeof(buffer),
-                                "%u##OnionSkinButton", i+1
-                            );
+                            snprintf(buffer, sizeof(buffer), "%u##OnionSkinButton", i + 1);
+
+                            int keyCount = playerManager.getKeyCount();
+                            int currentKeyIndex = playerManager.getCurrentKeyIndex();
+                            int backStart = currentKeyIndex - appState.onionSkinState.backCount;
+                            int frontEnd = currentKeyIndex + appState.onionSkinState.frontCount;
+
+                            bool isOnionSkinFrame = false;
+                            if (appState.onionSkinState.rollOver) {
+                                int wrappedBackStart = (backStart % keyCount + keyCount) % keyCount;
+                                int wrappedFrontEnd = frontEnd % keyCount;
+
+                                // Normal range
+                                if (wrappedBackStart <= wrappedFrontEnd)
+                                    isOnionSkinFrame = (i >= wrappedBackStart && i <= wrappedFrontEnd);
+                                // Rollover range
+                                else
+                                    isOnionSkinFrame = (i >= wrappedBackStart || i <= wrappedFrontEnd);
+                            }
+                            // Check regular bounds
+                            else {
+                                isOnionSkinFrame =
+                                    (i >= (unsigned)std::max(0, backStart) &&
+                                    i <= (unsigned)std::min(frontEnd, keyCount - 1));
+                            }
 
                             ImGui::BeginDisabled();
-                            if (
-                                i >= playerManager.getCurrentKeyIndex() - appState.onionSkinState.backCount &&
-                                i <= playerManager.getCurrentKeyIndex() + appState.onionSkinState.frontCount &&
-                                i != playerManager.getCurrentKeyIndex()
-                            )
+                            if (isOnionSkinFrame && i != (unsigned)currentKeyIndex) {
                                 ImGui::Button(buffer, buttonDimensions);
-                            else
+                            } else {
                                 ImGui::Dummy(buttonDimensions);
+                            }
                             ImGui::EndDisabled();
 
                             // Hold frame dummy
