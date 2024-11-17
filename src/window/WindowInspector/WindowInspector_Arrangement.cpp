@@ -532,6 +532,13 @@ void WindowInspector::Level_Arrangement() {
                             copyParts.end()
                         );
 
+                        sessionManager.getCurrentSession()->executeCommand(
+                        std::make_shared<CommandModifyArrangement>(
+                            sessionManager.getCurrentSession()->currentCellanim,
+                            appState.globalAnimatable.getCurrentKey()->arrangementIndex,
+                            newArrangement
+                        ));
+
                         appState.clearSelectedParts();
                         for (unsigned i = 0; i < copyParts.size(); i++)
                             appState.setPartSelected(n + i, true);
