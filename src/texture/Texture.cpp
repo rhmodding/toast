@@ -185,4 +185,5 @@ void Texture::DestroyTexture() {
     MtCommandManager::getInstance().enqueueCommand([textureId = this->textureId]() {
         glDeleteTextures(1, &textureId);
     });
+    this->textureId = 0;
 }
