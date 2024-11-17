@@ -680,7 +680,7 @@ void App::Menubar() {
 
                 auto& session = sessionManager.sessionList[n];
 
-                bool sessionOpen{ true };
+                bool sessionOpen { true };
                 bool tabVisible = ImGui::BeginTabItem(
                     session.mainPath.c_str(),
                     &sessionOpen,
@@ -761,8 +761,8 @@ void App::Update() {
 
     // Update rate
     {
-        static std::chrono::system_clock::time_point a{ std::chrono::system_clock::now() };
-        static std::chrono::system_clock::time_point b{ std::chrono::system_clock::now() };
+        static std::chrono::system_clock::time_point a { std::chrono::system_clock::now() };
+        static std::chrono::system_clock::time_point b { std::chrono::system_clock::now() };
 
         a = std::chrono::system_clock::now();
         std::chrono::duration<double, std::milli> workTime = a - b;
@@ -779,7 +779,7 @@ void App::Update() {
         std::chrono::duration<double, std::milli> sleep_time = b - a;
     }
 
-    static ImGuiIO& io{ ImGui::GetIO() };
+    static ImGuiIO& io { ImGui::GetIO() };
 
     glfwMakeContextCurrent(this->window);
 

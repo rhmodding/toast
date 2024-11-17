@@ -111,7 +111,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
     this->usePalette = header->usePalette != 0;
 
-    unsigned readOffset{ sizeof(RvlCellAnimHeader) };
+    unsigned readOffset { sizeof(RvlCellAnimHeader) };
 
     // Arrangements
     const uint16_t arrangementCount = BYTESWAP_16(
@@ -138,7 +138,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
                 reinterpret_cast<const ArrangementPartRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(ArrangementPartRaw);
 
-            arrangement.parts[j] = ArrangementPart{
+            arrangement.parts[j] = ArrangementPart {
                 .regionX = BYTESWAP_16(arrangementPartRaw->regionX),
                 .regionY = BYTESWAP_16(arrangementPartRaw->regionY),
                 .regionW = BYTESWAP_16(arrangementPartRaw->regionW),
@@ -176,7 +176,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
             const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(AnimationKeyRaw);
 
-            animation.keys[j] = AnimationKey{
+            animation.keys[j] = AnimationKey {
                 .arrangementIndex = BYTESWAP_16(keyRaw->arrangementIndex),
 
                 .holdFrames = BYTESWAP_16(keyRaw->holdFrames),

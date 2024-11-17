@@ -111,7 +111,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     // animation names
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
         // Find header file
-        const U8::File* headerFile{ nullptr };
+        const U8::File* headerFile { nullptr };
 
         const U8::File* brcadFile = brcadFiles[i];
 

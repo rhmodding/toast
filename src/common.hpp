@@ -85,8 +85,6 @@ void deleteIfNotNullptr(T*& ptr, bool setNullptr = true) {
         ptr = nullptr;
 }
 
-std::string randomString(const unsigned length);
-
 void FitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
 
 float EaseInOut(float t);

@@ -61,8 +61,10 @@ void WindowInspector::Level_Animation() {
     }
 
     ImGui::Indent();
-        ImGui::Bullet();
-        ImGui::SameLine();
-        ImGui::TextWrapped("Macro names are not used for mapping animations directly in the game.\nTo swap animations, use [Swap index..].");
+        ImGui::Bullet(); ImGui::SameLine();
+        ImGui::TextWrapped(
+            "Macro names are not used for mapping animations directly in the game.\n"
+            "To swap animations, use [Swap index..]."
+        );
     ImGui::Unindent();
 }

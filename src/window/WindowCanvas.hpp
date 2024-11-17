@@ -41,7 +41,7 @@ private:
     ImVec2 canvasTopLeft;
     ImVec2 canvasSize;
 
-    enum PartHandle: short {
+    enum PartHandle {
         PartHandle_None = -1,
         PartHandle_Top = 0,
         PartHandle_Right = 1,

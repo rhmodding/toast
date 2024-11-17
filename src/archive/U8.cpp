@@ -145,7 +145,8 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t 
 
             currentDirectory = &currentDirectory->subdirectories.back();
             dirStack.push({currentDirectory, BYTESWAP_32(node->sizeOrNextEntry)});
-        } else {
+        }
+        else {
             File file(name);
 
             const unsigned char* dataStart = archiveData + BYTESWAP_32(node->dataOffsetOrParent);

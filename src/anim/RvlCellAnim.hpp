@@ -35,7 +35,7 @@ struct TransformValues {
     }
 
     TransformValues average(const TransformValues& other) const {
-        TransformValues transform{
+        TransformValues transform {
             .positionX = (int16_t)AVERAGE_INTS(this->positionX, other.positionX),
             .positionY = (int16_t)AVERAGE_INTS(this->positionY, other.positionY),
 
@@ -49,7 +49,7 @@ struct TransformValues {
     }
 
     TransformValues lerp(const TransformValues& other, float t) const {
-        TransformValues transform{
+        TransformValues transform {
             .positionX = (int16_t)std::lerp(this->positionX, other.positionX, t),
             .positionY = (int16_t)std::lerp(this->positionY, other.positionY, t),
 

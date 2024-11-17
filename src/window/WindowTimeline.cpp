@@ -259,14 +259,14 @@ void WindowTimeline::Update() {
 
                         RvlCellAnim::AnimationKey& key = globalAnimatable.getCurrentAnimation()->keys.at(i);
 
-                        enum DeleteKeyMode: uint16_t {
+                        enum DeleteKeyMode {
                             DeleteKeyMode_None,
 
                             DeleteKeyMode_Current,
 
                             DeleteKeyMode_ToRight,
                             DeleteKeyMode_ToLeft
-                        } deleteKeyMode{ DeleteKeyMode_None };
+                        } deleteKeyMode { DeleteKeyMode_None };
 
                         if (ImGui::BeginPopupContextItem()) {
                             ImGui::Text((char*)ICON_FA_KEY "  Options for key no. %u", i+1);
@@ -617,11 +617,10 @@ void WindowTimeline::Update() {
                             }
 
                             ImGui::BeginDisabled();
-                            if (isOnionSkinFrame && i != (unsigned)currentKeyIndex) {
+                            if (isOnionSkinFrame && i != (unsigned)currentKeyIndex)
                                 ImGui::Button(buffer, buttonDimensions);
-                            } else {
+                            else
                                 ImGui::Dummy(buttonDimensions);
-                            }
                             ImGui::EndDisabled();
 
                             // Hold frame dummy

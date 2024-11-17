@@ -254,7 +254,7 @@ void WindowCanvas::Update() {
     this->Menubar();
 
     // Determine background color
-    uint32_t backgroundColor{ 0xFF000000 };
+    uint32_t backgroundColor { 0xFF000000 };
     switch (this->gridType) {
         case GridType_None:
             backgroundColor = IM_COL32_BLACK_TRANS;

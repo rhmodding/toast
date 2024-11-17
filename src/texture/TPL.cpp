@@ -404,8 +404,8 @@ std::optional<TPLObject> readTPLFile(const std::string& filePath) {
 GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
     GLuint imageTexture;
 
-    GLint minFilter{ GL_LINEAR };
-    GLint magFilter{ GL_LINEAR };
+    GLint minFilter { GL_LINEAR };
+    GLint magFilter { GL_LINEAR };
 
     TPL::TPLTexFilter tplMinFilter = tplTexture.minFilter;
     TPL::TPLTexFilter tplMagFilter = tplTexture.magFilter;

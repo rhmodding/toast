@@ -36,7 +36,7 @@ void WindowHybridList::ResetFlash() {
 void WindowHybridList::Update() {
     GET_APP_STATE;
 
-    static bool lastArrangementMode{ appState.getArrangementMode() };
+    static bool lastArrangementMode { appState.getArrangementMode() };
     if (lastArrangementMode != appState.getArrangementMode()) {
         this->flashTrigger = true;
         this->FlashWindow();

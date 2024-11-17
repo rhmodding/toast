@@ -92,7 +92,7 @@ public:
 
     // Friend functions for JSON (de-)serialization
     friend void to_json(nlohmann::ordered_json& j, const ConfigManager::Config& config) {
-        j = nlohmann::ordered_json{
+        j = nlohmann::ordered_json {
             { "theme", config.theme },
             { "imageEditorPath", config.imageEditorPath },
             { "textureEditPath", config.textureEditPath },
@@ -119,8 +119,8 @@ public:
     }
 
 public:
-    bool firstTime{ false };
-    std::string configPath{ "toast.config.json" };
+    bool firstTime { false };
+    std::string configPath { "toast.config.json" };
 
     void Load() {
         std::ifstream file(configPath);

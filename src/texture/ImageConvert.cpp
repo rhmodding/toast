@@ -356,7 +356,8 @@ void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned
                         colors[2][i] = colors[0][i] * 2 / 3 + colors[1][i] / 3;
                     for (unsigned i = 0; i < 4; ++i)
                         colors[3][i] = colors[0][i] / 3 + colors[1][i] * 2 / 3;
-                } else {
+                }
+                else {
                     for (unsigned i = 0; i < 4; ++i)
                         colors[2][i] = (colors[0][i] + colors[1][i]) / 2;
                     colors[3][0] = colors[3][1] = colors[3][2] = colors[3][3] = 0x00;
@@ -417,7 +418,7 @@ void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned
 #pragma region RGBxxx
 
 void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
-    unsigned writeOffset{ 0 };
+    unsigned writeOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
         for (unsigned xx = 0; xx < srcWidth; xx += 4) {

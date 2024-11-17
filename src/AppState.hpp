@@ -128,7 +128,8 @@ public:
         if (selected) {
             if (it == selectedParts.end())
                 selectedParts.push_back({ partIndex, spSelectionOrder++ });
-        } else if (it != selectedParts.end()) {
+        }
+        else if (it != selectedParts.end()) {
             selectedParts.erase(it);
             resetSelectionOrder();
         }
@@ -171,7 +172,8 @@ public:
                 if (selectionChanges == 1 || selectionChanges < selectedParts.size() / 100) {
                     for (int idx = (int)req.RangeFirstItem; idx <= (int)req.RangeLastItem; idx++)
                         this->setPartSelected(idx, req.Selected);
-                } else
+                }
+                else
                     this->applyRangeSelectionOrder(req);
             }
         }

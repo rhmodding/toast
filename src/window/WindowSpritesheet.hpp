@@ -11,7 +11,7 @@ class WindowSpritesheet : public BaseWindow {
 public:
     void Update() override;
 
-    enum GridType : uint16_t {
+    enum GridType {
         GridType_None,
         GridType_Dark,
         GridType_Light,
