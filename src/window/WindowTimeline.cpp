@@ -217,6 +217,7 @@ void WindowTimeline::Update() {
     ImGui::BeginChild("TimelineKeys", { 0.f, 0.f }, 0, ImGuiWindowFlags_HorizontalScrollbar);
     {
         const ImVec2 buttonDimensions { 22.f, 30.f };
+        const float holdFrameWidth { 22.f / 2 };
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 15.f, 0.f });
 
@@ -470,7 +471,7 @@ void WindowTimeline::Update() {
                         // Hold frame dummy
                         if (key.holdFrames > 1) {
                             ImGui::SameLine();
-                            ImGui::Dummy({ static_cast<float>(10 * key.holdFrames), buttonDimensions.y });
+                            ImGui::Dummy({ holdFrameWidth * key.holdFrames, buttonDimensions.y });
                         }
 
                         ImGui::SameLine();
@@ -557,7 +558,7 @@ void WindowTimeline::Update() {
                             });
 
                             ImGui::BeginDisabled();
-                            ImGui::Button((char*)ICON_FA_HOURGLASS "", { static_cast<float>(10 * holdFrames), 30.f });
+                            ImGui::Button((char*)ICON_FA_HOURGLASS "", { holdFrameWidth * holdFrames, 30.f });
                             ImGui::EndDisabled();
 
                             ImGui::PopStyleVar();
@@ -627,7 +628,7 @@ void WindowTimeline::Update() {
                             uint16_t holdFrames = globalAnimatable.getCurrentAnimation()->keys.at(i).holdFrames;
                             if (holdFrames > 1) {
                                 ImGui::SameLine();
-                                ImGui::Dummy({ static_cast<float>(10 * holdFrames), buttonDimensions.y });
+                                ImGui::Dummy({ holdFrameWidth * holdFrames, buttonDimensions.y });
                             }
 
                             ImGui::SameLine();
