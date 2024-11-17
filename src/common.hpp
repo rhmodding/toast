@@ -49,19 +49,19 @@
 
 #define CENTER_NEXT_WINDOW ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f))
 
-#define SAFE_ASSERT(condition, shouldReturn) \
+#define NONFATAL_ASSERT(condition, shouldReturn) \
     do { \
         if (!(condition)) { \
-            std::cerr << "[SAFE_ASSERT] Assertion failed: (" #condition "), function " << __FUNCTION__ \
+            std::cerr << "[NONFATAL_ASSERT] Assertion failed: (" #condition "), function " << __FUNCTION__ \
                       << ", file " << __FILE__ << ", line " << __LINE__ << "." << std::endl; \
             if (shouldReturn) return; \
         } \
     } while (false)
 
-#define SAFE_ASSERT_RET(condition, ret) \
+#define NONFATAL_ASSERT_RET(condition, ret) \
     do { \
         if (!(condition)) { \
-            std::cerr << "[SAFE_ASSERT_RET] Assertion failed: (" #condition "), function " << __FUNCTION__ \
+            std::cerr << "[NONFATAL_ASSERT_RET] Assertion failed: (" #condition "), function " << __FUNCTION__ \
                       << ", file " << __FILE__ << ", line " << __LINE__ << "." << std::endl; \
             return (ret); \
         } \
