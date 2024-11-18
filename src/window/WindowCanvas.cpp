@@ -461,7 +461,7 @@ void WindowCanvas::Update() {
 
             // Draw selected part bounds
             if (appState.focusOnSelectedPart && appState.anyPartsSelected()) {
-                for (const auto& part : appState.selectedParts) {
+                for (const auto& [index, _] : appState.selectedParts) {
                     uint32_t color = hoveringOverSelectedPart && ImGui::IsWindowHovered() ?
                         IM_COL32(255, 255, 0, 255) :
                         IM_COL32(
@@ -471,22 +471,23 @@ void WindowCanvas::Update() {
                             partBoundingDrawColor.w * 255
                         );
 
-                    auto bounding = globalAnimatable.getPartWorldQuad(globalAnimatable.getCurrentKey(), part.index);
+                    auto bounding = globalAnimatable.getPartWorldQuad(globalAnimatable.getCurrentKey(), index);
                     drawList->AddQuad(
                         ROUND_IMVEC2(bounding[0]), ROUND_IMVEC2(bounding[1]),
                         ROUND_IMVEC2(bounding[2]), ROUND_IMVEC2(bounding[3]),
                         color
                     );
 
-                    float thrLength = sqrtf(
-                        ((bounding[2].x - bounding[0].x)*(bounding[2].x - bounding[0].x)) +
-                        ((bounding[2].y - bounding[0].y)*(bounding[2].y - bounding[0].y))
-                    );
+                    const auto& part = globalAnimatable.getCurrentArrangement()->parts.at(index);
 
-                    // If quad is too small or the part is locked, only draw the bounding.
-                    if (thrLength >= 35.f && !partLocked) {
+                    bool boundingBigEnough =
+                        ((bounding[2].x - bounding[0].x) >= 35.f) &&
+                        ((bounding[2].y - bounding[0].y) >= 35.f);
+
+                    // If bounding is too small or the part is locked, only draw the bounding.
+                    if (boundingBigEnough && !part.editorLocked) {
                         float angle =
-                            globalAnimatable.getCurrentArrangement()->parts.at(part.index).transform.angle +
+                            part.transform.angle +
                             globalAnimatable.getCurrentKey()->transform.angle;
 
                         ImVec2 point;
