@@ -578,20 +578,49 @@ void WindowCanvas::Update() {
         if (hoveringOverSelectedPart && ImGui::IsWindowHovered() && !draggingCanvas) {
             std::ostringstream fmtStream;
 
-            fmtStream << "Part no. %u\n";
+            if (appState.singlePartSelected()) {
+                fmtStream << "Part no. %u\n";
 
-            if (!partLocked)
-                fmtStream << "You can drag this part to change it's position.";
-            else
-                fmtStream << "This part is locked.";
+                unsigned partIndex = appState.selectedParts[0].index;
+                const auto& part = arrangementPtr->parts.at(partIndex);
 
-            if (!partVisible)
-                fmtStream << "\nThis part is invisible.";
+                if (!part.editorLocked)
+                    fmtStream << "You can drag this part to change it's position.";
+                else
+                    fmtStream << "This part is locked.";
 
-            ImGui::SetTooltip(
-                fmtStream.str().c_str(),
-                firstSelectedPart + 1
-            );
+                if (!part.editorVisible)
+                    fmtStream << "\nThis part is invisible.";
+
+                ImGui::SetTooltip(
+                    fmtStream.str().c_str(),
+                    partIndex + 1
+                );
+            }
+            else {
+                fmtStream << "%lu parts selected";
+                
+                unsigned lockedCount { 0 };
+                unsigned invisibleCount { 0 };
+
+                for (const auto& [index, _] : appState.selectedParts) {
+                    const auto& part = arrangementPtr->parts.at(index);
+                    if (part.editorLocked)
+                        lockedCount++;
+                    if (!part.editorVisible)
+                        invisibleCount++;
+                }
+
+                if (lockedCount != 0)
+                    fmtStream << '\n' << lockedCount << "parts locked";
+                if (invisibleCount != 0)
+                    fmtStream << '\n' << invisibleCount << "parts invisible";
+
+                ImGui::SetTooltip(
+                    fmtStream.str().c_str(),
+                    appState.selectedParts.size()
+                );
+            }
         }
     }
 
