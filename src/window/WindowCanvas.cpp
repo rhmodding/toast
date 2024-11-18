@@ -809,27 +809,31 @@ void WindowCanvas::Update() {
         this->canvasOffset.y += io.MouseDelta.y;
     }
 
-    if (interactionDeactivated && panningCanvas)
-        panningCanvas = false;
+    if (interactionDeactivated) {
+        if (panningCanvas)
+            panningCanvas = false;
+        else if (activePartHandle != PartHandle_None) { // Submit command
+            GET_SESSION_MANAGER;
+            GET_ANIMATABLE;
 
-    if (interactionDeactivated && activePartHandle != PartHandle_None) { // Submit command
-        GET_SESSION_MANAGER;
-        GET_ANIMATABLE;
+            //RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(firstSelectedPart);
+            //arrangementPtr->parts.at(firstSelectedPart) = partBeforeInteraction;
 
-        //RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(firstSelectedPart);
-        //arrangementPtr->parts.at(firstSelectedPart) = partBeforeInteraction;
+            std::swap(*arrangementPtr, arrangementBeforehand);
 
-        std::swap(*arrangementPtr, arrangementBeforehand);
+            sessionManager.getCurrentSession()->executeCommand(
+                std::make_shared<CommandModifyArrangement>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    globalAnimatable.getCurrentKey()->arrangementIndex,
+                    arrangementBeforehand
+                )
+            );
 
-        sessionManager.getCurrentSession()->executeCommand(
-            std::make_shared<CommandModifyArrangement>(
-                sessionManager.getCurrentSession()->currentCellanim,
-                globalAnimatable.getCurrentKey()->arrangementIndex,
-                arrangementBeforehand
-            )
-        );
-
-        activePartHandle = PartHandle_None;
+            activePartHandle = PartHandle_None;
+        }
+        else if (!hoveringOverSelectedPart) {
+            appState.clearSelectedParts();
+        }
     }
 
     // Canvas zooming
