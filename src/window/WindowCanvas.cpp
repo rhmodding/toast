@@ -338,6 +338,15 @@ void WindowCanvas::Update() {
 
     RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
 
+    if (ImGui::Shortcut(ImGuiKey_A | ImGuiMod_Ctrl)) {
+        appState.clearSelectedParts();
+        appState.selectedParts.reserve(arrangementPtr->parts.size());
+
+        for (int idx = 0; idx < arrangementPtr->parts.size(); idx++, appState.spSelectionOrder++) {
+            appState.setBatchPartSelection(idx, true, appState.selectedParts.size());
+        }
+    }
+
     const int firstSelectedPart = appState.anyPartsSelected() ?
         appState.selectedParts[0].index :
         -1;
