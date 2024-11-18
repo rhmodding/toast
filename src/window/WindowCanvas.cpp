@@ -499,7 +499,7 @@ void WindowCanvas::Update() {
                                 { point.x - 10.f, point.y - 10.f },
                                 { point.x + 10.f, point.y + 10.f }
                             ))
-                                *(short*)&hoveredPartHandle = PartHandle_Top + i;
+                                *(int*)&hoveredPartHandle = PartHandle_Top + i;
 
                             DrawRotatedBox(
                                 drawList, point, 4.f, angle, color,
@@ -516,7 +516,7 @@ void WindowCanvas::Update() {
                                 { point.x - 10.f, point.y - 10.f },
                                 { point.x + 10.f, point.y + 10.f }
                             ))
-                                *(short*)&hoveredPartHandle = PartHandle_TopLeft + i;
+                                *(int*)&hoveredPartHandle = PartHandle_TopLeft + i;
 
                             DrawRotatedBox(
                                 drawList, point, 4.f, angle, color,
