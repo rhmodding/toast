@@ -96,6 +96,8 @@ void Dialog_CreateTraditionalSession() {
         sessionManager.currentSessionIndex = result;
         sessionManager.SessionChanged();
     }
+
+    free(brcadPath); free(imagePath); free(headerPath);
 }
 
 void Dialog_SaveCurrentSessionAsSzs() {
