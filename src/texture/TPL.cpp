@@ -118,6 +118,8 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         tplData + BYTESWAP_32(palette->descriptorsOffset)
     );
 
+    this->textures.resize(descriptorCount);
+
     for (uint32_t i = 0; i < descriptorCount; i++) {
         const TPLDescriptor* descriptor = descriptors + i;
 
@@ -128,7 +130,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
 
         const TPLHeader* header = reinterpret_cast<const TPLHeader*>(tplData + BYTESWAP_32(descriptor->textureHeaderOffset));
 
-        TPLTexture textureData;
+        TPLTexture& textureData = this->textures[i];
 
         if (descriptor->CLUTHeaderOffset != 0) {
             const TPLClutHeader* clutHeader = reinterpret_cast<const TPLClutHeader*>(tplData + BYTESWAP_32(descriptor->CLUTHeaderOffset));
@@ -161,8 +163,6 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
 
         textureData.data.resize(textureData.width * textureData.height * 4);
         ImageConvert::toRGBA32(textureData, imageData);
-
-        this->textures.push_back(textureData);
     }
 
     this->ok = true;
@@ -233,7 +233,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     palette->descriptorCount = BYTESWAP_32(textureCount);
     palette->descriptorsOffset = BYTESWAP_32(sizeof(TPLPalette));
 
-    unsigned nextClutOffset;
+    unsigned nextClutOffset { 0 };
     if (!paletteTextures.empty())
         nextClutOffset = (
             sizeof(TPLPalette) +
