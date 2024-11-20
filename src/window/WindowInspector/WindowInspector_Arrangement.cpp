@@ -439,9 +439,8 @@ void WindowInspector::Level_Arrangement() {
                 int locked = -1;
 
                 if (isPartSelected) {
-                    for (unsigned i = 0; i < appState.selectedParts.size(); i++) {
-                        const auto& sp = appState.selectedParts[i];
-                        const auto& part = arrangementPtr->parts.at(sp.index);
+                    for (const auto& [index, _] : appState.selectedParts) {
+                        const auto& part = arrangementPtr->parts.at(index);
 
                         if (visible == -1)
                             visible = part.editorVisible;
@@ -625,8 +624,9 @@ void WindowInspector::Level_Arrangement() {
                     if (isPartSelected) {
                         copyParts.resize(appState.selectedParts.size());
                         for (unsigned i = 0; i < appState.selectedParts.size(); i++) {
-                            const auto& sp = appState.selectedParts[i];
-                            copyParts[i] = arrangementPtr->parts.at(sp.index);
+                            copyParts[i] = arrangementPtr->parts.at(
+                                appState.selectedParts[i].index
+                            );
                         }
                     }
                     else {
@@ -718,8 +718,8 @@ void WindowInspector::Level_Arrangement() {
                 if (!isPartSelected)
                     part.editorVisible ^= true;
                 else {
-                    for (const auto& part : appState.selectedParts)
-                        arrangementPtr->parts.at(part.index).editorVisible ^= true;
+                    for (const auto& [index, _] : appState.selectedParts)
+                        arrangementPtr->parts.at(index).editorVisible ^= true;
                 }
             }
 
@@ -728,8 +728,8 @@ void WindowInspector::Level_Arrangement() {
                 if (!isPartSelected)
                     part.editorLocked ^= true;
                 else {
-                    for (const auto& part : appState.selectedParts)
-                        arrangementPtr->parts.at(part.index).editorLocked ^= true;
+                    for (const auto& [index, _] : appState.selectedParts)
+                        arrangementPtr->parts.at(index).editorLocked ^= true;
                 }
             }
 
