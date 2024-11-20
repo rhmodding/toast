@@ -12,10 +12,10 @@
 
 namespace PaletteUtils {
 
-std::set<uint32_t> generatePalette(const uint32_t* rgbaImage, unsigned width, unsigned height) {
+std::set<uint32_t> generatePalette(const unsigned char* rgbaImage, unsigned width, unsigned height) {
     std::set<uint32_t> uniqueColors;
     for (unsigned i = 0; i < width * height; ++i)
-        uniqueColors.insert(rgbaImage[i]);
+        uniqueColors.insert(((const uint32_t*)rgbaImage)[i]);
     
     return uniqueColors;
 }
@@ -23,10 +23,10 @@ std::set<uint32_t> generatePalette(const uint32_t* rgbaImage, unsigned width, un
 void CLUTtoRGBA32Palette(
     std::vector<uint32_t>& buffer,
 
-    const uint8_t* data,
-    const uint16_t numEntries,
+    const unsigned char* data,
+    unsigned numEntries,
 
-    const TPL::TPLClutFormat format
+    TPL::TPLClutFormat format
 ) {
     buffer.resize(numEntries);
 
@@ -87,8 +87,9 @@ void CLUTtoRGBA32Palette(
 
         default:
             std::cerr <<
-                "[PaletteUtils::toRGBA32] Invalid color palette format! Expected 0 to 2, got " <<
-                format << '\n';
+                "[PaletteUtils::toRGBA32] Invalid color palette format! Expected 0 to " <<
+                TPL::TPL_CLUT_FORMAT_COUNT - 1 <<
+                ", got " << format << '\n';
             return;
     }
 }
@@ -99,7 +100,7 @@ bool WriteRGBA32Palette(
 
     const TPL::TPLClutFormat format,
 
-    uint8_t* dest
+    unsigned char* dest
 ) {
     switch (format) {
         case TPL::TPL_CLUT_FORMAT_IA8: {
@@ -117,7 +118,7 @@ bool WriteRGBA32Palette(
                 const uint8_t* readPixel = reinterpret_cast<const uint8_t*>(data + i);
 
                 // A pixel is 16-bit but we write it in two 8-bit segments.
-                uint8_t* pixel = dest + (i * 2);
+                uint8_t* pixel = ((uint8_t*)dest) + (i * 2);
 
                 if (readPixel[3] == 255) { // Opaque, write RGB555 pixel
                     // Bits:

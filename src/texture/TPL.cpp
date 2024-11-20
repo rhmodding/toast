@@ -194,7 +194,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             paletteTextures.push_back(PaletteTexEntry {
                 .texIndex = i,
                 .palette = PaletteUtils::generatePalette(
-                    (uint32_t*)texture.data.data(), texture.width, texture.height
+                    texture.data.data(), texture.width, texture.height
                 )
             });
 
