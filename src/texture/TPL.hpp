@@ -79,7 +79,9 @@ enum TPLClutFormat : uint32_t {
     // Color + Alpha (16-bit pixels)
     //   - Pixel type A: 5 bits for each color
     //   - Pixel type B: 4 bits for each color, 3 bit alpha
-    TPL_CLUT_FORMAT_RGB5A3
+    TPL_CLUT_FORMAT_RGB5A3,
+
+    TPL_CLUT_FORMAT_COUNT
 };
 
 const char* getImageFormatName(TPLImageFormat format);
