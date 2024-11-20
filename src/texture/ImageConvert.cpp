@@ -9,37 +9,17 @@
 
 #define IMGFMT TPL::TPLImageFormat
 
-/*                                 result          srcWidth  srcHeight data                  palette
-**                                                                                          (not used by non-palette 
-**                                                                                           implementations) */
+
 typedef void (*FromImplementation)(unsigned char*, unsigned, unsigned, const unsigned char*, const uint32_t*);
-
-/*                               result          paletteOut paletteSizeOut       srcHeight data
-**                                                                     srcWidth
-**                                               (not mutated by non-palette
-**                                                implementations) */
 typedef void (*ToImplementation)(unsigned char*, uint32_t*, unsigned*, unsigned, unsigned, const unsigned char*);
-
-void RGB565ToRGBA32(uint16_t pixel, uint8_t* dest, uint32_t offset = 0) {
-    uint8_t rU, gU, bU;
-
-    rU = (pixel & 0xF100) >> 11;
-    gU = (pixel & 0x7E0) >> 5;
-    bU = (pixel & 0x1F);
-
-    dest[offset] = (rU << (8 - 5)) | (rU >> (10 - 8));
-    dest[offset + 1] = (gU << (8 - 6)) | (gU >> (12 - 8));
-    dest[offset + 2] = (bU << (8 - 5)) | (bU >> (10 - 8));
-    dest[offset + 3] = 0xFFu;
-}
 
 //////////////////////////////////////////////////////////////////
 
-#pragma region FROM IMPLEMENTATIONS
+/*
+    FROM implementations (x to RGBA32)
+*/
 
-#pragma region Ixx
-
-void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 8) {
@@ -74,7 +54,7 @@ void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned s
     }
 }
 
-void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -101,7 +81,7 @@ void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned s
     }
 }
 
-void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -131,7 +111,7 @@ void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned 
     }
 }
 
-void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -161,11 +141,8 @@ void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned 
     }
 }
 
-#pragma endregion
 
-#pragma region RGBxxx
-
-void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -196,7 +173,7 @@ void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsign
     }
 }
 
-void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -240,7 +217,7 @@ void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsign
     }
 }
 
-void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -286,11 +263,8 @@ void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsign
     }
 }
 
-#pragma endregion
 
-#pragma region Cx
-
-void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {    
+static void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {    
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -320,11 +294,8 @@ void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned s
     }
 }
 
-#pragma endregion
 
-#pragma region CMPR
-
-void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 8) {
@@ -335,7 +306,7 @@ void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned
             // Decode each CMPR-subblock
             for (unsigned i = 0; i < 4; i++) {
                 const unsigned char* blockData = data + readOffset + (i * 8);
-                uint8_t (*result)[4][4] = blocks[i];
+                uint8_t (*block)[4][4] = blocks[i];
 
                 const uint16_t color1    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 0));
                 const uint16_t color2    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 2));
@@ -371,10 +342,10 @@ void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned
                     for (unsigned x = 0; x < 4; x++) {
                         unsigned index = 15 - ((y * 4) + x);
 
-                        result[y][x][0] = colors[indices[index]][0];
-                        result[y][x][1] = colors[indices[index]][1];
-                        result[y][x][2] = colors[indices[index]][2];
-                        result[y][x][3] = colors[indices[index]][3];
+                        block[y][x][0] = colors[indices[index]][0];
+                        block[y][x][1] = colors[indices[index]][1];
+                        block[y][x][2] = colors[indices[index]][2];
+                        block[y][x][3] = colors[indices[index]][3];
                     }
                 }
             }
@@ -407,17 +378,12 @@ void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned
     }
 }
 
-#pragma endregion
 
-#pragma endregion
+/*
+    TO implementations (RGBA32 to x)
+*/
 
-//////////////////////////////////////////////////////////////////
-
-#pragma region TO IMPLEMENTATIONS
-
-#pragma region RGBxxx
-
-void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+static void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     unsigned writeOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -436,7 +402,7 @@ void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t* paletteOut, unsig
                     // A pixel is 16-bit but we write it in two 8-bit segments.
                     uint8_t* pixel = result + writeOffset + (y * 2 * 4) + (x * 2);
 
-                    if (readPixel[3] == 255) { // Opaque, write RGB555 pixel
+                    if (readPixel[3] == 0xFFu) { // Opaque, write RGB555 pixel
                         // Bits:
                         // 1    RRRRRGGGGG BBBBB
                         // ^    ^    ^     ^
@@ -461,7 +427,7 @@ void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t* paletteOut, unsig
     }
 }
 
-void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+static void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     unsigned writeOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -507,11 +473,8 @@ void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint32_t* paletteOut, unsig
     }
 }
 
-#pragma endregion
 
-#pragma region Cx
-
-void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+static void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     std::unordered_map<uint32_t, uint8_t> colorToIndex;
     unsigned nextColorIndex { 0 };
 
@@ -554,7 +517,7 @@ void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, unsigned*
     *paletteSizeOut = nextColorIndex;
 }
 
-void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+static void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     std::unordered_map<uint32_t, uint8_t> colorToIndex;
     unsigned nextColorIndex { 0 };
 
@@ -597,11 +560,7 @@ void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut, unsign
     *paletteSizeOut = nextColorIndex;
 }
 
-#pragma endregion
 
-#pragma endregion
-
-//////////////////////////////////////////////////////////////////
 
 bool ImageConvert::toRGBA32(
     unsigned char* buffer,
@@ -750,32 +709,32 @@ bool ImageConvert::fromRGBA32(
 }
 
 static unsigned ImageByteSize_4(unsigned width, unsigned height) {
- 	unsigned tilesX = ((width + 7) / 8);
-	unsigned tilesY = ((height + 7) / 8);
+ 	unsigned tilesX = (width + 7) / 8;
+	unsigned tilesY = (height + 7) / 8;
 
 	return tilesX * tilesY * 32;
 }
 static unsigned ImageByteSize_8(unsigned width, unsigned height) {
- 	unsigned tilesX = ((width + 7) / 8);
-	unsigned tilesY = ((height + 3) / 4);
+ 	unsigned tilesX = (width + 7) / 8;
+	unsigned tilesY = (height + 3) / 4;
 
 	return tilesX * tilesY * 32;
 }
 static unsigned ImageByteSize_16(unsigned width, unsigned height) {
- 	unsigned tilesX = ((width + 3) / 4);
-	unsigned tilesY = ((height + 3) / 4);
+ 	unsigned tilesX = (width + 3) / 4;
+	unsigned tilesY = (height + 3) / 4;
 
 	return tilesX * tilesY * 32;
 }
 static unsigned ImageByteSize_32(unsigned width, unsigned height) {
- 	unsigned tilesX = ((width + 3) / 4);
-	unsigned tilesY = ((height + 3) / 4);
+ 	unsigned tilesX = (width + 3) / 4;
+	unsigned tilesY = (height + 3) / 4;
 
 	return tilesX * tilesY * 32 * 2;
 }
 static unsigned ImageByteSize_CMPR(unsigned width, unsigned height) {
- 	unsigned tilesX = ((width + 7) / 8);
-	unsigned tilesY = ((height + 7) / 8);
+ 	unsigned tilesX = (width + 7) / 8;
+	unsigned tilesY = (height + 7) / 8;
 
 	return tilesX * tilesY * 32;
 }
