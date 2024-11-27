@@ -22,40 +22,24 @@ const char* categoryNames[] {
     "Paths"
 };
 
-bool CppInputText(const char* label, std::string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* userData = nullptr) {
-    struct UserData {
-        std::string* stringPtr;
-        ImGuiInputTextCallback chainCb;
-        void* cbUserData;
-    } lUserData {
-        .stringPtr = str,
-        .chainCb = callback,
-        .cbUserData = userData
-    };
+static bool TextInputStdString(const char* label, std::string& str) {
+    const ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
 
-    flags |= ImGuiInputTextFlags_CallbackResize;
-
-    return ImGui::InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
-        UserData* userData = (UserData*)data->UserData;
+    return ImGui::InputText(label, const_cast<char*>(str.c_str()), str.capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
+        std::string* str = (std::string*)data->UserData;
         if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
             // Resize string callback
             //
             // If for some reason we refuse the new length (BufTextLen) and/or
             // capacity (BufSize) we need to set them back to what we want.
-
-            std::string* str = userData->stringPtr;
             IM_ASSERT(data->Buf == str->c_str());
 
             str->resize(data->BufTextLen);
             data->Buf = (char*)str->c_str();
         }
-        else if (userData->chainCb) {
-            data->UserData = userData->cbUserData;
-            return userData->chainCb(data);
-        }
 
         return 0;
-    }, &lUserData);
+    }, &str);
 }
 
 void WindowConfig::Update() {
@@ -94,6 +78,7 @@ void WindowConfig::Update() {
             }
             ImGui::EndChild();
         }
+
         ImGui::SameLine();
 
         // Right
@@ -184,8 +169,8 @@ void WindowConfig::Update() {
                 } break;
 
                 case Category_Paths: {
-                    CppInputText("Image editor path", &this->selfConfig.imageEditorPath);
-                    CppInputText("Texture edit path", &this->selfConfig.textureEditPath);
+                    TextInputStdString("Image editor path", this->selfConfig.imageEditorPath);
+                    TextInputStdString("Texture edit path", this->selfConfig.textureEditPath);
                 } break;
 
                 default:
