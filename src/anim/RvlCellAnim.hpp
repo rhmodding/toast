@@ -10,29 +10,14 @@
 
 #include "../common.hpp"
 
-#define CANVAS_ORIGIN (512)
+#define CANVAS_ORIGIN (0)
 
 namespace RvlCellAnim {
 
-// Do not change this structure!!
 struct TransformValues {
     int16_t positionX { 0 }, positionY { 0 };
     float scaleX { 1.f }, scaleY { 1.f };
     float angle { 0.f }; // Angle in degrees
-
-    TransformValues getByteswapped() const {
-        TransformValues transform;
-
-        transform.positionX = BYTESWAP_16(this->positionX);
-        transform.positionY = BYTESWAP_16(this->positionY);
-
-        transform.scaleX = Common::byteswapFloat(this->scaleX);
-        transform.scaleY = Common::byteswapFloat(this->scaleY);
-
-        transform.angle = Common::byteswapFloat(this->angle);
-
-        return transform;
-    }
 
     TransformValues average(const TransformValues& other) const {
         TransformValues transform {

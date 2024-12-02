@@ -7,6 +7,7 @@
 
 #include "../common.hpp"
 
+// Pre-byteswapped
 #define RCAD_REVISION_DATE (0xD8B43201)
 
 struct RvlCellAnimHeader {
@@ -34,8 +35,36 @@ struct ArrangementsHeader {
     uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 
-// Same structure
-typedef RvlCellAnim::TransformValues TransformValuesRaw;
+struct TransformValuesRaw {
+    int16_t positionX { 0 }, positionY { 0 };
+    float scaleX { 1.f }, scaleY { 1.f };
+    float angle { 0.f }; // Angle in degrees
+
+    TransformValuesRaw() = default;
+    TransformValuesRaw(const RvlCellAnim::TransformValues& transformValues, bool isArrangementPart) {
+        const unsigned add = (isArrangementPart ? 512 : 0);
+
+        this->positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.positionX + add));
+        this->positionY = BYTESWAP_16(static_cast<int16_t>(transformValues.positionY + add));
+        this->scaleX = Common::byteswapFloat(transformValues.scaleX);
+        this->scaleY = Common::byteswapFloat(transformValues.scaleY);
+        this->angle = Common::byteswapFloat(transformValues.angle);
+    }
+
+    RvlCellAnim::TransformValues toTransformValues(bool isArrangementPart) const {
+        RvlCellAnim::TransformValues transformValues;
+
+        const unsigned subtract = (isArrangementPart ? 512 : 0);
+
+        transformValues.positionX = BYTESWAP_16(this->positionX) - subtract;
+        transformValues.positionY = BYTESWAP_16(this->positionY) - subtract;
+        transformValues.scaleX = Common::byteswapFloat(this->scaleX);
+        transformValues.scaleY = Common::byteswapFloat(this->scaleY);
+        transformValues.angle = Common::byteswapFloat(this->angle);
+
+        return transformValues;
+    }
+} __attribute__((packed));
 
 struct ArrangementPartRaw {
     uint16_t regionX; // X position of UV region in spritesheet
@@ -55,6 +84,21 @@ struct ArrangementPartRaw {
     uint8_t opacity;
 
     uint8_t _pad8 { 0x00 };
+
+    ArrangementPartRaw() = default;
+    ArrangementPartRaw(const RvlCellAnim::ArrangementPart& arrangementPart) {
+        this->regionX = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionX));
+        this->regionY = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionY));
+        this->regionW = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionW));
+        this->regionH = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionH));
+
+        this->transform = TransformValuesRaw(arrangementPart.transform, true);
+
+        this->flipX = arrangementPart.flipX ? 1 : 0;
+        this->flipY = arrangementPart.flipY ? 1 : 0;
+
+        this->opacity = arrangementPart.opacity;
+    }
 } __attribute__((packed));
 
 struct ArrangementRaw {
@@ -90,6 +134,16 @@ struct AnimationKeyRaw {
     uint8_t opacity;
 
     uint8_t _pad24[3] { 0x00, 0x00, 0x00 };
+
+    AnimationKeyRaw() = default;
+    AnimationKeyRaw(const RvlCellAnim::AnimationKey& animationKey) {
+        this->arrangementIndex = BYTESWAP_16(animationKey.arrangementIndex);
+        this->holdFrames = BYTESWAP_16(animationKey.holdFrames);
+
+        this->transform = TransformValuesRaw(animationKey.transform, false);
+
+        this->opacity = animationKey.opacity;
+    }
 } __attribute__((packed));
 
 #define EXPECT_DATA_FOOTER "EXPECTDT"
@@ -123,7 +177,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
     this->arrangements.resize(arrangementCount);
 
-    for (uint16_t i = 0; i < arrangementCount; i++) {
+    for (unsigned i = 0; i < arrangementCount; i++) {
         const ArrangementRaw* arrangementRaw =
             reinterpret_cast<const ArrangementRaw*>(RvlCellAnimData + readOffset);
         readOffset += sizeof(ArrangementRaw);
@@ -133,7 +187,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
         const uint16_t arrangementPartCount = BYTESWAP_16(arrangementRaw->partsCount);
         arrangement.parts.resize(arrangementPartCount);
 
-        for (uint16_t j = 0; j < arrangementPartCount; j++) {
+        for (unsigned j = 0; j < arrangementPartCount; j++) {
             const ArrangementPartRaw* arrangementPartRaw =
                 reinterpret_cast<const ArrangementPartRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(ArrangementPartRaw);
@@ -144,7 +198,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
                 .regionW = BYTESWAP_16(arrangementPartRaw->regionW),
                 .regionH = BYTESWAP_16(arrangementPartRaw->regionH),
 
-                .transform = arrangementPartRaw->transform.getByteswapped(),
+                .transform = arrangementPartRaw->transform.toTransformValues(true),
 
                 .flipX = arrangementPartRaw->flipX != 0,
                 .flipY = arrangementPartRaw->flipY != 0,
@@ -163,7 +217,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
     this->animations.resize(animationCount);
 
-    for (uint16_t i = 0; i < animationCount; i++) {
+    for (unsigned i = 0; i < animationCount; i++) {
         const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(RvlCellAnimData + readOffset);
         readOffset += sizeof(AnimationRaw);
 
@@ -172,7 +226,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
         const uint16_t keyCount = BYTESWAP_16(animationRaw->keyCount);
         animation.keys.resize(keyCount);
 
-        for (uint16_t j = 0; j < keyCount; j++) {
+        for (unsigned j = 0; j < keyCount; j++) {
             const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(RvlCellAnimData + readOffset);
             readOffset += sizeof(AnimationKeyRaw);
 
@@ -181,7 +235,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
                 .holdFrames = BYTESWAP_16(keyRaw->holdFrames),
 
-                .transform = keyRaw->transform.getByteswapped(),
+                .transform = keyRaw->transform.toTransformValues(false),
 
                 .opacity = keyRaw->opacity
             };
@@ -233,19 +287,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
                 reinterpret_cast<ArrangementPartRaw*>(result.data() + writeOffset);
             writeOffset += sizeof(ArrangementPartRaw);
 
-            *arrangementPartRaw = ArrangementPartRaw {
-                .regionX = BYTESWAP_16(part.regionX),
-                .regionY = BYTESWAP_16(part.regionY),
-                .regionW = BYTESWAP_16(part.regionW),
-                .regionH = BYTESWAP_16(part.regionH),
-
-                .transform = part.transform.getByteswapped(),
-
-                .flipX = part.flipX ? (uint8_t)0x01 : (uint8_t)0x00,
-                .flipY = part.flipY ? (uint8_t)0x01 : (uint8_t)0x00,
-
-                .opacity = part.opacity,
-            };
+            *arrangementPartRaw = ArrangementPartRaw(part);
 
             if (!part.editorVisible)
                 arrangementPartRaw->opacity = 0;
@@ -273,15 +315,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
                 reinterpret_cast<AnimationKeyRaw*>(result.data() + writeOffset);
             writeOffset += sizeof(AnimationKeyRaw);
 
-            *animationKeyRaw = AnimationKeyRaw {
-                .arrangementIndex = BYTESWAP_16(key.arrangementIndex),
-
-                .holdFrames = BYTESWAP_16(key.holdFrames),
-
-                .transform = key.transform.getByteswapped(),
-
-                .opacity = key.opacity
-            };
+            *animationKeyRaw = AnimationKeyRaw(key);
         }
     }
 
