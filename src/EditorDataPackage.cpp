@@ -10,9 +10,9 @@
 
 #include "anim/RvlCellAnim.hpp"
 
-// Major version must be changed if breaking.
+// Major version must be changed for any breaking changes.
 #define TED_VERSION_MAJOR (0) // 0 - 16
-// Minor version must be changed if for example extra sections are introduced.
+
 #define TED_VERSION_MINOR (0) // 0 - 16
 
 struct TedFileHeader {

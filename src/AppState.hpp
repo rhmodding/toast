@@ -92,6 +92,13 @@ public:
     struct SelectedPart {
         unsigned index;
         int selectionOrder;
+
+        bool operator==(const SelectedPart& other) const {
+            return index == other.index && selectionOrder == other.selectionOrder;
+        }
+        bool operator!=(const SelectedPart& other) const {
+            return !(*this == other);
+        }
     };
 
     std::vector<SelectedPart> selectedParts;
@@ -156,22 +163,21 @@ public:
     }
 
     void processMultiSelectRequests(ImGuiMultiSelectIO* msIo) {
-        for (ImGuiSelectionRequest& req : msIo->Requests) {
+        for (const ImGuiSelectionRequest& req : msIo->Requests) {
             if (req.Type == ImGuiSelectionRequestType_SetAll) {
                 clearSelectedParts();
                 if (req.Selected) {
                     selectedParts.reserve(msIo->ItemsCount);
-                    for (int idx = 0; idx < msIo->ItemsCount; idx++, spSelectionOrder++) {
-                        this->setBatchPartSelection(idx, req.Selected, selectedParts.size());
-                    }
+                    for (unsigned i = 0; i < msIo->ItemsCount; i++, spSelectionOrder++)
+                        this->setBatchPartSelection(i, req.Selected, selectedParts.size());
                 }
             }
             else if (req.Type == ImGuiSelectionRequestType_SetRange) {
                 const int selectionChanges = (int)req.RangeLastItem - (int)req.RangeFirstItem + 1;
 
                 if (selectionChanges == 1 || selectionChanges < selectedParts.size() / 100) {
-                    for (int idx = (int)req.RangeFirstItem; idx <= (int)req.RangeLastItem; idx++)
-                        this->setPartSelected(idx, req.Selected);
+                    for (unsigned i = (int)req.RangeFirstItem; i <= (int)req.RangeLastItem; i++)
+                        this->setPartSelected(i, req.Selected);
                 }
                 else
                     this->applyRangeSelectionOrder(req);
@@ -269,9 +275,9 @@ public:
         // Create local clone of selectedParts since setPartSelected
         // will mutate the original
         auto sp = this->selectedParts;
-        for (const auto& part : sp) {
-            if (part.index >= size)
-                this->setPartSelected(part.index, false);
+        for (const auto& [index, _] : sp) {
+            if (index >= size)
+                this->setPartSelected(index, false);
         }
     }
 

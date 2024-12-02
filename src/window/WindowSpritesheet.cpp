@@ -68,9 +68,9 @@ void WindowSpritesheet::RunEditor() {
     std::string command = commandStream.str();
     std::cout << "[WindowSpritesheet::RunEditor] Running command: " << command << std::endl;
 
-    std::thread t([command]() {
+    std::thread([command]() {
         std::system(command.c_str());
-    }); t.detach();
+    }).detach();
 }
 
 void WindowSpritesheet::FormatPopup() {

@@ -18,7 +18,7 @@ public:
         message(message)
     {
         char str[32];
-        snprintf(str, sizeof(str), "Task%u", id);
+        snprintf(str, sizeof(str) - 1, "Task%u", id);
 
         this->imguiID = ImHashStr(str);
 
@@ -31,7 +31,7 @@ public:
         this->isComplete = false;
 
         std::thread([this]() {
-            Run();
+            this->Run();
             this->isComplete = true;
         }).detach();
     }
