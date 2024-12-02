@@ -32,7 +32,7 @@ void Popup_MPadRegion() {
     static uint16_t origOffset[2] { 8, 8 };
     static uint16_t origSize[2] { 32, 32 };
 
-    static int16_t origPosition[2] { CANVAS_ORIGIN, CANVAS_ORIGIN };
+    static int16_t origPosition[2] { 0, 0 };
 
     if (!active && lateOpen && part) {
         part->regionX = origOffset[0];

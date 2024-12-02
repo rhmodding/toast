@@ -19,8 +19,6 @@ public:
     } inspectorLevel { InspectorLevel_Animation };
 
 private:
-    bool realPosition { true };
-
     void DrawPreview(Animatable* animatable);
 
     void Level_Animation();

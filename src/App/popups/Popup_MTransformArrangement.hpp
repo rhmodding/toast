@@ -74,10 +74,10 @@ void Popup_MTransformArrangement() {
             auto newArrangement = *arrangement;
             for (auto& part : newArrangement.parts) {
                 part.transform.positionX = static_cast<int16_t>(
-                    ((part.transform.positionX - CANVAS_ORIGIN) * scale[0]) + offset[0] + CANVAS_ORIGIN
+                    (part.transform.positionX * scale[0]) + offset[0]
                 );
                 part.transform.positionY = static_cast<int16_t>(
-                    ((part.transform.positionY - CANVAS_ORIGIN) * scale[1]) + offset[1] + CANVAS_ORIGIN
+                    (part.transform.positionY * scale[1]) + offset[1]
                 );
 
                 part.transform.scaleX *= scale[0];

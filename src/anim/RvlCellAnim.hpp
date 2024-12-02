@@ -10,8 +10,6 @@
 
 #include "../common.hpp"
 
-#define CANVAS_ORIGIN (0)
-
 namespace RvlCellAnim {
 
 struct TransformValues {
@@ -69,10 +67,7 @@ struct ArrangementPart {
 
     uint16_t unknown;
 
-    TransformValues transform {
-        .positionX = CANVAS_ORIGIN,
-        .positionY = CANVAS_ORIGIN
-    };
+    TransformValues transform;
 
     bool flipX { false }, flipY { false };
 

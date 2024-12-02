@@ -160,8 +160,8 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationK
     };
 
     ImVec2 topLeftOffset {
-        (static_cast<float>(part.transform.positionX) - CANVAS_ORIGIN),
-        (static_cast<float>(part.transform.positionY) - CANVAS_ORIGIN)
+        static_cast<float>(part.transform.positionX),
+        static_cast<float>(part.transform.positionY)
     };
 
     ImVec2 bottomRightOffset {

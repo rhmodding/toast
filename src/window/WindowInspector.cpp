@@ -107,13 +107,11 @@ void WindowInspector::Update() {
             ImGui::EndMenu();
         }
 
+        /*
         if (ImGui::BeginMenu("Options")) {
-            if (ImGui::MenuItem("Enable real canvas offset (512, 512)", nullptr, this->realPosition)) {
-                this->realPosition = !this->realPosition;
-            }
-
             ImGui::EndMenu();
         }
+        */
 
         ImGui::EndMenuBar();
     }

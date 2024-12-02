@@ -39,7 +39,7 @@ public:
     std::shared_ptr<RvlCellAnim::RvlCellAnimObject> cellanim;
     std::shared_ptr<Texture> texture;
 
-    ImVec2 offset { CANVAS_ORIGIN, CANVAS_ORIGIN };
+    ImVec2 offset { 0.f, 0.f };
 
     float scaleX { 1.f };
     float scaleY { 1.f };

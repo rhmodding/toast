@@ -176,24 +176,20 @@ void WindowInspector::Level_Arrangement() {
             {
                 // Position XY
                 {
-                    static int oldPosition[2] { 0, 0 }; // Does not apply realPosition offset
+                    static int oldPosition[2] { 0, 0 };
                     int positionValues[2] {
-                        partPtr->transform.positionX - (this->realPosition ? 0 : CANVAS_ORIGIN),
-                        partPtr->transform.positionY - (this->realPosition ? 0 : CANVAS_ORIGIN)
+                        partPtr->transform.positionX,
+                        partPtr->transform.positionY
                     };
 
                     if (ImGui::DragInt2(
                         "Position XY##World",
                         positionValues, 1.f,
                         std::numeric_limits<int16_t>::min(),
-                        std::numeric_limits<int16_t>::max()
+                        std::numeric_limits<int16_t>::max() - 512
                     )) {
-                        partPtr->transform.positionX = static_cast<int16_t>(
-                            positionValues[0] + (this->realPosition ? 0 : CANVAS_ORIGIN)
-                        );
-                        partPtr->transform.positionY = static_cast<int16_t>(
-                            positionValues[1] + (this->realPosition ? 0 : CANVAS_ORIGIN)
-                        );
+                        partPtr->transform.positionX = static_cast<int16_t>(positionValues[0]);
+                        partPtr->transform.positionY = static_cast<int16_t>(positionValues[1]);
                     }
 
                     if (ImGui::IsItemActivated()) {
@@ -205,12 +201,8 @@ void WindowInspector::Level_Arrangement() {
                         originalPart.transform.positionX = oldPosition[0];
                         originalPart.transform.positionY = oldPosition[1];
 
-                        newPart.transform.positionX = static_cast<int16_t>(
-                            positionValues[0] + (this->realPosition ? 0 : CANVAS_ORIGIN)
-                        );
-                        newPart.transform.positionY = static_cast<int16_t>(
-                            positionValues[1] + (this->realPosition ? 0 : CANVAS_ORIGIN)
-                        );
+                        newPart.transform.positionX = static_cast<int16_t>(positionValues[0]);
+                        newPart.transform.positionY = static_cast<int16_t>(positionValues[1]);
                     }
                 }
 
