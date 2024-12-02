@@ -274,8 +274,8 @@ void Animatable::DrawKey(
 
     const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
-    const float mismatchScaleX = static_cast<float>(this->texture->getWidth()) / this->cellanim->textureW;
-    const float mismatchScaleY = static_cast<float>(this->texture->getHeight()) / this->cellanim->textureH;
+    const float texWidth = this->cellanim->textureW;
+    const float texHeight = this->cellanim->textureH;
 
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex != -1 && partIndex != i)
@@ -287,22 +287,15 @@ void Animatable::DrawKey(
         if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)
             continue;
 
-        const unsigned sourceRect[4] = {
-            static_cast<unsigned>(part.regionX * mismatchScaleX),
-            static_cast<unsigned>(part.regionY * mismatchScaleY),
-            static_cast<unsigned>(part.regionW * mismatchScaleX),
-            static_cast<unsigned>(part.regionH * mismatchScaleY)
-        };
-
         auto transformedQuad = this->getPartWorldQuad(key, i);
 
         ImVec2 uvTopLeft = {
-            sourceRect[0] / static_cast<float>(this->cellanim->textureW),
-            sourceRect[1] / static_cast<float>(this->cellanim->textureH)
+            part.regionX / texWidth,
+            part.regionY / texHeight
         };
         ImVec2 uvBottomRight = {
-            uvTopLeft.x + (sourceRect[2] / static_cast<float>(this->cellanim->textureW)),
-            uvTopLeft.y + (sourceRect[3] / static_cast<float>(this->cellanim->textureH))
+            uvTopLeft.x + (part.regionW / texWidth),
+            uvTopLeft.y + (part.regionH / texHeight)
         };
 
         ImVec2 uvs[4] = {
