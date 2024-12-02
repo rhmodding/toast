@@ -31,7 +31,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(BackupBehaviour, {
     {BackupBehaviour_SaveEverytime, "SaveEverytime"}
 });
 
-enum ThemeChoice {
+enum ThemeChoice : int {
     ThemeChoice_Light,
     ThemeChoice_Dark
 };
