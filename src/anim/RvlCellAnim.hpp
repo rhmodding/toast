@@ -65,7 +65,7 @@ struct ArrangementPart {
     uint16_t regionX { 8 }, regionY { 8 };
     uint16_t regionW { 32 }, regionH { 32 };
 
-    uint16_t unknown;
+    uint16_t textureVarying { 0 };
 
     TransformValues transform;
 
@@ -85,7 +85,7 @@ struct ArrangementPart {
             this->regionW == other.regionW &&
             this->regionH == other.regionH &&
 
-            this->unknown == other.unknown &&
+            this->textureVarying == other.textureVarying &&
 
             this->transform == other.transform &&
 

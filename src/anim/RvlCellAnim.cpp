@@ -15,14 +15,16 @@ struct RvlCellAnimHeader {
     // Compare to RCAD_REVISION_DATE
     uint32_t revisionDate;
 
-    // TPL has palette usage (boolean)
-    uint32_t usePalette;
+    // Load textures in palette (CI) mode (boolean)
+    uint8_t usePalette;
+
+    uint8_t _pad24[3] { 0x00, 0x00, 0x00 };
 
     // Index into cellanim.tpl for the associated sheet
     uint16_t sheetIndex;
 
-    // Used for debugging purposes in the game, always 0x0000
-    uint16_t _reserved { 0x0000 };
+    // Unused value. Never referenced in the game
+    uint16_t _unused { 0x0000 };
 
     uint16_t sheetW; // Sheet width in relation to UV regions
     uint16_t sheetH; // Sheet height in relation to UV regions
@@ -72,7 +74,7 @@ struct ArrangementPartRaw {
     uint16_t regionW; // Width of UV region in spritesheet
     uint16_t regionH; // Height of UV region in spritesheet
 
-    uint16_t _reserved { 0x0000 }; // Palette index, set by game
+    uint16_t textureVarying; // Additive to the texture index if usePalette is true
 
     uint16_t _pad16 { 0x0000 };
 
@@ -91,6 +93,8 @@ struct ArrangementPartRaw {
         this->regionY = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionY));
         this->regionW = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionW));
         this->regionH = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionH));
+
+        this->textureVarying = BYTESWAP_16(arrangementPart.textureVarying);
 
         this->transform = TransformValuesRaw(arrangementPart.transform, true);
 
@@ -146,8 +150,6 @@ struct AnimationKeyRaw {
     }
 } __attribute__((packed));
 
-#define EXPECT_DATA_FOOTER "EXPECTDT"
-
 namespace RvlCellAnim {
 
 RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
@@ -163,7 +165,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
     this->textureW = BYTESWAP_16(header->sheetW);
     this->textureH = BYTESWAP_16(header->sheetH);
 
-    this->usePalette = header->usePalette != 0;
+    this->usePalette = header->usePalette != 0x00;
 
     unsigned readOffset { sizeof(RvlCellAnimHeader) };
 
@@ -198,10 +200,12 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
                 .regionW = BYTESWAP_16(arrangementPartRaw->regionW),
                 .regionH = BYTESWAP_16(arrangementPartRaw->regionH),
 
+                .textureVarying = BYTESWAP_16(arrangementPartRaw->textureVarying),
+
                 .transform = arrangementPartRaw->transform.toTransformValues(true),
 
-                .flipX = arrangementPartRaw->flipX != 0,
-                .flipY = arrangementPartRaw->flipY != 0,
+                .flipX = arrangementPartRaw->flipX != 0x00,
+                .flipY = arrangementPartRaw->flipY != 0x00,
 
                 .opacity = arrangementPartRaw->opacity
             };
@@ -250,14 +254,13 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     std::vector<unsigned char> result(
         sizeof(RvlCellAnimHeader) +
         sizeof(ArrangementsHeader) +
-        sizeof(AnimationsHeader) +
-        8 // EXPECT_DATA_FOOTER
+        sizeof(AnimationsHeader)
     );
 
     RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
     header->revisionDate = RCAD_REVISION_DATE;
 
-    header->usePalette = this->usePalette ? 0x01000000 : 0x00000000;
+    header->usePalette = this->usePalette ? 0x01 : 0x00;
 
     header->sheetIndex = BYTESWAP_16(this->sheetIndex);
 
@@ -290,7 +293,7 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
             *arrangementPartRaw = ArrangementPartRaw(part);
 
             if (!part.editorVisible)
-                arrangementPartRaw->opacity = 0;
+                arrangementPartRaw->opacity = 0x00;
         }
     }
 
@@ -338,7 +341,7 @@ std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char* filePath) {
     file.close();
 
     std::shared_ptr<RvlCellAnimObject> object =
-        std::make_shared<RvlCellAnimObject>(RvlCellAnimObject(buffer, fileSize));
+        std::make_shared<RvlCellAnimObject>(buffer, fileSize);
 
     delete[] buffer;
 
