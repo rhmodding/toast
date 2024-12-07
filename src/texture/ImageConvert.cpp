@@ -294,6 +294,38 @@ static void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, uns
     }
 }
 
+static void IMPLEMENTATION_FROM_C14X2(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+    unsigned readOffset { 0 };
+
+    for (unsigned yy = 0; yy < srcHeight; yy += 4) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 4) {
+
+            for (unsigned y = 0; y < 4; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
+                for (unsigned x = 0; x < 4; x++) {
+                    if (xx + x >= srcWidth) break;
+
+                    const unsigned destIndex = (rowBase + xx + x) * 4;
+
+                    const uint16_t index = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(
+                        data + readOffset + (y * 2 * 4) + (x * 2)
+                    ));
+                    const uint32_t color = palette[index];
+
+                    result[destIndex + 0] = (color >> 24) & 0xFFu;
+                    result[destIndex + 1] = (color >> 16) & 0xFFu;
+                    result[destIndex + 2] = (color >>  8) & 0xFFu;
+                    result[destIndex + 3] = color & 0xFFu;
+                }
+            }
+            readOffset += 2 * 4 * 4;
+
+        }
+    }
+}
 
 static void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
@@ -607,6 +639,14 @@ bool ImageConvert::toRGBA32(
             }
 
             implementation = IMPLEMENTATION_FROM_C8;
+            break;
+        case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
+            if (!palette) {
+                std::cerr << "[ImageConvert::toRGBA32] Cannot convert C14X2 texture: palette is nullptr\n";
+                return false;
+            }
+
+            implementation = IMPLEMENTATION_FROM_C14X2;
             break;
 
         case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
