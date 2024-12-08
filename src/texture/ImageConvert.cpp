@@ -313,7 +313,7 @@ static void IMPLEMENTATION_FROM_C14X2(unsigned char* result, unsigned srcWidth, 
                     const uint16_t index = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(
                         data + readOffset + (y * 2 * 4) + (x * 2)
                     ));
-                    const uint32_t color = palette[index];
+                    const uint32_t color = palette[index & 0x3FFF];
 
                     result[destIndex + 0] = (color >> 24) & 0xFFu;
                     result[destIndex + 1] = (color >> 16) & 0xFFu;
