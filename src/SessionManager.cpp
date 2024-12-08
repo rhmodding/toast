@@ -39,13 +39,19 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     U8::U8ArchiveObject archiveObject = std::move(*__archiveResult);
 
-    if (archiveObject.structure.subdirectories.empty()) {
+    if (
+        archiveObject.structure.subdirectories.empty() ||
+        std::find_if(
+            archiveObject.structure.subdirectories.begin(),
+            archiveObject.structure.subdirectories.end(),
+            [](const U8::Directory& dir) { return dir.name == "."; }
+        ) == archiveObject.structure.subdirectories.end()
+    ) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_RootDirNotFound;
 
         return -1;
     }
-
 
     U8::File* __tplSearch = U8::findFile("./cellanim.tpl", archiveObject.structure);
     if (!__tplSearch) {
