@@ -88,7 +88,6 @@ const char* getImageFormatName(TPLImageFormat format);
 
 struct TPLTexture {
     uint8_t mipMap;
-    uint8_t _pad24[3];
 
     uint16_t width;
     uint16_t height;
