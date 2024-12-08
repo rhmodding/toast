@@ -24,7 +24,7 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
     this->width = width;
     this->height = height;
 
-    std::future<void> future = MtCommandManager::getInstance().enqueueCommand([this, data]() {
+    MtCommandManager::getInstance().enqueueCommand([this, data]() {
         if (this->textureId == 0)
             glGenTextures(1, &this->textureId);
 
@@ -36,20 +36,21 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
         glBindTexture(GL_TEXTURE_2D, 0);
-    });
-    future.get();
+    }).get();
 }
 
 bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
-    int imageWidth, imageHeight;
-    unsigned char* imageData = stbi_load_from_memory(data, dataSize, &imageWidth, &imageHeight, nullptr, 4);
+    int w, h;
+    unsigned char* imageData = stbi_load_from_memory(data, dataSize, &w, &h, nullptr, 4);
 
     if (imageData == nullptr) {
         std::cerr << "[Texture::LoadSTBMem] Failed to load image data from memory location " << data << '\n';
         return false;
     }
 
-    this->LoadRGBA32(imageData, imageWidth, imageHeight);
+    this->LoadRGBA32(imageData, w, h);
+
+    stbi_image_free(imageData);
 
     return true;
 }
@@ -64,6 +65,8 @@ bool Texture::LoadSTBFile(const char* filename) {
     }
 
     this->LoadRGBA32(imageData, imageWidth, imageHeight);
+
+    stbi_image_free(imageData);
 
     return true;
 }
@@ -80,14 +83,13 @@ unsigned char* Texture::GetRGBA32() {
         return nullptr;
     }
 
-    std::future<void> future = MtCommandManager::getInstance().enqueueCommand([this, imageData]() {
+    MtCommandManager::getInstance().enqueueCommand([this, imageData]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
 
         glBindTexture(GL_TEXTURE_2D, 0);
-    });
-    future.get();
+    }).get();
 
     return imageData;
 }
@@ -98,14 +100,13 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
         return false;
     }
 
-    std::future<void> future = MtCommandManager::getInstance().enqueueCommand([this, buffer]() {
+    MtCommandManager::getInstance().enqueueCommand([this, buffer]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
         glBindTexture(GL_TEXTURE_2D, 0);
-    });
-    future.get();
+    }).get();
 
     return true;  
 }
@@ -150,13 +151,14 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
         .minFilter = TPL::TPL_TEX_FILTER_LINEAR,
         .magFilter = TPL::TPL_TEX_FILTER_LINEAR,
 
-        .format = this->tplOutputFormat
+        .format = this->tplOutputFormat,
+
+        .data = std::vector<unsigned char>(this->width * this->height * 4)
     };
-    tplTexture.data.resize(this->width * this->height * 4);
 
     GLint wrapModes[2];
 
-    std::future<void> future = MtCommandManager::getInstance().enqueueCommand([this, &tplTexture, &wrapModes]() {
+    MtCommandManager::getInstance().enqueueCommand([this, &tplTexture, &wrapModes]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
@@ -165,8 +167,7 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
         glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapModes + 1);
 
         glBindTexture(GL_TEXTURE_2D, 0);
-    });
-    future.get();
+    }).get();
 
     tplTexture.wrapS = wrapModes[0] == GL_REPEAT ?
         TPL::TPL_WRAP_MODE_REPEAT :

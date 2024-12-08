@@ -23,7 +23,7 @@ const char* categoryNames[] {
 };
 
 static bool TextInputStdString(const char* label, std::string& str) {
-    const ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
+    constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
 
     return ImGui::InputText(label, const_cast<char*>(str.c_str()), str.capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
         std::string* str = (std::string*)data->UserData;
@@ -69,7 +69,7 @@ void WindowConfig::Update() {
         }
 
         // Left
-        static uint8_t selected { 0 };
+        static unsigned selected { 0 };
         {
             ImGui::BeginChild("Categories", { 150.f, 0.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
             for (unsigned i = 0; i < Categories_End; i++) {

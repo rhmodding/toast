@@ -114,7 +114,7 @@ bool WriteRGBA32Palette(
             return false;
         } break;
         case TPL::TPL_CLUT_FORMAT_RGB5A3: {
-            for (uint16_t i = 0; i < numEntries; i++) {
+            for (unsigned i = 0; i < numEntries; i++) {
                 const uint8_t* readPixel = reinterpret_cast<const uint8_t*>(data + i);
 
                 // A pixel is 16-bit but we write it in two 8-bit segments.

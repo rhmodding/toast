@@ -2,4 +2,4 @@
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
-#endif
+#endif // defined(__APPLE__)

@@ -54,7 +54,7 @@
 
 #if !defined(__APPLE__)
 #include "_binary/images/toastIcon.png.h"
-#endif
+#endif // !defined(__APPLE__)
 
 App* gAppPtr { nullptr };
 
@@ -113,7 +113,7 @@ App::App() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
     // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
-#endif
+#endif // defined(__APPLE__), defined(IMGUI_IMPL_OPENGL_ES2)
 
     // Config
     GET_CONFIG_MANAGER;
@@ -148,7 +148,7 @@ App::App() {
 
     glfwSetWindowIcon(window, 1, &windowIcon);
     stbi_image_free(windowIcon.pixels);
-#endif
+#endif // !defined(__APPLE__)
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();

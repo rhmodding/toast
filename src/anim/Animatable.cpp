@@ -306,8 +306,9 @@ void Animatable::DrawKey(
         };
 
         uint8_t modAlpha = (colorMod >> 24) & 0xFF;
-        uint8_t baseAlpha = allowOpacity ? 
-            static_cast<uint8_t>((static_cast<uint16_t>(part.opacity) * key->opacity) / 255) : 255;
+        uint8_t baseAlpha = allowOpacity ?
+            uint8_t((unsigned(part.opacity) * unsigned(key->opacity)) / 0xFFu) :
+            0xFFu;
 
         drawList->AddImageQuad(
             (ImTextureID)this->texture->getTextureId(),
@@ -317,7 +318,7 @@ void Animatable::DrawKey(
                 (colorMod >>  0) & 0xFF,
                 (colorMod >>  8) & 0xFF,
                 (colorMod >> 16) & 0xFF,
-                static_cast<uint8_t>((baseAlpha * static_cast<uint16_t>(modAlpha)) / 255)
+                uint8_t((unsigned(baseAlpha) * unsigned(modAlpha)) / 0xFFu)
             )
         );
     }
@@ -345,7 +346,7 @@ void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigne
     const unsigned keyIndex = this->currentKeyIndex;
     const unsigned keyCount = currentAnimation->keys.size();
 
-    auto _drawOnionSkin = [&](int startIndex, int endIndex, int step, ImU32 color) {
+    auto _drawOnionSkin = [&](int startIndex, int endIndex, int step, uint32_t color) {
         int i = startIndex;
         while ((step < 0) ? (i >= endIndex) : (i <= endIndex)) {
             int wrappedIndex = i;

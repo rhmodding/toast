@@ -63,7 +63,7 @@ void WindowSpritesheet::RunEditor() {
         "\"" <<
         configManager.getConfig().imageEditorPath <<
         "\" \"" << imagePath << "\"";
-#endif
+#endif // __WIN32__
 
     std::string command = commandStream.str();
     std::cout << "[WindowSpritesheet::RunEditor] Running command: " << command << std::endl;
@@ -222,13 +222,13 @@ void WindowSpritesheet::FormatPopup() {
                         char numberStr[32];
                         snprintf(numberStr, sizeof(numberStr), "%u", dataSize);
 
-                        uint32_t srcLen = strlen(numberStr);
-                        uint32_t destLen = srcLen + (srcLen - 1) / 3;
+                        unsigned srcLen = strlen(numberStr);
+                        unsigned destLen = srcLen + (srcLen - 1) / 3;
 
                         int srcIndex = srcLen - 1;
                         int destIndex = destLen - 1;
 
-                        uint16_t digitCount = 0;
+                        unsigned digitCount = 0;
 
                         while (srcIndex >= 0) {
                             if (digitCount == 3) {
@@ -374,7 +374,7 @@ void WindowSpritesheet::FormatPopup() {
 bool RepackSheet() {
     constexpr int PADDING = 4;
     constexpr int PADDING_HALF = PADDING / 2;
-    constexpr uint32_t BORDER_COLOR = 0xFF000000;
+    constexpr uint32_t BORDER_COLOR = 0xFF000000; // Black
 
     GET_SESSION_MANAGER;
 
@@ -663,10 +663,10 @@ void WindowSpritesheet::Update() {
     ImVec2 canvasSize = ImGui::GetContentRegionAvail();
     ImVec2 canvasBottomRight { canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y };
 
-    uint32_t backgroundColor { 0xFF000000 };
+    uint32_t backgroundColor { 0xFF000000 }; // Black
     switch (this->gridType) {
         case GridType_None:
-            backgroundColor = IM_COL32_BLACK_TRANS;
+            backgroundColor = 0x00000000; // Transparent Black
             break;
 
         case GridType_Dark:

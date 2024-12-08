@@ -46,6 +46,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         return -1;
     }
 
+
     U8::File* __tplSearch = U8::findFile("./cellanim.tpl", archiveObject.structure);
     if (!__tplSearch) {
         std::lock_guard<std::mutex> lock(this->mtx);
@@ -119,7 +120,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         snprintf(
             targetHeaderName, sizeof(targetHeaderName),
             "rcad_%.*s_labels.h",
-            static_cast<int>(brcadFile->name.size() - 6),
+            static_cast<int>(brcadFile->name.size() - STR_LIT_LEN(".brcad")),
             brcadFile->name.c_str()
         );
 
@@ -301,7 +302,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
             const std::string& cellanimName = session->cellanims.at(i).name;
             U8::File file(
                 "rcad_" +
-                cellanimName.substr(0, cellanimName.size() - 6) +
+                cellanimName.substr(0, cellanimName.size() - STR_LIT_LEN(".brcad")) +
                 "_labels.h"
             );
 
@@ -319,7 +320,6 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 
             for (unsigned i = 0; i < session->sheets.size(); i++) {
                 auto tplTexture = session->sheets.at(i)->TPLTexture();
-
                 if (!tplTexture.has_value()) {
                     this->currentError = OutError_FailTPLTextureExport;
                     return -1;

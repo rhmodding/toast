@@ -141,7 +141,7 @@ void WindowAbout::Update() {
             "open ",
     #else
             "xdg-open ",
-    #endif
+    #endif // __APPLE__, _WIN32
             githubLink
         );
 

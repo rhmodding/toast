@@ -9,7 +9,7 @@
 #else
     #define SCS_EXIT "Alt+F4"
     #define SCST_CTRL "Ctrl"
-#endif
+#endif // defined(__APPLE__)
 
 #define SCS_LAUNCH_OPEN_SZS_DIALOG SCST_CTRL "+O"
 #define SC_LAUNCH_OPEN_SZS_DIALOG (ImGuiKey_O | ImGuiMod_Ctrl)
