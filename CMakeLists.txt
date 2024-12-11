@@ -155,7 +155,7 @@ add_subdirectory(ext/nlohmann.json)
 target_link_libraries(toast PRIVATE nlohmann_json::nlohmann_json)
 
 # Flags
-target_compile_options(toast PRIVATE -O2 -Wno-address-of-packed-member -Wno-cast-align)
+target_compile_options(toast PRIVATE -O3 -Wno-address-of-packed-member -Wno-cast-align)
 
 # Apple "deprecated" OpenGL but never removed it lol
 IF (APPLE)
