@@ -35,7 +35,7 @@ struct Yaz0Header {
 
     // Reserved bytes. reserved[0] in newer Yaz0 files is used for data alignment but
     // Rhythm Heaven Fever doesn't use the newer revision.
-    uint32_t reserved[2];
+    uint32_t reserved[2] { 0x00000000, 0x00000000 };
 } __attribute__((packed));
 
 namespace Yaz0 {
@@ -49,8 +49,6 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         .magic = HEADER_MAGIC,
 
         .uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize)),
-
-        .reserved = { 0x0000, 0x0000 }
     };
 
     // Compression

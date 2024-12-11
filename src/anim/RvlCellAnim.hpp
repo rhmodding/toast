@@ -156,6 +156,7 @@ public:
     std::vector<unsigned char> Reserialize();
 
     RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize);
+    RvlCellAnimObject() = default;
 };
 
 std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char *filePath);

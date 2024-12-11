@@ -442,7 +442,6 @@ GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
             break;
     }
 
-    std::future<void> future =
     MtCommandManager::getInstance().enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
         glGenTextures(1, &imageTexture);
         glBindTexture(GL_TEXTURE_2D, imageTexture);
@@ -461,8 +460,7 @@ GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tplTexture.width, tplTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
 
         glBindTexture(GL_TEXTURE_2D, 0);
-    });
-    future.get();
+    }).get();
 
     return imageTexture;
 }

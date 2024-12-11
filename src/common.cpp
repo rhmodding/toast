@@ -21,36 +21,27 @@ bool SaveBackupFile(const char* filePath, bool once) {
     char newFileName[PATH_MAX];
     snprintf(newFileName, PATH_MAX, "%s.bak", filePath);
 
-    bool exists { false };
-    {
-        if (FILE *file = fopen(newFileName, "r")) {
-            fclose(file);
-            exists = true;
-        }
+    if (FILE* file = fopen(newFileName, "r")) {
+        fclose(file);
+        if (once)
+            return true;
     }
 
-    if (once && exists)
-        return true;
-
-    std::ifstream src(filePath,    std::ios::binary);
-    std::ofstream dst(newFileName, std::ios::binary);
-
-    if (!src.is_open()) {
-        std::cerr << "[Common::SaveBackupFile] Error opening source file at path: " << filePath << '\n';
+    std::ifstream src(filePath, std::ios::binary);
+    if (!src) {
+        std::cerr << "[Common::SaveBackupFile] Error: Unable to open source file at path: " << filePath << '\n';
         return false;
     }
-    if (!dst.is_open()) {
-        std::cerr << "[Common::SaveBackupFile] Error opening destination file at path: " << newFileName << '\n';
+
+    std::ofstream dst(newFileName, std::ios::binary);
+    if (!dst) {
+        std::cerr << "[Common::SaveBackupFile] Error: Unable to create backup file at path: " << newFileName << '\n';
         return false;
     }
 
     dst << src.rdbuf();
 
-    src.close();
-    dst.close();
-
-    std::cout << "[Common::SaveBackupFile] Successfully cloned file at path: " << filePath << '\n';
-
+    std::cout << "[Common::SaveBackupFile] Successfully created backup at path: " << newFileName << '\n';
     return true;
 }
 

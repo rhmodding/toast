@@ -16,7 +16,7 @@ std::future<void> MtCommandManager::enqueueCommand(std::function<void()> func) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
     MtCommand command { func, std::promise<void>() };
-    auto future = command.promise.get_future();
+    std::future<void> future = command.promise.get_future();
 
     this->commandQueue.push(std::move(command));
 

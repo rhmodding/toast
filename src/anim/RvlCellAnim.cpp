@@ -11,7 +11,7 @@
 #define RCAD_REVISION_DATE (0xD8B43201)
 
 struct RvlCellAnimHeader {
-    // Format revision date, 20100312 in BE (2010/03/12)
+    // Format revision date (should equal 20100312 in BE (2010/03/12) if valid)
     // Compare to RCAD_REVISION_DATE
     uint32_t revisionDate;
 
@@ -44,10 +44,10 @@ struct TransformValuesRaw {
 
     TransformValuesRaw() = default;
     TransformValuesRaw(const RvlCellAnim::TransformValues& transformValues, bool isArrangementPart) {
-        const unsigned add = (isArrangementPart ? 512 : 0);
+        const unsigned additive = (isArrangementPart ? 512 : 0);
 
-        this->positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.positionX + add));
-        this->positionY = BYTESWAP_16(static_cast<int16_t>(transformValues.positionY + add));
+        this->positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.positionX + additive));
+        this->positionY = BYTESWAP_16(static_cast<int16_t>(transformValues.positionY + additive));
         this->scaleX = Common::byteswapFloat(transformValues.scaleX);
         this->scaleY = Common::byteswapFloat(transformValues.scaleY);
         this->angle = Common::byteswapFloat(transformValues.angle);
@@ -56,10 +56,10 @@ struct TransformValuesRaw {
     RvlCellAnim::TransformValues toTransformValues(bool isArrangementPart) const {
         RvlCellAnim::TransformValues transformValues;
 
-        const unsigned subtract = (isArrangementPart ? 512 : 0);
+        const unsigned additive = (isArrangementPart ? -512 : 0);
 
-        transformValues.positionX = BYTESWAP_16(this->positionX) - subtract;
-        transformValues.positionY = BYTESWAP_16(this->positionY) - subtract;
+        transformValues.positionX = BYTESWAP_16(this->positionX) + additive;
+        transformValues.positionY = BYTESWAP_16(this->positionY) + additive;
         transformValues.scaleX = Common::byteswapFloat(this->scaleX);
         transformValues.scaleY = Common::byteswapFloat(this->scaleY);
         transformValues.angle = Common::byteswapFloat(this->angle);

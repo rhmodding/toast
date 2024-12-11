@@ -46,11 +46,9 @@ protected:
 
         if (this->options.removeAnimationNames) {
             auto& animationNames = this->session->getAnimationNames();
-            std::future<void> future = mtCommandManager.enqueueCommand([&animationNames](){
+            mtCommandManager.enqueueCommand([&animationNames](){
                animationNames.clear();
-            });
-
-            future.get();
+            }).get();
         }
 
         if (this->options.removeUnusedArrangements) {
@@ -70,7 +68,7 @@ protected:
             auto& animations = cellanim->animations;
             auto& arrangements = cellanim->arrangements;
 
-            std::future<void> future = mtCommandManager.enqueueCommand(
+            mtCommandManager.enqueueCommand(
             [&arrangements, &toErase, &animations]() {
                 for (unsigned i = 0; i < toErase.size(); i++) {
                     unsigned index = toErase.at(i);
@@ -90,9 +88,7 @@ protected:
                         }
                     }
                 }
-            });
-
-            future.get();
+            }).get();
         }
 
         if (this->options.downscaleSpritesheet) {
@@ -125,13 +121,11 @@ protected:
             // RGBA image
             unsigned char* originalPixels = new unsigned char[sheet->getWidth() * sheet->getHeight() * 4];
 
-            std::future<void> futureA = mtCommandManager.enqueueCommand([&sheet, originalPixels]() {
+            mtCommandManager.enqueueCommand([&sheet, originalPixels]() {
                 glBindTexture(GL_TEXTURE_2D, sheet->getTextureId());
                 glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, originalPixels);
                 glBindTexture(GL_TEXTURE_2D, 0);
-            });
-
-            futureA.get();
+            }).get();
 
             // RGBA image
             unsigned char* downscaledPixels = new unsigned char[sheet->getWidth() * sheet->getHeight() * 4];
