@@ -8,8 +8,6 @@
 
 #include <algorithm>
 
-#include <vector>
-
 #include <utility>
 #include <stack>
 
@@ -21,6 +19,7 @@
 
 struct U8ArchiveHeader {
     // Magic value (should always equal to 0x55AA382D [1437218861] if valid)
+    // Compare to HEADER_MAGIC
     uint32_t magic;
 
     // Offset to the node section, always 0x20
@@ -33,7 +32,7 @@ struct U8ArchiveHeader {
     int32_t dataSectionStart;
 
     // Reserved (not used in Fever)
-    int32_t reserved[4];
+    int32_t _reserved[4] { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
 } __attribute__((packed));
 
 struct U8ArchiveNode {
@@ -93,11 +92,10 @@ void Directory::AddDirectory(Directory&& directory) {
 }
 
 void Directory::SortAlphabetically() {
-    std::sort(this->files.begin(), this->files.end(), [](const File& a, const File& b) {
+    this->files.sort([](const File& a, const File& b) {
         return a.name < b.name;
     });
-
-    std::sort(this->subdirectories.begin(), this->subdirectories.end(), [](const Directory& a, const Directory& b) {
+    this->subdirectories.sort([](const Directory& a, const Directory& b) {
         return a.name < b.name;
     });
 }
@@ -169,9 +167,11 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
     std::vector<unsigned char> result(sizeof(U8ArchiveHeader));
     U8ArchiveHeader* header = reinterpret_cast<U8ArchiveHeader*>(result.data());
 
-    header->magic = HEADER_MAGIC;
-    header->nodeSectionStart = BYTESWAP_32(sizeof(U8ArchiveHeader));
-    memset(header->reserved, 0x00, sizeof(header->reserved));
+    *header = U8ArchiveHeader {
+        .magic = HEADER_MAGIC,
+
+        .nodeSectionStart = BYTESWAP_32(sizeof(U8ArchiveHeader))
+    };
 
     struct FlatEntry {
         void* ptr;
@@ -183,28 +183,34 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
         { &this->structure, 0, 0, true } // Root node
     };
 
-    std::stack<std::pair<Directory*, unsigned>> directoryStack;
-    directoryStack.push({ &this->structure, 0 });
+    std::stack<std::pair<Directory*, std::list<File>::iterator>> fileItStack;
+    std::stack<std::pair<Directory*, std::list<Directory>::iterator>> directoryItStack;
+
+    // Start with the root directory
+    fileItStack.push({ &this->structure, this->structure.files.begin() });
+    directoryItStack.push({ &this->structure, this->structure.subdirectories.begin() });
 
     std::vector<unsigned> parentList = { 0 };
 
-    while (!directoryStack.empty()) {
-        Directory* currentDir = directoryStack.top().first;
-        unsigned& index = directoryStack.top().second;
+    while (!fileItStack.empty()) {
+        Directory* currentDir = fileItStack.top().first;
+        auto& fileIt = fileItStack.top().second;
+        auto& dirIt = directoryItStack.top().second;
 
-        if (index < currentDir->files.size()) {
+        // Process files
+        if (fileIt != currentDir->files.end()) {
             flattenedArchive.push_back({
-                .ptr = &currentDir->files[index++], 
+                .ptr = &(*fileIt), 
                 .parent = parentList.back(), 
                 // .nextOutOfDir = 0, 
                 // nextOutOfDir is not used.
                 .isDir = false
             });
-        } 
-        else if (index < currentDir->files.size() + currentDir->subdirectories.size()) {
-            index -= currentDir->files.size();
-            Directory* subDir = &currentDir->subdirectories[index++];
-            
+            ++fileIt;
+        }
+        // Process subdirectories
+        else if (dirIt != currentDir->subdirectories.end()) {
+            Directory* subDir = &(*dirIt);
             flattenedArchive.push_back({
                 .ptr = subDir, 
                 .parent = parentList.back(), 
@@ -214,14 +220,19 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
             });
 
             parentList.push_back(flattenedArchive.size() - 1);
-            directoryStack.push({ subDir, 0 });
-        } 
+            ++dirIt;
+
+            fileItStack.push({ subDir, subDir->files.begin() });
+            directoryItStack.push({ subDir, subDir->subdirectories.begin() });
+        }
+        // All files and subdirectories processed, backtrack
         else {
             for (unsigned parentIndex : parentList)
                 flattenedArchive[parentIndex].nextOutOfDir = flattenedArchive.size();
 
             parentList.pop_back();
-            directoryStack.pop();
+            fileItStack.pop();
+            directoryItStack.pop();
         }
     }
 

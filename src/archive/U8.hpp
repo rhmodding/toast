@@ -2,6 +2,7 @@
 #define U8_HPP
 
 #include <vector>
+#include <list>
 
 #include <string>
 
@@ -25,8 +26,8 @@ public:
 class Directory {
 public:
     std::string name;
-    std::vector<File> files;
-    std::vector<Directory> subdirectories;
+    std::list<File> files;
+    std::list<Directory> subdirectories;
 
     Directory* parent { nullptr };
 

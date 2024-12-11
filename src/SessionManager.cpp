@@ -39,21 +39,20 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     U8::U8ArchiveObject archiveObject = std::move(*__archiveResult);
 
-    if (
-        archiveObject.structure.subdirectories.empty() ||
-        std::find_if(
-            archiveObject.structure.subdirectories.begin(),
-            archiveObject.structure.subdirectories.end(),
-            [](const U8::Directory& dir) { return dir.name == "."; }
-        ) == archiveObject.structure.subdirectories.end()
-    ) {
+    auto rootDirIt = std::find_if(
+        archiveObject.structure.subdirectories.begin(),
+        archiveObject.structure.subdirectories.end(),
+        [](const U8::Directory& dir) { return dir.name == "."; }
+    );
+
+    if (rootDirIt == archiveObject.structure.subdirectories.end()) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_RootDirNotFound;
 
         return -1;
     }
 
-    U8::File* __tplSearch = U8::findFile("./cellanim.tpl", archiveObject.structure);
+    U8::File* __tplSearch = U8::findFile("cellanim.tpl", *rootDirIt);
     if (!__tplSearch) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_FailFindTPL;
@@ -72,13 +71,12 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     }
 
     std::vector<const U8::File*> brcadFiles;
-    for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
+    for (const auto& file : rootDirIt->files) {
         if (
             file.name.size() >= 6 &&
             file.name.substr(file.name.size() - 6) == ".brcad"
-        ) {
+        )
             brcadFiles.push_back(&file);
-        }
     }
 
     if (brcadFiles.empty()) {
@@ -131,7 +129,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         );
 
         // Find header file
-        for (const auto& file : archiveObject.structure.subdirectories.at(0).files) {
+        for (const auto& file : rootDirIt->files) {
             if (strcmp(file.name.c_str(), targetHeaderName) == 0) {
                 headerFile = &file;
                 continue;
