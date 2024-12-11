@@ -56,7 +56,7 @@ void Dialog_CreateTraditionalSession() {
         tFiltersBrcad,
         false
     );
-    if (!tempStr)
+    if (tempStr == nullptr)
         return;
 
     brcadPath = strdup(tempStr);
@@ -68,8 +68,10 @@ void Dialog_CreateTraditionalSession() {
         tFiltersImage,
         false
     );
-    if (!tempStr)
+    if (tempStr == nullptr) {
+        free(brcadPath);
         return;
+    }
 
     imagePath = strdup(tempStr);
 
@@ -80,24 +82,26 @@ void Dialog_CreateTraditionalSession() {
         tFiltersHeader,
         false
     );
-    if (!tempStr)
+    if (tempStr == nullptr) {
+        free(brcadPath); free(imagePath);
         return;
+    }
 
     headerPath = strdup(tempStr);
 
     GET_SESSION_MANAGER;
 
     // TODO: separate this into Task
-
     int result = sessionManager.PushSessionTraditional(brcadPath, imagePath, headerPath);
+
+    free(brcadPath); free(imagePath); free(headerPath);
+
     if (result < 0)
         AppState::getInstance().OpenGlobalPopup("###SessionErr");
     else {
         sessionManager.currentSessionIndex = result;
         sessionManager.SessionChanged();
     }
-
-    free(brcadPath); free(imagePath); free(headerPath);
 }
 
 void Dialog_SaveCurrentSessionAsSzs() {
