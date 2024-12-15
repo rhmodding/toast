@@ -18,7 +18,7 @@
 
 #include "../../common.hpp"
 
-namespace Bezier {
+namespace _Bezier {
 
 void EvalBezier(const float P[4], ImVec2* results, unsigned stepCount) {
     const float step = 1.f / stepCount;
@@ -40,16 +40,14 @@ void EvalBezier(const float P[4], ImVec2* results, unsigned stepCount) {
     }
 }
 
-ImVec2 BezierValue(const float x, const float P[4]) {
-    const int STEPS = 256;
-
+ImVec2 BezierValue(const float x, const float P[4], unsigned steps = 256) {
     ImVec2 closestPoint { 0.f, 0.f };
     float closestDistance = fabsf(x);
 
-    const float step = 1.f / STEPS;
+    const float step = 1.f / steps;
 
     float t = step;
-    for (unsigned i = 1; i <= STEPS; i++, t += step) {
+    for (unsigned i = 1; i <= steps; i++, t += step) {
         float u = 1.f - t;
 
         float t2 = t * t;
@@ -75,8 +73,8 @@ ImVec2 BezierValue(const float x, const float P[4]) {
     return closestPoint;
 }
 
-float BezierValueY(const float x, const float P[4]) {
-    return BezierValue(x, P).y;
+float BezierValueY(const float x, const float P[4], unsigned steps = 256) {
+    return BezierValue(x, P, steps).y;
 }
 
 bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
@@ -266,6 +264,100 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 
 } // namespace Bezier
 
+void _ApplyInterpolation(
+    const std::array<float, 4>& curve,
+    int interval,
+    RvlCellAnim::AnimationKey* backKey, RvlCellAnim::AnimationKey* frontKey,
+    const RvlCellAnim::Animation& animation, unsigned animationIndex
+) {
+    GET_APP_STATE;
+    GET_ANIMATABLE;
+
+    const RvlCellAnim::Arrangement* endArrangement = &globalAnimatable.cellanim->arrangements.at(backKey->arrangementIndex);
+
+    std::vector<RvlCellAnim::AnimationKey> addKeys((backKey->holdFrames / interval) - 1);
+
+    for (unsigned i = 0; i < addKeys.size(); i++) {
+        RvlCellAnim::AnimationKey& newKey = addKeys[i];
+        newKey = *backKey;
+
+        float t = _Bezier::BezierValueY(((i * interval) + 1) / (float)backKey->holdFrames, curve.data(), addKeys.size());
+
+        newKey.transform = newKey.transform.lerp(backKey->transform, t);
+        newKey.opacity = std::clamp<int>(
+            std::lerp((int)backKey->opacity, (int)backKey->opacity, t),
+            0,
+            255
+        );
+        newKey.holdFrames = interval;
+
+        // Create new interpolated arrangement if not equal
+        if (backKey->arrangementIndex != frontKey->arrangementIndex) {
+            RvlCellAnim::Arrangement newArrangement =
+                globalAnimatable.cellanim->arrangements.at(backKey->arrangementIndex);
+
+            for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
+                auto& part = newArrangement.parts.at(j);
+
+                unsigned jClamp = std::min<unsigned>(j, endArrangement->parts.size() - 1);
+                int mnpi = appState.getMatchingNamePartIndex(part, *endArrangement);
+
+                const auto* endPart = &endArrangement->parts.at(mnpi >= 0 ? mnpi : jClamp);
+
+                if (mnpi < 0 && (endPart->regionX != part.regionX ||
+                                endPart->regionY != part.regionY ||
+                                endPart->regionW != part.regionW ||
+                                endPart->regionH != part.regionH)
+                ) {
+                    int mrpi = appState.getMatchingRegionPartIndex(part, *endArrangement);
+
+                    if (mrpi >= 0)
+                        endPart = &endArrangement->parts.at(mrpi);
+                }
+                part.transform = part.transform.lerp(endPart->transform, t);
+
+                // Flip over if curve Y is over half-point
+                if (t > .5f) {
+                    part.flipX = endPart->flipX;
+                    part.flipY = endPart->flipY;
+
+                    part.regionX = endPart->regionX;
+                    part.regionY = endPart->regionY;
+                    part.regionW = endPart->regionW;
+                    part.regionH = endPart->regionH;
+                }
+
+                part.opacity = std::clamp<int>(
+                    std::lerp((int)part.opacity, (int)endPart->opacity, t),
+                    0,
+                    255
+                );
+            }
+
+            newKey.arrangementIndex = globalAnimatable.cellanim->arrangements.size();
+            globalAnimatable.cellanim->arrangements.push_back(newArrangement);
+
+            endArrangement = &globalAnimatable.cellanim->arrangements.at(frontKey->arrangementIndex);
+        }
+    }
+
+    GET_SESSION_MANAGER;
+
+    unsigned currentKeyIndex = globalAnimatable.getCurrentKeyIndex();
+
+    RvlCellAnim::Animation newAnim = animation;
+    newAnim.keys.insert(newAnim.keys.begin() + currentKeyIndex + 1, addKeys.begin(), addKeys.end());
+
+    newAnim.keys.at(currentKeyIndex).holdFrames = interval;
+
+    sessionManager.getCurrentSession()->executeCommand(
+    std::make_shared<CommandModifyAnimation>(
+        sessionManager.getCurrentSession()->currentCellanim,
+        animationIndex,
+        newAnim
+    ));
+}
+
 void Popup_MInterpolateKeys() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
@@ -389,7 +481,7 @@ void Popup_MInterpolateKeys() {
                 selectedEaseIndex = easeSearch - easePresets;
             }
 
-            Bezier::Widget("CurveView", v.data(), customEasing);
+            _Bezier::Widget("CurveView", v.data(), customEasing);
 
             ImGui::SameLine();
 
@@ -420,90 +512,19 @@ void Popup_MInterpolateKeys() {
 
             float t = fmodf((float)ImGui::GetTime(), 1.f);
 
-            ImGui::ProgressBar(Bezier::BezierValueY(t, v.data()));
+            ImGui::ProgressBar(_Bezier::BezierValueY(t, v.data()));
         }
 
         ImGui::Separator();
 
         if (ImGui::Button("Apply")) {
-            const RvlCellAnim::Arrangement* endArrangement = &globalAnimatable.cellanim->arrangements.at(nextKey->arrangementIndex);
+            _ApplyInterpolation(
+                v, interval,
+                currentKey, nextKey,
+                *currentAnimation, animationIndex
+            );
 
-            std::vector<RvlCellAnim::AnimationKey> addKeys((currentKey->holdFrames / interval) - 1);
-
-            for (unsigned i = 0; i < addKeys.size(); i++) {
-                RvlCellAnim::AnimationKey& newKey = addKeys[i];
-                newKey = *currentKey;
-
-                float t = Bezier::BezierValueY(((i * interval) + 1) / (float)currentKey->holdFrames, v.data());
-
-                newKey.transform = newKey.transform.lerp(nextKey->transform, t);
-                newKey.opacity = std::clamp<int>(
-                    std::lerp((int)currentKey->opacity, (int)nextKey->opacity, t),
-                    0,
-                    255
-                );
-                newKey.holdFrames = interval;
-
-                if (
-                    currentKey->arrangementIndex != nextKey->arrangementIndex
-                ) {
-                    RvlCellAnim::Arrangement newArrangement =
-                        globalAnimatable.cellanim->arrangements.at(currentKey->arrangementIndex);
-
-                    for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
-                        auto& part = newArrangement.parts.at(j);
-
-                        unsigned jClamp = std::min<unsigned>(j, endArrangement->parts.size() - 1);
-                        int mnpi = appState.getMatchingNamePartIndex(part, *endArrangement);
-
-                        const auto* endPart = &endArrangement->parts.at(mnpi >= 0 ? mnpi : jClamp);
-
-                        if (mnpi < 0 && (endPart->regionX != part.regionX ||
-                                        endPart->regionY != part.regionY ||
-                                        endPart->regionW != part.regionW ||
-                                        endPart->regionH != part.regionH)
-                        ) {
-                            int mrpi = appState.getMatchingRegionPartIndex(part, *endArrangement);
-
-                            if (mrpi >= 0)
-                                endPart = &endArrangement->parts.at(mrpi);
-                        }
-                        part.transform = part.transform.lerp(endPart->transform, t);
-
-                        if (t > .5f) {
-                            part.flipX = endPart->flipX;
-                            part.flipY = endPart->flipY;
-
-                            part.regionX = endPart->regionX;
-                            part.regionY = endPart->regionY;
-                            part.regionW = endPart->regionW;
-                            part.regionH = endPart->regionH;
-                        }
-
-                        part.opacity = static_cast<uint8_t>(std::lerp(part.opacity, endPart->opacity, t));
-                    }
-
-                    newKey.arrangementIndex = globalAnimatable.cellanim->arrangements.size();
-                    globalAnimatable.cellanim->arrangements.push_back(newArrangement);
-
-                    endArrangement = &globalAnimatable.cellanim->arrangements.at(nextKey->arrangementIndex);
-                }
-            }
-
-            GET_SESSION_MANAGER;
-
-            RvlCellAnim::Animation newAnim = *currentAnimation;
-            newAnim.keys.insert(newAnim.keys.begin() + currentKeyIndex + 1, addKeys.begin(), addKeys.end());
-
-            newAnim.keys.at(currentKeyIndex).holdFrames = interval;
-
-            sessionManager.getCurrentSession()->executeCommand(
-            std::make_shared<CommandModifyAnimation>(
-                sessionManager.getCurrentSession()->currentCellanim,
-                animationIndex,
-                newAnim
-            ));
-
+            // Refresh pointers since parent vector could have reallocated
             currentAnimation = globalAnimatable.getCurrentAnimation();
             currentKey = globalAnimatable.getCurrentKey();
             nextKey = currentKey + 1;
