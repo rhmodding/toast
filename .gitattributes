@@ -1,7 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
-libs/glfw3-win64/include/GLFW/* linguist-vendored
-libs/glfw3-apple/include/GLFW/* linguist-vendored
+libs/glfw3-win64/include/GLFW/* linguist-vendored=true
+libs/glfw3-apple/include/GLFW/* linguist-vendored=true
 
-src/stb/* linguist-vendored
+src/stb/* linguist-vendored=true
