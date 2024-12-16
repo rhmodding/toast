@@ -20,7 +20,7 @@
 struct U8ArchiveHeader {
     // Magic value (should always equal to 0x55AA382D [1437218861] if valid)
     // Compare to HEADER_MAGIC
-    uint32_t magic;
+    uint32_t magic { HEADER_MAGIC };
 
     // Offset to the node section, always 0x20
     int32_t nodeSectionStart;
@@ -168,8 +168,6 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
     U8ArchiveHeader* header = reinterpret_cast<U8ArchiveHeader*>(result.data());
 
     *header = U8ArchiveHeader {
-        .magic = HEADER_MAGIC,
-
         .nodeSectionStart = BYTESWAP_32(sizeof(U8ArchiveHeader))
     };
 
