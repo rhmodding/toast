@@ -294,14 +294,18 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
             if (map.empty())
                 continue; // Don't bother writing the header if there's no
                           // definitions avaliable.
+            
+            // We need to sort the defines before writing.
+            std::vector<std::pair<unsigned, std::string>> vec(map.begin(), map.end());
 
-            std::stringstream stream;
-            for (auto it = map.begin(); it != map.end(); ++it) {
-                stream << "#define " << it->second << " " << std::to_string(it->first);
+            std::sort(vec.begin(), vec.end(),
+            [](const std::pair<unsigned, std::string>& a, const std::pair<unsigned, std::string>& b) {
+                return a.first < b.first;
+            });
 
-                if (std::next(it) != map.end())
-                    stream << "\n";
-            }
+            std::ostringstream stream;
+            for (const auto& [animIndex, defineStr] : vec)
+                stream << "#define " << defineStr << " " << std::to_string(animIndex) << '\n';
 
             const std::string& cellanimName = session->cellanims.at(i).name;
             U8::File file(
