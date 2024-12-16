@@ -28,7 +28,7 @@
 struct Yaz0Header {
     // Magic value (should always equal to "Yaz0" if valid)
     // Compare to HEADER_MAGIC
-    uint32_t magic;
+    uint32_t magic { HEADER_MAGIC };
 
     // Size of the file before compression in bytes
     uint32_t uncompressedSize;
@@ -46,8 +46,6 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
     *header = Yaz0Header {
-        .magic = HEADER_MAGIC,
-
         .uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize)),
     };
 
