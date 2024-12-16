@@ -175,13 +175,13 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
     // internal editor data
     {
-        U8::File* tedSearch = U8::findFile("./" TED_ARC_FILENAME, archiveObject.structure);
+        U8::File* tedSearch = U8::findFile(TED_ARC_FILENAME, *rootDirIt);
         if (tedSearch)
-            TedApply(tedSearch->data.data(), &newSession);
+            TedApply(tedSearch->data.data(), newSession);
         else {
-            U8::File* datSearch = U8::findFile("./" TED_ARC_FILENAME_OLD, archiveObject.structure);
+            U8::File* datSearch = U8::findFile(TED_ARC_FILENAME_OLD, *rootDirIt);
             if (datSearch)
-                TedApply(datSearch->data.data(), &newSession);
+                TedApply(datSearch->data.data(), newSession);
         }
     }
 
@@ -345,8 +345,10 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         {
             U8::File file(TED_ARC_FILENAME);
 
-            file.data.resize(TedPrecomputeSize(session));
-            TedWrite(session, file.data.data());
+            TedWriteState* state;
+
+            file.data.resize(TedPrepareWrite(&state, *session));
+            TedWrite(state, file.data.data());
 
             directory.AddFile(file);
         }

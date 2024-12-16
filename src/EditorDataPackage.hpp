@@ -6,9 +6,11 @@
 #define TED_ARC_FILENAME "TOAST.TED"
 #define TED_ARC_FILENAME_OLD "TOAST.DAT"
 
-void TedApply(const unsigned char* data, SessionManager::Session* session);
+void TedApply(const unsigned char* data, const SessionManager::Session& session);
 
-unsigned TedPrecomputeSize(SessionManager::Session* session);
-void TedWrite(SessionManager::Session* session, unsigned char* output);
+struct TedWriteState;
+
+unsigned TedPrepareWrite(TedWriteState** state, const SessionManager::Session& session);
+void TedWrite(TedWriteState* state, unsigned char* buffer);
 
 #endif // EDITOR_DATA_PACKAGE_HPP

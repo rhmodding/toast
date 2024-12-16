@@ -77,17 +77,17 @@ struct TedNamedPartEntryOld {
 } __attribute__((packed));
 
 static RvlCellAnim::ArrangementPart* _TedGetPart(
-    SessionManager::Session* session,
+    const SessionManager::Session& session,
     uint16_t cellIndex, uint16_t arrngIndex, uint16_t partIndex
 ) {
-    if (cellIndex >= session->cellanims.size()) {
+    if (cellIndex >= session.cellanims.size()) {
             std::cerr <<
                 "[TedApply] Invalid editor data binary: oob cellanim index!:\n" <<
                 "   - Cellanim Index: " << cellIndex << '\n';
             return nullptr;
         }
 
-        auto& arrangements = session->cellanims.at(cellIndex).object->arrangements;
+        auto& arrangements = session.cellanims.at(cellIndex).object->arrangements;
         if (arrngIndex >= arrangements.size()) {
             std::cerr <<
                 "[TedApply] Invalid editor data binary: oob arrangement index!:" <<
@@ -109,7 +109,7 @@ static RvlCellAnim::ArrangementPart* _TedGetPart(
         return &arrangement.parts.at(partIndex);
 }
 
-static void _TedApply(const unsigned char* data, SessionManager::Session* session) {
+static void _TedApply(const unsigned char* data, const SessionManager::Session& session) {
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
     if (fileHeader->entryCount == 0)
         return;
@@ -204,7 +204,7 @@ static void _TedApply(const unsigned char* data, SessionManager::Session* sessio
     }
 }
 
-static void _TedApplyOld(const unsigned char* data, SessionManager::Session* session) {
+static void _TedApplyOld(const unsigned char* data, const SessionManager::Session& session) {
     const TedFileHeaderOld* fileHeader = reinterpret_cast<const TedFileHeaderOld*>(data);
     if (fileHeader->entryCount == 0)
         return;
@@ -295,7 +295,7 @@ static void _TedApplyOld(const unsigned char* data, SessionManager::Session* ses
     }
 }
 
-void TedApply(const unsigned char* data, SessionManager::Session* session) {
+void TedApply(const unsigned char* data, const SessionManager::Session& session) {
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
 
     if (memcmp(fileHeader->magic, "TOAST", 5) != 0) {
@@ -325,82 +325,23 @@ void TedApply(const unsigned char* data, SessionManager::Session* session) {
     _TedApply(data, session);
 }
 
-unsigned TedPrecomputeSize(SessionManager::Session* session) {
-    unsigned size = sizeof(TedFileHeader);
-    unsigned stringsSize = 0;
-
-    bool hasLocationSection { false };
-    bool hasOpacitySection { false };
-    bool hasNameSection { false };
-
-    std::unordered_set<uint32_t> nameHashes;
-
-    for (uint16_t i = 0; i < session->cellanims.size(); i++) {
-        const auto cellanim = session->cellanims[i].object;
-
-        for (uint16_t j = 0; j < cellanim->arrangements.size(); j++) {
-            const auto& arrangement = cellanim->arrangements[j];
-
-            for (uint16_t n = 0; n < arrangement.parts.size(); n++) {
-                const auto& part = arrangement.parts[n];
-
-                if (part.editorLocked) {
-                    if (!hasLocationSection) {
-                        size += sizeof(TedSectionHeader);
-                        hasLocationSection = true;
-                    }
-                    size += sizeof(TedPartLocationEntry);
-                }
-                if (!part.editorVisible) {
-                    if (!hasOpacitySection) {
-                        size += sizeof(TedSectionHeader);
-                        hasOpacitySection = true;
-                    }
-                    size += sizeof(TedPartOpacityEntry);
-                }
-
-                if (part.editorName[0] != '\0') {
-                    if (!hasNameSection) {
-                        size += sizeof(TedSectionHeader);
-                        hasNameSection = true;
-                    }
-
-                    size += sizeof(TedNamedPartEntry);
-
-                    // Check if name is unique
-                    uint32_t nameHash = 0;
-                    for (unsigned i = 0; i < strlen(part.editorName); i++)
-                        nameHash = part.editorName[i] + nameHash * 0x65;
-
-                    if (nameHashes.find(nameHash) == nameHashes.end()) {
-                        nameHashes.insert(nameHash);
-
-                        stringsSize += strlen(part.editorName) + 1;
-                        stringsSize = (stringsSize + 3) & ~3;
-                    }
-                }
-            }
-        }
-    }
-
-    return size + stringsSize;
-}
-void TedWrite(SessionManager::Session* session, unsigned char* output) {
-    TedFileHeader* fileHeader = reinterpret_cast<TedFileHeader*>(output);
-    *fileHeader = TedFileHeader {};
-
-    fileHeader->majorVersion = TED_VERSION_MAJOR;
-    fileHeader->minorVersion = TED_VERSION_MINOR;
-
+struct TedWriteState {
     std::vector<TedPartLocationEntry> lockedParts;
     std::vector<TedPartOpacityEntry> invisibleParts;
     std::vector<TedNamedPartEntry> namedParts;
 
-    unsigned nextNameOffset { 0 };
     std::unordered_map<std::string, unsigned> nameOffsets;
+};
 
-    for (uint16_t i = 0; i < session->cellanims.size(); i++) {
-        const auto cellanim = session->cellanims[i].object;
+// Returns size for buffer
+unsigned TedPrepareWrite(TedWriteState** state, const SessionManager::Session& session) {
+    *state = new TedWriteState;
+
+    unsigned size = sizeof(TedFileHeader);
+    unsigned nextNameOffset = 0;
+
+    for (uint16_t i = 0; i < session.cellanims.size(); i++) {
+        const auto cellanim = session.cellanims[i].object;
 
         for (uint16_t j = 0; j < cellanim->arrangements.size(); j++) {
             const auto& arrangement = cellanim->arrangements[j];
@@ -409,9 +350,9 @@ void TedWrite(SessionManager::Session* session, unsigned char* output) {
                 const auto& part = arrangement.parts[n];
 
                 if (part.editorLocked)
-                    lockedParts.push_back({ i, j, n });
+                    (*state)->lockedParts.push_back({ i, j, n });
                 if (!part.editorVisible)
-                    invisibleParts.push_back({ i, j, n, part.opacity });
+                    (*state)->invisibleParts.push_back({ i, j, n, part.opacity });
 
                 if (part.editorName[0] != '\0') {
                     TedNamedPartEntry entry {
@@ -423,38 +364,61 @@ void TedWrite(SessionManager::Session* session, unsigned char* output) {
                     std::string name(part.editorName);
 
                     // Name is unique, add to map
-                    if (nameOffsets.count(name) == 0) {
+                    if ((*state)->nameOffsets.count(name) == 0) {
                         entry.nameOffset = nextNameOffset;
-                        nameOffsets[name] = nextNameOffset;
+                        (*state)->nameOffsets[name] = nextNameOffset;
 
                         nextNameOffset += strlen(part.editorName) + 1;
                         nextNameOffset = (nextNameOffset + 3) & ~3;
                     }
                     // Name not unique, reuse offset
                     else {
-                        entry.nameOffset = nameOffsets[name];
+                        entry.nameOffset = (*state)->nameOffsets[name];
                     }
 
-                    namedParts.push_back(entry);
+                    (*state)->namedParts.push_back(entry);
                 }
             }
         }
     }
 
+    if (!(*state)->lockedParts.empty()) {
+        size +=
+            sizeof(TedSectionHeader) +
+            (sizeof(TedPartLocationEntry) * (*state)->lockedParts.size());
+    }
+    if (!(*state)->invisibleParts.empty()) {
+        size +=
+            sizeof(TedSectionHeader) +
+            (sizeof(TedPartOpacityEntry) * (*state)->invisibleParts.size());
+    }
+    if (!(*state)->namedParts.empty()) {
+        size +=
+            sizeof(TedSectionHeader) +
+            (sizeof(TedNamedPartEntry) * (*state)->namedParts.size());
+    }
+
+    return size + nextNameOffset;
+}
+
+void TedWrite(TedWriteState* state, unsigned char* buffer) {
+    TedFileHeader* fileHeader = reinterpret_cast<TedFileHeader*>(buffer);
+    *fileHeader = TedFileHeader {};
+
     unsigned writeOffset { sizeof(TedFileHeader) };
 
-    if (!invisibleParts.empty()) {
+    if (!state->invisibleParts.empty()) {
         fileHeader->entryCount++;
 
         uint32_t endOffset =
             writeOffset + sizeof(TedSectionHeader) +
-            (sizeof(TedPartOpacityEntry) * invisibleParts.size());
+            (sizeof(TedPartOpacityEntry) * state->invisibleParts.size());
 
         TedSectionHeader* header =
-            reinterpret_cast<TedSectionHeader*>(output + writeOffset);
+            reinterpret_cast<TedSectionHeader*>(buffer + writeOffset);
         *header = TedSectionHeader {
             .identifier = { 'E', 'I', 'P', 'T' },
-            .entryCount = (uint16_t)invisibleParts.size(),
+            .entryCount = (uint16_t)state->invisibleParts.size(),
             .nextSectionOffset = endOffset
         };
 
@@ -462,25 +426,25 @@ void TedWrite(SessionManager::Session* session, unsigned char* output) {
 
         for (unsigned i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<TedPartOpacityEntry*>(
-                output + writeOffset
-            ) = invisibleParts[i];
+                buffer + writeOffset
+            ) = state->invisibleParts[i];
 
             writeOffset += sizeof(TedPartOpacityEntry);
         }
     }
 
-    if (!lockedParts.empty()) {
+    if (!state->lockedParts.empty()) {
         fileHeader->entryCount++;
 
         uint32_t endOffset =
             writeOffset + sizeof(TedSectionHeader) +
-            (sizeof(TedPartLocationEntry) * lockedParts.size());
+            (sizeof(TedPartLocationEntry) * state->lockedParts.size());
 
         TedSectionHeader* header =
-            reinterpret_cast<TedSectionHeader*>(output + writeOffset);
+            reinterpret_cast<TedSectionHeader*>(buffer + writeOffset);
         *header = TedSectionHeader {
             .identifier = { 'E', 'L', 'P', 'T' },
-            .entryCount = (uint16_t)lockedParts.size(),
+            .entryCount = (uint16_t)state->lockedParts.size(),
             .nextSectionOffset = endOffset
         };
 
@@ -488,25 +452,25 @@ void TedWrite(SessionManager::Session* session, unsigned char* output) {
 
         for (unsigned i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<TedPartLocationEntry*>(
-                output + writeOffset
-            ) = lockedParts[i];
+                buffer + writeOffset
+            ) = state->lockedParts[i];
 
             writeOffset += sizeof(TedPartLocationEntry);
         }
     }
 
-    if (!namedParts.empty()) {
+    if (!state->namedParts.empty()) {
         fileHeader->entryCount++;
 
         uint32_t endOffset =
             writeOffset + sizeof(TedSectionHeader) +
-            (sizeof(TedNamedPartEntry) * namedParts.size());
+            (sizeof(TedNamedPartEntry) * state->namedParts.size());
 
         TedSectionHeader* header =
-            reinterpret_cast<TedSectionHeader*>(output + writeOffset);
+            reinterpret_cast<TedSectionHeader*>(buffer + writeOffset);
         *header = TedSectionHeader {
             .identifier = { 'A', 'P', 'N', 'T' },
-            .entryCount = (uint16_t)namedParts.size(),
+            .entryCount = (uint16_t)state->namedParts.size(),
             .nextSectionOffset = endOffset
         };
 
@@ -514,17 +478,16 @@ void TedWrite(SessionManager::Session* session, unsigned char* output) {
 
         for (unsigned i = 0; i < header->entryCount; i++) {
             *reinterpret_cast<TedNamedPartEntry*>(
-                output + writeOffset
-            ) = namedParts[i];
+                buffer + writeOffset
+            ) = state->namedParts[i];
 
             writeOffset += sizeof(TedNamedPartEntry);
         }
     }
 
     fileHeader->stringPoolOffset = writeOffset;
-
-    // Write names
-    for (const auto& [name, offset] : nameOffsets) {
-        strcpy((char*)output + writeOffset + offset, name.c_str());
-    }
+    for (const auto& [name, offset] : state->nameOffsets)
+        strcpy((char*)buffer + writeOffset + offset, name.c_str());
+    
+    delete state;
 }
