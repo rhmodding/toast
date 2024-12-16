@@ -40,7 +40,6 @@ public:
     void SortAlphabetically();
 
     Directory(const std::string& n);
-
     Directory(const std::string& n, Directory* parentDir);
 
     Directory* GetParent() const;
@@ -53,13 +52,11 @@ public:
     std::vector<unsigned char> Reserialize();
 
     U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize);
-
     U8ArchiveObject() {};
 };
 
 std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath);
 
-// Note: pointer might be invalidated if parent vector is mutated
 File* findFile(const char* path, Directory& directory);
 
 } // namespace U8
