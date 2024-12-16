@@ -14,7 +14,7 @@
 
 #include "../Popups.hpp"
 
-void Popup_WaitForModifiedTexture() {
+static void Popup_WaitForModifiedTexture() {
     CENTER_NEXT_WINDOW;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });

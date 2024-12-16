@@ -14,6 +14,7 @@ public:
     ) :
         enabled(enabled)
     {}
+    ~CommandSetArrangementMode() = default;
 
     void Execute() override {
         GET_SESSION_MANAGER;

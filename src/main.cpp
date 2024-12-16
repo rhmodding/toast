@@ -7,6 +7,9 @@
 #include "ConsoleSplash.hpp"
 
 int main(int argc, char** argv) {
+    // TODO: open szs from arguments
+    (void)argc; (void)argv;
+
     std::cout << consoleSplash << "\n\n";
 
     App app;

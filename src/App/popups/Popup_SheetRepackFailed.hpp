@@ -5,7 +5,7 @@
 
 #include "../../common.hpp"
 
-void Popup_SheetRepackFailed() {
+static void Popup_SheetRepackFailed() {
     CENTER_NEXT_WINDOW;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });

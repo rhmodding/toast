@@ -12,7 +12,7 @@
 #include "../../SessionManager.hpp"
 #include "../../command/CommandModifyArrangementPart.hpp"
 
-void Popup_MPadRegion() {
+static void Popup_MPadRegion() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };

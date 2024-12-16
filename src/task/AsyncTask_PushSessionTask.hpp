@@ -54,7 +54,6 @@ protected:
     }
 
 private:
-    SessionManager::Session* session;
     std::string filePath;
 
     std::atomic<int> result;

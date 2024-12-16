@@ -46,9 +46,7 @@ void WindowInspector::Level_Animation() {
     ImGui::EndChild();
 
 
-    RvlCellAnim::Animation* animation = globalAnimatable.getCurrentAnimation();
-
-    ImGui::SeparatorText((char*)ICON_FA_PENCIL " Properties");
+    ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Properties");
     if (ImGui::Button("Edit macro name..")) {
         Popups::_editAnimationNameIdx = animationIndex;
         appState.OpenGlobalPopup("###EditAnimationName");

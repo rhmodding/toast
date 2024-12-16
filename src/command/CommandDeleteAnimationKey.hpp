@@ -18,6 +18,7 @@ public:
     {
         this->key = this->getKey();
     }
+    ~CommandDeleteAnimationKey() = default;
 
     void Execute() override {
         RvlCellAnim::Animation& animation = this->getAnimation();

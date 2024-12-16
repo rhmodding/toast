@@ -9,7 +9,7 @@
 
 #include "../../common.hpp"
 
-void Popup_SessionErr() {
+static void Popup_SessionErr() {
     auto error = SessionManager::getInstance().currentError;
 
     char errorMessage[256];

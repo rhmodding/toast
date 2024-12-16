@@ -51,9 +51,9 @@ public:
     }
 
     // nameOffset is relative to string pool start
-    void setAttributes(bool isDir, unsigned nameOffset) {
-        this->isDir = isDir ? 0x01 : 0x00;
-        this->nameOffset = BYTESWAP_32(nameOffset) >> 8;
+    void setAttributes(bool _isDir, unsigned _nameOffset) {
+        this->isDir = _isDir ? 0x01 : 0x00;
+        this->nameOffset = BYTESWAP_32(_nameOffset) >> 8;
     }
 
 public:
@@ -307,11 +307,11 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
                 );
         } 
         else {
-            unsigned char* data = reinterpret_cast<File*>(entry.ptr)->data.data();
-            unsigned dataSize = reinterpret_cast<File*>(entry.ptr)->data.size();
+            unsigned char* fileData = reinterpret_cast<File*>(entry.ptr)->data.data();
+            unsigned fileDataSize = reinterpret_cast<File*>(entry.ptr)->data.size();
 
             node->setAttributes(false, stringOffsets[i]);
-            node->sizeOrNextEntry = BYTESWAP_32(dataSize);
+            node->sizeOrNextEntry = BYTESWAP_32(fileDataSize);
             node->dataOffsetOrParent = BYTESWAP_32(dataOffsets[i]);
 
             // Copy file name
@@ -324,7 +324,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
                 reinterpret_cast<File*>(entry.ptr)->name.c_str()
             );
             // Copy file data
-            memcpy(result.data() + dataOffsets[i], data, dataSize);
+            memcpy(result.data() + dataOffsets[i], fileData, fileDataSize);
         }
     }
 

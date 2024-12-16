@@ -9,7 +9,7 @@
 
 #include "../../common.hpp"
 
-void Popup_DeleteAnimation(int animationIndex) {
+static void Popup_DeleteAnimation(int animationIndex) {
     if (animationIndex < 0)
         return;
 

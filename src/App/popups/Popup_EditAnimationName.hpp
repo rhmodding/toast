@@ -12,7 +12,7 @@
 
 #define MACRO_BUF_SIZE (256)
 
-void Popup_EditAnimationName(int animationIndex) {
+static void Popup_EditAnimationName(int animationIndex) {
     if (animationIndex < 0)
         return;
 

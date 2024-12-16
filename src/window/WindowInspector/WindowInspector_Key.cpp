@@ -49,7 +49,7 @@ void WindowInspector::Level_Key() {
 
     RvlCellAnim::AnimationKey* animKey = globalAnimatable.getCurrentKey();
 
-    ImGui::SeparatorText((char*)ICON_FA_IMAGE " Arrangement");
+    ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Arrangement");
 
     // Arrangement Input
     {
@@ -152,7 +152,7 @@ void WindowInspector::Level_Key() {
             ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
     }
 
-    ImGui::SeparatorText((char*)ICON_FA_PAUSE " Hold");
+    ImGui::SeparatorText((const char*)ICON_FA_PAUSE " Hold");
 
     {
         static uint16_t oldHoldFrames { 0 };
@@ -174,7 +174,7 @@ void WindowInspector::Level_Key() {
         }
     }
 
-    ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
+    ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
 
     // Position XY
     {
@@ -249,7 +249,7 @@ void WindowInspector::Level_Key() {
         }
     }
 
-    ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
+    ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Rendering");
 
     // Opacity slider
     {

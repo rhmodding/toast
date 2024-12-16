@@ -18,18 +18,17 @@ public:
         unsigned cellanimIndex, unsigned animationIndex, unsigned keyIndex,
         bool moveDown, bool preserveHold
     ) :
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex),
-        moveDown(moveDown), preserveHold(preserveHold)
+        moveDown(moveDown), preserveHold(preserveHold),
+        cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex)
     {}
+    ~CommandMoveAnimationKey() = default;
 
     void Execute() override {
-        GET_APP_STATE;
-
         RvlCellAnim::Animation& animation = this->getAnimation();
 
         // An signed int is used since nSwap can be negative.
         int nSwap = this->keyIndex + (moveDown ? -1 : 1);
-        if (nSwap >= 0 && nSwap < animation.keys.size()) {
+        if (nSwap >= 0 && nSwap < (int)animation.keys.size()) {
             std::swap(
                 animation.keys.at(this->keyIndex),
                 animation.keys.at(nSwap)
@@ -46,12 +45,10 @@ public:
     }
 
     void Rollback() override {
-        GET_APP_STATE;
-
         RvlCellAnim::Animation& animation = this->getAnimation();
 
         int nSwap = this->keyIndex + (moveDown ? -1 : 1);
-        if (nSwap >= 0 && nSwap < animation.keys.size()) {
+        if (nSwap >= 0 && nSwap < (int)animation.keys.size()) {
             std::swap(
                 animation.keys.at(this->keyIndex),
                 animation.keys.at(nSwap)

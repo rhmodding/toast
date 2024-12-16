@@ -153,6 +153,11 @@ struct AnimationKeyRaw {
 namespace RvlCellAnim {
 
 RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
+    if (dataSize < sizeof(RvlCellAnimHeader)) {
+        std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: data size smaller than header size!\n";
+        return;
+    }
+
     const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
 
     if (header->revisionDate != RCAD_REVISION_DATE) {

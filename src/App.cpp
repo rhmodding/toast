@@ -85,8 +85,10 @@ void App::AttemptExit(bool force) {
 App::App() {
     gAppPtr = this;
 
+    this->mainThreadId = std::this_thread::get_id();
+
     glfwSetErrorCallback([](int code, const char* description) {
-        std::cerr << "GLFW Error (" << code << "): " << description << '\n';
+        std::cerr << "[glfwErrorCallback] GLFW Error (" << code << "): " << description << '\n';
     });
     if (!glfwInit()) {
         std::cerr << "[App:App] Failed to init GLFW!\n";
@@ -115,11 +117,8 @@ App::App() {
     // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif // defined(__APPLE__), defined(IMGUI_IMPL_OPENGL_ES2)
 
-    // Config
     GET_CONFIG_MANAGER;
     configManager.Load();
-
-    this->mainThreadId = std::this_thread::get_id();
 
     this->window = glfwCreateWindow(
         configManager.getConfig().lastWindowWidth,
@@ -130,10 +129,11 @@ App::App() {
 
     if (!this->window) {
         std::cerr << "[App::App] Window failed to init!\n";
+        glfwTerminate();
         __builtin_trap();
     }
 
-    glfwSetWindowCloseCallback(this->window, [](GLFWwindow* window) {
+    glfwSetWindowCloseCallback(this->window, [](GLFWwindow*) {
         extern App* gAppPtr;
         gAppPtr->AttemptExit();
     });
@@ -212,7 +212,7 @@ void App::SetupFonts() {
     GET_IMGUI_IO;
     GET_APP_STATE;
 
-    { // SegoeUI (18px)
+    { // normal: SegoeUI (18px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
@@ -220,7 +220,7 @@ void App::SetupFonts() {
         appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
     }
 
-    { // Font Awesome
+    { // icon: Font Awesome
         static const ImWchar range[] { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
         ImFontConfig fontConfig;
@@ -230,7 +230,7 @@ void App::SetupFonts() {
         appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range);
     }
 
-    { // SegoeUI (24px)
+    { // large: SegoeUI (24px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
@@ -238,7 +238,7 @@ void App::SetupFonts() {
         appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
     }
 
-    { // SegoeUI (52px)
+    { // giant: SegoeUI (52px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
@@ -255,21 +255,21 @@ void App::Menubar() {
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
-            if (ImGui::MenuItem((char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
+            if (ImGui::MenuItem((const char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
                 this->windowAbout.window.get()->open = true;
                 ImGui::SetWindowFocus("About");
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem((char*)ICON_FA_WRENCH " Config", "", nullptr)) {
+            if (ImGui::MenuItem((const char*)ICON_FA_WRENCH " Config", "", nullptr)) {
                 this->windowConfig.window.get()->open = true;
                 ImGui::SetWindowFocus("Config");
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem((char*)ICON_FA_DOOR_OPEN " Quit", SCS_EXIT, nullptr))
+            if (ImGui::MenuItem((const char*)ICON_FA_DOOR_OPEN " Quit", SCS_EXIT, nullptr))
                 this->AttemptExit();
 
             ImGui::EndMenu();
@@ -277,14 +277,14 @@ void App::Menubar() {
 
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_IMPORT " Open (szs)...",
+                (const char*)ICON_FA_FILE_IMPORT " Open (szs)...",
                 SCS_LAUNCH_OPEN_SZS_DIALOG,
                 nullptr
             ))
                 Actions::Dialog_CreateCompressedArcSession();
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
+                (const char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
                 SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG,
                 nullptr
             ))
@@ -292,7 +292,7 @@ void App::Menubar() {
 
             const auto& recentlyOpened = configManager.getConfig().recentlyOpened;
             if (ImGui::BeginMenu(
-                (char*)ICON_FA_FILE_IMPORT " Open recent",
+                (const char*)ICON_FA_FILE_IMPORT " Open recent",
                 !recentlyOpened.empty()
             )) {
                 for (unsigned i = 0; i < 12; i++) {
@@ -322,14 +322,14 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_EXPORT " Save (szs)", SCS_SAVE_CURRENT_SESSION_SZS, false,
+                (const char*)ICON_FA_FILE_EXPORT " Save (szs)", SCS_SAVE_CURRENT_SESSION_SZS, false,
                     sessionManager.getSessionAvaliable() &&
                     !sessionManager.getCurrentSession()->traditionalMethod
             ))
                 Actions::SaveCurrentSessionSzs();
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_FILE_EXPORT " Save as (szs)...", SCS_LAUNCH_SAVE_AS_SZS_DIALOG, false,
+                (const char*)ICON_FA_FILE_EXPORT " Save as (szs)...", SCS_LAUNCH_SAVE_AS_SZS_DIALOG, false,
                 sessionManager.getSessionAvaliable()
             ))
                 Actions::Dialog_SaveCurrentSessionAsSzs();
@@ -339,14 +339,14 @@ void App::Menubar() {
 
         if (ImGui::BeginMenu("Edit")) {
             if (ImGui::MenuItem(
-                (char*)ICON_FA_ARROW_ROTATE_LEFT " Undo", SCS_UNDO, false,
+                (const char*)ICON_FA_ARROW_ROTATE_LEFT " Undo", SCS_UNDO, false,
                     sessionManager.getSessionAvaliable() &&
                     sessionManager.getCurrentSession()->canUndo()
             ))
                 sessionManager.getCurrentSession()->undo();
 
             if (ImGui::MenuItem(
-                (char*)ICON_FA_ARROW_ROTATE_RIGHT " Redo", SCS_REDO, false,
+                (const char*)ICON_FA_ARROW_ROTATE_RIGHT " Redo", SCS_REDO, false,
                     sessionManager.getSessionAvaliable() &&
                     sessionManager.getCurrentSession()->canRedo()
             ))
@@ -693,7 +693,7 @@ void App::Menubar() {
                 if (tabVisible)
                     ImGui::EndTabItem();
 
-                if (ImGui::IsItemClicked() && sessionManager.currentSessionIndex != n) {
+                if (ImGui::IsItemClicked() && sessionManager.currentSessionIndex != (int)n) {
                     sessionManager.currentSessionIndex = n;
                     sessionManager.SessionChanged();
                 }
@@ -776,7 +776,6 @@ void App::Update() {
         }
 
         b = std::chrono::system_clock::now();
-        std::chrono::duration<double, std::milli> sleep_time = b - a;
     }
 
     static ImGuiIO& io { ImGui::GetIO() };

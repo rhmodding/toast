@@ -6,7 +6,6 @@
 #include "../command/CommandSetArrangementMode.hpp"
 
 void WindowInspector::DrawPreview(Animatable* animatable) {
-    GET_APP_STATE;
     GET_WINDOW_DRAWLIST;
 
     const ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
@@ -48,7 +47,6 @@ void WindowInspector::DrawPreview(Animatable* animatable) {
 
 void WindowInspector::Update() {
     GET_APP_STATE;
-    GET_ANIMATABLE;
 
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar | (
         (

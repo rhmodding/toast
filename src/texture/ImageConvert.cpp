@@ -9,17 +9,14 @@
 
 #define IMGFMT TPL::TPLImageFormat
 
-
 typedef void (*FromImplementation)(unsigned char*, unsigned, unsigned, const unsigned char*, const uint32_t*);
 typedef void (*ToImplementation)(unsigned char*, uint32_t*, unsigned*, unsigned, unsigned, const unsigned char*);
-
-//////////////////////////////////////////////////////////////////
 
 /*
     FROM implementations (x to RGBA32)
 */
 
-static void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 8) {
@@ -54,7 +51,7 @@ static void IMPLEMENTATION_FROM_I4(unsigned char* result, unsigned srcWidth, uns
     }
 }
 
-static void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -81,7 +78,7 @@ static void IMPLEMENTATION_FROM_I8(unsigned char* result, unsigned srcWidth, uns
     }
 }
 
-static void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -111,7 +108,7 @@ static void IMPLEMENTATION_FROM_IA4(unsigned char* result, unsigned srcWidth, un
     }
 }
 
-static void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -142,7 +139,7 @@ static void IMPLEMENTATION_FROM_IA8(unsigned char* result, unsigned srcWidth, un
 }
 
 
-static void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -173,7 +170,7 @@ static void IMPLEMENTATION_FROM_RGB565(unsigned char* result, unsigned srcWidth,
     }
 }
 
-static void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -217,7 +214,7 @@ static void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth,
     }
 }
 
-static void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
+static void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -264,6 +261,90 @@ static void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth,
 }
 
 
+static void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
+    unsigned readOffset { 0 };
+
+    for (unsigned yy = 0; yy < srcHeight; yy += 8) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
+            // 4 4x4 RGBA blocks. Makes up one whole CMPR block
+            uint8_t blocks[4][4][4][4];
+
+            // Decode each CMPR-subblock
+            for (unsigned i = 0; i < 4; i++) {
+                const unsigned char* blockData = data + readOffset + (i * 8);
+                uint8_t (*block)[4][4] = blocks[i];
+
+                const uint16_t color1    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 0));
+                const uint16_t color2    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 2));
+                const uint32_t indexBits = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(blockData + 4));
+
+                uint8_t colors[4][4];
+                colors[0][0] = ((color1 >> 11) & 0x1f) << 3;
+                colors[0][1] = ((color1 >> 5) & 0x3f) << 2;
+                colors[0][2] = ((color1 >> 0) & 0x1f) << 3;
+                colors[0][3] = 0xFFu;
+                colors[1][0] = ((color2 >> 11) & 0x1f) << 3;
+                colors[1][1] = ((color2 >> 5) & 0x3f) << 2;
+                colors[1][2] = ((color2 >> 0) & 0x1f) << 3;
+                colors[1][3] = 0xFFu;
+
+                if (color1 > color2) {
+                    for (unsigned j = 0; j < 4; ++j)
+                        colors[2][j] = colors[0][j] * 2 / 3 + colors[1][j] / 3;
+                    for (unsigned j = 0; j < 4; ++j)
+                        colors[3][j] = colors[0][j] / 3 + colors[1][j] * 2 / 3;
+                }
+                else {
+                    for (unsigned j = 0; j < 4; ++j)
+                        colors[2][j] = (colors[0][j] + colors[1][j]) / 2;
+                    colors[3][0] = colors[3][1] = colors[3][2] = colors[3][3] = 0x00;
+                }
+
+                uint8_t indices[16];
+                for (unsigned j = 0; j < 16; j++)
+                    indices[j] = (indexBits >> (j * 2)) & 0b11;
+
+                for (unsigned y = 0; y < 4; y++) {
+                    for (unsigned x = 0; x < 4; x++) {
+                        unsigned index = 15 - ((y * 4) + x);
+
+                        block[y][x][0] = colors[indices[index]][0];
+                        block[y][x][1] = colors[indices[index]][1];
+                        block[y][x][2] = colors[indices[index]][2];
+                        block[y][x][3] = colors[indices[index]][3];
+                    }
+                }
+            }
+
+            // Copy decoded pixels
+            for (unsigned y = 0; y < 8; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
+                for (unsigned x = 0; x < 8; x++) {
+                    if (xx + x >= srcWidth) break;
+
+                    const unsigned writeOffset = (rowBase + xx + x) * 4;
+
+                    unsigned blockIdx = (y >= 4) * 2 + (x >= 4);
+
+                    const unsigned localY = y % 4;
+                    const unsigned localX = x % 4;
+
+                    result[writeOffset + 0] = blocks[blockIdx][localY][localX][0];
+                    result[writeOffset + 1] = blocks[blockIdx][localY][localX][1];
+                    result[writeOffset + 2] = blocks[blockIdx][localY][localX][2];
+                    result[writeOffset + 3] = blocks[blockIdx][localY][localX][3];
+                }
+            }
+
+            readOffset += 8 * 4; // Advance sizeof sub-block * sub-block count
+        }
+    }
+}
+
+
 static void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {    
     unsigned readOffset { 0 };
 
@@ -278,10 +359,10 @@ static void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, uns
                 for (unsigned x = 0; x < 8; x++) {
                     if (xx + x >= srcWidth) break;
 
+                    const uint32_t destIndex = (rowBase + xx + x) * 4;
+
                     const uint8_t index = data[readOffset + (y * 8) + x];
                     const uint32_t color = palette[index];
-
-                    const uint32_t destIndex = 4 * (srcWidth * (yy + y) + xx + x);
 
                     result[destIndex + 0] = (color >> 24) & 0xFFu;
                     result[destIndex + 1] = (color >> 16) & 0xFFu;
@@ -327,95 +408,11 @@ static void IMPLEMENTATION_FROM_C14X2(unsigned char* result, unsigned srcWidth, 
     }
 }
 
-static void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
-    unsigned readOffset { 0 };
-
-    for (unsigned yy = 0; yy < srcHeight; yy += 8) {
-        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
-            // 4 4x4 RGBA blocks. Makes up one whole CMPR block
-            uint8_t blocks[4][4][4][4];
-
-            // Decode each CMPR-subblock
-            for (unsigned i = 0; i < 4; i++) {
-                const unsigned char* blockData = data + readOffset + (i * 8);
-                uint8_t (*block)[4][4] = blocks[i];
-
-                const uint16_t color1    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 0));
-                const uint16_t color2    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 2));
-                const uint32_t indexBits = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(blockData + 4));
-
-                uint8_t colors[4][4];
-                colors[0][0] = ((color1 >> 11) & 0x1f) << 3;
-                colors[0][1] = ((color1 >> 5) & 0x3f) << 2;
-                colors[0][2] = ((color1 >> 0) & 0x1f) << 3;
-                colors[0][3] = 0xFFu;
-                colors[1][0] = ((color2 >> 11) & 0x1f) << 3;
-                colors[1][1] = ((color2 >> 5) & 0x3f) << 2;
-                colors[1][2] = ((color2 >> 0) & 0x1f) << 3;
-                colors[1][3] = 0xFFu;
-
-                if (color1 > color2) {
-                    for (unsigned i = 0; i < 4; ++i)
-                        colors[2][i] = colors[0][i] * 2 / 3 + colors[1][i] / 3;
-                    for (unsigned i = 0; i < 4; ++i)
-                        colors[3][i] = colors[0][i] / 3 + colors[1][i] * 2 / 3;
-                }
-                else {
-                    for (unsigned i = 0; i < 4; ++i)
-                        colors[2][i] = (colors[0][i] + colors[1][i]) / 2;
-                    colors[3][0] = colors[3][1] = colors[3][2] = colors[3][3] = 0x00;
-                }
-
-                uint8_t indices[16];
-                for (unsigned i = 0; i < 16; i++)
-                    indices[i] = (indexBits >> (i * 2)) & 0b11;
-
-                for (unsigned y = 0; y < 4; y++) {
-                    for (unsigned x = 0; x < 4; x++) {
-                        unsigned index = 15 - ((y * 4) + x);
-
-                        block[y][x][0] = colors[indices[index]][0];
-                        block[y][x][1] = colors[indices[index]][1];
-                        block[y][x][2] = colors[indices[index]][2];
-                        block[y][x][3] = colors[indices[index]][3];
-                    }
-                }
-            }
-
-            // Copy decoded pixels
-            for (unsigned y = 0; y < 8; y++) {
-                if (yy + y >= srcHeight) break;
-
-                const unsigned rowBase = srcWidth * (yy + y);
-
-                for (unsigned x = 0; x < 8; x++) {
-                    if (xx + x >= srcWidth) break;
-
-                    const unsigned writeOffset = (rowBase + xx + x) * 4;
-
-                    unsigned blockIdx = (y >= 4) * 2 + (x >= 4);
-
-                    const unsigned localY = y % 4;
-                    const unsigned localX = x % 4;
-
-                    result[writeOffset + 0] = blocks[blockIdx][localY][localX][0];
-                    result[writeOffset + 1] = blocks[blockIdx][localY][localX][1];
-                    result[writeOffset + 2] = blocks[blockIdx][localY][localX][2];
-                    result[writeOffset + 3] = blocks[blockIdx][localY][localX][3];
-                }
-            }
-
-            readOffset += 8 * 4; // Advance sizeof sub-block * sub-block count
-        }
-    }
-}
-
-
 /*
     TO implementations (RGBA32 to x)
 */
 
-static void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+static void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t*, unsigned*, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     unsigned writeOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -459,7 +456,7 @@ static void IMPLEMENTATION_TO_RGB5A3(unsigned char* result, uint32_t* paletteOut
     }
 }
 
-static void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+static void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint32_t*, unsigned*, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     unsigned writeOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {

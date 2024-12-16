@@ -9,7 +9,7 @@
 
 #include "../common.hpp"
 
-ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
+static ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
     const float s = sinf(angle * ((float)M_PI / 180.f));
     const float c = cosf(angle * ((float)M_PI / 180.f));
 
@@ -21,7 +21,6 @@ ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
 
     return { x + origin.x, y + origin.y };
 }
-
 
 void Animatable::setAnimationFromIndex(unsigned animIndex) {
     NONFATAL_ASSERT(this->cellanim, true);
@@ -51,8 +50,8 @@ void Animatable::setAnimationKeyFromIndex(unsigned keyIndex) {
     this->overrideKey = nullptr;
 }
 
-void Animatable::setAnimating(bool animating) {
-    this->animating = animating;
+void Animatable::setAnimating(bool _animating) {
+    this->animating = _animating;
 }
 bool Animatable::getAnimating() const {
     return this->animating;
@@ -278,7 +277,7 @@ void Animatable::DrawKey(
     const float texHeight = this->cellanim->textureH;
 
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
-        if (partIndex != -1 && partIndex != i)
+        if (partIndex != -1 && partIndex != (int)i)
             continue;
 
         const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(i);
@@ -356,12 +355,12 @@ void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigne
                 if (wrappedIndex < 0)
                     wrappedIndex = (keyCount + (wrappedIndex % keyCount)) % keyCount;
                 // Roll forwards
-                else if (wrappedIndex >= keyCount)
+                else if (wrappedIndex >= (int)keyCount)
                     wrappedIndex = wrappedIndex % keyCount;
             }
 
             // Break out if rollover is disabled
-            if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= keyCount))
+            if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= (int)keyCount))
                 break;
 
             this->DrawKey(&currentAnimation->keys.at(wrappedIndex), drawList, -1, color);

@@ -42,7 +42,6 @@ protected:
         auto cellanim = this->session->getCellanimObject();
 
         GET_MT_COMMAND_MANAGER;
-        GET_SESSION_MANAGER;
 
         if (this->options.removeAnimationNames) {
             auto& animationNames = this->session->getAnimationNames();

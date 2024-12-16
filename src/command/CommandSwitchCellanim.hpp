@@ -12,11 +12,12 @@ public:
         unsigned sessionIndex,
         unsigned cellanimIndex
     ) :
-        sessionIndex(sessionIndex),
-        cellanimIndex(cellanimIndex)
+        cellanimIndex(cellanimIndex),
+        sessionIndex(sessionIndex)
     {
         this->previousCellanim = SessionManager::getInstance().sessionList.at(this->sessionIndex).currentCellanim;
     }
+    ~CommandSwitchCellanim() = default;
 
     void Execute() override {
         GET_SESSION_MANAGER;

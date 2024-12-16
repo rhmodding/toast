@@ -22,6 +22,7 @@ public:
     {
         this->arrangement = this->getArrangement();
     }
+    ~CommandDeleteArrangement() = default;
 
     void Execute() override {
         auto& arrangements = this->getArrangements();

@@ -21,6 +21,7 @@ public:
     {
         this->oldPart = this->getPart();
     }
+    ~CommandModifyArrangementPart() = default;
 
     // Constructor: Modify selected part.
     // TODO: remove this later

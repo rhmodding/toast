@@ -614,7 +614,7 @@ void WindowSpritesheet::Update() {
                 }
             }
 
-            if (ImGui::MenuItem((char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
+            if (ImGui::MenuItem((const char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
                 bool ok = RepackSheet();
                 if (!ok)
                     AppState::getInstance().OpenGlobalPopup("###SheetRepackFailed");

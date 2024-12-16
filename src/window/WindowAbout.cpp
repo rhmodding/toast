@@ -16,7 +16,7 @@
 const static char* headerTitle = "toast";
 const static char* headerDesc  = "the ultimate cellanim modding tool for\nRhythm Heaven Fever / Beat the Beat: Rhythm Paradise";
 
-const static char* githubButton  = (char*)ICON_FA_CODE "";
+const static char* githubButton  = (const char*)ICON_FA_CODE "";
 const static char* githubTooltip = "Open GitHub page..";
 const static char* githubLink    = "https://github.com/conhlee/toast";
 
@@ -37,7 +37,7 @@ struct CreditsLine {
 static const CreditsLine creditStrings[] = {
     { ClcSeparator },
 
-    { ClcAddString, (char*)ICON_FA_WRENCH "  Initial testing" },
+    { ClcAddString, (const char*)ICON_FA_WRENCH "  Initial testing" },
     { ClcEmptyLine },
 
     { ClcAddString, "Placeholder" },
@@ -47,7 +47,7 @@ static const CreditsLine creditStrings[] = {
 
     { ClcNextRow },
 
-    { ClcAddString, (char*)ICON_FA_FILE_CODE "  Open-source software used / referenced" },
+    { ClcAddString, (const char*)ICON_FA_FILE_CODE "  Open-source software used / referenced" },
     { ClcEmptyLine },
 
     { ClcAddString, "Dear ImGui (ocornut/imgui) [MIT]" },
@@ -59,7 +59,7 @@ static const CreditsLine creditStrings[] = {
 
     { ClcNextColumn },
 
-    { ClcAddString, (char*)ICON_FA_STAR "  Special thanks" },
+    { ClcAddString, (const char*)ICON_FA_STAR "  Special thanks" },
     { ClcEmptyLine },
     { ClcAddString, "github:chrislo27" },
     { ClcAddString, "github:patataofcourse" },

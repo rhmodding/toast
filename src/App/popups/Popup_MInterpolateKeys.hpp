@@ -20,7 +20,7 @@
 
 namespace _Bezier {
 
-void EvalBezier(const float P[4], ImVec2* results, unsigned stepCount) {
+static void EvalBezier(const float P[4], ImVec2* results, unsigned stepCount) {
     const float step = 1.f / stepCount;
 
     float t = step;
@@ -40,7 +40,7 @@ void EvalBezier(const float P[4], ImVec2* results, unsigned stepCount) {
     }
 }
 
-ImVec2 BezierValue(const float x, const float P[4], unsigned steps = 256) {
+static ImVec2 BezierValue(const float x, const float P[4], unsigned steps = 256) {
     ImVec2 closestPoint { 0.f, 0.f };
     float closestDistance = fabsf(x);
 
@@ -73,11 +73,11 @@ ImVec2 BezierValue(const float x, const float P[4], unsigned steps = 256) {
     return closestPoint;
 }
 
-float BezierValueY(const float x, const float P[4], unsigned steps = 256) {
+static float BezierValueY(const float x, const float P[4], unsigned steps = 256) {
     return BezierValue(x, P, steps).y;
 }
 
-bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
+static bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
     const int LINE_SEGMENTS = 32; // Line segments in rendered curve
     const int CURVE_WIDTH = 4; // Curve line width
 
@@ -119,7 +119,7 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
         ImGuiButtonFlags_MouseButtonLeft
     );
 
-    const bool interactionHovered     = ImGui::IsItemHovered();
+    //const bool interactionHovered     = ImGui::IsItemHovered();
     const bool interactionActive      = ImGui::IsItemActive();      // Held
     const bool interactionDeactivated = ImGui::IsItemDeactivated(); // Un-held
 
@@ -165,7 +165,7 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 
         // Handle drag behaviour
         if (handlesEnabled) {
-            for (unsigned i = 0; i < 2; i++) {
+            for (int i = 0; i < 2; i++) {
                 ImVec2 pos {
                     (P[i*2+0]) * bb.GetWidth() + bb.Min.x,
                     (1 - P[i*2+1]) * bb.GetHeight() + bb.Min.y
@@ -264,7 +264,7 @@ bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 
 } // namespace Bezier
 
-void _ApplyInterpolation(
+static void _ApplyInterpolation(
     const std::array<float, 4>& curve,
     int interval,
     RvlCellAnim::AnimationKey* backKey, RvlCellAnim::AnimationKey* frontKey,
@@ -358,13 +358,12 @@ void _ApplyInterpolation(
     ));
 }
 
-void Popup_MInterpolateKeys() {
+static void Popup_MInterpolateKeys() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MInterpolateKeys");
 
-    GET_APP_STATE;
     GET_ANIMATABLE;
 
     bool condition = globalAnimatable.cellanim.get();
@@ -389,7 +388,7 @@ void Popup_MInterpolateKeys() {
         currentKeyIndex = static_cast<int>(globalAnimatable.getCurrentKeyIndex());
 
         // Does next key exist?
-        condition = currentKeyIndex + 1 < currentAnimation->keys.size();
+        condition = currentKeyIndex + 1 < (int)currentAnimation->keys.size();
     }
 
     if (!active && lateOpen && condition) {

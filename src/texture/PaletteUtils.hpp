@@ -12,9 +12,9 @@
 
 namespace PaletteUtils {
 
-std::set<uint32_t> generatePalette(const unsigned char* rgbaImage, unsigned width, unsigned height) {
+std::set<uint32_t> generatePalette(const unsigned char* rgbaImage, unsigned pixelCount) {
     std::set<uint32_t> uniqueColors;
-    for (unsigned i = 0; i < width * height; ++i)
+    for (unsigned i = 0; i < pixelCount; ++i)
         uniqueColors.insert(((const uint32_t*)rgbaImage)[i]);
     
     return uniqueColors;

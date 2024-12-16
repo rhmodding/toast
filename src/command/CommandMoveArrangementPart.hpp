@@ -18,9 +18,10 @@ public:
         unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex,
         bool moveDown
     ) :
-        cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
-        moveDown(moveDown)
+        moveDown(moveDown),
+        cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex)
     {}
+    ~CommandMoveArrangementPart() = default;
 
     void Execute() override {
         GET_APP_STATE;
@@ -28,7 +29,7 @@ public:
         RvlCellAnim::Arrangement& arrangement = this->getArrangement();
 
         int nSwap = this->partIndex + (moveDown ? -1 : 1);
-        if (nSwap >= 0 && nSwap < arrangement.parts.size())
+        if (nSwap >= 0 && nSwap < (int)arrangement.parts.size())
             std::swap(
                 arrangement.parts.at(this->partIndex),
                 arrangement.parts.at(nSwap)

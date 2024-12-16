@@ -19,6 +19,7 @@ public:
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
         part(part)
     {}
+    ~CommandInsertArrangementPart() = default;
 
     void Execute() override {
         RvlCellAnim::Arrangement& arrangement = this->getArrangement();

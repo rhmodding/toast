@@ -7,12 +7,12 @@
 
 #include "../../common.hpp"
 
-void Popup_CloseModifiedSession() {
+static void Popup_CloseModifiedSession() {
     GET_SESSION_MANAGER;
 
     if (
         sessionManager.sessionClosingIndex < 0 || 
-        sessionManager.sessionClosingIndex >= sessionManager.sessionList.size()
+        sessionManager.sessionClosingIndex >= (int)sessionManager.sessionList.size()
     )
         return;
 

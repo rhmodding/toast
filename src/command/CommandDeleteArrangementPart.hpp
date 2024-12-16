@@ -18,6 +18,7 @@ public:
     {
         this->part = this->getPart();
     }
+    ~CommandDeleteArrangementPart() = default;
 
     void Execute() override {
         RvlCellAnim::Arrangement& arrangement = this->getArrangement();

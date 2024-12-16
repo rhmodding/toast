@@ -18,6 +18,7 @@ public:
     {
         this->animation = this->getAnimation();
     }
+    ~CommandDeleteAnimation() = default;
 
     void Execute() override {
         auto it = this->getAnimations().begin() + this->animationIndex;

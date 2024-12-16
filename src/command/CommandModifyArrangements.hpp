@@ -22,6 +22,7 @@ public:
     {
         this->oldArrangements = this->getArrangements();
     }
+    ~CommandModifyArrangements() = default;
 
     void Execute() override {
         this->getArrangements() = this->newArrangements;

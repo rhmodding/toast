@@ -194,7 +194,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             paletteTextures.push_back(PaletteTexEntry {
                 .texIndex = i,
                 .palette = PaletteUtils::generatePalette(
-                    texture.data.data(), texture.width, texture.height
+                    texture.data.data(), texture.width * texture.height
                 )
             });
 
@@ -406,9 +406,6 @@ GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
 
     GLint minFilter { GL_LINEAR };
     GLint magFilter { GL_LINEAR };
-
-    TPL::TPLTexFilter tplMinFilter = tplTexture.minFilter;
-    TPL::TPLTexFilter tplMagFilter = tplTexture.magFilter;
 
     switch (tplTexture.minFilter) {
         case TPL::TPL_TEX_FILTER_NEAR:

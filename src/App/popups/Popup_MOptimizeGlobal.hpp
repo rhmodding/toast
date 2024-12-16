@@ -10,7 +10,7 @@
 #include "../../task/AsyncTaskManager.hpp"
 #include "../../task/AsyncTask_OptimizeCellanim.hpp"
 
-void Popup_MOptimizeGlobal() {
+static void Popup_MOptimizeGlobal() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Optimize Cellanim###MOptimizeGlobal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         GET_SESSION_MANAGER;
@@ -35,7 +35,6 @@ void Popup_MOptimizeGlobal() {
             "Downscale Medium (0.75x)",
             "Downscale High (0.5x)",
         };
-        static int downscaleOption { 0 };
 
         ImGui::Checkbox("Remove all animation name macros", &options.removeAnimationNames);
         ImGui::Checkbox("Remove all unused arrangements", &options.removeUnusedArrangements);

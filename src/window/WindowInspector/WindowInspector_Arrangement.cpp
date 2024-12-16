@@ -167,12 +167,12 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::BeginDisabled(partPtr->editorLocked);
 
-            ImGui::SeparatorText((char*)ICON_FA_PENCIL " Part Name (editor)");
+            ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Part Name (editor)");
             {
                 ImGui::InputText("Name", partPtr->editorName, 32);
             }
 
-            ImGui::SeparatorText((char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
+            ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
             {
                 // Position XY
                 {
@@ -251,7 +251,7 @@ void WindowInspector::Level_Arrangement() {
             ImGui::Checkbox("Flip X", &newPart.flipX);
             ImGui::Checkbox("Flip Y", &newPart.flipY);
 
-            ImGui::SeparatorText((char*)ICON_FA_IMAGE " Rendering");
+            ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Rendering");
 
             // Opacity slider
             {
@@ -273,7 +273,7 @@ void WindowInspector::Level_Arrangement() {
                 }
             }
 
-            ImGui::SeparatorText((char*)ICON_FA_BORDER_TOP_LEFT " Region");
+            ImGui::SeparatorText((const char*)ICON_FA_BORDER_TOP_LEFT " Region");
             {
                 // Position XY
                 {
@@ -354,7 +354,7 @@ void WindowInspector::Level_Arrangement() {
     ImGui::BeginChild("ArrangementParts", { 0.f, 0.f }, ImGuiChildFlags_Border);
     ImGui::PopStyleVar();
     {
-        ImGui::SeparatorText((char*)ICON_FA_IMAGE " Parts");
+        ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Parts");
 
         //ImGui::Text("Selected size : %u, next : %i", (unsigned)appState.selectedParts.size(), appState.spSelectionOrder);
 
@@ -683,8 +683,6 @@ void WindowInspector::Level_Arrangement() {
                 bool hovered { false }, held { false };
                 bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
 
-                uint32_t textColor { 0xFFFFFFFF };
-
                 ImVec4 color = toggled ?
                     ImVec4(1.f, 0.f, 0.f, 1.f) :
                     style.Colors[ImGuiCol_Text];
@@ -706,7 +704,7 @@ void WindowInspector::Level_Arrangement() {
             };
 
             ImGui::SameLine(4.f, 0.f);
-            if (partToggle((char*)ICON_FA_EYE "##Visible", !part.editorVisible)) {
+            if (partToggle((const char*)ICON_FA_EYE "##Visible", !part.editorVisible)) {
                 if (!isPartSelected)
                     part.editorVisible ^= true;
                 else {
@@ -716,7 +714,7 @@ void WindowInspector::Level_Arrangement() {
             }
 
             ImGui::SameLine();
-            if (partToggle((char*)ICON_FA_LOCK "##Locked", part.editorLocked)) {
+            if (partToggle((const char*)ICON_FA_LOCK "##Locked", part.editorLocked)) {
                 if (!isPartSelected)
                     part.editorLocked ^= true;
                 else {
@@ -735,7 +733,7 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6.f, style.ItemSpacing.y });
 
-            float firstButtonWidth = ImGui::CalcTextSize((char*) ICON_FA_ARROW_DOWN "").x + (style.FramePadding.x * 2);
+            float firstButtonWidth = ImGui::CalcTextSize((const char*)ICON_FA_ARROW_DOWN "").x + (style.FramePadding.x * 2);
             float basePositionX = listChildSize.x - (style.FramePadding.x * 2) - style.ScrollbarSize;
 
             ImGui::SameLine();
@@ -743,8 +741,8 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::BeginDisabled(part.editorLocked);
 
-            ImGui::BeginDisabled(n == arrangementPtr->parts.size() - 1);
-            if (ImGui::SmallButton((char*) ICON_FA_ARROW_UP "")) {
+            ImGui::BeginDisabled(n == (int)arrangementPtr->parts.size() - 1);
+            if (ImGui::SmallButton((const char*)ICON_FA_ARROW_UP "")) {
                 sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandMoveArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
@@ -759,7 +757,7 @@ void WindowInspector::Level_Arrangement() {
             ImGui::SetCursorPosX(basePositionX);
 
             ImGui::BeginDisabled(n == 0);
-            if (ImGui::SmallButton((char*) ICON_FA_ARROW_DOWN "")) {
+            if (ImGui::SmallButton((const char*)ICON_FA_ARROW_DOWN "")) {
                 sessionManager.getCurrentSession()->executeCommand(
                 std::make_shared<CommandMoveArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,

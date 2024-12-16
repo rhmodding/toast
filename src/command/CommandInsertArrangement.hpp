@@ -21,6 +21,7 @@ public:
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex),
         arrangement(arrangement)
     {}
+    ~CommandInsertArrangement() = default;
 
     void Execute() override {
         auto& arrangements = this->getCellanim()->arrangements;

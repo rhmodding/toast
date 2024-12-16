@@ -66,6 +66,7 @@ public:
         sheetIndex(sheetIndex),
         newSheet(std::move(newSheet)), oldSheet(this->getSheet())
     {}
+    ~CommandModifySpritesheet() = default;
 
     void Execute() override {
         this->getSheet() = newSheet;

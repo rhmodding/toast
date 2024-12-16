@@ -163,7 +163,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
             bitsLeft = 8;
         }
 
-        if (UNLIKELY((currentByte - compressedData) >= dataSize)) {
+        if (UNLIKELY(size_t(currentByte - compressedData) >= dataSize)) {
             // We've reached the end of the file but we're not finished reading yet;
             // Usually this means the file is invalid.
 

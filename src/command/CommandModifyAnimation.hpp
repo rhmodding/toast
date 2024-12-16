@@ -22,6 +22,7 @@ public:
     {
         this->oldAnimation = this->getAnimation();
     }
+    ~CommandModifyAnimation() = default;
 
     void Execute() override {
         this->getAnimation() = this->newAnimation;

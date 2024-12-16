@@ -5,7 +5,7 @@
 
 #include "../../common.hpp"
 
-void Popup_TextureExportFailed() {
+static void Popup_TextureExportFailed() {
     CENTER_NEXT_WINDOW;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });

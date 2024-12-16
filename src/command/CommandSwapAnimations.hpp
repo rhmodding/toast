@@ -22,6 +22,7 @@ public:
         animationIndexA(animationIndexA), animationIndexB(animationIndexB),
         swapNames(swapNames)
     {}
+    ~CommandSwapAnimations() = default;
 
     void Execute() override {
         std::swap(

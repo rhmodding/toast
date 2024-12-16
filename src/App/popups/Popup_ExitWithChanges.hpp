@@ -4,12 +4,10 @@
 #include <imgui.h>
 
 #include "../../App.hpp"
-extern App* gAppPtr;
 
 #include "../../common.hpp"
 
-// AttemptExitWhileUnsavedChanges
-void Popup_ExitWithChanges() {
+static void Popup_ExitWithChanges() {
     CENTER_NEXT_WINDOW;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });

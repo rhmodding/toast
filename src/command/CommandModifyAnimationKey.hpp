@@ -21,6 +21,7 @@ public:
     {
         this->oldKey = this->getKey();
     }
+    ~CommandModifyAnimationKey() = default;
 
     void Execute() override {
         this->getKey() = this->newKey;

@@ -78,7 +78,6 @@ public:
                 this->compressionLevel == other.compressionLevel;
         }
     };
-
 private:
     Config config;
 
@@ -91,31 +90,31 @@ public:
     }
 
     // Friend functions for JSON (de-)serialization
-    friend void to_json(nlohmann::ordered_json& j, const ConfigManager::Config& config) {
+    friend void to_json(nlohmann::ordered_json& j, const ConfigManager::Config& _config) {
         j = nlohmann::ordered_json {
-            { "theme", config.theme },
-            { "imageEditorPath", config.imageEditorPath },
-            { "textureEditPath", config.textureEditPath },
-            { "recentlyOpened", config.recentlyOpened },
-            { "lastWindowWidth", config.lastWindowWidth },
-            { "lastWindowHeight", config.lastWindowHeight },
-            { "canvasLMBPanEnabled", config.canvasLMBPanEnabled },
-            { "updateRate", config.updateRate },
-            { "backupBehaviour", config.backupBehaviour },
-            { "compressionLevel", config.compressionLevel }
+            { "theme", _config.theme },
+            { "imageEditorPath", _config.imageEditorPath },
+            { "textureEditPath", _config.textureEditPath },
+            { "recentlyOpened", _config.recentlyOpened },
+            { "lastWindowWidth", _config.lastWindowWidth },
+            { "lastWindowHeight", _config.lastWindowHeight },
+            { "canvasLMBPanEnabled", _config.canvasLMBPanEnabled },
+            { "updateRate", _config.updateRate },
+            { "backupBehaviour", _config.backupBehaviour },
+            { "compressionLevel", _config.compressionLevel }
         };
     }
-    friend void from_json(const nlohmann::ordered_json& j, ConfigManager::Config& config) {
-        config.theme =               j.value("theme", config.theme);
-        config.imageEditorPath =     j.value("imageEditorPath", config.imageEditorPath);
-        config.textureEditPath =     j.value("textureEditPath", config.textureEditPath);
-        config.recentlyOpened =      j.value("recentlyOpened", config.recentlyOpened);
-        config.lastWindowWidth =     j.value("lastWindowWidth", config.lastWindowWidth);
-        config.lastWindowHeight =    j.value("lastWindowHeight", config.lastWindowHeight);
-        config.canvasLMBPanEnabled = j.value("canvasLMBPanEnabled", config.canvasLMBPanEnabled);
-        config.updateRate =          j.value("updateRate", config.updateRate);
-        config.backupBehaviour =     j.value("backupBehaviour", config.backupBehaviour);
-        config.compressionLevel =    j.value("compressionLevel", config.compressionLevel);
+    friend void from_json(const nlohmann::ordered_json& j, ConfigManager::Config& _config) {
+        _config.theme =               j.value("theme", _config.theme);
+        _config.imageEditorPath =     j.value("imageEditorPath", _config.imageEditorPath);
+        _config.textureEditPath =     j.value("textureEditPath", _config.textureEditPath);
+        _config.recentlyOpened =      j.value("recentlyOpened", _config.recentlyOpened);
+        _config.lastWindowWidth =     j.value("lastWindowWidth", _config.lastWindowWidth);
+        _config.lastWindowHeight =    j.value("lastWindowHeight", _config.lastWindowHeight);
+        _config.canvasLMBPanEnabled = j.value("canvasLMBPanEnabled", _config.canvasLMBPanEnabled);
+        _config.updateRate =          j.value("updateRate", _config.updateRate);
+        _config.backupBehaviour =     j.value("backupBehaviour", _config.backupBehaviour);
+        _config.compressionLevel =    j.value("compressionLevel", _config.compressionLevel);
     }
 
 public:
@@ -147,7 +146,7 @@ public:
             return;
         }
 
-        std::vector<std::string>& recentlyOpened = this->config.recentlyOpened;
+        auto& recentlyOpened = this->config.recentlyOpened;
         if (recentlyOpened.size() > 12) {
             recentlyOpened.erase(
                 recentlyOpened.begin(),
@@ -162,7 +161,7 @@ public:
     }
 
     void Reset() {
-        config = Config {};
+        this->config = Config {};
     }
 
 private:

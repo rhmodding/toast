@@ -18,7 +18,7 @@
 
 #include "../../common.hpp"
 
-void Popup_SwapAnimation(int animationIndex) {
+static void Popup_SwapAnimation(int animationIndex) {
     if (animationIndex < 0)
         return;
 
@@ -99,12 +99,12 @@ void Popup_SwapAnimation(int animationIndex) {
 
             GET_ANIMATABLE;
 
-            for (unsigned n = 0; n < globalAnimatable.cellanim->animations.size(); n++) {
+            for (int n = 0; n < (int)globalAnimatable.cellanim->animations.size(); n++) {
                 std::ostringstream fmtStream;
 
                 GET_SESSION_MANAGER;
 
-                unsigned nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
+                int nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
 
                 auto query = sessionManager.getCurrentSession()->getAnimationNames().find(swapNames ? n : nI);
 

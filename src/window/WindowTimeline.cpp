@@ -55,7 +55,7 @@ void WindowTimeline::Update() {
             ImGui::TableSetColumnIndex(0);
 
             char playPauseButtonLabel[24] { '\0' };
-            const char* playPauseIcon = playerManager.playing ? (char*)ICON_FA_PAUSE : (char*)ICON_FA_PLAY;
+            const char* playPauseIcon = playerManager.playing ? (const char*)ICON_FA_PAUSE : (const char*)ICON_FA_PLAY;
 
             snprintf(
                 playPauseButtonLabel, sizeof(playPauseButtonLabel),
@@ -81,14 +81,14 @@ void WindowTimeline::Update() {
             ImGui::SameLine();
 
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-            if (ImGui::Button((char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", smallButtonSize)) {
+            if (ImGui::Button((const char*)ICON_FA_BACKWARD_FAST "##firstFrameButton", smallButtonSize)) {
                 playerManager.setCurrentKeyIndex(0);
             } ImGui::SameLine();
 
             ImGui::SetItemTooltip("Go to first key");
 
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-            if (ImGui::Button((char*)ICON_FA_BACKWARD_STEP "##backFrameButton", smallButtonSize)) {
+            if (ImGui::Button((const char*)ICON_FA_BACKWARD_STEP "##backFrameButton", smallButtonSize)) {
                 if (playerManager.getCurrentKeyIndex() >= 1)
                     playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() - 1);
             } ImGui::SameLine();
@@ -96,7 +96,7 @@ void WindowTimeline::Update() {
             ImGui::SetItemTooltip("Step back a key");
 
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-            if (ImGui::Button((char*)ICON_FA_STOP "##stopButton", smallButtonSize)) {
+            if (ImGui::Button((const char*)ICON_FA_STOP "##stopButton", smallButtonSize)) {
                 playerManager.setPlaying(false);
                 playerManager.setCurrentKeyIndex(0);
             } ImGui::SameLine();
@@ -104,7 +104,7 @@ void WindowTimeline::Update() {
             ImGui::SetItemTooltip("Stop playback and go to first key");
 
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-            if (ImGui::Button((char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", smallButtonSize)) {
+            if (ImGui::Button((const char*)ICON_FA_FORWARD_STEP "##forwardFrameButton", smallButtonSize)) {
                 if (playerManager.getCurrentKeyIndex() != playerManager.getKeyCount() - 1) {
                     playerManager.setCurrentKeyIndex(playerManager.getCurrentKeyIndex() + 1);
                 }
@@ -113,7 +113,7 @@ void WindowTimeline::Update() {
             ImGui::SetItemTooltip("Step forward a key");
 
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-            if (ImGui::Button((char*)ICON_FA_FORWARD_FAST "##lastFrameButton", smallButtonSize)) {
+            if (ImGui::Button((const char*)ICON_FA_FORWARD_FAST "##lastFrameButton", smallButtonSize)) {
                 playerManager.setCurrentKeyIndex(playerManager.getKeyCount() - 1);
             } ImGui::SameLine();
 
@@ -127,7 +127,7 @@ void WindowTimeline::Update() {
                 if (lLooping)
                     ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
 
-                if (ImGui::Button((char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", normalButtonSize))
+                if (ImGui::Button((const char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", normalButtonSize))
                     playerManager.looping ^= true;
 
                 ImGui::SetItemTooltip("Toggle looping");
@@ -170,7 +170,7 @@ void WindowTimeline::Update() {
             ImGui::TableSetColumnIndex(2);
 
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-            if (ImGui::Button((char*)ICON_FA_EYE " Onion Skin ..", { 0.f, 32.f - 6.f }))
+            if (ImGui::Button((const char*)ICON_FA_EYE " Onion Skin ..", { 0.f, 32.f - 6.f }))
                 ImGui::OpenPopup("###OnionSkinOptions");
 
             if (ImGui::BeginPopup("###OnionSkinOptions")) {
@@ -272,7 +272,7 @@ void WindowTimeline::Update() {
                     } deleteKeyMode { DeleteKeyMode_None };
 
                     if (ImGui::BeginPopupContextItem()) {
-                        ImGui::Text((char*)ICON_FA_KEY "  Options for key no. %u", i+1);
+                        ImGui::Text((const char*)ICON_FA_KEY "  Options for key no. %u", i+1);
                         ImGui::Text(
                             "Hold "
                         #if defined(__APPLE__)
@@ -449,7 +449,7 @@ void WindowTimeline::Update() {
                     }
 
                     if (!appState.getArrangementMode() && ImGui::BeginItemTooltip()) {
-                        ImGui::Text((char*)ICON_FA_KEY "  Key no. %u", i+1);
+                        ImGui::Text((const char*)ICON_FA_KEY "  Key no. %u", i+1);
                         ImGui::TextUnformatted("Right-click for options");
 
                         ImGui::Separator();
@@ -561,7 +561,7 @@ void WindowTimeline::Update() {
                         });
 
                         ImGui::BeginDisabled();
-                        ImGui::Button((char*)ICON_FA_HOURGLASS "", { holdFrameWidth * holdFrames, 30.f });
+                        ImGui::Button((const char*)ICON_FA_HOURGLASS "", { holdFrameWidth * holdFrames, 30.f });
                         ImGui::EndDisabled();
 
                         ImGui::PopStyleVar();
@@ -604,8 +604,8 @@ void WindowTimeline::Update() {
 
                         bool isOnionSkinFrame = false;
                         if (appState.onionSkinState.rollOver) {
-                            int wrappedBackStart = (backStart % keyCount + keyCount) % keyCount;
-                            int wrappedFrontEnd = frontEnd % keyCount;
+                            unsigned wrappedBackStart = (backStart % keyCount + keyCount) % keyCount;
+                            unsigned wrappedFrontEnd = frontEnd % keyCount;
 
                             // Normal range
                             if (wrappedBackStart <= wrappedFrontEnd)

@@ -72,8 +72,6 @@ void WindowHybridList::Update() {
 
     ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Border);
     {
-        int deleteArrangement { -1 };
-
         static RvlCellAnim::Arrangement copyArrangement;
         static bool allowPasteArrangement { false };
 
@@ -165,13 +163,8 @@ void WindowHybridList::Update() {
                 char buffer[48];
                 snprintf(buffer, sizeof(buffer), "Arrangement no. %d", n+1);
 
-                RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
-
                 if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n, ImGuiSelectableFlags_SelectOnNav)) {
                     appState.controlKey.arrangementIndex = n;
-
-                    // Update arrangementPtr
-                    arrangementPtr = globalAnimatable.getCurrentArrangement();
 
                     appState.correctSelectedParts();
                 }
@@ -201,7 +194,7 @@ void WindowHybridList::Update() {
 
                     ImGui::Separator();
 
-                    if (ImGui::BeginMenu("Paste arrangement..")) {
+                    if (ImGui::BeginMenu("Paste arrangement..", allowPasteArrangement)) {
                         if (ImGui::MenuItem("..above")) {
                             command = std::make_shared<CommandInsertArrangement>(
                                 sessionManager.getCurrentSession()->currentCellanim,

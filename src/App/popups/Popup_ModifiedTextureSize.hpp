@@ -8,7 +8,7 @@
 
 #include "../../common.hpp"
 
-void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) {
+static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) {
     if (oldTextureSizeX < 0 || oldTextureSizeY < 0)
         return;
     

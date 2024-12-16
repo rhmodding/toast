@@ -19,6 +19,7 @@ public:
             this->oldName = this->getAnimationNames()[animationIndex];
         }
     }
+    ~CommandModifyAnimationName() = default;
 
     void Execute() override {
         if (

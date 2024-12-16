@@ -21,6 +21,7 @@ public:
         cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex),
         key(key)
     {}
+    ~CommandInsertAnimationKey() = default;
 
     void Execute() override {
         auto& animation = this->getAnimation();

@@ -142,14 +142,14 @@ public:
         }
     }
 
-    void setBatchPartSelection(unsigned partIndex, bool selected, int sizeBeforehand) {
+    void setBatchPartSelection(unsigned partIndex, bool selected) {
         std::sort(selectedParts.begin(), selectedParts.end(), [](const SelectedPart& a, const SelectedPart& b) {
             return a.index < b.index;
         });
 
         auto it = std::lower_bound(
             selectedParts.begin(), selectedParts.end(),
-            partIndex, [](const SelectedPart& sp, int partIndex) { return sp.index < partIndex; }
+            partIndex, [](const SelectedPart& sp, int partIndex) { return (int)sp.index < partIndex; }
         );
 
         bool isContained = (it != selectedParts.end() && it->index == partIndex);
@@ -168,15 +168,16 @@ public:
                 clearSelectedParts();
                 if (req.Selected) {
                     selectedParts.reserve(msIo->ItemsCount);
-                    for (unsigned i = 0; i < msIo->ItemsCount; i++, spSelectionOrder++)
-                        this->setBatchPartSelection(i, req.Selected, selectedParts.size());
+                    for (unsigned i = 0; i < (unsigned)msIo->ItemsCount; i++, spSelectionOrder++)
+                        this->setBatchPartSelection(i, req.Selected);
                 }
             }
             else if (req.Type == ImGuiSelectionRequestType_SetRange) {
-                const int selectionChanges = (int)req.RangeLastItem - (int)req.RangeFirstItem + 1;
+                //const int selectionChanges = (int)req.RangeLastItem - (int)req.RangeFirstItem + 1;
+                const unsigned selectionChanges = req.RangeLastItem - req.RangeFirstItem + 1;
 
-                if (selectionChanges == 1 || selectionChanges < selectedParts.size() / 100) {
-                    for (unsigned i = (int)req.RangeFirstItem; i <= (int)req.RangeLastItem; i++)
+                if (selectionChanges == 1 || selectionChanges < unsigned(selectedParts.size() / 100)) {
+                    for (int i = req.RangeFirstItem; i <= req.RangeLastItem; i++)
                         this->setPartSelected(i, req.Selected);
                 }
                 else
@@ -197,7 +198,7 @@ public:
         for (unsigned index = 0; index < parts.size(); index++) {
             if (!isPartSelected(index))
                 newParts.push_back(parts[index]);
-            if (itemCurrentIndexToSelect == index)
+            if (itemCurrentIndexToSelect == (int)index)
                 itemNextIndexToSelect = newParts.size() - 1;
         }
         parts.swap(newParts);
@@ -219,7 +220,7 @@ public:
             return focusedIndex;
         }
 
-        for (int index = focusedIndex + 1; index < partCount; index++) {
+        for (unsigned index = focusedIndex + 1; index < partCount; index++) {
             if (!this->isPartSelected(index))
                 return index;
         }
@@ -307,13 +308,13 @@ private:
     void applyRangeSelectionOrder(const ImGuiSelectionRequest& req) {
         if (req.RangeDirection > 0) {
             for (int index = req.RangeLastItem; index <= req.RangeFirstItem; index++) {
-                this->setBatchPartSelection(index, req.Selected, selectedParts.size());
+                this->setBatchPartSelection(index, req.Selected);
                 //selectionOrder++;
             }
         }
         else { //if (req.RangeDirection < 0) {
             for (int index = req.RangeFirstItem; index >= req.RangeLastItem; index--) {
-                this->setBatchPartSelection(index, req.Selected, selectedParts.size());
+                this->setBatchPartSelection(index, req.Selected);
                 //selectionOrder--;
             }
         }
