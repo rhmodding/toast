@@ -13,7 +13,7 @@
 struct RvlCellAnimHeader {
     // Format revision date (should equal 20100312 in BE (2010/03/12) if valid)
     // Compare to RCAD_REVISION_DATE
-    uint32_t revisionDate;
+    uint32_t revisionDate { RCAD_REVISION_DATE };
 
     // Load textures in palette (CI) mode (boolean)
     uint8_t usePalette;
@@ -255,22 +255,28 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 }
 
 std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
-    // Allocate persistent size
-    std::vector<unsigned char> result(
+    // Pre-calculate binary size
+    unsigned fullSize =
         sizeof(RvlCellAnimHeader) +
         sizeof(ArrangementsHeader) +
-        sizeof(AnimationsHeader)
-    );
+        sizeof(AnimationsHeader);
+    
+    for (const Arrangement& arrangement : this->arrangements)
+        fullSize += sizeof(ArrangementRaw) + (sizeof(ArrangementPartRaw) * arrangement.parts.size());
+    for (const Animation& animation : this->animations)
+        fullSize += sizeof(AnimationRaw) + (sizeof(AnimationKeyRaw) * animation.keys.size());
+
+    std::vector<unsigned char> result(fullSize);
 
     RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
-    header->revisionDate = RCAD_REVISION_DATE;
+    *header = RvlCellAnimHeader {
+        .usePalette = uint8_t(this->usePalette ? 0x01 : 0x00),
 
-    header->usePalette = this->usePalette ? 0x01 : 0x00;
+        .sheetIndex = BYTESWAP_16(this->sheetIndex),
 
-    header->sheetIndex = BYTESWAP_16(this->sheetIndex);
-
-    header->sheetW = BYTESWAP_16(this->textureW);
-    header->sheetH = BYTESWAP_16(this->textureH);
+        .sheetW = BYTESWAP_16(this->textureW),
+        .sheetH = BYTESWAP_16(this->textureH)
+    };
 
     unsigned writeOffset { sizeof(RvlCellAnimHeader) };
 
@@ -279,12 +285,6 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     writeOffset += sizeof(ArrangementsHeader);
 
     for (const Arrangement& arrangement : this->arrangements) {
-        result.resize(
-            result.size() +
-            sizeof(ArrangementRaw) +
-            (sizeof(ArrangementPartRaw) * arrangement.parts.size())
-        );
-
         ArrangementRaw* arrangementRaw = reinterpret_cast<ArrangementRaw*>(result.data() + writeOffset);
         writeOffset += sizeof(ArrangementRaw);
 
@@ -307,12 +307,6 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     writeOffset += sizeof(AnimationsHeader);
 
     for (const Animation& animation : this->animations) {
-        result.resize(
-            result.size() +
-            sizeof(AnimationRaw) +
-            (sizeof(AnimationKeyRaw) * animation.keys.size())
-        );
-
         AnimationRaw* animationRaw = reinterpret_cast<AnimationRaw*>(result.data() + writeOffset);
         writeOffset += sizeof(AnimationRaw);
 
