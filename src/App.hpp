@@ -61,10 +61,15 @@ private: // Windows
         std::unique_ptr<T> window;
 
         void Update() {
-            if (shy || UNLIKELY(!this->window))
+            if (this->shy)
                 return;
 
-            window->Update();
+            if (UNLIKELY(!this->window)) {
+                std::cout << "[AppWindow::Update] Window ptr is nullptr (type: " << typeid(T).name() << ")!\n";
+                return;
+            }
+
+            this->window->Update();
         }
 
         AppWindow() {
