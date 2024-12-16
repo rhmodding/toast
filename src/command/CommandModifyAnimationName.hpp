@@ -56,7 +56,7 @@ private:
     std::string oldName;
     std::string newName;
 
-    std::unordered_map<uint16_t, std::string>& getAnimationNames() {
+    std::unordered_map<unsigned, std::string>& getAnimationNames() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).
