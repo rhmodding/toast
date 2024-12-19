@@ -44,7 +44,7 @@ struct TransformValuesRaw {
 
     TransformValuesRaw() = default;
     TransformValuesRaw(const RvlCellAnim::TransformValues& transformValues, bool isArrangementPart) {
-        const unsigned additive = (isArrangementPart ? 512 : 0);
+        const int additive = (isArrangementPart ? 512 : 0);
 
         this->positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.positionX + additive));
         this->positionY = BYTESWAP_16(static_cast<int16_t>(transformValues.positionY + additive));
@@ -56,7 +56,7 @@ struct TransformValuesRaw {
     RvlCellAnim::TransformValues toTransformValues(bool isArrangementPart) const {
         RvlCellAnim::TransformValues transformValues;
 
-        const unsigned additive = (isArrangementPart ? -512 : 0);
+        const int additive = (isArrangementPart ? -512 : 0);
 
         transformValues.positionX = BYTESWAP_16(this->positionX) + additive;
         transformValues.positionY = BYTESWAP_16(this->positionY) + additive;
