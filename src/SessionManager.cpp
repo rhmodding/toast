@@ -345,10 +345,10 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         {
             U8::File file(TED_ARC_FILENAME);
 
-            TedWriteState* state;
-
-            file.data.resize(TedPrepareWrite(&state, *session));
-            TedWrite(state, file.data.data());
+            TedWriteState* state = TedCreateWriteState(*session);
+                file.data.resize(TedPrepareWrite(state));
+                TedWrite(state, file.data.data());
+            TedDestroyWriteState(state);
 
             directory.AddFile(file);
         }

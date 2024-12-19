@@ -10,7 +10,10 @@ void TedApply(const unsigned char* data, const SessionManager::Session& session)
 
 struct TedWriteState;
 
-unsigned TedPrepareWrite(TedWriteState** state, const SessionManager::Session& session);
+TedWriteState* TedCreateWriteState(const SessionManager::Session& session);
+void TedDestroyWriteState(TedWriteState* state);
+
+unsigned TedPrepareWrite(TedWriteState* state);
 void TedWrite(TedWriteState* state, unsigned char* buffer);
 
 #endif // EDITOR_DATA_PACKAGE_HPP
