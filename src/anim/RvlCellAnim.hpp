@@ -155,7 +155,7 @@ public:
 
     std::vector<unsigned char> Reserialize();
 
-    RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize);
+    RvlCellAnimObject(const unsigned char* data, const size_t dataSize);
     RvlCellAnimObject() = default;
 };
 

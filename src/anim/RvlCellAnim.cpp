@@ -26,8 +26,8 @@ struct RvlCellAnimHeader {
     // Unused value. Never referenced in the game
     uint16_t _unused { 0x0000 };
 
-    uint16_t sheetW; // Sheet width in relation to UV regions
-    uint16_t sheetH; // Sheet height in relation to UV regions
+    uint16_t sheetW; // Sheet width in relation to UV regions. Effectively precision for X UV values
+    uint16_t sheetH; // Sheet height in relation to UV regions. Effectively precision for Y UV values
 } __attribute__((packed));
 
 struct ArrangementsHeader {
@@ -106,7 +106,7 @@ struct ArrangementPartRaw {
 } __attribute__((packed));
 
 struct ArrangementRaw {
-    // Amout of parts in the arrangement (commonly referred to as a sprite)
+    // Amout of parts in the arrangement
     uint16_t partsCount;
 
     uint16_t _pad16 { 0x0000 };
@@ -152,14 +152,13 @@ struct AnimationKeyRaw {
 
 namespace RvlCellAnim {
 
-RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const size_t dataSize) {
+RvlCellAnimObject::RvlCellAnimObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(RvlCellAnimHeader)) {
         std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: data size smaller than header size!\n";
         return;
     }
 
-    const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(RvlCellAnimData);
-
+    const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(data);
     if (header->revisionDate != RCAD_REVISION_DATE) {
         std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: revision date failed check!\n";
         return;
@@ -172,22 +171,20 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
     this->usePalette = header->usePalette != 0x00;
 
-    unsigned readOffset { sizeof(RvlCellAnimHeader) };
+    const unsigned char* readData = data + sizeof(RvlCellAnimHeader);
 
     // Arrangements
     const uint16_t arrangementCount = BYTESWAP_16(
-        reinterpret_cast<const ArrangementsHeader*>(
-            RvlCellAnimData + readOffset
-        )->arrangementCount
+        reinterpret_cast<const ArrangementsHeader*>(readData)->arrangementCount
     );
-    readOffset += sizeof(ArrangementsHeader);
+    readData += sizeof(ArrangementsHeader);
 
     this->arrangements.resize(arrangementCount);
 
     for (unsigned i = 0; i < arrangementCount; i++) {
         const ArrangementRaw* arrangementRaw =
-            reinterpret_cast<const ArrangementRaw*>(RvlCellAnimData + readOffset);
-        readOffset += sizeof(ArrangementRaw);
+            reinterpret_cast<const ArrangementRaw*>(readData);
+        readData += sizeof(ArrangementRaw);
 
         Arrangement& arrangement = this->arrangements[i];
 
@@ -196,8 +193,8 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
 
         for (unsigned j = 0; j < arrangementPartCount; j++) {
             const ArrangementPartRaw* arrangementPartRaw =
-                reinterpret_cast<const ArrangementPartRaw*>(RvlCellAnimData + readOffset);
-            readOffset += sizeof(ArrangementPartRaw);
+                reinterpret_cast<const ArrangementPartRaw*>(readData);
+            readData += sizeof(ArrangementPartRaw);
 
             arrangement.parts[j] = ArrangementPart {
                 .regionX = BYTESWAP_16(arrangementPartRaw->regionX),
@@ -218,17 +215,15 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
     }
 
     const uint16_t animationCount = BYTESWAP_16(
-        reinterpret_cast<const AnimationsHeader*>(
-            RvlCellAnimData + readOffset
-        )->animationCount
+        reinterpret_cast<const AnimationsHeader*>(readData)->animationCount
     );
-    readOffset += sizeof(AnimationsHeader);
+    readData += sizeof(AnimationsHeader);
 
     this->animations.resize(animationCount);
 
     for (unsigned i = 0; i < animationCount; i++) {
-        const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(RvlCellAnimData + readOffset);
-        readOffset += sizeof(AnimationRaw);
+        const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(readData);
+        readData += sizeof(AnimationRaw);
 
         Animation& animation = this->animations[i];
 
@@ -236,8 +231,8 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* RvlCellAnimData, const
         animation.keys.resize(keyCount);
 
         for (unsigned j = 0; j < keyCount; j++) {
-            const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(RvlCellAnimData + readOffset);
-            readOffset += sizeof(AnimationKeyRaw);
+            const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(readData);
+            readData += sizeof(AnimationKeyRaw);
 
             animation.keys[j] = AnimationKey {
                 .arrangementIndex = BYTESWAP_16(keyRaw->arrangementIndex),
@@ -278,22 +273,22 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
         .sheetH = BYTESWAP_16(this->textureH)
     };
 
-    unsigned writeOffset { sizeof(RvlCellAnimHeader) };
+    unsigned char* writeData = result.data() + sizeof(RvlCellAnimHeader);
 
-    *reinterpret_cast<ArrangementsHeader*>(result.data() + writeOffset) =
-        ArrangementsHeader { BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size())) };
-    writeOffset += sizeof(ArrangementsHeader);
+    *reinterpret_cast<ArrangementsHeader*>(writeData) = ArrangementsHeader {
+        .arrangementCount = BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size()))
+    };
+    writeData += sizeof(ArrangementsHeader);
 
     for (const Arrangement& arrangement : this->arrangements) {
-        ArrangementRaw* arrangementRaw = reinterpret_cast<ArrangementRaw*>(result.data() + writeOffset);
-        writeOffset += sizeof(ArrangementRaw);
+        ArrangementRaw* arrangementRaw = reinterpret_cast<ArrangementRaw*>(writeData);
+        writeData += sizeof(ArrangementRaw);
 
         arrangementRaw->partsCount = BYTESWAP_16(static_cast<uint16_t>(arrangement.parts.size()));
 
         for (const ArrangementPart& part : arrangement.parts) {
-            ArrangementPartRaw* arrangementPartRaw =
-                reinterpret_cast<ArrangementPartRaw*>(result.data() + writeOffset);
-            writeOffset += sizeof(ArrangementPartRaw);
+            ArrangementPartRaw* arrangementPartRaw = reinterpret_cast<ArrangementPartRaw*>(writeData);
+            writeData += sizeof(ArrangementPartRaw);
 
             *arrangementPartRaw = ArrangementPartRaw(part);
 
@@ -302,20 +297,20 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
         }
     }
 
-    *reinterpret_cast<AnimationsHeader*>(result.data() + writeOffset) =
-        AnimationsHeader { BYTESWAP_16(static_cast<uint16_t>(this->animations.size())) };
-    writeOffset += sizeof(AnimationsHeader);
+    *reinterpret_cast<AnimationsHeader*>(writeData) = AnimationsHeader {
+        .animationCount = BYTESWAP_16(static_cast<uint16_t>(this->animations.size()))
+    };
+    writeData += sizeof(AnimationsHeader);
 
     for (const Animation& animation : this->animations) {
-        AnimationRaw* animationRaw = reinterpret_cast<AnimationRaw*>(result.data() + writeOffset);
-        writeOffset += sizeof(AnimationRaw);
+        AnimationRaw* animationRaw = reinterpret_cast<AnimationRaw*>(writeData);
+        writeData += sizeof(AnimationRaw);
 
         animationRaw->keyCount = BYTESWAP_16(static_cast<uint16_t>(animation.keys.size()));
 
         for (const AnimationKey& key : animation.keys) {
-            AnimationKeyRaw* animationKeyRaw =
-                reinterpret_cast<AnimationKeyRaw*>(result.data() + writeOffset);
-            writeOffset += sizeof(AnimationKeyRaw);
+            AnimationKeyRaw* animationKeyRaw = reinterpret_cast<AnimationKeyRaw*>(writeData);
+            writeData += sizeof(AnimationKeyRaw);
 
             *animationKeyRaw = AnimationKeyRaw(key);
         }
