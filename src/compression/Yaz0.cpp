@@ -128,15 +128,15 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
     return result;
 }
 
-std::optional<std::vector<unsigned char>> decompress(const unsigned char* compressedData, const size_t dataSize) {
+std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(Yaz0Header)) {
         std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: data size smaller than header size!\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
-    const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(compressedData);
+    const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(data);
 
-    uint32_t uncompressedSize = BYTESWAP_32(header->uncompressedSize);
+    const uint32_t uncompressedSize = BYTESWAP_32(header->uncompressedSize);
 
     if (header->magic != HEADER_MAGIC) {
         std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: header magic failed check!\n";
@@ -145,7 +145,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
 
     std::vector<unsigned char> destination(uncompressedSize);
 
-    const unsigned char* currentByte = compressedData + sizeof(Yaz0Header);
+    const unsigned char* currentByte = data + sizeof(Yaz0Header);
 
     unsigned destOffset { 0 };
 
@@ -161,7 +161,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* compre
             bitsLeft = 8;
         }
 
-        if (UNLIKELY(size_t(currentByte - compressedData) >= dataSize)) {
+        if (UNLIKELY(size_t(currentByte - data) >= dataSize)) {
             // We've reached the end of the file but we're not finished reading yet;
             // Usually this means the file is invalid.
 
