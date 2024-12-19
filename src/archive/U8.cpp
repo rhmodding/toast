@@ -22,16 +22,15 @@ struct U8ArchiveHeader {
     // Compare to HEADER_MAGIC
     uint32_t magic { HEADER_MAGIC };
 
-    // Offset to the node section, always 0x20
+    // Offset to the node section
     int32_t nodeSectionStart;
-
-    // Size of node section (section includes string pool)
+    // Size of the node section (including string pool)
     int32_t nodeSectionSize;
 
     // Offset to the data section
     int32_t dataSectionStart;
 
-    // Reserved (not used in Fever)
+    // Reserved fields (not used in Fever)
     int32_t _reserved[4] { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
 } __attribute__((packed));
 
@@ -104,13 +103,13 @@ Directory* Directory::GetParent() const {
     return this->parent;
 }
 
-U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize) {
+U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(U8ArchiveHeader)) {
         std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: data size smaller than header size!\n";
         return;
     }
 
-    const U8ArchiveHeader* header = reinterpret_cast<const U8ArchiveHeader*>(archiveData);
+    const U8ArchiveHeader* header = reinterpret_cast<const U8ArchiveHeader*>(data);
     if (header->magic != HEADER_MAGIC) {
         std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: header magic failed check!\n";
         return;
@@ -119,7 +118,7 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t 
     const int32_t nodeSectionStart = BYTESWAP_32(header->nodeSectionStart);
 
     const U8ArchiveNode* nodes = reinterpret_cast<const U8ArchiveNode*>(
-        archiveData + nodeSectionStart
+        data + nodeSectionStart
     );
     const uint32_t nodeCount = BYTESWAP_32(nodes[0].sizeOrNextEntry);
 
@@ -142,13 +141,15 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* archiveData, const size_t 
             currentDirectory->AddDirectory(directory);
 
             currentDirectory = &currentDirectory->subdirectories.back();
-            dirStack.push({currentDirectory, BYTESWAP_32(node->sizeOrNextEntry)});
+            dirStack.push({ currentDirectory, BYTESWAP_32(node->sizeOrNextEntry) });
         }
         else {
             File file(name);
 
-            const unsigned char* dataStart = archiveData + BYTESWAP_32(node->dataOffsetOrParent);
-            file.data = std::vector<unsigned char>(dataStart, dataStart + BYTESWAP_32(node->sizeOrNextEntry));
+            const unsigned char* fileDataStart = data + BYTESWAP_32(node->dataOffsetOrParent);
+            const unsigned char* fileDataEnd   = fileDataStart + BYTESWAP_32(node->sizeOrNextEntry);
+
+            file.data = std::vector<unsigned char>(fileDataStart, fileDataEnd);
 
             currentDirectory->AddFile(file);
         }

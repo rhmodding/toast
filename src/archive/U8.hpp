@@ -51,7 +51,7 @@ public:
 
     std::vector<unsigned char> Reserialize();
 
-    U8ArchiveObject(const unsigned char* archiveData, const size_t dataSize);
+    U8ArchiveObject(const unsigned char* data, const size_t dataSize);
     U8ArchiveObject() {};
 };
 
