@@ -188,16 +188,6 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationK
 
     // Transformations
     {
-        // Flip operations
-        if (part.flipX) {
-            std::swap(transformedQuad[0], transformedQuad[1]);
-            std::swap(transformedQuad[2], transformedQuad[3]);
-        }
-        if (part.flipY) {
-            std::swap(transformedQuad[0], transformedQuad[3]);
-            std::swap(transformedQuad[1], transformedQuad[2]);
-        }
-
         // Rotation
         if (fmod(part.transform.angle, 360)) {
             float angle = part.transform.angle;
@@ -303,6 +293,16 @@ void Animatable::DrawKey(
             uvBottomRight,
             { uvTopLeft.x, uvBottomRight.y }
         };
+
+        // Flip operations
+        if (part.flipX) {
+            std::swap(uvs[0], uvs[1]);
+            std::swap(uvs[2], uvs[3]);
+        }
+        if (part.flipY) {
+            std::swap(uvs[0], uvs[3]);
+            std::swap(uvs[1], uvs[2]);
+        }
 
         uint8_t modAlpha = (colorMod >> 24) & 0xFF;
         uint8_t baseAlpha = allowOpacity ?
