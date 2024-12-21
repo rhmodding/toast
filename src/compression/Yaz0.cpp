@@ -30,8 +30,8 @@ struct Yaz0Header {
     // Compare to HEADER_MAGIC
     uint32_t magic { HEADER_MAGIC };
 
-    // Size of the file before compression in bytes
-    uint32_t uncompressedSize;
+    // Size of the file after decompression (in bytes).
+    uint32_t decompressedSize;
 
     // Reserved bytes. reserved[0] in newer Yaz0 files is used for data alignment but
     // Rhythm Heaven Fever doesn't use the newer revision.
@@ -46,7 +46,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
     *header = Yaz0Header {
-        .uncompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize)),
+        .decompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize)),
     };
 
     // Compression
@@ -135,45 +135,41 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
     }
 
     const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(data);
-
-    const uint32_t uncompressedSize = BYTESWAP_32(header->uncompressedSize);
-
     if (header->magic != HEADER_MAGIC) {
         std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: header magic failed check!\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
-    std::vector<unsigned char> destination(uncompressedSize);
+    const uint32_t decompressedSize = BYTESWAP_32(header->decompressedSize);
+
+    std::vector<unsigned char> destination(decompressedSize);
+
+    const unsigned char* const dataEnd = data + dataSize;
 
     const unsigned char* currentByte = data + sizeof(Yaz0Header);
 
     unsigned destOffset { 0 };
 
     unsigned bitsLeft { 0 };
-    uint8_t opcodeByte { 0 };
+    uint8_t headerByte { 0 };
 
-    while (destOffset < uncompressedSize) {
-        // Read new opcode byte if no bits left
+    while (destOffset < decompressedSize) {
+        // All bits read from prev header byte; get next header byte.
         if (bitsLeft == 0) {
-            opcodeByte = *(currentByte++);
-
-            // Reset bitsLeft (1byte)
+            headerByte = *(currentByte++);
             bitsLeft = 8;
         }
 
-        if (UNLIKELY(size_t(currentByte - data) >= dataSize)) {
-            // We've reached the end of the file but we're not finished reading yet;
-            // Usually this means the file is invalid.
-
+        if (UNLIKELY(currentByte >= dataEnd)) {
             std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: the read offset is larger than the data size!\n";
             std::cerr << "[Yaz0::decompress] The Yaz0 binary might be corrupted.\n";
             return std::nullopt; // return nothing (std::optional)
         }
 
-        if ((opcodeByte & (1 << 7)) != 0) { // MSB set: Copy one byte directly.
+        if ((headerByte & (1 << 7)) != 0) { // Bit set: Copy one byte directly.
             destination[destOffset++] = *(currentByte++);
         }
-        else { // MSB not set: RLE compression.
+        else { // Bit not set: Run-length encoding.
             uint8_t byteA = *(currentByte++);
             uint8_t byteB = *(currentByte++);
 
@@ -193,11 +189,12 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
             else
                 numBytes += 2;
 
-            for (unsigned i = 0; i < numBytes && destOffset < uncompressedSize; i++)
+            for (unsigned i = 0; i < numBytes && destOffset < decompressedSize; i++)
                 destination[destOffset++] = destination[copySource++];
         }
 
-        opcodeByte <<= 1;
+        // Shift over to next bit.
+        headerByte <<= 1;
         bitsLeft--;
     }
 
