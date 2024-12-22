@@ -283,9 +283,9 @@ static void _ApplyInterpolation(
 
         float t = _Bezier::BezierValueY(((i * interval) + 1) / (float)backKey->holdFrames, curve.data(), addKeys.size());
 
-        newKey.transform = newKey.transform.lerp(backKey->transform, t);
+        newKey.transform = newKey.transform.lerp(frontKey->transform, t);
         newKey.opacity = std::clamp<int>(
-            std::lerp((int)backKey->opacity, (int)backKey->opacity, t),
+            std::lerp((int)backKey->opacity, (int)frontKey->opacity, t),
             0,
             255
         );
