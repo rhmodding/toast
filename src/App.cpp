@@ -82,7 +82,7 @@ void App::AttemptExit(bool force) {
     this->running = false;
 }
 
-App::App() {
+App::App(int argc, const char** argv) {
     gAppPtr = this;
 
     this->mainThreadId = std::this_thread::get_id();
@@ -195,6 +195,13 @@ App::App() {
     ImGui_ImplOpenGL3_Init(glslVersion);
 
     this->SetupFonts();
+
+    // Open cellanim from arguemnt
+    if (argc >= 2) {
+        AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
+            std::string(argv[1])
+        );
+    }
 }
 
 App::~App() {

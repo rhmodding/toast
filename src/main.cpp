@@ -6,13 +6,10 @@
 
 #include "ConsoleSplash.hpp"
 
-int main(int argc, char** argv) {
-    // TODO: open szs from arguments
-    (void)argc; (void)argv;
-
+int main(int argc, const char** argv) {
     std::cout << consoleSplash << "\n\n";
 
-    App app;
+    App app (argc, argv);
     while (LIKELY(app.isRunning()))
         app.Update();
 }

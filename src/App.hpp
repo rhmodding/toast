@@ -28,14 +28,13 @@
 
 class App {
 public:
-    App();
+    App(int argc, const char** argv);
     ~App();
 
 public:
     void Update();
 
     void AttemptExit(bool force = false);
-
     bool isRunning() const {
         return this->running;
     }
@@ -51,7 +50,6 @@ public:
 
 private: // Methods
     void SetupFonts();
-
     void Menubar();
 
 private: // Windows
