@@ -16,6 +16,17 @@ float byteswapFloat(float value) {
     );
 }
 
+bool checkIfFileExists(const char* filePath) {
+    if (!filePath)
+        return false;
+
+    if (FILE* file = fopen(filePath, "r")) {
+        fclose(file);
+        return true;
+    }
+    return false;
+}
+
 // TODO: remove
 bool SaveBackupFile(const char* filePath, bool once) {
     char newFileName[PATH_MAX];

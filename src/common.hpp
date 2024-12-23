@@ -78,6 +78,8 @@ namespace Common {
 
 float byteswapFloat(float value);
 
+bool checkIfFileExists(const char* filePath);
+
 bool SaveBackupFile(const char* filePath, bool once);
 
 void FitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
