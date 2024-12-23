@@ -281,7 +281,7 @@ static void _ApplyInterpolation(
         RvlCellAnim::AnimationKey& newKey = addKeys[i];
         newKey = *backKey;
 
-        float t = _Bezier::BezierValueY(((i * interval) + 1) / (float)backKey->holdFrames, curve.data(), addKeys.size());
+        float t = _Bezier::BezierValueY((((i+1) * interval)) / (float)backKey->holdFrames, curve.data(), addKeys.size()*2);
 
         newKey.transform = newKey.transform.lerp(frontKey->transform, t);
         newKey.opacity = std::clamp<int>(
