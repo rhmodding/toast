@@ -9,15 +9,16 @@
 
 #include "../common.hpp"
 
-static ImVec2 rotateVec2(ImVec2 v, float angle, ImVec2 origin) {
+// In degrees.
+static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
     const float s = sinf(angle * ((float)M_PI / 180.f));
     const float c = cosf(angle * ((float)M_PI / 180.f));
 
-    v.x -= origin.x;
-    v.y -= origin.y;
+    float vx = v.x - origin.x;
+    float vy = v.y - origin.y;
 
-    float x = v.x * c - v.y * s;
-    float y = v.x * s + v.y * c;
+    float x = vx * c - vy * s;
+    float y = vx * s + vy * c;
 
     return { x + origin.x, y + origin.y };
 }
@@ -26,10 +27,7 @@ void Animatable::setAnimationFromIndex(unsigned animIndex) {
     NONFATAL_ASSERT(this->cellanim, true);
     NONFATAL_ASSERT(this->cellanim->animations.size() >= animIndex, true);
 
-    //this->currentAnimation = &this->cellanim->animations.at(animIndex);
     this->currentAnimationIndex = animIndex;
-
-    //this->currentKey = &this->currentAnimation->keys.at(0);
     this->currentKeyIndex = 0;
 
     this->holdKey = this->getCurrentKey()->holdFrames;
@@ -39,11 +37,9 @@ void Animatable::setAnimationFromIndex(unsigned animIndex) {
 
 void Animatable::setAnimationKeyFromIndex(unsigned keyIndex) {
     NONFATAL_ASSERT(this->cellanim, true);
-    //NONFATAL_ASSERT(this->currentAnimation, true);
 
     NONFATAL_ASSERT(this->getCurrentAnimation()->keys.size() >= keyIndex, true);
 
-    //this->currentKey = &this->currentAnimation->keys.at(keyIndex);
     this->currentKeyIndex = keyIndex;
     this->holdKey = this->getCurrentKey()->holdFrames;
 
@@ -82,36 +78,18 @@ unsigned Animatable::getCurrentKeyIndex() const {
 }
 
 RvlCellAnim::AnimationKey* Animatable::getCurrentKey() const {
-    //return this->currentKey;
     if (this->overrideKey)
         return this->overrideKey;
     return &this->cellanim->animations.at(this->currentAnimationIndex).keys.at(this->currentKeyIndex);
 }
 
 RvlCellAnim::Animation* Animatable::getCurrentAnimation() const {
-    //return this->currentAnimation;
     return &this->cellanim->animations.at(this->currentAnimationIndex);
 }
 
 RvlCellAnim::Arrangement* Animatable::getCurrentArrangement() const {
     return &this->cellanim->arrangements.at(this->getCurrentKey()->arrangementIndex);
 }
-
-/*
-void Animatable::refreshPointers() {
-    this->currentAnimationIndex = std::min<unsigned>(
-        this->currentAnimationIndex,
-        this->cellanim->animations.size() - 1
-    );
-    this->currentAnimation = &this->cellanim->animations.at(this->currentAnimationIndex);
-
-    this->currentKeyIndex = std::min<unsigned>(
-        this->currentKeyIndex,
-        this->currentAnimation->keys.size() - 1
-    );
-    this->currentKey = &this->currentAnimation->keys.at(this->currentKeyIndex);
-}
-*/
 
 int Animatable::getHoldFramesLeft() const {
     return this->holdKey;
@@ -184,7 +162,7 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationK
         { topLeftOffset.x, bottomRightOffset.y },
     };
 
-    ImVec2 center = AVERAGE_IMVEC2(topLeftOffset, bottomRightOffset);
+    const ImVec2 center = AVERAGE_IMVEC2(topLeftOffset, bottomRightOffset);
 
     // Transformations
     {
@@ -192,8 +170,10 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationK
         if (fmod(part.transform.angle, 360)) {
             float angle = part.transform.angle;
 
-            if (arrngScale[0] < 0.f) angle = -angle;
-            if (arrngScale[1] < 0.f) angle = -angle;
+            if (arrngScale[0] < 0.f)
+                angle = -angle;
+            if (arrngScale[1] < 0.f)
+                angle = -angle;
 
             for (auto& point : transformedQuad)
                 point = rotateVec2(point, angle, center);
@@ -223,7 +203,6 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationK
 
 bool Animatable::getDoesDraw(bool allowOpacity) const {
     NONFATAL_ASSERT_RET(this->cellanim, false);
-    //NONFATAL_ASSERT_RET(this->currentAnimation, false);
 
     if (!this->visible)
         return false;
@@ -259,7 +238,6 @@ void Animatable::DrawKey(
     bool allowOpacity
 ) {
     NONFATAL_ASSERT(this->cellanim, true);
-    //NONFATAL_ASSERT(this->currentAnimation, true);
 
     const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
@@ -294,7 +272,6 @@ void Animatable::DrawKey(
             { uvTopLeft.x, uvBottomRight.y }
         };
 
-        // Flip operations
         if (part.flipX) {
             std::swap(uvs[0], uvs[1]);
             std::swap(uvs[2], uvs[3]);
@@ -325,7 +302,6 @@ void Animatable::DrawKey(
 
 void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
     NONFATAL_ASSERT(this->cellanim, true);
-    //NONFATAL_ASSERT(this->currentAnimation, true);
 
     if (!this->visible)
         return;
@@ -335,7 +311,6 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
 
 void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, bool rollOver, uint8_t opacity) {
     NONFATAL_ASSERT(this->cellanim, true);
-    //NONFATAL_ASSERT(this->currentAnimation, true);
 
     if (!this->visible)
         return;

@@ -16,9 +16,6 @@ class Animatable {
 private:
     bool animating { false };
 
-    //RvlCellAnim::Animation* currentAnimation { nullptr };
-    //RvlCellAnim::AnimationKey* currentKey { nullptr };
-
     RvlCellAnim::AnimationKey* overrideKey { nullptr };
 
     int holdKey { 0 };
