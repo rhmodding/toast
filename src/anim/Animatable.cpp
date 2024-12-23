@@ -24,8 +24,8 @@ static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
 }
 
 void Animatable::setAnimationFromIndex(unsigned animIndex) {
-    NONFATAL_ASSERT(this->cellanim, true);
-    NONFATAL_ASSERT(this->cellanim->animations.size() >= animIndex, true);
+    NONFATAL_ASSERT_RET(this->cellanim, true);
+    NONFATAL_ASSERT_RET(this->cellanim->animations.size() >= animIndex, true);
 
     this->currentAnimationIndex = animIndex;
     this->currentKeyIndex = 0;
@@ -36,9 +36,9 @@ void Animatable::setAnimationFromIndex(unsigned animIndex) {
 }
 
 void Animatable::setAnimationKeyFromIndex(unsigned keyIndex) {
-    NONFATAL_ASSERT(this->cellanim, true);
+    NONFATAL_ASSERT_RET(this->cellanim, true);
 
-    NONFATAL_ASSERT(this->getCurrentAnimation()->keys.size() >= keyIndex, true);
+    NONFATAL_ASSERT_RET(this->getCurrentAnimation()->keys.size() >= keyIndex, true);
 
     this->currentKeyIndex = keyIndex;
     this->holdKey = this->getCurrentKey()->holdFrames;
@@ -123,7 +123,7 @@ ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
 std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationKey* key, unsigned partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
-    NONFATAL_ASSERT_RET(this->cellanim, transformedQuad);
+    NONFATAL_ASSERT_RETVAL(this->cellanim, transformedQuad);
 
     const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
     const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
@@ -202,7 +202,7 @@ std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationK
 }
 
 bool Animatable::getDoesDraw(bool allowOpacity) const {
-    NONFATAL_ASSERT_RET(this->cellanim, false);
+    NONFATAL_ASSERT_RETVAL(this->cellanim, false);
 
     if (!this->visible)
         return false;
@@ -222,8 +222,8 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
 }
 
 void Animatable::overrideAnimationKey(RvlCellAnim::AnimationKey* key) {
-    NONFATAL_ASSERT(this->cellanim, true);
-    NONFATAL_ASSERT(key, true);
+    NONFATAL_ASSERT_RET(this->cellanim, true);
+    NONFATAL_ASSERT_RET(key, true);
 
     this->animating = false;
     this->overrideKey = key;
@@ -237,7 +237,7 @@ void Animatable::DrawKey(
     unsigned colorMod,
     bool allowOpacity
 ) {
-    NONFATAL_ASSERT(this->cellanim, true);
+    NONFATAL_ASSERT_RET(this->cellanim, true);
 
     const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
@@ -301,7 +301,7 @@ void Animatable::DrawKey(
 }
 
 void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
-    NONFATAL_ASSERT(this->cellanim, true);
+    NONFATAL_ASSERT_RET(this->cellanim, true);
 
     if (!this->visible)
         return;
@@ -310,7 +310,7 @@ void Animatable::Draw(ImDrawList* drawList, bool allowOpacity) {
 }
 
 void Animatable::DrawOnionSkin(ImDrawList* drawList, unsigned backCount, unsigned frontCount, bool rollOver, uint8_t opacity) {
-    NONFATAL_ASSERT(this->cellanim, true);
+    NONFATAL_ASSERT_RET(this->cellanim, true);
 
     if (!this->visible)
         return;

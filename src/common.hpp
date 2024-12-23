@@ -51,25 +51,34 @@
     ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f) \
 )
 
-#define NONFATAL_ASSERT(condition, shouldReturn) \
+#ifndef NDEBUG
+
+#define NONFATAL_ASSERT_RET(condition, shouldReturn) \
     do { \
         if (!(condition)) { \
-            std::cerr << "[NONFATAL_ASSERT] Assertion failed: (" #condition "), " \
+            std::cerr << "[NONFATAL_ASSERT_RET] Assertion failed: (" #condition "), " \
                       << "function " << __FUNCTION__ << ", file " << __FILE__ \
                       << ", line " << __LINE__ << "." << std::endl; \
             if (shouldReturn) return; \
         } \
     } while (0)
 
-#define NONFATAL_ASSERT_RET(condition, ret) \
+#define NONFATAL_ASSERT_RETVAL(condition, ret) \
     do { \
         if (!(condition)) { \
-            std::cerr << "[NONFATAL_ASSERT_RET] Assertion failed: (" #condition "), " \
+            std::cerr << "[NONFATAL_ASSERT_RETVAL] Assertion failed: (" #condition "), " \
                       << "function " << __FUNCTION__ << ", file " << __FILE__ \
                       << ", line " << __LINE__ << "." << std::endl; \
             return (ret); \
         } \
     } while (0)
+
+#else
+
+#define NONFATAL_ASSERT_RET(condition, shouldReturn) ((void)0)
+#define NONFATAL_ASSERT_RETVAL(condition, shouldReturn) ((void)0)
+
+#endif
 
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
