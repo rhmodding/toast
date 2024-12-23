@@ -88,7 +88,8 @@ public:
     enum Error {
         Error_None = 0,
 
-        OpenError_FailOpenArchive = -0xFF,
+        OpenError_FileDoesNotExist = -0xFF,
+        OpenError_FailOpenArchive,
         OpenError_FailFindTPL,
         OpenError_RootDirNotFound,
         OpenError_NoBXCADsFound,

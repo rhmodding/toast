@@ -27,6 +27,13 @@
 #include "common.hpp"
 
 int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
+    if (!Common::checkIfFileExists(filePath)) {
+        std::lock_guard<std::mutex> lock(this->mtx);
+        this->currentError = OpenError_FileDoesNotExist;
+
+        return -1;
+    }
+
     Session newSession;
 
     auto __archiveResult = U8::readYaz0U8Archive(filePath);

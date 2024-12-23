@@ -15,8 +15,12 @@ static void Popup_SessionErr() {
     char errorMessage[256];
     unsigned errorType { 2 }; // 0 = open, 1 = export, 2 = unknown
     switch (error) {
+        case SessionManager::OpenError_FileDoesNotExist:
+            strcpy(errorMessage, "The file (.szs) could not be opened because it does not exist.");
+            errorType = 0;
+            break;
         case SessionManager::OpenError_FailOpenArchive:
-            strcpy(errorMessage, "The archive file could not be opened. Does the file exist?");
+            strcpy(errorMessage, "The archive could not be opened. Is this a cellanim file?");
             errorType = 0;
             break;
         case SessionManager::OpenError_FailFindTPL:
@@ -33,7 +37,7 @@ static void Popup_SessionErr() {
             break;
         case SessionManager::OpenError_FailOpenBXCAD:
             // TODO: replace brcad with brcad/bccad when Megamix support is implemented
-            strcpy(errorMessage, "The brcad file could not be opened.");
+            strcpy(errorMessage, "The cellanim file (.brcad) could not be opened.");
             errorType = 0;
             break;
         case SessionManager::OpenError_FailOpenTPL:
@@ -101,7 +105,7 @@ static void Popup_SessionErr() {
             break;
     }
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 15.f });
 
     CENTER_NEXT_WINDOW;
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -112,6 +116,8 @@ static void Popup_SessionErr() {
         if (ImGui::Button("Alright", { 120.f, 0.f }))
             ImGui::CloseCurrentPopup();
         ImGui::SetItemDefaultFocus();
+
+        ImGui::Dummy({ 0.f, 5.f });
 
         ImGui::EndPopup();
     }
