@@ -16,15 +16,16 @@
 
 #include "../common.hpp"
 
-bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, unsigned numVertices) {
+// Check if point is inside a polygon defined by vertices
+static bool pointInPolygon(const ImVec2& point, const ImVec2* vertices, unsigned numVertices) {
     float x = point.x, y = point.y;
     bool inside { false };
 
-    ImVec2 p1 = polygon[0];
+    ImVec2 p1 = vertices[0];
     ImVec2 p2;
 
     for (unsigned i = 1; i <= numVertices; i++) {
-        p2 = polygon[i % numVertices];
+        p2 = vertices[i % numVertices];
 
         // Point is above the minimum y
         // coordinate of the edge
@@ -56,72 +57,111 @@ bool isPointInPolygon(const ImVec2& point, const ImVec2* polygon, unsigned numVe
     return inside;
 }
 
-void DrawRotatedBox(ImDrawList* drawList, ImVec2 center, float radius, float rotation, ImU32 color, bool fill = false) {
-    float radiusInv = -radius;
+// Calculate quad bounding of all selected parts
+static std::array<ImVec2, 4> calculatepartsBounding(const RvlCellAnim::Arrangement& arrangement, float& quadRotation) {
+    std::array<ImVec2, 4> partsBounding ({{ -FLT_MAX, -FLT_MAX }});
 
-    auto rotatePoint = [](ImVec2 point, ImVec2 center, float rotation) -> ImVec2 {
-        if (fmod(rotation, 360.f) == 0.f)
-            return point;
+    FLT_EPSILON;
+    
+    quadRotation = 0.f;
 
-        float rad = rotation * IM_PI / 180.f;
+    GET_APP_STATE;
 
-        float s = sinf(rad);
-        float c = cosf(rad);
+    if (!appState.anyPartsSelected())
+        return partsBounding;
 
-        point.x -= center.x;
-        point.y -= center.y;
+    if (appState.singlePartSelected()) {
+        unsigned index = appState.selectedParts[0].index;
+        const auto& part = arrangement.parts.at(index);
 
-        float xnew = point.x * c - point.y * s;
-        float ynew = point.x * s + point.y * c;
+        if (!part.editorLocked) {
+            partsBounding = appState.globalAnimatable.getPartWorldQuad(
+                appState.globalAnimatable.getCurrentKey(), index
+            );
 
-        point.x = xnew + center.x;
-        point.y = ynew + center.y;
-
-        return point;
-    };
-
-    auto addQuad = [fill, drawList](ImVec2 p1, ImVec2 p2, ImVec2 p3, ImVec2 p4, ImU32 col) {
-        if (fill) {
-            float addFactor = 1.f;
-
-            p1.x -= addFactor;
-            p1.y -= addFactor;
-
-            p2.x += addFactor;
-            p2.y -= addFactor;
-
-            p3.x += addFactor;
-            p3.y += addFactor;
-
-            p4.x -= addFactor;
-            p4.y += addFactor;
-
-            drawList->AddQuadFilled(p1, p2, p3, p4, col);
+            quadRotation = part.transform.angle;
         }
-        else
-            drawList->AddQuad(p1, p2, p3, p4, col, 1.f);
-    };
 
-    addQuad(
-        rotatePoint({
-            radiusInv + center.x,
-            radiusInv + center.y
-        }, center, rotation),
-        rotatePoint({
-            radius    + center.x,
-            radiusInv + center.y
-        }, center, rotation),
-        rotatePoint({
-            radius + center.x,
-            radius + center.y
-        }, center, rotation),
-        rotatePoint({
-            radiusInv + center.x,
-            radius    + center.y
-        }, center, rotation),
+        return partsBounding;
+    }
 
-        color
-    );
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float maxY = std::numeric_limits<float>::lowest();
+
+    bool any { false };
+
+    for (const auto& [index, _] : appState.selectedParts) {
+        const auto& part = arrangement.parts.at(index);
+
+        if (part.editorLocked)
+            continue;
+        
+        any = true;
+
+        std::array<ImVec2, 4> quad = appState.globalAnimatable.getPartWorldQuad(
+            appState.globalAnimatable.getCurrentKey(), index
+        );
+        
+        for (const auto& vertex : quad) {
+            minX = std::min(minX, vertex.x);
+            minY = std::min(minY, vertex.y);
+            maxX = std::max(maxX, vertex.x);
+            maxY = std::max(maxY, vertex.y);
+        }
+    }
+
+    if (any) {
+        partsBounding[0] = { minX, minY };
+        partsBounding[1] = { maxX, minY };
+        partsBounding[2] = { maxX, maxY };
+        partsBounding[3] = { minX, maxY };
+    }
+
+    return partsBounding;
+}
+
+// Check if selectedParts or arrangement index has changed since last cycle.
+static bool selectionChangedSinceLastCycle() {
+    GET_APP_STATE;
+
+    const auto& currentSelected = appState.selectedParts;
+    const auto& currentArrangeIdx = appState.globalAnimatable.getCurrentKey()->arrangementIndex;
+
+    static auto lastSelected { currentSelected };
+    static auto lastArrangeIdx { currentArrangeIdx };
+
+    bool result = (currentSelected != lastSelected) || (currentArrangeIdx != lastArrangeIdx);
+
+    lastSelected = currentSelected;
+    lastArrangeIdx = currentArrangeIdx;
+
+    return result;
+}
+
+static float mapRange(float value, float rangeStart, float rangeEnd) {
+    return (value - rangeStart) / (rangeEnd - rangeStart);
+}
+
+float calcPointsDistance(const ImVec2& a, const ImVec2& b) {
+    float dx = b.x - a.x;
+    float dy = b.y - a.y;
+    return sqrtf(dx * dx + dy * dy);
+}
+
+// In degrees.
+static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
+    const float s = sinf(angle * ((float)M_PI / 180.f));
+    const float c = cosf(angle * ((float)M_PI / 180.f));
+
+    float vx = v.x - origin.x;
+    float vy = v.y - origin.y;
+
+    float x = vx * c - vy * s;
+    float y = vx * s + vy * c;
+
+    return { x + origin.x, y + origin.y };
 }
 
 // Screen safe area for Fever (RVL)
@@ -175,7 +215,7 @@ void WindowCanvas::Menubar() {
         if (ImGui::BeginMenu("View")) {
             if (ImGui::MenuItem("Reset", nullptr, false)) {
                 this->canvasOffset = { 0.f, 0.f };
-                this->canvasZoom = 0.f;
+                this->canvasZoom = 1.f;
             }
 
             if (ImGui::MenuItem("Reset to Safe Area", nullptr, false)) {
@@ -186,7 +226,7 @@ void WindowCanvas::Menubar() {
                 float scale;
                 Common::FitRect(rect, this->canvasSize, scale);
 
-                this->canvasZoom = scale - 1.f - .1f;
+                this->canvasZoom = scale - .1f;
             }
 
             ImGui::EndMenu();
@@ -209,11 +249,11 @@ void WindowCanvas::Menubar() {
             }
 
             if (ImGui::BeginMenu("Safe Area")) {
-                ImGui::Checkbox("Enabled", &this->visualizeSafeArea);
+                ImGui::Checkbox("Enabled", &this->showSafeArea);
 
                 ImGui::SeparatorText("Options");
 
-                ImGui::BeginDisabled(!this->visualizeSafeArea);
+                ImGui::BeginDisabled(!this->showSafeArea);
                 ImGui::DragScalar("Alpha", ImGuiDataType_U8, &this->safeAreaAlpha);
                 ImGui::EndDisabled();
 
@@ -246,18 +286,17 @@ void WindowCanvas::Update() {
     // Note: ImDrawList uses screen coordinates
     this->canvasTopLeft = ImGui::GetCursorScreenPos();
     this->canvasSize = ImGui::GetContentRegionAvail();
-    ImVec2 canvasBottomRight {
+    const ImVec2 canvasBottomRight {
         this->canvasTopLeft.x + this->canvasSize.x,
         this->canvasTopLeft.y + this->canvasSize.y
     };
 
     this->Menubar();
 
-    // Determine background color
-    uint32_t backgroundColor { 0xFF000000 };
+    uint32_t backgroundColor { 0xFF000000 }; // Black
     switch (this->gridType) {
         case GridType_None:
-            backgroundColor = IM_COL32_BLACK_TRANS;
+            backgroundColor = 0x00000000; // Transparent Black
             break;
 
         case GridType_Dark:
@@ -287,8 +326,8 @@ void WindowCanvas::Update() {
 
     drawList->AddRectFilled(this->canvasTopLeft, canvasBottomRight, backgroundColor);
 
-    // This catches interactions
-    ImGui::InvisibleButton("CanvasInteractions", this->canvasSize,
+    // This catches interactions (dragging, hovering, clicking, etc.)
+    ImGui::InvisibleButton("CanvasInteraction", this->canvasSize,
         ImGuiButtonFlags_MouseButtonLeft |
         ImGuiButtonFlags_MouseButtonRight |
         ImGuiButtonFlags_MouseButtonMiddle
@@ -305,10 +344,7 @@ void WindowCanvas::Update() {
 
     // Dragging
     const float mouseDragThreshold = 1.f;
-    bool draggingLeft = interactionActive &&
-        ImGui::IsMouseDragging(ImGuiMouseButton_Left, mouseDragThreshold);
-
-    bool draggingCanvas = interactionActive && (
+    const bool draggingCanvas = interactionActive && (
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mouseDragThreshold) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mouseDragThreshold) ||
         (
@@ -317,65 +353,436 @@ void WindowCanvas::Update() {
         )
     );
 
-    hoveredPartHandle = PartHandle_None;
-
-    static PartHandle activePartHandle { PartHandle_None };
-
-    // Arrangement before mutation
-    // We store the whole arrangement instead of the individual parts,
-    // it's easier to apply the changes that way
-    static RvlCellAnim::Arrangement arrangementBeforehand;
-
     static bool panningCanvas { false };
 
-    static ImVec2  dragPartOffset { 0.f, 0.f };
-    static ImVec2 newPartSize { 0.f, 0.f };
+    enum PartsTransformType {
+        PartsTransformType_None = 0,
+        PartsTransformType_Translate = 1,
+        PartsTransformType_Scale,
+        PartsTransformType_Rotate
+    };
 
-    static bool hoveringOverSelectedPart { false };
+    struct PartsTransformation {
+        PartsTransformType type { PartsTransformType_None };
+        bool active { false };
+
+        float translateX { 0.f }, translateY { 0.f };
+        float scaleX { 1.f }, scaleY { 1.f };
+        float rotation { 0.f };
+
+        float pivotX { 0.f }, pivotY { 0.f };
+        bool pivotIsWorld { false }; // Is the pivot fixed to the world or is it local?
+    };
+    static PartsTransformation partsTransformation;
+
+    if (selectionChangedSinceLastCycle())
+        partsTransformation = PartsTransformation {};
+
+    static RvlCellAnim::Arrangement arrangementBeforeMutation;
+
+    static bool movingPivot { false };
+    static float pivotBeforeMoveLocal[2] { 0.f, 0.f };
+    static float pivotBeforeMoveWorld[2] { 0.f, 0.f };
 
     GET_ANIMATABLE;
     GET_APP_STATE;
 
-    RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
+    RvlCellAnim::Arrangement& arrangement = *globalAnimatable.getCurrentArrangement();
 
+    // Select all parts with CTRL+A
     if (ImGui::Shortcut(ImGuiKey_A | ImGuiMod_Ctrl)) {
         appState.clearSelectedParts();
-        appState.selectedParts.reserve(arrangementPtr->parts.size());
+        appState.selectedParts.reserve(arrangement.parts.size());
 
-        for (int idx = 0; idx < arrangementPtr->parts.size(); idx++, appState.spSelectionOrder++) {
-            appState.setBatchPartSelection(idx, true, appState.selectedParts.size());
+        for (unsigned i = 0; i < arrangement.parts.size(); i++, appState.spSelectionOrder++) {
+            appState.setBatchPartSelection(i, true);
         }
     }
 
-    const int firstSelectedPart = appState.anyPartsSelected() ?
-        appState.selectedParts[0].index :
-        -1;
-
-    const bool partLocked = appState.anyPartsSelected() ?
-        arrangementPtr->parts.at(firstSelectedPart).editorLocked :
-        false;
-    const bool partVisible = appState.anyPartsSelected() ?
-        arrangementPtr->parts.at(firstSelectedPart).editorVisible :
-        true;
-
-    {
-        globalAnimatable.offset = origin;
-
-        globalAnimatable.scaleX = this->canvasZoom + 1;
-        globalAnimatable.scaleY = this->canvasZoom + 1;
+    if (panningCanvas) {
+        this->canvasOffset.x += io.MouseDelta.x;
+        this->canvasOffset.y += io.MouseDelta.y;
     }
 
-    // All drawing operations (and handle calculation)
+    // Canvas zooming
     {
+        const float maxZoom = 10.f;
+        const float minZoom = .1f;
+
+        if (interactionHovered) {
+            GET_IMGUI_IO;
+
+            if (io.MouseWheel != 0) {
+                if (io.KeyShift)
+                    this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
+                else
+                    this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED;
+            }
+
+            if (this->canvasZoom < minZoom)
+                this->canvasZoom = minZoom;
+
+            if (this->canvasZoom > maxZoom)
+                this->canvasZoom = maxZoom;
+        }
+    }
+
+    globalAnimatable.offset = origin;
+
+    globalAnimatable.scaleX = this->canvasZoom;
+    globalAnimatable.scaleY = this->canvasZoom;
+
+    float quadRotation { 0.f };
+    std::array<ImVec2, 4> partsBounding = calculatepartsBounding(arrangement, quadRotation);
+
+    ImVec2 partsBoundingCenter = AVERAGE_IMVEC2(partsBounding[0], partsBounding[2]);
+    ImVec2 partsAnmSpaceCenter (
+        (partsBoundingCenter.x - origin.x) / this->canvasZoom,
+        (partsBoundingCenter.y - origin.y) / this->canvasZoom
+    );
+
+    const bool noParts = partsBounding[0].x == -FLT_MAX;
+
+    bool hoveringOverParts { false };
+    if (interactionHovered && !noParts)
+        hoveringOverParts = pointInPolygon(io.MousePos, partsBounding.data(), 4);
+
+    ImVec2 pivotPoint;
+    if (partsTransformation.pivotIsWorld) {
+        pivotPoint = ImVec2(
+            partsTransformation.pivotX,
+            partsTransformation.pivotY
+        );
+    }
+    else {
+        pivotPoint = ImVec2(
+            partsAnmSpaceCenter.x + partsTransformation.pivotX,
+            partsAnmSpaceCenter.y + partsTransformation.pivotY
+        );
+    }
+
+    ImVec2 displayPivotPoint = {
+        (pivotPoint.x * this->canvasZoom) + origin.x,
+        (pivotPoint.y * this->canvasZoom) + origin.y
+    };
+    constexpr float pivotRadius = 6.f;
+    constexpr float pivotHoverRadius = 11.f;
+
+    bool hoveringOverPivot = ImGui::IsMouseHoveringRect(
+        {
+            displayPivotPoint.x - (pivotHoverRadius / 2),
+            displayPivotPoint.y - (pivotHoverRadius / 2)
+        },
+        {
+            displayPivotPoint.x + (pivotHoverRadius / 2),
+            displayPivotPoint.y + (pivotHoverRadius / 2)
+        }
+    );
+
+    // Start parts transformation, canvas panning or pivot moving
+    if (draggingCanvas && !panningCanvas && !partsTransformation.active && !movingPivot) {
+        if (hoveringOverPivot) {
+            movingPivot = true;
+
+            pivotBeforeMoveLocal[0] = partsTransformation.pivotX;
+            pivotBeforeMoveLocal[1] = partsTransformation.pivotY;
+            pivotBeforeMoveWorld[0] = pivotPoint.x;
+            pivotBeforeMoveWorld[1] = pivotPoint.y;
+        }
+        else if (hoveringOverParts) {
+            pivotBeforeMoveLocal[0] = partsTransformation.pivotX;
+            pivotBeforeMoveLocal[1] = partsTransformation.pivotY;
+            pivotBeforeMoveWorld[0] = pivotPoint.x;
+            pivotBeforeMoveWorld[1] = pivotPoint.y;
+
+            partsTransformation = PartsTransformation {
+                .type = PartsTransformType_Scale, // TODO
+                .active = true,
+
+                .pivotX = pivotPoint.x,
+                .pivotY = pivotPoint.y,
+                .pivotIsWorld = true
+            };
+
+            arrangementBeforeMutation = arrangement;
+        }
+        else
+            panningCanvas = true;
+    }
+
+    if (movingPivot) {
+        ImVec2 dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0.f);
+
+        partsTransformation.pivotX =
+            pivotBeforeMoveLocal[0] + (dragDelta.x / this->canvasZoom);
+        partsTransformation.pivotY =
+            pivotBeforeMoveLocal[1] + (dragDelta.y / this->canvasZoom);
+    }
+
+    // Temporarily apply partsTransformation (reset on end of update)
+    if (partsTransformation.active) {
+        const ImVec2 dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0.f);
+        const ImVec2 mouseDragStart (
+            ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Left].x - origin.x,
+            ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Left].y - origin.y
+        );
+        const ImVec2 mousePosition (
+            ImGui::GetIO().MousePos.x - origin.x,
+            ImGui::GetIO().MousePos.y - origin.y
+        );
+
+        const bool shiftHeld = ImGui::GetIO().KeyShift;
+
+        switch (partsTransformation.type) {
+        case PartsTransformType_Translate: {
+            ImVec2 scaledOffset (
+                dragDelta.x / this->canvasZoom,
+                dragDelta.y / this->canvasZoom
+            );
+
+            float theta = -globalAnimatable.getCurrentKey()->transform.angle * M_PI / 180.f;
+
+            float rotatedX = scaledOffset.x * cosf(theta) - scaledOffset.y * sinf(theta);
+            float rotatedY = scaledOffset.x * sinf(theta) + scaledOffset.y * cosf(theta);
+
+            float offsX = rotatedX / globalAnimatable.getCurrentKey()->transform.scaleX;
+            float offsY = rotatedY / globalAnimatable.getCurrentKey()->transform.scaleY;
+
+            partsTransformation.translateX = offsX;
+            partsTransformation.translateY = offsY;
+
+            // In this case the pivot moves with the selection.
+            // This is just visuals; the previous pivot is restored when the transform is finalized
+            partsTransformation.pivotX = pivotBeforeMoveWorld[0] + int(scaledOffset.x);
+            partsTransformation.pivotY = pivotBeforeMoveWorld[1] + int(scaledOffset.y);
+        } break;
+        case PartsTransformType_Scale: {
+            // TODO:
+            // Not working as expected when key or part rotation is applied.
+
+            const auto& keyTransform = globalAnimatable.getCurrentKey()->transform;
+
+            /*
+                quad
+                0,  1,
+                3,  2
+            */
+            float startWidth = calcPointsDistance(
+                AVERAGE_IMVEC2(partsBounding[0], partsBounding[3]),
+                AVERAGE_IMVEC2(partsBounding[1], partsBounding[2])
+            );
+            float startHeight = calcPointsDistance(
+                AVERAGE_IMVEC2(partsBounding[0], partsBounding[1]),
+                AVERAGE_IMVEC2(partsBounding[3], partsBounding[2])
+            );
+
+            //printf("%f, %f\n", startWidth, startHeight);
+
+            float pivotRealX = (partsTransformation.pivotX * this->canvasZoom);
+            float pivotRealY = (partsTransformation.pivotY * this->canvasZoom);
+
+            const float rangeStartX = AVERAGE_FLOATS(partsBounding[0].x, partsBounding[3].x) - origin.x;
+            const float rangeEndX = AVERAGE_FLOATS(partsBounding[1].x, partsBounding[2].x) - origin.x;
+            const float rangeStartY = AVERAGE_FLOATS(partsBounding[0].y, partsBounding[1].y) - origin.y;
+            const float rangeEndY = AVERAGE_FLOATS(partsBounding[3].y, partsBounding[2].y) - origin.y;
+
+            const float rangeMapX = mapRange(mouseDragStart.x, rangeStartX, rangeEndX);
+            const float rangeMapY = mapRange(mouseDragStart.y, rangeStartY, rangeEndY);
+
+            float quadX = rangeMapX * startWidth + partsBounding[0].x;
+            float quadY = rangeMapY * startHeight + partsBounding[0].y;
+
+            const float inputEndX = quadX - origin.x;
+            const float inputEndY = quadY - origin.y;
+
+            const float mapX = mapRange(pivotRealX - dragDelta.x, pivotRealX, inputEndX);
+            const float mapY = mapRange(pivotRealY - dragDelta.y, pivotRealY, inputEndY);
+
+            float newWidth = startWidth * (1.f - mapX);
+            float newHeight = startHeight * (1.f - mapY);
+
+            partsTransformation.scaleX = newWidth / startWidth;
+            partsTransformation.scaleY = newHeight / startHeight;
+        } break;
+        case PartsTransformType_Rotate: {
+            float pivotRealX = (partsTransformation.pivotX * this->canvasZoom);
+            float pivotRealY = (partsTransformation.pivotY * this->canvasZoom);
+
+            float startAngle = std::atan2(
+                mouseDragStart.y - pivotRealY, // y
+                mouseDragStart.x - pivotRealX // x
+            );
+            float nowAngle = std::atan2(
+                mousePosition.y - pivotRealY, // y
+                mousePosition.x - pivotRealX // x
+            );
+
+            partsTransformation.rotation = (nowAngle - startAngle) * (180.f / M_PI);
+
+            // Snap to 45deg if Shift is held.
+            if (shiftHeld) {
+                partsTransformation.rotation =
+                    roundf(partsTransformation.rotation / 45.f) * 45.f;
+            }
+        } break;
+        
+        default:
+            break;
+        }
+
+        for (const auto& [index, _] : appState.selectedParts) {
+            auto& part = arrangement.parts.at(index);
+
+            if (part.editorLocked)
+                continue;
+
+            // Obtain key transformation values
+            float keyScaleX = globalAnimatable.getCurrentKey()->transform.scaleX;
+            float keyScaleY = globalAnimatable.getCurrentKey()->transform.scaleY;
+            float keyPosX = globalAnimatable.getCurrentKey()->transform.positionX;
+            float keyPosY = globalAnimatable.getCurrentKey()->transform.positionY;
+
+            // Transform to part-space
+            float pivotPSX = (partsTransformation.pivotX - keyPosX) / keyScaleX;
+            float pivotPSY = (partsTransformation.pivotY - keyPosY) / keyScaleY;
+
+            float posAddedX = part.transform.positionX + partsTransformation.translateX;
+            float posAddedY = part.transform.positionY + partsTransformation.translateY;
+
+            float offsetX = (posAddedX - pivotPSX) * (1.f - partsTransformation.scaleX);
+            float offsetY = (posAddedY - pivotPSY) * (1.f - partsTransformation.scaleY);
+
+            part.transform.positionX = posAddedX - offsetX;
+            part.transform.positionY = posAddedY - offsetY;
+
+            part.transform.scaleX *= partsTransformation.scaleX;
+            part.transform.scaleY *= partsTransformation.scaleY;
+
+            float pX = pivotPSX - (part.regionW * part.transform.scaleX) / 2;
+            float pY = pivotPSY - (part.regionH * part.transform.scaleY) / 2;
+
+            // Compensation on position for transformation rotation.
+
+            float dx = part.transform.positionX - pX;
+            float dy = part.transform.positionY - pY;
+
+            float cosAngle = cosf(partsTransformation.rotation * (M_PI / 180.f)); 
+            float sinAngle = sinf(partsTransformation.rotation * (M_PI / 180.f));
+
+            float rotatedX = dx * cosAngle - dy * sinAngle;
+            float rotatedY = dx * sinAngle + dy * cosAngle;
+
+            part.transform.positionX = rotatedX + pX;
+            part.transform.positionY = rotatedY + pY;
+
+            part.transform.angle += partsTransformation.rotation;
+        }
+
+        partsBounding = calculatepartsBounding(arrangement, quadRotation);
+        partsBoundingCenter = AVERAGE_IMVEC2(partsBounding[0], partsBounding[2]);
+        partsAnmSpaceCenter = ImVec2(
+            (partsBoundingCenter.x - origin.x) / this->canvasZoom,
+            (partsBoundingCenter.y - origin.y) / this->canvasZoom
+        );
+    }
+
+    // Update pivotPoint since it might have updated
+    if (partsTransformation.pivotIsWorld) {
+        pivotPoint = ImVec2(
+            partsTransformation.pivotX,
+            partsTransformation.pivotY
+        );
+    }
+    else {
+        pivotPoint = ImVec2(
+            partsAnmSpaceCenter.x + partsTransformation.pivotX,
+            partsAnmSpaceCenter.y + partsTransformation.pivotY
+        );
+    }
+
+    // Stop & apply new parts, stop panning or deselect all parts
+    if (interactionDeactivated) {
+        if (panningCanvas)
+            panningCanvas = false;
+        else if (movingPivot)
+            movingPivot = false;
+        else if (partsTransformation.active) {
+            float newPivotX, newPivotY;
+            if (partsTransformation.type == PartsTransformType_Translate) {
+                newPivotX = pivotBeforeMoveLocal[0];
+                newPivotY = pivotBeforeMoveLocal[1];
+            }
+            else {
+                newPivotX = (float)(int)(pivotPoint.x - partsAnmSpaceCenter.x);
+                newPivotY = (float)(int)(pivotPoint.y - partsAnmSpaceCenter.y);
+            }
+
+            partsTransformation = PartsTransformation {
+                .type = PartsTransformType_None,
+                .active = false,
+                .pivotX = newPivotX,
+                .pivotY = newPivotY,
+                .pivotIsWorld = false
+            };
+
+            pivotPoint = ImVec2(
+                partsAnmSpaceCenter.x + newPivotX,
+                partsAnmSpaceCenter.y + newPivotY
+            );
+
+            GET_SESSION_MANAGER;
+
+            // Reverse the role of arrangementBeforeMutation for the command submit
+            std::swap(arrangementBeforeMutation, arrangement);
+
+            sessionManager.getCurrentSession()->executeCommand(
+            std::make_shared<CommandModifyArrangement>(
+                sessionManager.getCurrentSession()->currentCellanim,
+                appState.globalAnimatable.getCurrentKey()->arrangementIndex,
+                arrangementBeforeMutation // Used as the new arrangement
+            ));
+        }
+        else
+            appState.clearSelectedParts();
+    }
+
+    // All drawing operations
+    {
+        bool isBackgroundLight = false;
+        switch (this->gridType) {
+            case GridType_None:
+                isBackgroundLight = !AppState::getInstance().getDarkThemeEnabled();
+                break;
+            case GridType_Dark:
+                isBackgroundLight = false;
+                break;
+            case GridType_Light:
+                isBackgroundLight = true;
+                break;
+            case GridType_Custom: {
+                const float lumi =
+                    .2126f * customGridColor.x +
+                    .7152f * customGridColor.y +
+                    .0722f * customGridColor.z;
+                if (lumi > .5f)
+                    isBackgroundLight = true;
+                else
+                    isBackgroundLight = false;
+            } break;
+
+            default:
+                break;
+        }
+
         drawList->PushClipRect(this->canvasTopLeft, canvasBottomRight, true);
         {
             // Draw grid
-            if ((this->gridType != GridType_None) && this->enableGridLines) {
-                const float GRID_STEP = 64.f * (this->canvasZoom + 1.f);
+            if (this->enableGridLines && this->gridType != GridType_None) {
+                const float GRID_STEP = 64.f * this->canvasZoom;
 
-                static const ImU32 normalColor = IM_COL32(200, 200, 200, 40);
-                static const ImU32 centerColorX = IM_COL32(255, 0, 0, 70);
-                static const ImU32 centerColorY = IM_COL32(0, 255, 0, 70);
+                static const uint32_t normalColor = IM_COL32(200, 200, 200, 40);
+                static const uint32_t centerColorX = IM_COL32(255, 0, 0, 70);
+                static const uint32_t centerColorY = IM_COL32(0, 255, 0, 70);
 
                 for (
                     float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP);
@@ -433,16 +840,15 @@ void WindowCanvas::Update() {
             }
 
             // Draw safe area if enabled
-            if (this->visualizeSafeArea) {
-                ImVec2 boxTopLeft {
-                    origin.x - ((RVL_SAFE_X * (this->canvasZoom + 1.f)) / 2.f),
-                    origin.y - ((RVL_SAFE_Y * (this->canvasZoom + 1.f)) / 2.f)
-                };
-
-                ImVec2 boxBottomRight {
-                    boxTopLeft.x + (RVL_SAFE_X * (this->canvasZoom + 1.f)),
-                    boxTopLeft.y + (RVL_SAFE_Y * (this->canvasZoom + 1.f))
-                };
+            if (this->showSafeArea) {
+                ImVec2 boxTopLeft (
+                    origin.x - ((RVL_SAFE_X * this->canvasZoom) / 2.f),
+                    origin.y - ((RVL_SAFE_Y * this->canvasZoom) / 2.f)
+                );
+                ImVec2 boxBottomRight (
+                    boxTopLeft.x + (RVL_SAFE_X * this->canvasZoom),
+                    boxTopLeft.y + (RVL_SAFE_Y * this->canvasZoom)
+                );
 
                 uint32_t color = IM_COL32(0, 0, 0, this->safeAreaAlpha);
 
@@ -467,420 +873,137 @@ void WindowCanvas::Update() {
                     color
                 );
             }
-
-            // Draw selected part bounds
-            if (appState.focusOnSelectedPart && appState.anyPartsSelected()) {
-                for (const auto& [index, _] : appState.selectedParts) {
-                    uint32_t color = hoveringOverSelectedPart && ImGui::IsWindowHovered() ?
-                        IM_COL32(255, 255, 0, 255) :
-                        IM_COL32(
-                            partBoundingDrawColor.x * 255,
-                            partBoundingDrawColor.y * 255,
-                            partBoundingDrawColor.z * 255,
-                            partBoundingDrawColor.w * 255
-                        );
-
-                    auto bounding = globalAnimatable.getPartWorldQuad(globalAnimatable.getCurrentKey(), index);
-                    drawList->AddQuad(
-                        ROUND_IMVEC2(bounding[0]), ROUND_IMVEC2(bounding[1]),
-                        ROUND_IMVEC2(bounding[2]), ROUND_IMVEC2(bounding[3]),
-                        color
-                    );
-
-                    const auto& part = globalAnimatable.getCurrentArrangement()->parts.at(index);
-
-                    bool boundingBigEnough =
-                        ((bounding[2].x - bounding[0].x) >= 35.f) &&
-                        ((bounding[2].y - bounding[0].y) >= 35.f);
-
-                    // If bounding is too small or the part is locked, only draw the bounding.
-                    if (boundingBigEnough && !part.editorLocked) {
-                        float angle =
-                            part.transform.angle +
-                            globalAnimatable.getCurrentKey()->transform.angle;
-
-                        ImVec2 point;
-
-                        // Side boxes
-                        for (unsigned i = 0; i < 4; i++) {
-                            point = AVERAGE_IMVEC2_ROUND(bounding[i], bounding[(i+1) % 4]);
-
-                            if (ImGui::IsMouseHoveringRect(
-                                { point.x - 10.f, point.y - 10.f },
-                                { point.x + 10.f, point.y + 10.f }
-                            ))
-                                *(int*)&hoveredPartHandle = PartHandle_Top + i;
-
-                            DrawRotatedBox(
-                                drawList, point, 4.f, angle, color,
-                                hoveredPartHandle == PartHandle_Top + i ||
-                                activePartHandle == PartHandle_Top + i
-                            );
-                        }
-
-                        // Corner boxes
-                        for (unsigned i = 0; i < 4; i++) {
-                            point = ROUND_IMVEC2(bounding[i]);
-
-                            if (ImGui::IsMouseHoveringRect(
-                                { point.x - 10.f, point.y - 10.f },
-                                { point.x + 10.f, point.y + 10.f }
-                            ))
-                                *(int*)&hoveredPartHandle = PartHandle_TopLeft + i;
-
-                            DrawRotatedBox(
-                                drawList, point, 4.f, angle, color,
-                                hoveredPartHandle == PartHandle_TopLeft + i ||
-                                activePartHandle == PartHandle_TopLeft + i
-                            );
-                        }
-
-                        point = AVERAGE_IMVEC2_ROUND(bounding[0], bounding[2]);
-
-                        // Center box
-                        DrawRotatedBox(drawList, point, 3.f, angle, color);
-                    }
-                }
-            }
-
-            // Draw all part bounds if enabled
-            if (this->drawAllBounding)
-                for (unsigned i = 0; i < arrangementPtr->parts.size(); i++) {
-                    if (appState.focusOnSelectedPart && appState.isPartSelected(i))
-                        continue; // Skip over part if bounds are already drawn
-
-                    const uint32_t color = IM_COL32(
-                        partBoundingDrawColor.x * 255,
-                        partBoundingDrawColor.y * 255,
-                        partBoundingDrawColor.z * 255,
-                        partBoundingDrawColor.w * 255
-                    );
-
-                    auto bounding = globalAnimatable.getPartWorldQuad(globalAnimatable.getCurrentKey(), i);
-                    drawList->AddQuad(
-                        ROUND_IMVEC2(bounding[0]), ROUND_IMVEC2(bounding[1]),
-                        ROUND_IMVEC2(bounding[2]), ROUND_IMVEC2(bounding[3]),
-                        color
-                    );
-                }
         }
         drawList->PopClipRect();
 
-        if (hoveredPartHandle == PartHandle_None && hoveringOverSelectedPart)
-            hoveredPartHandle = PartHandle_Whole;
+        // Draw selection box + handles & pivot point.
+        if (!noParts /* && appState.focusOnSelectedPart */) {
+            const uint32_t colorLine = isBackgroundLight ? 0xFF000000 : 0xFFFFFFFF;
+            const uint32_t colorFill = isBackgroundLight ? 0xFFFFFFFF : 0xFF000000;
 
-        if (partLocked || panningCanvas)
-            hoveredPartHandle = PartHandle_None;
+            constexpr float lineThickness = 1.5f;
+            constexpr float handleLineThickness = 2.f;
 
-        this->DrawCanvasText();
+            constexpr float handleRadius = 4.5f;
 
-        // Set tooltip
-        if (hoveringOverSelectedPart && ImGui::IsWindowHovered() && !draggingCanvas) {
-            std::ostringstream fmtStream;
+            drawList->AddQuad(partsBounding[0], partsBounding[1], partsBounding[2], partsBounding[3], colorLine, lineThickness);
 
-            if (appState.singlePartSelected()) {
-                fmtStream << "Part no. %u\n";
+            // Corners
+            for (unsigned i = 0; i < 4; i++) {
+                const ImVec2& center = partsBounding[i];
 
-                unsigned partIndex = appState.selectedParts[0].index;
-                const auto& part = arrangementPtr->parts.at(partIndex);
-
-                if (!part.editorLocked)
-                    fmtStream << "You can drag this part to change it's position.";
-                else
-                    fmtStream << "This part is locked.";
-
-                if (!part.editorVisible)
-                    fmtStream << "\nThis part is invisible.";
-
-                ImGui::SetTooltip(
-                    fmtStream.str().c_str(),
-                    partIndex + 1
+                ImVec2 p1 (
+                    -handleRadius + center.x,
+                    -handleRadius + center.y
                 );
-            }
-            else {
-                fmtStream << "%lu parts selected";
-                
-                unsigned lockedCount { 0 };
-                unsigned invisibleCount { 0 };
-
-                for (const auto& [index, _] : appState.selectedParts) {
-                    const auto& part = arrangementPtr->parts.at(index);
-                    if (part.editorLocked)
-                        lockedCount++;
-                    if (!part.editorVisible)
-                        invisibleCount++;
-                }
-
-                if (lockedCount != 0)
-                    fmtStream << '\n' << lockedCount << "parts locked";
-                if (invisibleCount != 0)
-                    fmtStream << '\n' << invisibleCount << "parts invisible";
-
-                ImGui::SetTooltip(
-                    fmtStream.str().c_str(),
-                    appState.selectedParts.size()
+                ImVec2 p3 (
+                    handleRadius + center.x,
+                    handleRadius + center.y
                 );
+
+                drawList->AddRectFilled(p1, p3, colorFill, 0.f, ImDrawFlags_None);
+                drawList->AddRect(p1, p3, colorLine, 0.f, ImDrawFlags_None, handleLineThickness);
             }
-        }
-    }
 
-    // determine hoveringOverSelectedPart
-    hoveringOverSelectedPart = false;
+            // Sides
+            for (unsigned i = 0; i < 4; i++) {
+                const ImVec2& pointA = partsBounding[i];
+                const ImVec2& pointB = partsBounding[(i + 1) % 4];
 
-    if (
-        appState.focusOnSelectedPart &&
-        appState.anyPartsSelected() &&
-        !PlayerManager::getInstance().playing
-    ) {
-        for (const auto& part : appState.selectedParts) {
-            auto bounding = globalAnimatable.getPartWorldQuad(globalAnimatable.getCurrentKey(), part.index);
-            ImVec2 polygon[5] {
-                bounding[0],
-                bounding[1],
-                bounding[2],
-                bounding[3],
-                bounding[0]
+                const ImVec2 center = AVERAGE_IMVEC2_ROUND(pointA, pointB);
+
+                ImVec2 p1 (
+                    -handleRadius + center.x,
+                    -handleRadius + center.y
+                );
+                /*
+                ImVec2 p2 (
+                    radius  + center.x,
+                    -radius + center.y
+                );
+                */
+                ImVec2 p3 (
+                    handleRadius + center.x,
+                    handleRadius + center.y
+                );
+                /*
+                ImVec2 p4 (
+                    -radius + center.x,
+                    radius  + center.y
+                );
+                */
+
+                drawList->AddRectFilled(p1, p3, colorFill, 0.f, ImDrawFlags_None);
+                drawList->AddRect(p1, p3, colorLine, 0.f, ImDrawFlags_None, handleLineThickness);
+            }
+
+            // Update displayPivotPoint since pivotPoint might have updated
+            displayPivotPoint = {
+                (pivotPoint.x * this->canvasZoom) + origin.x,
+                (pivotPoint.y * this->canvasZoom) + origin.y
             };
 
-            // add to hoveringOverSelectedPart
-            hoveringOverSelectedPart |= isPointInPolygon(io.MousePos, polygon, 5);
-        }
-    }
+            // Draw the pivot
+            const bool pivotDrawActive = hoveringOverPivot || movingPivot;
 
-    if (
-        hoveredPartHandle != PartHandle_None &&
-        activePartHandle == PartHandle_None &&
-        draggingLeft
-    ) {
-        activePartHandle = hoveredPartHandle;
+            const uint32_t pivotColor = IM_COL32(72, 82, 163, pivotDrawActive ? 255 : .8f * 255);
+        
+            float pivotDrawRadius = pivotDrawActive ? pivotRadius + 1.f : pivotRadius;
+            constexpr float pivotLineThickness = 2.25f;
 
-        arrangementBeforehand = *arrangementPtr;
+            constexpr float epsilon = 1e-2f;
 
-        newPartSize = ImVec2(
-            arrangementPtr->parts.at(firstSelectedPart).regionW,
-            arrangementPtr->parts.at(firstSelectedPart).regionH
-        );
+            if ((fabs(partsTransformation.pivotX) > epsilon || partsTransformation.pivotY > epsilon) && !partsTransformation.pivotIsWorld) {
+                constexpr uint32_t pivotColorOld = IM_COL32(57, 57, 57, .3f * 255);
+                ImVec2 displayPivotPointOld = {
+                    (partsAnmSpaceCenter.x * this->canvasZoom) + origin.x,
+                    (partsAnmSpaceCenter.y * this->canvasZoom) + origin.y
+                };
 
-        if (hoveredPartHandle == PartHandle_Whole)
-            dragPartOffset = { 0.f, 0.f };
-    }
+                constexpr float pivotRadiusOld = pivotRadius - 1.f;
 
-    if (draggingCanvas && activePartHandle == PartHandle_None)
-        panningCanvas = true;
-
-    if (activePartHandle == PartHandle_Whole) {
-        dragPartOffset.x +=
-            io.MouseDelta.x / ((canvasZoom) + 1.f) /
-            globalAnimatable.getCurrentKey()->transform.scaleX;
-        dragPartOffset.y +=
-            io.MouseDelta.y / ((canvasZoom) + 1.f) /
-            globalAnimatable.getCurrentKey()->transform.scaleY;
-
-        for (const auto& sPart : appState.selectedParts) {
-            const auto& oldTransform = arrangementBeforehand.parts.at(sPart.index).transform;
-            auto& transform = arrangementPtr->parts.at(sPart.index).transform;
-
-            transform.positionX = static_cast<int16_t>(oldTransform.positionX + dragPartOffset.x);
-            transform.positionY = static_cast<int16_t>(oldTransform.positionY + dragPartOffset.y);
-        }
-    }
-
-    bool caseBottom =
-        activePartHandle == PartHandle_Bottom ||
-        activePartHandle == PartHandle_BottomLeft ||
-        activePartHandle == PartHandle_BottomRight;
-    bool caseRight =
-        activePartHandle == PartHandle_Right ||
-        activePartHandle == PartHandle_BottomRight ||
-        activePartHandle == PartHandle_TopRight;
-    bool caseTop =
-        activePartHandle == PartHandle_Top ||
-        activePartHandle == PartHandle_TopLeft ||
-        activePartHandle == PartHandle_TopRight;
-    bool caseLeft =
-        activePartHandle == PartHandle_Left ||
-        activePartHandle == PartHandle_BottomLeft ||
-        activePartHandle == PartHandle_TopLeft;
-
-    float mouseDeltaX = io.MouseDelta.x;
-    float mouseDeltaY = io.MouseDelta.y;
-
-    float lCanvasZoom = this->canvasZoom;
-    auto adjustPartSize = [
-        lCanvasZoom,
-        globalAnimatable
-    ](
-        float& size, float mouseDelta,
-        bool flipped, bool positiveCase,
-        uint16_t regionSize, float* scale,
-        float partBeforeScale,
-        int16_t* position, int16_t partBeforePosition
-    ) {
-        if (flipped ? !positiveCase : positiveCase) {
-            size += mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable.getCurrentKey()->transform.scaleY;
-            *scale = (size / regionSize) + partBeforeScale - 1.f;
-        }
-        else {
-            size -= mouseDelta / (lCanvasZoom + 1.f) / globalAnimatable.getCurrentKey()->transform.scaleY;
-            *scale = (size / regionSize) + partBeforeScale - 1.f;
-            *position = partBeforePosition - (size - regionSize);
-        }
-    };
-
-    if (activePartHandle != PartHandle_None)
-        for (const auto& sPart : appState.selectedParts) {
-            auto& selectedPart = arrangementPtr->parts.at(sPart.index);
-            const auto& partBeforehand = arrangementBeforehand.parts.at(sPart.index);
-
-            bool flippedX = selectedPart.flipX;
-            bool flippedY = selectedPart.flipY;
-
-            if (caseBottom || caseTop) {
-                adjustPartSize(newPartSize.y, mouseDeltaY, flippedY, caseBottom, selectedPart.regionH,
-                    &selectedPart.transform.scaleY, partBeforehand.transform.scaleY,
-                    &selectedPart.transform.positionY, partBeforehand.transform.positionY);
+                drawList->AddCircleFilled(displayPivotPointOld, pivotRadiusOld, pivotColorOld);
+                drawList->AddCircle(displayPivotPointOld, pivotRadiusOld, pivotColorOld, 0, 3.f);
             }
 
-            if (caseRight || caseLeft) {
-                adjustPartSize(newPartSize.x, mouseDeltaX, flippedX, caseRight, selectedPart.regionW,
-                    &selectedPart.transform.scaleX, partBeforehand.transform.scaleX,
-                    &selectedPart.transform.positionX, partBeforehand.transform.positionX);
-            }
+            drawList->AddCircleFilled(displayPivotPoint, pivotDrawRadius, 0xFFFFFFFF);
+            drawList->AddCircle(displayPivotPoint, pivotDrawRadius, 0xFF000000, 0, pivotLineThickness);
         }
 
-    if (
-        activePartHandle == PartHandle_None &&
-        appState.focusOnSelectedPart
-    ) {
-        RvlCellAnim::Arrangement newArrange = *arrangementPtr;
-        for (const auto& sPart : appState.selectedParts) {
-            RvlCellAnim::ArrangementPart& part = newArrange.parts.at(sPart.index);
-            
-            bool flipX = globalAnimatable.getCurrentKey()->transform.scaleX < 0.f;
-            bool flipY = globalAnimatable.getCurrentKey()->transform.scaleY < 0.f;
-
-            GET_SESSION_MANAGER;
-
-            const int shiftSpeed = 2;
-
-            const int left = (flipX ? +1 : -1);
-            const int up = (flipY ? +1 : -1);
-
-            // Left
-            if (ImGui::Shortcut(ImGuiKey_LeftArrow | ImGuiMod_Shift, ImGuiInputFlags_Repeat))
-                part.transform.positionX += left * shiftSpeed;
-            else if (ImGui::Shortcut(ImGuiKey_LeftArrow, ImGuiInputFlags_Repeat))
-                part.transform.positionX += left;
-
-            // Right
-            if (ImGui::Shortcut(ImGuiKey_RightArrow | ImGuiMod_Shift, ImGuiInputFlags_Repeat))
-                part.transform.positionX += -left * shiftSpeed;
-            else if (ImGui::Shortcut(ImGuiKey_RightArrow, ImGuiInputFlags_Repeat))
-                part.transform.positionX += -left;
-
-            // Up
-            if (ImGui::Shortcut(ImGuiKey_UpArrow | ImGuiMod_Shift, ImGuiInputFlags_Repeat))
-                part.transform.positionY += up * shiftSpeed;
-            else if (ImGui::Shortcut(ImGuiKey_UpArrow, ImGuiInputFlags_Repeat))
-                part.transform.positionY += up;
-
-            // Down
-            if (ImGui::Shortcut(ImGuiKey_DownArrow | ImGuiMod_Shift, ImGuiInputFlags_Repeat))
-                part.transform.positionY += -up * shiftSpeed;
-            else if (ImGui::Shortcut(ImGuiKey_DownArrow, ImGuiInputFlags_Repeat))
-                part.transform.positionY += -up;
-        }
-
-        if (newArrange != *arrangementPtr) {
-            GET_SESSION_MANAGER;
-
-            sessionManager.getCurrentSession()->executeCommand(
-                std::make_shared<CommandModifyArrangement>(
-                    sessionManager.getCurrentSession()->currentCellanim,
-                    globalAnimatable.getCurrentKey()->arrangementIndex,
-                    newArrange
-                )
-            );
-        }
+        this->DrawCanvasText();
     }
 
-    if (panningCanvas) {
-        this->canvasOffset.x += io.MouseDelta.x;
-        this->canvasOffset.y += io.MouseDelta.y;
-    }
-
-    if (interactionDeactivated) {
-        if (panningCanvas)
-            panningCanvas = false;
-        else if (activePartHandle != PartHandle_None) { // Submit command
-            GET_SESSION_MANAGER;
-            GET_ANIMATABLE;
-
-            //RvlCellAnim::ArrangementPart newPart = arrangementPtr->parts.at(firstSelectedPart);
-            //arrangementPtr->parts.at(firstSelectedPart) = partBeforeInteraction;
-
-            std::swap(*arrangementPtr, arrangementBeforehand);
-
-            sessionManager.getCurrentSession()->executeCommand(
-                std::make_shared<CommandModifyArrangement>(
-                    sessionManager.getCurrentSession()->currentCellanim,
-                    globalAnimatable.getCurrentKey()->arrangementIndex,
-                    arrangementBeforehand
-                )
-            );
-
-            activePartHandle = PartHandle_None;
-        }
-        else if (!hoveringOverSelectedPart) {
-            appState.clearSelectedParts();
-        }
-    }
-
-    // Canvas zooming
-    {
-        const float maxZoom = 9.f;
-        const float minZoom = -.90f;
-
-        if (interactionHovered) {
-            GET_IMGUI_IO;
-
-            if (io.KeyShift)
-                this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
-            else
-                this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED;
-
-            if (this->canvasZoom < minZoom)
-                this->canvasZoom = minZoom;
-
-            if (this->canvasZoom > maxZoom)
-                this->canvasZoom = maxZoom;
-        }
-    }
+    if (partsTransformation.active)
+        arrangement = arrangementBeforeMutation;
 
     ImGui::End();
 }
 
 void WindowCanvas::DrawCanvasText() {
-    uint32_t textColor { 0xFF000000 };
+    uint32_t textColor { 0xFF000000 }; // Black
     switch (this->gridType) {
         case GridType_None:
-            textColor = AppState::getInstance().getDarkThemeEnabled() ? IM_COL32_WHITE : IM_COL32_BLACK;
+            // White or Black
+            textColor = AppState::getInstance().getDarkThemeEnabled() ? 0xFFFFFFFF : 0xFF000000;
             break;
 
         case GridType_Dark:
-            textColor = IM_COL32_WHITE;
+            textColor = 0xFFFFFFFF; // White
             break;
 
         case GridType_Light:
-            textColor = IM_COL32_BLACK;
+            textColor = 0xFF000000; // Black
             break;
 
         case GridType_Custom: {
-            float lumi = .2126f * customGridColor.x + .7152f * customGridColor.y + .0722f * customGridColor.z;
+            const float lumi =
+                .2126f * customGridColor.x +
+                .7152f * customGridColor.y +
+                .0722f * customGridColor.z;
             if (lumi > .5f)
-                textColor = IM_COL32_BLACK;
+                textColor = 0xFF000000; // Black
             else
-                textColor = IM_COL32_WHITE;
+                textColor = 0xFFFFFFFF; // White
         } break;
 
         default:
@@ -892,40 +1015,51 @@ void WindowCanvas::DrawCanvasText() {
     GET_WINDOW_DRAWLIST;
 
     if ((this->canvasOffset.x != 0.f) || (this->canvasOffset.y != 0.f)) {
-        std::ostringstream fmtStream;
-        fmtStream <<
-            "Offset: " <<
-            std::to_string(this->canvasOffset.x) << ", " <<
-            std::to_string(this->canvasOffset.y);
+        std::string str;
+        {
+            std::ostringstream fmtStream;
+            fmtStream <<
+                "Offset: " <<
+                std::to_string(this->canvasOffset.x) << ", " <<
+                std::to_string(this->canvasOffset.y);
+            
+            str = fmtStream.str();
+        }
 
         drawList->AddText(
-            { this->canvasTopLeft.x + 10, textDrawHeight },
-            textColor, fmtStream.str().c_str()
+            // TODO replace 10.f with constant
+            { this->canvasTopLeft.x + 10.f, textDrawHeight },
+            textColor, str.c_str()
         );
 
-        textDrawHeight += 3.f + ImGui::CalcTextSize(fmtStream.str().c_str()).y;
+        textDrawHeight += 3.f + ImGui::CalcTextSize(str.c_str()).y;
     }
 
-    if (this->canvasZoom != 0.f) {
-        std::ostringstream fmtStream;
-        fmtStream <<
-            "Zoom: " <<
-            std::to_string(static_cast<uint16_t>((this->canvasZoom + 1) * 100)) <<
-            "% (hold [Shift] to zoom faster)";
+    if (this->canvasZoom != 1.f) {
+        std::string str;
+        {
+            std::ostringstream fmtStream;
+            fmtStream <<
+                "Zoom: " <<
+                std::to_string(static_cast<int>(this->canvasZoom * 100.f)) <<
+                "% (hold [Shift] to zoom faster)";
+
+            str = fmtStream.str();
+        }
 
         drawList->AddText(
-            { this->canvasTopLeft.x + 10, textDrawHeight },
-            textColor, fmtStream.str().c_str()
+            { this->canvasTopLeft.x + 10.f, textDrawHeight },
+            textColor, str.c_str()
         );
 
-        textDrawHeight += 3.f + ImGui::CalcTextSize(fmtStream.str().c_str()).y;
+        textDrawHeight += 3.f + ImGui::CalcTextSize(str.c_str()).y;
     }
 
     if (!AppState::getInstance().globalAnimatable.getDoesDraw(this->allowOpacity)) {
         const char* text = "Nothing to draw on this frame";
 
         drawList->AddText(
-            { this->canvasTopLeft.x + 10, textDrawHeight },
+            { this->canvasTopLeft.x + 10.f, textDrawHeight },
             textColor, text
         );
 

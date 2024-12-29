@@ -22,7 +22,7 @@ public:
 
     bool   allowOpacity { true };
 
-    float  canvasZoom { 0.f };
+    float  canvasZoom { 1.f };
 
     enum GridType {
         GridType_None,
@@ -34,7 +34,7 @@ public:
     ImVec4 customGridColor { 1.f, 1.f, 1.f, 1.f };
     bool   enableGridLines { true };
 
-    bool    visualizeSafeArea { false };
+    bool    showSafeArea { false };
     uint8_t safeAreaAlpha { 255 };
 
 private:

@@ -94,7 +94,9 @@ public:
         int selectionOrder;
 
         bool operator==(const SelectedPart& other) const {
-            return index == other.index && selectionOrder == other.selectionOrder;
+            return
+                index == other.index &&
+                selectionOrder == other.selectionOrder;
         }
         bool operator!=(const SelectedPart& other) const {
             return !(*this == other);
@@ -173,7 +175,6 @@ public:
                 }
             }
             else if (req.Type == ImGuiSelectionRequestType_SetRange) {
-                //const int selectionChanges = (int)req.RangeLastItem - (int)req.RangeFirstItem + 1;
                 const unsigned selectionChanges = req.RangeLastItem - req.RangeFirstItem + 1;
 
                 if (selectionChanges == 1 || selectionChanges < unsigned(selectedParts.size() / 100)) {
