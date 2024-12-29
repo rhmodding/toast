@@ -144,58 +144,42 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
     std::vector<unsigned char> destination(decompressedSize);
 
-    const unsigned char* const dataEnd = data + dataSize;
+    const unsigned char* srcByte = data + sizeof(Yaz0Header);
 
-    const unsigned char* currentByte = data + sizeof(Yaz0Header);
+    const unsigned char* dstStart = destination.data();
+    const unsigned char* dstEnd = destination.data() + decompressedSize;
 
-    unsigned destOffset { 0 };
+    uint8_t headerByte, code = 0;
 
-    unsigned bitsLeft { 0 };
-    uint8_t headerByte { 0 };
-
-    while (destOffset < decompressedSize) {
-        // All bits read from prev header byte; get next header byte.
-        if (bitsLeft == 0) {
-            headerByte = *(currentByte++);
-            bitsLeft = 8;
+    for (
+        unsigned char* dstByte = destination.data();
+        dstByte < dstEnd; code >>= 1
+    ) {
+        if (!code) {
+            code = 0x80;
+            headerByte = *(srcByte++);
         }
 
-        if (UNLIKELY(currentByte >= dataEnd)) {
-            std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: the read offset is larger than the data size!\n";
-            std::cerr << "[Yaz0::decompress] The Yaz0 binary might be corrupted.\n";
-            return std::nullopt; // return nothing (std::optional)
-        }
+        if (headerByte & code)
+            *(dstByte++) = *(srcByte++);
+        else {
+            int distToDest = (*srcByte << 8) | *(srcByte + 1);
+            srcByte += 2;
+            int runSrcIdx = (dstByte - dstStart) - (distToDest & 0xfff);
 
-        if ((headerByte & (1 << 7)) != 0) { // Bit set: Copy one byte directly.
-            destination[destOffset++] = *(currentByte++);
-        }
-        else { // Bit not set: Run-length encoding.
-            uint8_t byteA = *(currentByte++);
-            uint8_t byteB = *(currentByte++);
+            int runLen = ((distToDest >> 12) == 0) ?
+                *(srcByte++) + 0x12 :
+                (distToDest >> 12) + 2;
 
-            unsigned dist = ((byteA & 0xF) << 8) | byteB;
+            for (; runLen > 0; runLen--, dstByte++, runSrcIdx++) {
+                if (dstByte >= dstEnd) {
+                    std::cout << "[Yaz0::decompress] The Yaz0 data is malformed. The binary might be corrupted.\n";
+                    return std::nullopt;
+                }
 
-            int copySource = destOffset - (dist + 1);
-
-            if (UNLIKELY(copySource < 0)) {
-                std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: the destination offset is out of bounds (negative)!\n";
-                std::cerr << "[Yaz0::decompress] The Yaz0 binary might be corrupted.\n";
-                return std::nullopt; // return nothing (std::optional)
+                *dstByte = destination.data()[runSrcIdx - 1];
             }
-
-            unsigned numBytes = byteA >> 4;
-            if (numBytes == 0)
-                numBytes = *(currentByte++) + 0x12;
-            else
-                numBytes += 2;
-
-            for (unsigned i = 0; i < numBytes && destOffset < decompressedSize; i++)
-                destination[destOffset++] = destination[copySource++];
         }
-
-        // Shift over to next bit.
-        headerByte <<= 1;
-        bitsLeft--;
     }
 
     return destination;
