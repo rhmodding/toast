@@ -21,7 +21,7 @@ const char* consoleSplash =
 "       See the GNU General Public License for    " "\n"
 "                    more details.                " "\n"
 "                                                 " "\n"
-"            copyright \xC2\xA9 2024 conhlee           " "\n"
+"            copyright \xC2\xA9 2025 conhlee           " "\n"
 "                                                 " "\n"
 "         https://github.com/conhlee/toast        "
 ;
