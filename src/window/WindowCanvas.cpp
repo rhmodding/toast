@@ -371,7 +371,12 @@ void WindowCanvas::Update() {
         float rotation { 0.f };
 
         float pivotX { 0.f }, pivotY { 0.f };
-        bool pivotIsWorld { false }; // Is the pivot fixed to the world or is it local?
+
+        // Pivot can either be in world-space or local-space (relative to selection center)
+        bool pivotIsWorld { false };
+
+        bool canScaleHorizontally { true };
+        bool canScaleVertically { true };
     };
     static PartsTransformation partsTransformation;
 
@@ -446,6 +451,47 @@ void WindowCanvas::Update() {
     bool hoveringOverParts { false };
     if (interactionHovered && !noParts)
         hoveringOverParts = pointInPolygon(io.MousePos, partsBounding.data(), 4);
+    
+    // Top-left, top-right, bottom-right, bottom-left, top, right, bottom, left
+    bool hoveringTransformHandles[8];
+    // We can't use hoveringOverParts because the handles hang off the edge.
+    if (interactionHovered && !noParts) {
+        constexpr float hoverRadius = 7.5f;
+
+        // Corners
+        for (unsigned i = 0; i < 4; i++) {
+            const ImVec2& center = partsBounding[i];
+
+            ImVec2 p1 (
+                -hoverRadius + center.x,
+                -hoverRadius + center.y
+            );
+            ImVec2 p3 (
+                hoverRadius + center.x,
+                hoverRadius + center.y
+            );
+
+            hoveringTransformHandles[i] = ImGui::IsMouseHoveringRect(p1, p3);
+        }
+        // Sides
+        for (unsigned i = 0; i < 4; i++) {
+            const ImVec2& pointA = partsBounding[i];
+            const ImVec2& pointB = partsBounding[(i + 1) % 4];
+
+            const ImVec2 center = AVERAGE_IMVEC2_ROUND(pointA, pointB);
+
+            ImVec2 p1 (
+                -hoverRadius + center.x,
+                -hoverRadius + center.y
+            );
+            ImVec2 p3 (
+                hoverRadius + center.x,
+                hoverRadius + center.y
+            );
+
+            hoveringTransformHandles[4 + i] = ImGui::IsMouseHoveringRect(p1, p3);
+        }
+    }
 
     ImVec2 pivotPoint;
     if (partsTransformation.pivotIsWorld) {
@@ -481,6 +527,12 @@ void WindowCanvas::Update() {
 
     // Start parts transformation, canvas panning or pivot moving
     if (draggingCanvas && !panningCanvas && !partsTransformation.active && !movingPivot) {
+        const bool hoveringAnyTransformHandle =
+            hoveringTransformHandles[0] || hoveringTransformHandles[1] ||
+            hoveringTransformHandles[2] || hoveringTransformHandles[3] ||
+            hoveringTransformHandles[4] || hoveringTransformHandles[5] ||
+            hoveringTransformHandles[6] || hoveringTransformHandles[7];
+
         if (hoveringOverPivot) {
             movingPivot = true;
 
@@ -489,6 +541,28 @@ void WindowCanvas::Update() {
             pivotBeforeMoveWorld[0] = pivotPoint.x;
             pivotBeforeMoveWorld[1] = pivotPoint.y;
         }
+        else if (hoveringAnyTransformHandle) {
+            pivotBeforeMoveLocal[0] = partsTransformation.pivotX;
+            pivotBeforeMoveLocal[1] = partsTransformation.pivotY;
+            pivotBeforeMoveWorld[0] = pivotPoint.x;
+            pivotBeforeMoveWorld[1] = pivotPoint.y;
+
+            partsTransformation = PartsTransformation {
+                .type = PartsTransformType_Scale,
+                .active = true,
+
+                .pivotX = pivotPoint.x,
+                .pivotY = pivotPoint.y,
+                .pivotIsWorld = true,
+
+                .canScaleHorizontally =
+                    (!hoveringTransformHandles[4] && !hoveringTransformHandles[6]),
+                .canScaleVertically =
+                    (!hoveringTransformHandles[5] && !hoveringTransformHandles[7]),
+            };
+
+            arrangementBeforeMutation = arrangement;
+        }
         else if (hoveringOverParts) {
             pivotBeforeMoveLocal[0] = partsTransformation.pivotX;
             pivotBeforeMoveLocal[1] = partsTransformation.pivotY;
@@ -496,7 +570,7 @@ void WindowCanvas::Update() {
             pivotBeforeMoveWorld[1] = pivotPoint.y;
 
             partsTransformation = PartsTransformation {
-                .type = PartsTransformType_Scale, // TODO
+                .type = PartsTransformType_Translate, // TODO
                 .active = true,
 
                 .pivotX = pivotPoint.x,
@@ -635,6 +709,11 @@ void WindowCanvas::Update() {
 
             if (part.editorLocked)
                 continue;
+
+            if (!partsTransformation.canScaleHorizontally)
+                partsTransformation.scaleX = 1.f;
+            if (!partsTransformation.canScaleVertically)
+                partsTransformation.scaleY = 1.f;
 
             // Obtain key transformation values
             float keyScaleX = globalAnimatable.getCurrentKey()->transform.scaleX;
