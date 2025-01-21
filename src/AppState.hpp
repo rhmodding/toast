@@ -32,6 +32,11 @@ class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>; // Allow access to base class constructor
 
 private:
+    AppState() = default;
+public:
+    ~AppState() = default;
+
+private:
     std::array<float, 4> windowClearColor;
 public:
     bool getDarkThemeEnabled() const {
@@ -320,10 +325,6 @@ private:
             }
         }
     }
-
-private:
-    AppState() {} // Private constructor to prevent instantiation
-    ~AppState() {}
 };
 
 #endif // APPSTATE_HPP

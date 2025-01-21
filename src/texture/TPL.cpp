@@ -408,35 +408,35 @@ GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
     GLint magFilter { GL_LINEAR };
 
     switch (tplTexture.minFilter) {
-        case TPL::TPL_TEX_FILTER_NEAR:
-            minFilter = GL_NEAREST;
-            break;
-        case TPL::TPL_TEX_FILTER_LINEAR:
-            break;
-        case TPL::TPL_TEX_FILTER_NEAR_MIP_NEAR:
-            minFilter = GL_NEAREST_MIPMAP_NEAREST;
-            break;
-        case TPL::TPL_TEX_FILTER_LIN_MIP_NEAR:
-            minFilter = GL_LINEAR_MIPMAP_NEAREST;
-            break;
-        case TPL::TPL_TEX_FILTER_NEAR_MIP_LIN:
-            minFilter = GL_NEAREST_MIPMAP_LINEAR;
-            break;
-        case TPL::TPL_TEX_FILTER_LIN_MIP_LIN:
-            minFilter = GL_LINEAR_MIPMAP_LINEAR;
-            break;
-        default:
-            break;
+    case TPL::TPL_TEX_FILTER_NEAR:
+        minFilter = GL_NEAREST;
+        break;
+    case TPL::TPL_TEX_FILTER_LINEAR:
+        break;
+    case TPL::TPL_TEX_FILTER_NEAR_MIP_NEAR:
+        minFilter = GL_NEAREST_MIPMAP_NEAREST;
+        break;
+    case TPL::TPL_TEX_FILTER_LIN_MIP_NEAR:
+        minFilter = GL_LINEAR_MIPMAP_NEAREST;
+        break;
+    case TPL::TPL_TEX_FILTER_NEAR_MIP_LIN:
+        minFilter = GL_NEAREST_MIPMAP_LINEAR;
+        break;
+    case TPL::TPL_TEX_FILTER_LIN_MIP_LIN:
+        minFilter = GL_LINEAR_MIPMAP_LINEAR;
+        break;
+    default:
+        break;
     }
 
     switch (tplTexture.magFilter) {
-        case TPL::TPL_TEX_FILTER_NEAR:
-            magFilter = GL_NEAREST;
-            break;
-        case TPL::TPL_TEX_FILTER_LINEAR:
-            break;
-        default:
-            break;
+    case TPL::TPL_TEX_FILTER_NEAR:
+        magFilter = GL_NEAREST;
+        break;
+    case TPL::TPL_TEX_FILTER_LINEAR:
+        break;
+    default:
+        break;
     }
 
     MtCommandManager::getInstance().enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {

@@ -52,35 +52,12 @@
 
 #include "common.hpp"
 
+// macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
 #include "_binary/images/toastIcon.png.h"
 #endif // !defined(__APPLE__)
 
 App* gAppPtr { nullptr };
-
-void App::AttemptExit(bool force) {
-    GET_SESSION_MANAGER;
-
-    if (!force)
-        for (unsigned i = 0; i < sessionManager.sessionList.size(); i++) {
-            if (sessionManager.sessionList[i].modified) {
-                Popups::_openExitWithChangesPopup = true;
-
-                return; // Cancel
-            }
-        }
-
-    GET_CONFIG_MANAGER;
-
-    ConfigManager::Config config = configManager.getConfig();
-
-    glfwGetWindowSize(window, &config.lastWindowWidth, &config.lastWindowHeight);
-
-    configManager.setConfig(config);
-    configManager.Save();
-
-    this->running = false;
-}
 
 App::App(int argc, const char** argv) {
     gAppPtr = this;
@@ -94,6 +71,13 @@ App::App(int argc, const char** argv) {
         std::cerr << "[App:App] Failed to init GLFW!\n";
         __builtin_trap();
     }
+
+    MtCommandManager::createSingleton();
+    AsyncTaskManager::createSingleton();
+    AppState::createSingleton();
+    ConfigManager::createSingleton();
+    PlayerManager::createSingleton();
+    SessionManager::createSingleton();
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
     // GL ES 2.0 + GLSL 100
@@ -118,40 +102,44 @@ App::App(int argc, const char** argv) {
 #endif // defined(__APPLE__), defined(IMGUI_IMPL_OPENGL_ES2)
 
     GET_CONFIG_MANAGER;
-    configManager.Load();
+    configManager.LoadConfig();
 
-    this->window = glfwCreateWindow(
+    this->glfwWindowHndl = glfwCreateWindow(
         configManager.getConfig().lastWindowWidth,
         configManager.getConfig().lastWindowHeight,
         WINDOW_TITLE,
         nullptr, nullptr
     );
 
-    if (!this->window) {
-        std::cerr << "[App::App] Window failed to init!\n";
+    if (!this->glfwWindowHndl) {
+        std::cerr << "[App::App] glfwCreateWindow failed!\n";
         glfwTerminate();
         __builtin_trap();
     }
 
-    glfwSetWindowCloseCallback(this->window, [](GLFWwindow*) {
+    glfwSetWindowCloseCallback(this->glfwWindowHndl, [](GLFWwindow*) {
         extern App* gAppPtr;
         gAppPtr->AttemptExit();
     });
 
-    glfwMakeContextCurrent(this->window);
+    glfwMakeContextCurrent(this->glfwWindowHndl);
     //glfwSwapInterval(1); // Enable vsync
 
-    // Icon
+    // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
     GLFWimage windowIcon;
     windowIcon.pixels = stbi_load_from_memory(toastIcon_png, toastIcon_png_size, &windowIcon.width, &windowIcon.height, nullptr, 4);
 
     glfwSetWindowIcon(window, 1, &windowIcon);
+
+    // glfwSetWindowIcon copies the image data before it returns, so we can
+    // safely free.
     stbi_image_free(windowIcon.pixels);
 #endif // !defined(__APPLE__)
 
-    // Setup Dear ImGui context
+#ifndef NDEBUG
     IMGUI_CHECKVERSION();
+#endif
 
     ImGui::CreateContext();
 
@@ -161,9 +149,7 @@ App::App(int argc, const char** argv) {
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
 
-    GET_APP_STATE;
-
-    appState.applyTheming();
+    AppState::getInstance().applyTheming();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
@@ -191,7 +177,7 @@ App::App(int argc, const char** argv) {
     style.WindowTitleAlign.y = .5f;
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(this->window, true);
+    ImGui_ImplGlfw_InitForOpenGL(this->glfwWindowHndl, true);
     ImGui_ImplOpenGL3_Init(glslVersion);
 
     this->SetupFonts();
@@ -205,14 +191,61 @@ App::App(int argc, const char** argv) {
 }
 
 App::~App() {
-    glfwMakeContextCurrent(this->window);
+    glfwMakeContextCurrent(this->glfwWindowHndl);
+
+    windowCanvas.Destroy();
+    windowHybridList.Destroy();
+    windowInspector.Destroy();
+    windowTimeline.Destroy();
+    windowSpritesheet.Destroy();
+
+    windowConfig.Destroy();
+    windowAbout.Destroy();
+
+    windowDemo.Destroy();
+
+    AppState::destroySingleton();
+    SessionManager::destroySingleton();
+    ConfigManager::destroySingleton();
+    PlayerManager::destroySingleton();
+    AsyncTaskManager::destroySingleton();
+
+    // Fulfill MtCommands MtCommands submitted by dtors (if any.)
+    MtCommandManager::getInstance().Update();
+
+    MtCommandManager::destroySingleton();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(this->glfwWindowHndl);
     glfwTerminate();
+}
+
+void App::AttemptExit(bool force) {
+    GET_SESSION_MANAGER;
+
+    if (!force) {
+        for (unsigned i = 0; i < sessionManager.sessionList.size(); i++) {
+            if (sessionManager.sessionList[i].modified) {
+                Popups::_openExitWithChangesPopup = true;
+
+                return; // Cancel
+            }
+        }
+    }
+
+    GET_CONFIG_MANAGER;
+
+    Config config = configManager.getConfig();
+
+    glfwGetWindowSize(this->glfwWindowHndl, &config.lastWindowWidth, &config.lastWindowHeight);
+
+    configManager.setConfig(config);
+    configManager.SaveConfig();
+
+    this->running = false;
 }
 
 void App::SetupFonts() {
@@ -263,14 +296,14 @@ void App::Menubar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
             if (ImGui::MenuItem((const char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
-                this->windowAbout.window.get()->open = true;
+                this->windowAbout.windowInstance->open = true;
                 ImGui::SetWindowFocus("About");
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem((const char*)ICON_FA_WRENCH " Config", "", nullptr)) {
-                this->windowConfig.window.get()->open = true;
+                this->windowConfig.windowInstance->open = true;
                 ImGui::SetWindowFocus("Config");
             }
 
@@ -664,8 +697,8 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Dear ImGui demo window", "", this->windowDemo.window.get()->open))
-                this->windowDemo.window.get()->open ^= true;
+            if (ImGui::MenuItem("Dear ImGui demo window", "", this->windowDemo.windowInstance->open))
+                this->windowDemo.windowInstance->open ^= true;
 
             ImGui::EndMenu();
         }
@@ -764,8 +797,6 @@ void App::Menubar() {
 }
 
 void App::Update() {
-    GET_APP_STATE;
-
     // Update rate
     {
         static std::chrono::system_clock::time_point a { std::chrono::system_clock::now() };
@@ -785,9 +816,7 @@ void App::Update() {
         b = std::chrono::system_clock::now();
     }
 
-    static ImGuiIO& io { ImGui::GetIO() };
-
-    glfwMakeContextCurrent(this->window);
+    glfwMakeContextCurrent(this->glfwWindowHndl);
 
     glfwPollEvents();
 
@@ -829,9 +858,9 @@ void App::Update() {
             ImGui::DockSpace(ImGui::GetID("mainDockspace"), { 0.f, 0.f }, dockspaceFlags);
     }
 
-    this->Menubar();
-
     Shortcuts::Handle();
+
+    this->Menubar();
 
     if (SessionManager::getInstance().getSessionAvaliable()) {
         PlayerManager::getInstance().Update();
@@ -849,24 +878,25 @@ void App::Update() {
 
     this->windowDemo.Update();
 
-    AsyncTaskManager::getInstance().UpdateTasks();
-
-    MtCommandManager::getInstance().Update();
-
     Popups::Update();
 
     // End main window
     ImGui::End();
 
-    // Render
+    AsyncTaskManager::getInstance().UpdateTasks();
+
+    MtCommandManager::getInstance().Update();
+}
+
+void App::Draw() {
     ImGui::Render();
 
     int framebufferSize[2];
-    glfwGetFramebufferSize(this->window, framebufferSize + 0, framebufferSize + 1);
+    glfwGetFramebufferSize(this->glfwWindowHndl, framebufferSize + 0, framebufferSize + 1);
 
     glViewport(0, 0, framebufferSize[0], framebufferSize[1]);
 
-    const auto& clearColor = appState.getWindowClearColor();
+    const auto& clearColor = AppState::getInstance().getWindowClearColor();
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 
     glClear(GL_COLOR_BUFFER_BIT);
@@ -874,7 +904,7 @@ void App::Update() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     // Update and Render additional Platform Windows
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         GLFWwindow* backupCurrentContext = glfwGetCurrentContext();
 
         ImGui::UpdatePlatformWindows();
@@ -883,5 +913,5 @@ void App::Update() {
         glfwMakeContextCurrent(backupCurrentContext);
     }
 
-    glfwSwapBuffers(this->window);
+    glfwSwapBuffers(this->glfwWindowHndl);
 }

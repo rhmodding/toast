@@ -30,6 +30,14 @@
 class SessionManager : public Singleton<SessionManager> {
     friend class Singleton<SessionManager>; // Allow access to base class constructor
 
+private:
+    SessionManager() = default;
+public:
+    ~SessionManager() = default;
+
+private:
+    std::mutex mtx;
+
 public:
     struct Session {
         struct CellanimData {
@@ -142,11 +150,6 @@ public:
     void FreeSessionIndex(int index);
 
     void FreeAllSessions();
-
-private:
-    std::mutex mtx;
-
-    SessionManager() {} // Private constructor to prevent instantiation
 };
 
 #endif // SESSIONMANAGER_HPP

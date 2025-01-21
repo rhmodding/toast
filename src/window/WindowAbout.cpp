@@ -7,25 +7,38 @@
 
 #include <sstream>
 
+#include <thread>
+
 #include "../font/FontAwesome.h"
 
 #include "../_binary/images/toastIcon_title.png.h"
 
 #include "../AppState.hpp"
 
-const static char* headerTitle = "toast";
-const static char* headerDesc  = "the ultimate cellanim modding tool for\nRhythm Heaven Fever / Beat the Beat: Rhythm Paradise";
+static const char* headerTitle = "toast";
+static const char* headerDesc  =
+    "the ultimate cellanim modding tool for\n"
+    "Rhythm Heaven Fever / Beat the Beat: Rhythm Paradise";
 
-const static char* githubButton  = (const char*)ICON_FA_CODE "";
-const static char* githubTooltip = "Open GitHub page..";
-const static char* githubLink    = "https://github.com/conhlee/toast";
+static const char* githubButton  = (const char*)ICON_FA_CODE "";
+static const char* githubTooltip = "Open GitHub page..";
+
+static const char* githubURLCmd =
+#ifdef _WIN32
+    "start "
+#elif __APPLE__
+    "open "
+#else
+    "xdg-open "
+#endif // __APPLE__, _WIN32
+    "https://github.com/conhlee/toast";
 
 enum CreditsLineCommand {
     ClcEmptyLine,
     ClcNextRow,
     ClcNextColumn,
 
-    ClcAddString,
+    ClcStringLine,
 
     ClcSeparator
 };
@@ -37,44 +50,42 @@ struct CreditsLine {
 static const CreditsLine creditStrings[] = {
     { ClcSeparator },
 
-    { ClcAddString, (const char*)ICON_FA_WRENCH "  Initial testing" },
+    { ClcStringLine, (const char*)ICON_FA_WRENCH "  Initial testing" },
     { ClcEmptyLine },
 
-    { ClcAddString, "Placeholder" },
-    { ClcAddString, "Placeholder Placeholder" },
-    { ClcAddString, "Placeholder" },
-    { ClcAddString, "Placeholder Placeholder" },
+    { ClcStringLine, "Placeholder" },
+    { ClcStringLine, "Placeholder Placeholder" },
+    { ClcStringLine, "Placeholder" },
+    { ClcStringLine, "Placeholder Placeholder" },
 
     { ClcNextRow },
 
-    { ClcAddString, (const char*)ICON_FA_FILE_CODE "  Open-source software used / referenced" },
+    { ClcStringLine, (const char*)ICON_FA_FILE_CODE "  Open-source software used / referenced" },
     { ClcEmptyLine },
 
-    { ClcAddString, "Dear ImGui (ocornut/imgui) [MIT]" },
-    { ClcAddString, "GLFW [Zlib]" },
-    { ClcAddString, "tinyfiledialogs [Zlib]" },
-    { ClcAddString, "json (nlohmann/json) [MIT]" },
-    { ClcAddString, "zlib-ng [Zlib]" },
-    { ClcAddString, "syaz0 (zeldamods/syaz0) [GPL-2.0]" },
+    { ClcStringLine, "Dear ImGui (ocornut/imgui) [MIT]" },
+    { ClcStringLine, "GLFW [Zlib]" },
+    { ClcStringLine, "tinyfiledialogs [Zlib]" },
+    { ClcStringLine, "json (nlohmann/json) [MIT]" },
+    { ClcStringLine, "zlib-ng [Zlib]" },
+    { ClcStringLine, "syaz0 (zeldamods/syaz0) [GPL-2.0]" },
 
     { ClcNextColumn },
 
-    { ClcAddString, (const char*)ICON_FA_STAR "  Special thanks" },
+    { ClcStringLine, (const char*)ICON_FA_STAR "  Special thanks" },
     { ClcEmptyLine },
-    { ClcAddString, "github:chrislo27" },
-    { ClcAddString, "github:patataofcourse" },
-    { ClcAddString, "github:TheAlternateDoctor" },
+    { ClcStringLine, "Chrislo (a.k.a. chrislo27)" },
+    { ClcStringLine, "patataofcourse" },
+    { ClcStringLine, "TheAlternateDoctor" },
 };
 
 void WindowAbout::Update() {
     if (!this->open)
         return;
 
-    static bool imageLoaded { false };
-
-    if (!imageLoaded) {
+    if (!this->imageLoaded) {
         image.LoadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
-        imageLoaded = true;
+        this->imageLoaded = true;
     }
 
     CENTER_NEXT_WINDOW;
@@ -132,20 +143,9 @@ void WindowAbout::Update() {
     drawList->AddText(textPosition, ImGui::GetColorU32(ImGuiCol_Text), headerDesc);
 
     if (ImGui::Button(githubButton, { 30.f, 30.f })) {
-        char buf[256];
-
-        snprintf(buf, sizeof(buf), "%s %s",
-    #ifdef _WIN32
-            "start ",
-    #elif __APPLE__
-            "open ",
-    #else
-            "xdg-open ",
-    #endif // __APPLE__, _WIN32
-            githubLink
-        );
-
-        std::system(buf);
+        std::thread([]() {
+            std::system(githubURLCmd);
+        }).detach();
     }
 
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
@@ -161,48 +161,48 @@ void WindowAbout::Update() {
 
     for (unsigned i = 0; i < ARRAY_LENGTH(creditStrings); i++) {
         switch (creditStrings[i].command) {
-            case ClcSeparator: {
-                textPosition.y += ImGui::GetTextLineHeight();
+        case ClcSeparator: {
+            textPosition.y += ImGui::GetTextLineHeight();
 
-                const ImRect bounding(
-                    {
-                        textPosition.x, textPosition.y + additiveLineHeight -
-                        ( ImGui::GetTextLineHeight() / 2.f )
-                    },
-                    {
-                        window->WorkRect.Max.x - 25.f, textPosition.y + additiveLineHeight -
-                        ( ImGui::GetTextLineHeight() / 2.f ) + 1.f
-                    }
-                );
+            const ImRect bounding(
+                {
+                    textPosition.x, textPosition.y + additiveLineHeight -
+                    ( ImGui::GetTextLineHeight() / 2.f )
+                },
+                {
+                    window->WorkRect.Max.x - 25.f, textPosition.y + additiveLineHeight -
+                    ( ImGui::GetTextLineHeight() / 2.f ) + 1.f
+                }
+            );
 
-                drawList->AddRectFilled(bounding.Min, bounding.Max, ImGui::GetColorU32(ImGuiCol_Separator));
-            } continue;
+            drawList->AddRectFilled(bounding.Min, bounding.Max, ImGui::GetColorU32(ImGuiCol_Separator));
+        } continue;
 
-            case ClcNextRow: {
-                additiveLineX += totalLineWidth + 25.f;
-                totalLineWidth = 0.f;
+        case ClcNextRow: {
+            additiveLineX += totalLineWidth + 25.f;
+            totalLineWidth = 0.f;
 
-                additiveLineHeight = 0.f;
-            } continue;
+            additiveLineHeight = 0.f;
+        } continue;
 
-            case ClcNextColumn: {
-                textPosition.y += additiveLineHeight + ImGui::GetTextLineHeight() + 6.f;
-                additiveLineHeight = 0.f;
+        case ClcNextColumn: {
+            textPosition.y += additiveLineHeight + ImGui::GetTextLineHeight() + 6.f;
+            additiveLineHeight = 0.f;
 
-                totalLineWidth = 0.f;
+            totalLineWidth = 0.f;
 
-                additiveLineX = 0.f;
-            } continue;
+            additiveLineX = 0.f;
+        } continue;
 
-            case ClcAddString: {
-                drawList->AddText(
-                    { textPosition.x + additiveLineX, textPosition.y + additiveLineHeight },
-                    ImGui::GetColorU32(ImGuiCol_Text), creditStrings[i].string
-                );
-            } break;
+        case ClcStringLine: {
+            drawList->AddText(
+                { textPosition.x + additiveLineX, textPosition.y + additiveLineHeight },
+                ImGui::GetColorU32(ImGuiCol_Text), creditStrings[i].string
+            );
+        } break;
 
-            default:
-                break;
+        default:
+            break;
         }  
 
         additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;

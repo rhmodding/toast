@@ -5,58 +5,18 @@
 
 #include <string>
 
-#include "../SessionManager.hpp"
-
-#include "../ConfigManager.hpp"
-
-#include "../AppState.hpp"
-
 class PushSessionTask : public AsyncTask {
 public:
-    PushSessionTask(
-        uint32_t id,
-        std::string filePath
-    ) :
-        AsyncTask(id, "Opening session.."),
-
-        filePath(filePath),
-        result(0)
-    {}
+    PushSessionTask(uint32_t id, std::string filePath);
 
 protected:
-    void Run() override {
-        int lResult = SessionManager::getInstance().PushSessionFromCompressedArc(filePath.c_str());
-        result.store(lResult);
-    }
-
-    void Effect() override {
-        GET_SESSION_MANAGER;
-
-        if (this->result < 0) {
-            AppState::getInstance().OpenGlobalPopup("###SessionErr");
-
-            return;
-        }
-
-        sessionManager.currentSessionIndex = result;
-        sessionManager.SessionChanged();
-
-        GET_CONFIG_MANAGER;
-
-        auto newConfig = configManager.getConfig();
-
-        auto& recentlyOpened = newConfig.recentlyOpened;
-
-        recentlyOpened.erase(std::remove(recentlyOpened.begin(), recentlyOpened.end(), filePath), recentlyOpened.end());
-        newConfig.recentlyOpened.push_back(filePath);
-
-        configManager.setConfig(newConfig);
-    }
+    void Run() override;
+    void Effect() override;
 
 private:
     std::string filePath;
 
-    std::atomic<int> result;
+    std::atomic<int> result { 0 };
 };
 
 #endif // ASYNCTASK_PUSHSESSIONTASK_HPP

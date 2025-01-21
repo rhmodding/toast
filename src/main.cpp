@@ -10,6 +10,8 @@ int main(int argc, const char** argv) {
     std::cout << consoleSplash << "\n\n";
 
     App app (argc, argv);
-    while (LIKELY(app.isRunning()))
+    while (LIKELY(app.isRunning())) {
         app.Update();
+        app.Draw();
+    }
 }

@@ -1,79 +1,25 @@
 #ifndef ASYNCTASK_HPP
 #define ASYNCTASK_HPP
 
-#include <thread>
 #include <atomic>
-
-#include <imgui.h>
-#include <imgui_internal.h>
-
-#include "../font/FontAwesome.h"
 
 #include "../common.hpp"
 
 class AsyncTask {
 public:
-    AsyncTask(uint32_t id, const char* message) :
-        id(id), isComplete(false),
-        message(message)
-    {
-        char str[32];
-        snprintf(str, sizeof(str) - 1, "Task%u", this->id);
-
-        this->imguiID = ImHashStr(str);
-
-        this->startTime = static_cast<float>(ImGui::GetTime());
-    }
+    AsyncTask(uint32_t id, const char* message);
 
     virtual ~AsyncTask() = default;
 
-    void Start() {
-        this->isComplete = false;
+    void Start();
 
-        std::thread([this]() {
-            this->Run();
-            this->isComplete = true;
-        }).detach();
-    }
+    // Run effect if this task is complete & the effect hasn't run already.
+    void RunEffectIfComplete();
 
-    void RenderPopup() {
-        ImGui::PushID(this->imguiID);
+    void ShowPopup() const;
 
-        if (!isComplete)
-            ImGui::OpenPopup("###WORKING");
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
-
-        CENTER_NEXT_WINDOW;
-        if (ImGui::BeginPopupModal((const char*)ICON_FA_WAND_MAGIC_SPARKLES "  Toasting ..###WORKING", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::TextUnformatted(this->message);
-
-            ImGui::Dummy({ 0.f, 1.f });
-
-            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-            ImGui::ProgressBar(
-                -1.f * static_cast<float>(ImGui::GetTime() - this->startTime),
-                { 0.f, 15.f }
-            );
-            ImGui::PopStyleColor();
-
-            ImGui::EndPopup();
-        }
-
-        ImGui::PopStyleVar();
-
-        ImGui::PopID();
-    }
-
-    void TryRunEffect() {
-        if (this->isComplete && !this->hasEffectRun) {
-            this->Effect();
-            this->hasEffectRun = true;
-        }
-    }
-
-    bool IsComplete() const { return isComplete; }
-    bool HasEffectRun() const { return hasEffectRun; }
+    bool getComplete() const { return this->isComplete; }
+    bool getEffectRun() const { return this->hasEffectRun; }
 
 protected:
     virtual void Run() = 0;
@@ -82,8 +28,8 @@ protected:
 private:
     uint32_t id;
 
-    std::atomic<bool> isComplete;
-    std::atomic<bool> hasEffectRun;
+    std::atomic<bool> isComplete { false };
+    std::atomic<bool> hasEffectRun { false };
 
     const char* message;
 

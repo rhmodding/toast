@@ -119,83 +119,83 @@ static void _TedApply(const unsigned char* data, const SessionManager::Session& 
 
     for (uint16_t i = 0; i < fileHeader->entryCount; i++) {
         switch (currentHeader->identifier) {
-            case IDENTIFIER_TO_U32('E', 'L', 'P', 'T'): {
-                const TedPartLocationEntry* currentEntry = reinterpret_cast<const TedPartLocationEntry*>(
-                    currentHeader + 1
+        case IDENTIFIER_TO_U32('E', 'L', 'P', 'T'): {
+            const TedPartLocationEntry* currentEntry = reinterpret_cast<const TedPartLocationEntry*>(
+                currentHeader + 1
+            );
+            for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                auto* part = _TedGetPart(
+                    session,
+                    currentEntry->cellanimIndex,
+                    currentEntry->arrangementIndex,
+                    currentEntry->partIndex
                 );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = _TedGetPart(
-                        session,
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
-                    );
 
-                    if (part)
-                        part->editorLocked = true;
-                    else
-                        return;
+                if (part)
+                    part->editorLocked = true;
+                else
+                    return;
 
-                    currentEntry++;
-                }
-            } break;
+                currentEntry++;
+            }
+        } break;
 
-            case IDENTIFIER_TO_U32('E', 'I', 'P', 'T'): {
-                const TedPartOpacityEntry* currentEntry = reinterpret_cast<const TedPartOpacityEntry*>(
-                    currentHeader + 1
+        case IDENTIFIER_TO_U32('E', 'I', 'P', 'T'): {
+            const TedPartOpacityEntry* currentEntry = reinterpret_cast<const TedPartOpacityEntry*>(
+                currentHeader + 1
+            );
+            for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                auto* part = _TedGetPart(
+                    session,
+                    currentEntry->cellanimIndex,
+                    currentEntry->arrangementIndex,
+                    currentEntry->partIndex
                 );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = _TedGetPart(
-                        session,
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
-                    );
 
-                    if (part) {
-                        part->opacity = currentEntry->opacity;
-                        part->editorVisible = false;
-                    }
-                    else
-                        return;
-
-                    currentEntry++;
+                if (part) {
+                    part->opacity = currentEntry->opacity;
+                    part->editorVisible = false;
                 }
-            } break;
+                else
+                    return;
 
-            case IDENTIFIER_TO_U32('A', 'P', 'N', 'T'): {
-                const TedNamedPartEntry* currentEntry = reinterpret_cast<const TedNamedPartEntry*>(
-                    currentHeader + 1
+                currentEntry++;
+            }
+        } break;
+
+        case IDENTIFIER_TO_U32('A', 'P', 'N', 'T'): {
+            const TedNamedPartEntry* currentEntry = reinterpret_cast<const TedNamedPartEntry*>(
+                currentHeader + 1
+            );
+            for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                auto* part = _TedGetPart(
+                    session,
+                    currentEntry->cellanimIndex,
+                    currentEntry->arrangementIndex,
+                    currentEntry->partIndex
                 );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = _TedGetPart(
-                        session,
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
+
+                if (part)
+                    strncpy(
+                        part->editorName,
+                        (char*)data + fileHeader->stringPoolOffset + currentEntry->nameOffset,
+                        32
                     );
+                else
+                    return;
 
-                    if (part)
-                        strncpy(
-                            part->editorName,
-                            (char*)data + fileHeader->stringPoolOffset + currentEntry->nameOffset,
-                            32
-                        );
-                    else
-                        return;
+                currentEntry++;
+            }
+        } break;
 
-                    currentEntry++;
-                }
-            } break;
-
-            default:
-                std::cerr << "[TedApply] Unimplemented entry type: " <<
-                    ((char*)&currentHeader->identifier)[0] <<
-                    ((char*)&currentHeader->identifier)[1] <<
-                    ((char*)&currentHeader->identifier)[2] <<
-                    ((char*)&currentHeader->identifier)[3] <<
-                '\n';
-                break;
+        default:
+            std::cerr << "[TedApply] Unimplemented entry type: " <<
+                ((char*)&currentHeader->identifier)[0] <<
+                ((char*)&currentHeader->identifier)[1] <<
+                ((char*)&currentHeader->identifier)[2] <<
+                ((char*)&currentHeader->identifier)[3] <<
+            '\n';
+            break;
         }
 
         if (i + 1 < fileHeader->entryCount)
@@ -214,79 +214,79 @@ static void _TedApplyOld(const unsigned char* data, const SessionManager::Sessio
 
     for (uint16_t i = 0; i < fileHeader->entryCount; i++) {
         switch (currentHeader->identifier) {
-            case IDENTIFIER_TO_U32('E', 'L', 'P', 'T'): {
-                const TedPartLocationEntry* currentEntry = reinterpret_cast<const TedPartLocationEntry*>(
-                    currentHeader + 1
+        case IDENTIFIER_TO_U32('E', 'L', 'P', 'T'): {
+            const TedPartLocationEntry* currentEntry = reinterpret_cast<const TedPartLocationEntry*>(
+                currentHeader + 1
+            );
+            for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                auto* part = _TedGetPart(
+                    session,
+                    currentEntry->cellanimIndex,
+                    currentEntry->arrangementIndex,
+                    currentEntry->partIndex
                 );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = _TedGetPart(
-                        session,
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
-                    );
 
-                    if (part)
-                        part->editorLocked = true;
-                    else
-                        return;
+                if (part)
+                    part->editorLocked = true;
+                else
+                    return;
 
-                    currentEntry++;
-                }
-            } break;
+                currentEntry++;
+            }
+        } break;
 
-            case IDENTIFIER_TO_U32('E', 'I', 'P', 'T'): {
-                const TedPartOpacityEntry* currentEntry = reinterpret_cast<const TedPartOpacityEntry*>(
-                    currentHeader + 1
+        case IDENTIFIER_TO_U32('E', 'I', 'P', 'T'): {
+            const TedPartOpacityEntry* currentEntry = reinterpret_cast<const TedPartOpacityEntry*>(
+                currentHeader + 1
+            );
+            for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                auto* part = _TedGetPart(
+                    session,
+                    currentEntry->cellanimIndex,
+                    currentEntry->arrangementIndex,
+                    currentEntry->partIndex
                 );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = _TedGetPart(
-                        session,
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
-                    );
 
-                    if (part) {
-                        part->opacity = currentEntry->opacity;
-                        part->editorVisible = false;
-                    }
-                    else
-                        return;
-
-                    currentEntry++;
+                if (part) {
+                    part->opacity = currentEntry->opacity;
+                    part->editorVisible = false;
                 }
-            } break;
+                else
+                    return;
 
-            case IDENTIFIER_TO_U32('A', 'P', 'N', 'T'): {
-                const TedNamedPartEntryOld* currentEntry = reinterpret_cast<const TedNamedPartEntryOld*>(
-                    currentHeader + 1
+                currentEntry++;
+            }
+        } break;
+
+        case IDENTIFIER_TO_U32('A', 'P', 'N', 'T'): {
+            const TedNamedPartEntryOld* currentEntry = reinterpret_cast<const TedNamedPartEntryOld*>(
+                currentHeader + 1
+            );
+            for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
+                auto* part = _TedGetPart(
+                    session,
+                    currentEntry->cellanimIndex,
+                    currentEntry->arrangementIndex,
+                    currentEntry->partIndex
                 );
-                for (uint16_t j = 0; j < currentHeader->entryCount; j++) {
-                    auto* part = _TedGetPart(
-                        session,
-                        currentEntry->cellanimIndex,
-                        currentEntry->arrangementIndex,
-                        currentEntry->partIndex
-                    );
 
-                    if (part)
-                        strncpy(part->editorName, currentEntry->name, 32);
-                    else
-                        return;
+                if (part)
+                    strncpy(part->editorName, currentEntry->name, 32);
+                else
+                    return;
 
-                    currentEntry++;
-                }
-            } break;
+                currentEntry++;
+            }
+        } break;
 
-            default:
-                std::cerr << "[TedApply] Unimplemented entry type: " <<
-                    ((char*)&currentHeader->identifier)[0] <<
-                    ((char*)&currentHeader->identifier)[1] <<
-                    ((char*)&currentHeader->identifier)[2] <<
-                    ((char*)&currentHeader->identifier)[3] <<
-                '\n';
-                break;
+        default:
+            std::cerr << "[TedApply] Unimplemented entry type: " <<
+                ((char*)&currentHeader->identifier)[0] <<
+                ((char*)&currentHeader->identifier)[1] <<
+                ((char*)&currentHeader->identifier)[2] <<
+                ((char*)&currentHeader->identifier)[3] <<
+            '\n';
+            break;
         }
 
         if (i + 1 < fileHeader->entryCount)

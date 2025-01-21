@@ -1,10 +1,7 @@
 #include "MtCommandManager.hpp"
 
 std::future<void> MtCommandManager::enqueueCommand(std::function<void()> func) {
-    if (
-        std::this_thread::get_id() == gAppPtr->getMainThreadId() ||
-        this->isDestroyed
-    ) {
+    if (std::this_thread::get_id() == gAppPtr->getMainThreadId()) {
         func();
 
         std::promise<void> promise;

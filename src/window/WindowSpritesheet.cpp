@@ -95,6 +95,21 @@ void WindowSpritesheet::FormatPopup() {
 
         TPL::TPLImageFormat tplFormat;
         switch (selectedFormatIndex) {
+        case 0:
+            tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
+            break;
+        case 1:
+            tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
+            break;
+
+        default:
+            tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
+            break;
+        }
+
+        auto updateTextureData = [&]() {
+            // Re-evaluate
+            switch (selectedFormatIndex) {
             case 0:
                 tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
                 break;
@@ -105,21 +120,6 @@ void WindowSpritesheet::FormatPopup() {
             default:
                 tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
                 break;
-        }
-
-        auto updateTextureData = [&]() {
-            // Re-evaluate
-            switch (selectedFormatIndex) {
-                case 0:
-                    tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
-                    break;
-                case 1:
-                    tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
-                    break;
-
-                default:
-                    tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
-                    break;
             }
 
             unsigned char* imageData = cellanimSheet->GetRGBA32();
@@ -261,23 +261,23 @@ void WindowSpritesheet::FormatPopup() {
                     const char* alphaDesc;
 
                     switch (tplFormat) {
-                        case TPL::TPL_IMAGE_FORMAT_RGBA32:
-                            colorDesc = "Colors: 24-bit, millions of colors";
-                            alphaDesc = "Alpha: 8-bit, ranged 0 to 255";
-                            break;
-                        case TPL::TPL_IMAGE_FORMAT_RGB5A3:
-                            colorDesc =
-                                "Color:\n"
-                                "   Opaque pixels:\n"
-                                "      15-bit, 32768 colors\n"
-                                "   Transparent pixels:\n"
-                                "      12-bit, 4096 colors";
-                            alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
-                            break;
-                        default:
-                            colorDesc = "";
-                            alphaDesc = "";
-                            break;
+                    case TPL::TPL_IMAGE_FORMAT_RGBA32:
+                        colorDesc = "Colors: 24-bit, millions of colors";
+                        alphaDesc = "Alpha: 8-bit, ranged 0 to 255";
+                        break;
+                    case TPL::TPL_IMAGE_FORMAT_RGB5A3:
+                        colorDesc =
+                            "Color:\n"
+                            "   Opaque pixels:\n"
+                            "      15-bit, 32768 colors\n"
+                            "   Transparent pixels:\n"
+                            "      12-bit, 4096 colors";
+                        alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
+                        break;
+                    default:
+                        colorDesc = "";
+                        alphaDesc = "";
+                        break;
                     }
 
                     ImGui::BulletText("%s", colorDesc);
@@ -665,29 +665,29 @@ void WindowSpritesheet::Update() {
 
     uint32_t backgroundColor { 0xFF000000 }; // Black
     switch (this->gridType) {
-        case GridType_None:
-            backgroundColor = 0x00000000; // Transparent Black
-            break;
+    case GridType_None:
+        backgroundColor = 0x00000000; // Transparent Black
+        break;
 
-        case GridType_Dark:
-            backgroundColor = IM_COL32(50, 50, 50, 255);
-            break;
+    case GridType_Dark:
+        backgroundColor = IM_COL32(50, 50, 50, 255);
+        break;
 
-        case GridType_Light:
-            backgroundColor = IM_COL32(255, 255, 255, 255);
-            break;
+    case GridType_Light:
+        backgroundColor = IM_COL32(255, 255, 255, 255);
+        break;
 
-        case GridType_Custom:
-            backgroundColor = IM_COL32(
-                customGridColor.x * 255,
-                customGridColor.y * 255,
-                customGridColor.z * 255,
-                customGridColor.w * 255
-            );
-            break;
+    case GridType_Custom:
+        backgroundColor = IM_COL32(
+            customGridColor.x * 255,
+            customGridColor.y * 255,
+            customGridColor.z * 255,
+            customGridColor.w * 255
+        );
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     GET_WINDOW_DRAWLIST;

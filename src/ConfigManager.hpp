@@ -3,14 +3,9 @@
 
 #include "Singleton.hpp"
 
-#include <cstdint>
-
 #include <string>
 
 #include <vector>
-
-#include <iostream>
-#include <fstream>
 
 #include <nlohmann/json.hpp>
 
@@ -41,56 +36,41 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ThemeChoice, {
     {ThemeChoice_Dark, "Dark"},
 });
 
-class ConfigManager : public Singleton<ConfigManager> {
-    friend class Singleton<ConfigManager>; // Allow access to base class constructor
+struct Config {
+    ThemeChoice theme { ThemeChoice_Dark };
 
-public:
-    struct Config {
-        ThemeChoice theme { ThemeChoice_Dark };
+    std::string imageEditorPath { "" };
 
-        std::string imageEditorPath { "" };
+    std::string textureEditPath { "./toastEditTexture.temp.png" };
 
-        std::string textureEditPath { "./toastEditTexture.temp.png" };
+    std::vector<std::string> recentlyOpened;
 
-        std::vector<std::string> recentlyOpened;
+    int lastWindowWidth { 1500 };
+    int lastWindowHeight { 780 };
 
-        int lastWindowWidth { 1500 };
-        int lastWindowHeight { 780 };
+    bool canvasLMBPanEnabled { true };
 
-        bool canvasLMBPanEnabled { true };
+    unsigned updateRate { 120 };
 
-        unsigned updateRate { 120 };
+    BackupBehaviour backupBehaviour { BackupBehaviour_None };
 
-        BackupBehaviour backupBehaviour { BackupBehaviour_None };
+    unsigned compressionLevel { 9 };
 
-        unsigned compressionLevel { 9 };
-
-        bool operator==(const Config& other) const {
-            return
-                this->theme == other.theme &&
-                this->imageEditorPath == other.imageEditorPath &&
-                this->textureEditPath == other.textureEditPath &&
-                this->lastWindowWidth == other.lastWindowWidth &&
-                this->lastWindowHeight == other.lastWindowHeight &&
-                this->canvasLMBPanEnabled == other.canvasLMBPanEnabled &&
-                this->updateRate == other.updateRate &&
-                this->backupBehaviour == other.backupBehaviour &&
-                this->compressionLevel == other.compressionLevel;
-        }
-    };
-private:
-    Config config;
-
-public:
-    const Config& getConfig() const {
-        return config;
-    }
-    void setConfig(const Config& newConfig) {
-        config = newConfig;
+    bool operator==(const Config& other) const {
+        return
+            this->theme == other.theme &&
+            this->imageEditorPath == other.imageEditorPath &&
+            this->textureEditPath == other.textureEditPath &&
+            this->lastWindowWidth == other.lastWindowWidth &&
+            this->lastWindowHeight == other.lastWindowHeight &&
+            this->canvasLMBPanEnabled == other.canvasLMBPanEnabled &&
+            this->updateRate == other.updateRate &&
+            this->backupBehaviour == other.backupBehaviour &&
+            this->compressionLevel == other.compressionLevel;
     }
 
     // Friend functions for JSON (de-)serialization
-    friend void to_json(nlohmann::ordered_json& j, const ConfigManager::Config& _config) {
+    friend void to_json(nlohmann::ordered_json& j, const Config& _config) {
         j = nlohmann::ordered_json {
             { "theme", _config.theme },
             { "imageEditorPath", _config.imageEditorPath },
@@ -104,7 +84,7 @@ public:
             { "compressionLevel", _config.compressionLevel }
         };
     }
-    friend void from_json(const nlohmann::ordered_json& j, ConfigManager::Config& _config) {
+    friend void from_json(const nlohmann::ordered_json& j, Config& _config) {
         _config.theme =               j.value("theme", _config.theme);
         _config.imageEditorPath =     j.value("imageEditorPath", _config.imageEditorPath);
         _config.textureEditPath =     j.value("textureEditPath", _config.textureEditPath);
@@ -116,56 +96,32 @@ public:
         _config.backupBehaviour =     j.value("backupBehaviour", _config.backupBehaviour);
         _config.compressionLevel =    j.value("compressionLevel", _config.compressionLevel);
     }
+};
 
-public:
-    bool firstTime { false };
-    std::string configPath { "toast.config.json" };
-
-    void Load() {
-        std::ifstream file(configPath);
-        if (!file.is_open()) {
-            this->firstTime = true;
-
-            this->Reset();
-            this->Save();
-
-            return;
-        }
-
-        nlohmann::ordered_json j;
-        file >> j;
-        file.close();
-
-        this->config = j.get<Config>();
-    }
-
-    void Save() {
-        std::ofstream file(this->configPath);
-        if (!file.is_open()) {
-            std::cerr << "[ConfigManager::Save] Unable to open file for saving.\n";
-            return;
-        }
-
-        auto& recentlyOpened = this->config.recentlyOpened;
-        if (recentlyOpened.size() > 12) {
-            recentlyOpened.erase(
-                recentlyOpened.begin(),
-                recentlyOpened.begin() + (recentlyOpened.size() - 12)
-            );
-        }
-
-        nlohmann::ordered_json j = config;
-        file << j.dump(4);
-
-        file.close();
-    }
-
-    void Reset() {
-        this->config = Config {};
-    }
+class ConfigManager : public Singleton<ConfigManager> {
+    friend class Singleton<ConfigManager>; // Allow access to base class constructor
 
 private:
-    ConfigManager() {} // Private constructor to prevent instantiation
+    ConfigManager() = default;
+public:
+    ~ConfigManager() = default;
+
+public:
+
+public:
+    const Config& getConfig() const { return this->config; }
+    void setConfig(const Config& newConfig) { config = newConfig; }
+
+    void LoadConfig();
+    void SaveConfig();
+
+    void LoadDefaults();
+
+private:
+    Config config {};
+
+    bool firstTime { false };
+    std::string configPath { "toast.config.json" };
 };
 
 #endif // CONFIGMANAGER_HPP

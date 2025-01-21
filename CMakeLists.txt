@@ -39,6 +39,14 @@ set(SOURCES
     src/texture/ImageConvert.cpp
     src/texture/TPL.cpp
 
+    src/task/AsyncTaskManager.cpp
+
+    src/task/AsyncTask.cpp
+
+    src/task/AsyncTask_ExportSessionTask.cpp
+    src/task/AsyncTask_PushSessionTask.cpp
+    src/task/AsyncTask_OptimizeCellanim.cpp
+
     src/window/WindowTimeline.cpp
     src/window/WindowCanvas.cpp
     src/window/WindowHybridList.cpp
@@ -59,6 +67,8 @@ set(SOURCES
     src/SessionManager.cpp
 
     src/PlayerManager.cpp
+
+    src/ConfigManager.cpp
 
     src/MtCommandManager.cpp
 

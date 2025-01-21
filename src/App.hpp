@@ -16,15 +16,17 @@
 #include "window/WindowInspector.hpp"
 #include "window/WindowTimeline.hpp"
 #include "window/WindowSpritesheet.hpp"
-
 #include "window/WindowConfig.hpp"
 #include "window/WindowAbout.hpp"
-
 #include "window/WindowImguiDemo.hpp"
 
 #include "common.hpp"
 
 #define WINDOW_TITLE "toast"
+
+class App;
+
+extern App* gAppPtr;
 
 class App {
 public:
@@ -33,46 +35,54 @@ public:
 
 public:
     void Update();
+    void Draw();
 
     void AttemptExit(bool force = false);
-    bool isRunning() const {
-        return this->running;
-    }
 
-    GLFWwindow* getWindow() {
-        if (UNLIKELY(!this->window)) {
-            std::cerr << "[App::getWindow] Window ptr is nullptr !\n";
+    bool isRunning() const { return this->running; }
+    std::thread::id getMainThreadId() const { return this->mainThreadId; }
+
+    GLFWwindow* getGLFWWindowHandle() {
+        if (UNLIKELY(!this->glfwWindowHndl)) {
+            std::cerr << "[App::getGLFWWindowHandle] GLFW window handle does not exist (anymore)!\n";
             __builtin_trap();
         }
 
-        return this->window;
+        return this->glfwWindowHndl;
     }
 
-private: // Methods
+private:
     void SetupFonts();
     void Menubar();
 
-private: // Windows
+private:
     template <typename T>
     struct AppWindow {
-        bool shy { false };
-        std::unique_ptr<T> window;
+    public:
+        AppWindow() {
+            static_assert(std::is_base_of<BaseWindow, T>::value, "T must be derived from BaseWindow");
+            this->windowInstance = std::make_unique<T>();
+        }
 
+    public:
+        bool shy { false };
+        std::unique_ptr<T> windowInstance;
+
+    public:
         void Update() {
             if (this->shy)
                 return;
 
-            if (UNLIKELY(!this->window)) {
-                std::cout << "[AppWindow::Update] Window ptr is nullptr (type: " << typeid(T).name() << ")!\n";
+            if (UNLIKELY(!this->windowInstance)) {
+                std::cout << "[AppWindow<" << typeid(T).name() << ">::Update] Window instance does not exist (anymore)!\n";
                 return;
             }
 
-            this->window->Update();
+            this->windowInstance->Update();
         }
 
-        AppWindow() {
-            static_assert(std::is_base_of<BaseWindow, T>::value, "T must be derived from BaseWindow");
-            this->window = std::make_unique<T>();
+        void Destroy() {
+            this->windowInstance.reset();
         }
     };
 
@@ -87,20 +97,12 @@ private: // Windows
 
     AppWindow<WindowImguiDemo> windowDemo;
 
-    GLFWwindow* window { nullptr };
-
-private: // Flags
+private:
     bool running { true };
 
-private:
+    GLFWwindow* glfwWindowHndl { nullptr };
+
     std::thread::id mainThreadId;
-public:
-    std::thread::id getMainThreadId() {
-        return this->mainThreadId;
-    }
-
-}; // class App
-
-extern App* gAppPtr;
+};
 
 #endif // APP_HPP

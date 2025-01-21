@@ -293,32 +293,31 @@ void WindowCanvas::Update() {
 
     this->Menubar();
 
-    uint32_t backgroundColor { 0xFF000000 }; // Black
+    uint32_t backgroundColor; // Black
     switch (this->gridType) {
-        case GridType_None:
-            backgroundColor = 0x00000000; // Transparent Black
-            break;
+    case GridType_None:
+        backgroundColor = 0x00000000; // Transparent Black
+        break;
 
-        case GridType_Dark:
-            backgroundColor = IM_COL32(50, 50, 50, 255);
-            break;
+    case GridType_Dark:
+        backgroundColor = IM_COL32(50, 50, 50, 255);
+        break;
 
-        case GridType_Light:
-            backgroundColor = IM_COL32(255, 255, 255, 255);
-            break;
+    case GridType_Light:
+        backgroundColor = IM_COL32(255, 255, 255, 255);
+        break;
 
-        case GridType_Custom:
-            backgroundColor = IM_COL32(
-                customGridColor.x * 255,
-                customGridColor.y * 255,
-                customGridColor.z * 255,
-                customGridColor.w * 255
-            );
-            break;
+    case GridType_Custom:
+        backgroundColor = IM_COL32(
+            customGridColor.x * 255,
+            customGridColor.y * 255,
+            customGridColor.z * 255,
+            customGridColor.w * 255
+        );
+        break;
 
-        default:
-            // The default value of backgroundColor is already 0.
-            break;
+    default:
+        break;
     }
 
     GET_IMGUI_IO;
@@ -641,36 +640,49 @@ void WindowCanvas::Update() {
                 0,  1,
                 3,  2
             */
-            float startWidth = calcPointsDistance(
-                AVERAGE_IMVEC2(partsBounding[0], partsBounding[3]),
-                AVERAGE_IMVEC2(partsBounding[1], partsBounding[2])
-            );
-            float startHeight = calcPointsDistance(
-                AVERAGE_IMVEC2(partsBounding[0], partsBounding[1]),
-                AVERAGE_IMVEC2(partsBounding[3], partsBounding[2])
-            );
+
+            std::array<ImVec2, 4> myPartsBounding = partsBounding;
+            ImVec2 myPivotPoint = pivotPoint;
+
+            ImVec2 myMouseDragStart = mouseDragStart;
+            ImVec2 myDragDelta = dragDelta;
+
+            float compensateAngle = -(keyTransform.angle + quadRotation);
+
+            for (auto& point : myPartsBounding)
+                rotateVec2(point, compensateAngle, origin);
+
+            rotateVec2(myPivotPoint, compensateAngle, { 0.f, 0.f });
+            myPivotPoint.x *= this->canvasZoom;
+            myPivotPoint.y *= this->canvasZoom;
+
+            rotateVec2(myMouseDragStart, compensateAngle, { 0.f, 0.f });
+            rotateVec2(myDragDelta, compensateAngle, { 0.f, 0.f });
+
+            float startWidth = myPartsBounding[3].x - myPartsBounding[0].x;
+            float startHeight = myPartsBounding[3].y - myPartsBounding[0].y;
 
             //printf("%f, %f\n", startWidth, startHeight);
 
             float pivotRealX = (partsTransformation.pivotX * this->canvasZoom);
             float pivotRealY = (partsTransformation.pivotY * this->canvasZoom);
 
-            const float rangeStartX = AVERAGE_FLOATS(partsBounding[0].x, partsBounding[3].x) - origin.x;
-            const float rangeEndX = AVERAGE_FLOATS(partsBounding[1].x, partsBounding[2].x) - origin.x;
-            const float rangeStartY = AVERAGE_FLOATS(partsBounding[0].y, partsBounding[1].y) - origin.y;
-            const float rangeEndY = AVERAGE_FLOATS(partsBounding[3].y, partsBounding[2].y) - origin.y;
+            const float rangeStartX = AVERAGE_FLOATS(myPartsBounding[0].x, myPartsBounding[3].x) - origin.x;
+            const float rangeEndX = AVERAGE_FLOATS(myPartsBounding[1].x, myPartsBounding[2].x) - origin.x;
+            const float rangeStartY = AVERAGE_FLOATS(myPartsBounding[0].y, myPartsBounding[1].y) - origin.y;
+            const float rangeEndY = AVERAGE_FLOATS(myPartsBounding[3].y, myPartsBounding[2].y) - origin.y;
 
-            const float rangeMapX = mapRange(mouseDragStart.x, rangeStartX, rangeEndX);
-            const float rangeMapY = mapRange(mouseDragStart.y, rangeStartY, rangeEndY);
+            const float rangeMapX = mapRange(myMouseDragStart.x, rangeStartX, rangeEndX);
+            const float rangeMapY = mapRange(myMouseDragStart.y, rangeStartY, rangeEndY);
 
-            float quadX = rangeMapX * startWidth + partsBounding[0].x;
-            float quadY = rangeMapY * startHeight + partsBounding[0].y;
+            float quadX = rangeMapX * startWidth + myPartsBounding[0].x;
+            float quadY = rangeMapY * startHeight + myPartsBounding[0].y;
 
             const float inputEndX = quadX - origin.x;
             const float inputEndY = quadY - origin.y;
 
-            const float mapX = mapRange(pivotRealX - dragDelta.x, pivotRealX, inputEndX);
-            const float mapY = mapRange(pivotRealY - dragDelta.y, pivotRealY, inputEndY);
+            const float mapX = mapRange(pivotRealX - myDragDelta.x, pivotRealX, inputEndX);
+            const float mapY = mapRange(pivotRealY - myDragDelta.y, pivotRealY, inputEndY);
 
             float newWidth = startWidth * (1.f - mapX);
             float newHeight = startHeight * (1.f - mapY);
@@ -829,28 +841,28 @@ void WindowCanvas::Update() {
     {
         bool isBackgroundLight = false;
         switch (this->gridType) {
-            case GridType_None:
-                isBackgroundLight = !AppState::getInstance().getDarkThemeEnabled();
-                break;
-            case GridType_Dark:
-                isBackgroundLight = false;
-                break;
-            case GridType_Light:
+        case GridType_None:
+            isBackgroundLight = !AppState::getInstance().getDarkThemeEnabled();
+            break;
+        case GridType_Dark:
+            isBackgroundLight = false;
+            break;
+        case GridType_Light:
+            isBackgroundLight = true;
+            break;
+        case GridType_Custom: {
+            const float lumi =
+                .2126f * customGridColor.x +
+                .7152f * customGridColor.y +
+                .0722f * customGridColor.z;
+            if (lumi > .5f)
                 isBackgroundLight = true;
-                break;
-            case GridType_Custom: {
-                const float lumi =
-                    .2126f * customGridColor.x +
-                    .7152f * customGridColor.y +
-                    .0722f * customGridColor.z;
-                if (lumi > .5f)
-                    isBackgroundLight = true;
-                else
-                    isBackgroundLight = false;
-            } break;
+            else
+                isBackgroundLight = false;
+        } break;
 
-            default:
-                break;
+        default:
+            break;
         }
 
         drawList->PushClipRect(this->canvasTopLeft, canvasBottomRight, true);
@@ -1061,32 +1073,32 @@ void WindowCanvas::Update() {
 void WindowCanvas::DrawCanvasText() {
     uint32_t textColor { 0xFF000000 }; // Black
     switch (this->gridType) {
-        case GridType_None:
-            // White or Black
-            textColor = AppState::getInstance().getDarkThemeEnabled() ? 0xFFFFFFFF : 0xFF000000;
-            break;
+    case GridType_None:
+        // White or Black
+        textColor = AppState::getInstance().getDarkThemeEnabled() ? 0xFFFFFFFF : 0xFF000000;
+        break;
 
-        case GridType_Dark:
-            textColor = 0xFFFFFFFF; // White
-            break;
+    case GridType_Dark:
+        textColor = 0xFFFFFFFF; // White
+        break;
 
-        case GridType_Light:
+    case GridType_Light:
+        textColor = 0xFF000000; // Black
+        break;
+
+    case GridType_Custom: {
+        const float lumi =
+            .2126f * customGridColor.x +
+            .7152f * customGridColor.y +
+            .0722f * customGridColor.z;
+        if (lumi > .5f)
             textColor = 0xFF000000; // Black
-            break;
+        else
+            textColor = 0xFFFFFFFF; // White
+    } break;
 
-        case GridType_Custom: {
-            const float lumi =
-                .2126f * customGridColor.x +
-                .7152f * customGridColor.y +
-                .0722f * customGridColor.z;
-            if (lumi > .5f)
-                textColor = 0xFF000000; // Black
-            else
-                textColor = 0xFFFFFFFF; // White
-        } break;
-
-        default:
-            break;
+    default:
+        break;
     }
 
     float textDrawHeight = this->canvasTopLeft.y + 5.f;

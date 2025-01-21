@@ -11,7 +11,7 @@ public:
 
     bool open { false };
 
-    ConfigManager::Config selfConfig;
+    Config selfConfig;
 };
 
 #endif // WINDOWCONFIG_HPP

@@ -61,7 +61,7 @@ void WindowConfig::Update() {
         if (ImGui::BeginMenuBar()) {
             if (ImGui::BeginMenu("Config")) {
                 if (ImGui::MenuItem("Clear..", nullptr)) {
-                    this->selfConfig = ConfigManager::Config {};
+                    this->selfConfig = Config {};
                 }
                 ImGui::EndMenu();
             }
@@ -101,81 +101,81 @@ void WindowConfig::Update() {
             ImGui::Dummy({ 0.f, 5.f });
 
             switch (selected) {
-                case Category_General: {
-                    ImGui::Checkbox("Enable panning canvas with LMB", &this->selfConfig.canvasLMBPanEnabled);
+            case Category_General: {
+                ImGui::Checkbox("Enable panning canvas with LMB", &this->selfConfig.canvasLMBPanEnabled);
 
-                    ImGui::Separator();
+                ImGui::Separator();
 
-                    const unsigned min = 30;
+                const unsigned min = 30;
 
-                    unsigned updateRate = this->selfConfig.updateRate;
-                    if (ImGui::DragScalar("App update rate", ImGuiDataType_U32, &updateRate, .5f, &min, nullptr, "%u cycles per second"))
-                        this->selfConfig.updateRate = std::clamp<unsigned>(updateRate, min, UINT32_MAX);
+                unsigned updateRate = this->selfConfig.updateRate;
+                if (ImGui::DragScalar("App update rate", ImGuiDataType_U32, &updateRate, .5f, &min, nullptr, "%u cycles per second"))
+                    this->selfConfig.updateRate = std::clamp<unsigned>(updateRate, min, UINT32_MAX);
 
-                    ImGui::Separator();
+                ImGui::Separator();
 
-                    const char* backupOptions[] {
-                        "Don't backup",
-                        "Backup (don't overwrite last backup)",
-                        "Backup (always overwrite last backup)"
+                const char* backupOptions[] {
+                    "Don't backup",
+                    "Backup (don't overwrite last backup)",
+                    "Backup (always overwrite last backup)"
+                };
+                ImGui::Combo("Backup behaviour", reinterpret_cast<int*>(&this->selfConfig.backupBehaviour), backupOptions, 3);
+            } break;
+
+            case Category_Export: {
+                enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_Count };
+                static const char* levelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low" };
+
+                static const int levelMap[CL_Count] = { 9, 8, 7, 4, 2 };
+
+                int selectedLevel;
+                {
+                    static const int compressionLevels[] = {
+                        CL_Count, // 0
+                        CL_Count, // 1
+                        CL_VeryLow, // 2
+                        CL_Count, // 3
+                        CL_Low, // 4
+                        CL_Count, // 5
+                        CL_Count, // 6
+                        CL_Medium, // 7
+                        CL_High, // 8
+                        CL_Highest // 9
                     };
-                    ImGui::Combo("Backup behaviour", reinterpret_cast<int*>(&this->selfConfig.backupBehaviour), backupOptions, 3);
-                } break;
 
-                case Category_Export: {
-                    enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_Count };
-                    static const char* levelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low" };
+                    selectedLevel = compressionLevels[this->selfConfig.compressionLevel];
+                }
 
-                    static const int levelMap[CL_Count] = { 9, 8, 7, 4, 2 };
+                const char* clName = (selectedLevel >= 0 && selectedLevel < CL_Count) ?
+                    levelNames[selectedLevel] : "Other ";
 
-                    int selectedLevel;
-                    {
-                        static const int compressionLevels[] = {
-                            CL_Count, // 0
-                            CL_Count, // 1
-                            CL_VeryLow, // 2
-                            CL_Count, // 3
-                            CL_Low, // 4
-                            CL_Count, // 5
-                            CL_Count, // 6
-                            CL_Medium, // 7
-                            CL_High, // 8
-                            CL_Highest // 9
-                        };
+                if (selectedLevel >= 0 && selectedLevel < CL_Count)
+                    clName = levelNames[selectedLevel];
+                else {
+                    static char buf[64];
+                    snprintf(buf, sizeof(buf), "Other (lvl %i)", this->selfConfig.compressionLevel);
 
-                        selectedLevel = compressionLevels[this->selfConfig.compressionLevel];
-                    }
+                    clName = buf;
+                }
 
-                    const char* clName = (selectedLevel >= 0 && selectedLevel < CL_Count) ?
-                        levelNames[selectedLevel] : "Other ";
+                if (ImGui::SliderInt("Compression Level", &selectedLevel, CL_Count - 1, 0, clName, ImGuiSliderFlags_NoInput)) {
+                    this->selfConfig.compressionLevel = levelMap[selectedLevel];
+                }
+            } break;
 
-                    if (selectedLevel >= 0 && selectedLevel < CL_Count)
-                        clName = levelNames[selectedLevel];
-                    else {
-                        static char buf[64];
-                        snprintf(buf, sizeof(buf), "Other (lvl %i)", this->selfConfig.compressionLevel);
-    
-                        clName = buf;
-                    }
+            case Category_Theming: {
+                static const char* themeOptions[] { "Light", "Dark" };
+                ImGui::Combo("Theme", reinterpret_cast<int*>(&this->selfConfig.theme), themeOptions, 2);
+            } break;
 
-                    if (ImGui::SliderInt("Compression Level", &selectedLevel, CL_Count - 1, 0, clName, ImGuiSliderFlags_NoInput)) {
-                        this->selfConfig.compressionLevel = levelMap[selectedLevel];
-                    }
-                } break;
+            case Category_Paths: {
+                TextInputStdString("Image editor path", this->selfConfig.imageEditorPath);
+                TextInputStdString("Texture edit path", this->selfConfig.textureEditPath);
+            } break;
 
-                case Category_Theming: {
-                    const static char* themeOptions[] { "Light", "Dark" };
-                    ImGui::Combo("Theme", reinterpret_cast<int*>(&this->selfConfig.theme), themeOptions, 2);
-                } break;
-
-                case Category_Paths: {
-                    TextInputStdString("Image editor path", this->selfConfig.imageEditorPath);
-                    TextInputStdString("Texture edit path", this->selfConfig.textureEditPath);
-                } break;
-
-                default:
-                    ImGui::TextWrapped("No options avaliable.");
-                    break;
+            default:
+                ImGui::TextWrapped("No options avaliable.");
+                break;
             }
 
             ImGui::EndChild();
@@ -190,7 +190,7 @@ void WindowConfig::Update() {
 
             if (ImGui::Button("Save & Apply")) {
                 configManager.setConfig(this->selfConfig);
-                configManager.Save();
+                configManager.SaveConfig();
 
                 AppState::getInstance().applyTheming();
             }

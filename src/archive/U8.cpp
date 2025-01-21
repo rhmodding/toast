@@ -235,50 +235,53 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
         }
     }
 
-    unsigned stringPoolSize { 0 };
-    unsigned dataSize { 0 };
+    //unsigned dataSize { 0 };
 
     std::vector<unsigned> stringOffsets(flattenedArchive.size(), 0);
     std::vector<unsigned> dataOffsets(flattenedArchive.size(), 0);
+
+    unsigned nextStringPoolOffset { 0 };
 
     // Calculate string offsets
     for (unsigned i = 0; i < flattenedArchive.size(); ++i) {
         const FlatEntry& entry = flattenedArchive[i];
 
-        stringOffsets[i] = stringPoolSize;
-        stringPoolSize += (entry.isDir ?
+        stringOffsets[i] = nextStringPoolOffset;
+        nextStringPoolOffset += (entry.isDir ?
             reinterpret_cast<Directory*>(entry.ptr)->name.size() :
             reinterpret_cast<File*>(entry.ptr)->name.size()
         ) + 1;
+
+        nextStringPoolOffset = (nextStringPoolOffset + 3) & ~3;
     }
 
     // Calculate data offset
     unsigned baseDataOffset = (
         sizeof(U8ArchiveHeader) +
         (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-        stringPoolSize + 63
-    ) & ~63;
+        nextStringPoolOffset + 31
+    ) & ~31;
+    unsigned nextDataOffset = baseDataOffset;
 
     // Calculate data offsets
     for (unsigned i = 1; i < flattenedArchive.size(); ++i) {
         const FlatEntry& entry = flattenedArchive[i];
 
         if (!entry.isDir) {
-            dataOffsets[i] = baseDataOffset + dataSize;
-            dataSize += reinterpret_cast<File*>(entry.ptr)->data.size();
+            dataOffsets[i] = nextDataOffset;
 
-            if (i + 1 != flattenedArchive.size())
-                dataSize = (dataSize + 31) & ~31;
+            nextDataOffset += reinterpret_cast<File*>(entry.ptr)->data.size();
+            nextDataOffset = (nextDataOffset + 31) & ~31;
         }
     }
 
-    result.resize(baseDataOffset + dataSize);
+    result.resize(nextDataOffset);
     header = reinterpret_cast<U8ArchiveHeader*>(result.data());
 
     // Set header offsets
     header->dataSectionStart = BYTESWAP_32(baseDataOffset);
     header->nodeSectionSize = BYTESWAP_32(static_cast<uint32_t>(
-        (sizeof(U8ArchiveNode) * flattenedArchive.size()) + stringPoolSize
+        (sizeof(U8ArchiveNode) * flattenedArchive.size()) + nextStringPoolOffset
     ));
 
     // Write nodes

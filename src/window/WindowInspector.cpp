@@ -115,25 +115,25 @@ void WindowInspector::Update() {
     }
 
     switch (!appState.getArrangementMode() ? inspectorLevel : InspectorLevel_Arrangement) {
-        case InspectorLevel_Animation:
-            this->Level_Animation();
-            break;
+    case InspectorLevel_Animation:
+        this->Level_Animation();
+        break;
 
-        case InspectorLevel_Key:
-            this->Level_Key();
-            break;
+    case InspectorLevel_Key:
+        this->Level_Key();
+        break;
 
-        case InspectorLevel_Arrangement:
-            this->Level_Arrangement();
-            break;
+    case InspectorLevel_Arrangement:
+        this->Level_Arrangement();
+        break;
 
-        case InspectorLevel_Arrangement_Im:
-            this->Level_Arrangement();
-            break;
+    case InspectorLevel_Arrangement_Im:
+        this->Level_Arrangement();
+        break;
 
-        default:
-            ImGui::Text("Inspector level not implemented.");
-            break;
+    default:
+        ImGui::Text("Inspector level not implemented.");
+        break;
     }
 
     ImGui::End();

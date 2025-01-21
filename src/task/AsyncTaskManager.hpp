@@ -16,53 +16,40 @@
 class AsyncTaskManager : public Singleton<AsyncTaskManager> {
     friend class Singleton<AsyncTaskManager>; // Allow access to base class constructor
 
+private:
+    AsyncTaskManager() = default;
+public:
+    ~AsyncTaskManager() = default;
+
 public:
     template <typename TaskType, typename... Args>
-    void StartTask(Args&&... args) {
-        auto task = std::make_unique<TaskType>(this->GenerateId(), std::forward<Args>(args)...);
-        task->Start();
+    void StartTask(Args&&... args);
 
-        this->tasks.emplace_back(std::move(task));
-    }
-
-    void UpdateTasks() {
-        for (auto& task : this->tasks) {
-            task->RenderPopup();
-            task->TryRunEffect();
-        }
-
-        this->tasks.erase(
-            std::remove_if(this->tasks.begin(), this->tasks.end(),
-            [](const std::unique_ptr<AsyncTask>& task) {
-                return task->IsComplete() && task->HasEffectRun();
-            }),
-
-            this->tasks.end()
-        );
-    }
+    void UpdateTasks();
 
     template <typename TaskType>
-    bool HasTaskOfType() const {
-        for (const auto& task : this->tasks) {
-            if (dynamic_cast<TaskType*>(task.get()) != nullptr)
-                return true;
-        }
-
-        return false;
-    }
+    bool HasTaskOfType() const;
 
 private:
-    uint32_t GenerateId() {
-        return this->nextId++;
-    }
-
-    std::atomic<uint32_t> nextId;
+    std::atomic<uint32_t> nextId { 0 };
     std::vector<std::unique_ptr<AsyncTask>> tasks;
-
-private:
-    AsyncTaskManager() :
-        nextId(0)
-    {}
 };
+
+template <typename TaskType, typename... Args>
+void AsyncTaskManager::StartTask(Args&&... args) {
+    auto task = std::make_unique<TaskType>(this->nextId++, std::forward<Args>(args)...);
+    task->Start();
+    this->tasks.emplace_back(std::move(task));
+}
+
+template <typename TaskType>
+bool AsyncTaskManager::HasTaskOfType() const {
+    for (const auto& task : this->tasks) {
+        if (dynamic_cast<TaskType*>(task.get()) != nullptr)
+            return true;
+    }
+
+    return false;
+}
 
 #endif // ASYNCTASKMANAGER_HPP

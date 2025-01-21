@@ -48,15 +48,13 @@ static void Popup_WaitForModifiedTexture() {
             if (ok) {
                 auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
                 switch (selectedFormatIndex) {
-                    case 0:
-                        cellanimSheet->setTPLOutputFormat(TPL::TPL_IMAGE_FORMAT_RGBA32);
-                        break;
-                    case 1:
-                        cellanimSheet->setTPLOutputFormat(TPL::TPL_IMAGE_FORMAT_RGB5A3);
-                        break;
-
-                    default:
-                        break;
+                default:
+                case 0:
+                    cellanimSheet->setTPLOutputFormat(TPL::TPL_IMAGE_FORMAT_RGBA32);
+                    break;
+                case 1:
+                    cellanimSheet->setTPLOutputFormat(TPL::TPL_IMAGE_FORMAT_RGB5A3);
+                    break;
                 }
 
                 bool diffSize =

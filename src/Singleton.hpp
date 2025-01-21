@@ -1,24 +1,62 @@
 #ifndef SINGLETON_HPP
 #define SINGLETON_HPP
 
+#include <iostream>
+
+#include <memory>
+#include <mutex>
+
 template<typename T>
 class Singleton {
 public:
-    static T& getInstance() {
-        // Static instance created once
-        static T instance;
+    static void createSingleton();
+    static T& getInstance();
+    static void destroySingleton();
 
-        return instance;
-    }
-
-    Singleton(const Singleton&) = delete;            // Delete copy constructor
-    Singleton(Singleton&&) = delete;                 // Delete move constructor
-    Singleton& operator=(const Singleton&) = delete; // Delete copy assignment
-    Singleton& operator=(Singleton&&) = delete;      // Delete move assignment
+    Singleton(const Singleton&) = delete;
+    Singleton(Singleton&&) = delete;
+    Singleton& operator=(const Singleton&) = delete;
+    Singleton& operator=(Singleton&&) = delete;
 
 protected:
-    Singleton() = default;           // Protected default constructor
-    virtual ~Singleton() = default;  // Protected virtual destructor
+    Singleton() = default;
+    virtual ~Singleton() = default;
+
+private:
+    static std::unique_ptr<T> instance_;
+    static std::mutex mutex_;
 };
+
+template<typename T>
+std::unique_ptr<T> Singleton<T>::instance_ = nullptr;
+
+template<typename T>
+std::mutex Singleton<T>::mutex_;
+
+template<typename T>
+void Singleton<T>::createSingleton() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (instance_) {
+        std::cout << "[Singleton<" << typeid(T).name() << ">::createSingleton] Singleton instance already exists!\n";
+        __builtin_trap();
+    }
+    instance_ = std::unique_ptr<T>(new T());
+}
+
+template<typename T>
+T& Singleton<T>::getInstance() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!instance_) {
+        std::cout << "[Singleton<" << typeid(T).name() << ">::getInstance] Singleton instance does not exist (anymore)!\n";
+        __builtin_trap();
+    }
+    return *instance_;
+}
+
+template<typename T>
+void Singleton<T>::destroySingleton() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    instance_.reset();
+}
 
 #endif // SINGLETON_HPP

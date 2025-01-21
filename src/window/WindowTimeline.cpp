@@ -482,44 +482,44 @@ void WindowTimeline::Update() {
 
                     if (deleteKeyMode) {
                         switch (deleteKeyMode) {
-                            case DeleteKeyMode_Current: {
-                                sessionManager.getCurrentSession()->executeCommand(
-                                std::make_shared<CommandDeleteAnimationKey>(
-                                    sessionManager.getCurrentSession()->currentCellanim,
-                                    appState.globalAnimatable.getCurrentAnimationIndex(),
-                                    i
-                                ));
-                            } break;
+                        case DeleteKeyMode_Current: {
+                            sessionManager.getCurrentSession()->executeCommand(
+                            std::make_shared<CommandDeleteAnimationKey>(
+                                sessionManager.getCurrentSession()->currentCellanim,
+                                appState.globalAnimatable.getCurrentAnimationIndex(),
+                                i
+                            ));
+                        } break;
 
-                            case DeleteKeyMode_ToLeft: {
-                                RvlCellAnim::Animation newAnimation {
-                                    .keys = globalAnimatable.getCurrentAnimation()->keys
-                                };
-                                newAnimation.keys.erase(newAnimation.keys.begin(), newAnimation.keys.begin() + i);
+                        case DeleteKeyMode_ToLeft: {
+                            RvlCellAnim::Animation newAnimation {
+                                .keys = globalAnimatable.getCurrentAnimation()->keys
+                            };
+                            newAnimation.keys.erase(newAnimation.keys.begin(), newAnimation.keys.begin() + i);
 
-                                sessionManager.getCurrentSession()->executeCommand(
-                                std::make_shared<CommandModifyAnimation>(
-                                    sessionManager.getCurrentSession()->currentCellanim,
-                                    appState.globalAnimatable.getCurrentAnimationIndex(),
-                                    newAnimation
-                                ));
-                            } break;
-                            case DeleteKeyMode_ToRight: {
-                                RvlCellAnim::Animation newAnimation {
-                                    .keys = globalAnimatable.getCurrentAnimation()->keys
-                                };
-                                newAnimation.keys.erase(newAnimation.keys.begin() + i + 1, newAnimation.keys.end());
+                            sessionManager.getCurrentSession()->executeCommand(
+                            std::make_shared<CommandModifyAnimation>(
+                                sessionManager.getCurrentSession()->currentCellanim,
+                                appState.globalAnimatable.getCurrentAnimationIndex(),
+                                newAnimation
+                            ));
+                        } break;
+                        case DeleteKeyMode_ToRight: {
+                            RvlCellAnim::Animation newAnimation {
+                                .keys = globalAnimatable.getCurrentAnimation()->keys
+                            };
+                            newAnimation.keys.erase(newAnimation.keys.begin() + i + 1, newAnimation.keys.end());
 
-                                sessionManager.getCurrentSession()->executeCommand(
-                                std::make_shared<CommandModifyAnimation>(
-                                    sessionManager.getCurrentSession()->currentCellanim,
-                                    appState.globalAnimatable.getCurrentAnimationIndex(),
-                                    newAnimation
-                                ));
-                            } break;
+                            sessionManager.getCurrentSession()->executeCommand(
+                            std::make_shared<CommandModifyAnimation>(
+                                sessionManager.getCurrentSession()->currentCellanim,
+                                appState.globalAnimatable.getCurrentAnimationIndex(),
+                                newAnimation
+                            ));
+                        } break;
 
-                            default:
-                                break;
+                        default:
+                            break;
                         }
                     }
                 }

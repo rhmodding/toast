@@ -31,8 +31,11 @@ class MtCommandManager : public Singleton<MtCommandManager> {
     friend class Singleton<MtCommandManager>; // Allow access to base class constructor
 
 private:
-    bool isDestroyed { false };
+    MtCommandManager() = default;
+public:
+    ~MtCommandManager() = default;
 
+private:
     std::mutex mtx;
     std::condition_variable queueCondition;
 public:
@@ -46,9 +49,6 @@ public:
 
     // Needs to run every cycle on the main thread
     void Update();
-private:
-    MtCommandManager() {} // Private constructor to prevent instantiation
-    ~MtCommandManager() { this->isDestroyed = true; };
 };
 
 #endif // MTCOMMANDMANAGER_HPP

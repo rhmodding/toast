@@ -12,12 +12,7 @@
 #include "../MtCommandManager.hpp"
 
 Texture::~Texture() {
-    if (this->textureId == 0)
-        return;
-
-    MtCommandManager::getInstance().enqueueCommand([textureId = this->textureId]() {
-        glDeleteTextures(1, &textureId);
-    });
+    this->DestroyTexture();
 }
 
 void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned height) {
