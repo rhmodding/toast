@@ -97,6 +97,7 @@ public:
         OpenError_FailOpenTPL,
         OpenError_FailOpenImage,
         OpenError_FailOpenHFile,
+        OpenError_LayoutArchive, // The user selected a layout archive instead of a cellanim archive.
         OpenError_SessionsFull,
 
         OutError_FailOpenFile,

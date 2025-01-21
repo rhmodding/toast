@@ -59,6 +59,21 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         return -1;
     }
 
+    // Every layout archive has the directory "./blyt". If this directory exists
+    // we should throw an error
+    auto blytDirIt = std::find_if(
+        rootDirIt->subdirectories.begin(),
+        rootDirIt->subdirectories.end(),
+        [](const U8::Directory& dir) { return dir.name == "blyt"; }
+    );
+
+    if (blytDirIt != rootDirIt->subdirectories.end()) {
+        std::lock_guard<std::mutex> lock(this->mtx);
+        this->currentError = OpenError_LayoutArchive;
+
+        return -1;
+    }
+
     U8::File* __tplSearch = U8::findFile("cellanim.tpl", *rootDirIt);
     if (!__tplSearch) {
         std::lock_guard<std::mutex> lock(this->mtx);
