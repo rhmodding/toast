@@ -32,6 +32,8 @@
 
 #include "../App/Popups.hpp"
 
+#include "../Easings.hpp"
+
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "../stb/stb_rect_pack.h"
 
@@ -40,6 +42,16 @@ bool operator==(const stbrp_rect& lhs, const stbrp_rect& rhs) {
            lhs.h == rhs.h &&
            lhs.x == rhs.x &&
            lhs.y == rhs.y;
+}
+
+static void fitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
+    float widthRatio = targetRect.x / rectToFit.x;
+    float heightRatio = targetRect.y / rectToFit.y;
+
+    scale = std::min(widthRatio, heightRatio);
+
+    rectToFit.x *= scale;
+    rectToFit.y *= scale;
 }
 
 #define SHEET_ZOOM_TIME (.3f) // seconds
@@ -338,7 +350,7 @@ void WindowSpritesheet::FormatPopup() {
             };
 
             float scale;
-            Common::FitRect(imageRect, ImGui::GetContentRegionAvail(), scale);
+            fitRect(imageRect, ImGui::GetContentRegionAvail(), scale);
 
             ImVec2 imagePosition {
                 ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * .5f,
@@ -734,7 +746,7 @@ void WindowSpritesheet::Update() {
     };
 
     float scale;
-    Common::FitRect(imageRect, canvasSize, scale);
+    fitRect(imageRect, canvasSize, scale);
 
     ImVec2 canvasOffset;
 
@@ -750,7 +762,7 @@ void WindowSpritesheet::Update() {
 
     if (this->sheetZoomTriggered) {
         float rel = (ImGui::GetTime() - this->sheetZoomTimer) / SHEET_ZOOM_TIME;
-        float rScale = (this->sheetZoomEnabled ? Common::EaseIn : Common::EaseOut)(
+        float rScale = (this->sheetZoomEnabled ? Easings::In : Easings::Out)(
             this->sheetZoomEnabled ?
                 1.f - rel :
                 rel

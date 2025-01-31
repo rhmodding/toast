@@ -91,12 +91,6 @@ bool checkIfFileExists(const char* filePath);
 
 bool SaveBackupFile(const char* filePath, bool once);
 
-void FitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale);
-
-float EaseInOut(float t);
-float EaseIn(float t);
-float EaseOut(float t);
-
 } // namespace Common
 
 #endif // COMMON_HPP

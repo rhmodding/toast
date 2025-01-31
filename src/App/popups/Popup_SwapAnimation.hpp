@@ -16,6 +16,8 @@
 
 #include "../../AppState.hpp"
 
+#include "../../Easings.hpp"
+
 #include "../../common.hpp"
 
 static void Popup_SwapAnimation(int animationIndex) {
@@ -127,7 +129,7 @@ static void Popup_SwapAnimation(int animationIndex) {
                 ));
 
                 float animProgression = std::clamp<float>((ImGui::GetTime() - animationBegin) / animationTime, 0.f, 1.f);
-                ImGui::SetCursorPosY(std::lerp(positionOrig, positionNew, Common::EaseInOut(animProgression)));
+                ImGui::SetCursorPosY(std::lerp(positionOrig, positionNew, Easings::InOut(animProgression)));
 
                 if (ImGui::Selectable(fmtStream.str().c_str(), animationIndex == n || swapAnim == n, ImGuiSelectableFlags_DontClosePopups)) {
                     swapAnim = n;

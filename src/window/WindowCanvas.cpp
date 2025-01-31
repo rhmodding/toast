@@ -16,6 +16,16 @@
 
 #include "../common.hpp"
 
+static void fitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
+    float widthRatio = targetRect.x / rectToFit.x;
+    float heightRatio = targetRect.y / rectToFit.y;
+
+    scale = std::min(widthRatio, heightRatio);
+
+    rectToFit.x *= scale;
+    rectToFit.y *= scale;
+}
+
 // Check if point is inside a polygon defined by vertices
 static bool pointInPolygon(const ImVec2& point, const ImVec2* vertices, unsigned numVertices) {
     float x = point.x, y = point.y;
@@ -224,7 +234,7 @@ void WindowCanvas::Menubar() {
                 ImVec2 rect = { RVL_SAFE_X, RVL_SAFE_Y };
 
                 float scale;
-                Common::FitRect(rect, this->canvasSize, scale);
+                fitRect(rect, this->canvasSize, scale);
 
                 this->canvasZoom = scale - .1f;
             }

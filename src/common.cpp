@@ -56,24 +56,4 @@ bool SaveBackupFile(const char* filePath, bool once) {
     return true;
 }
 
-void FitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
-    float widthRatio = targetRect.x / rectToFit.x;
-    float heightRatio = targetRect.y / rectToFit.y;
-
-    scale = std::min(widthRatio, heightRatio);
-
-    rectToFit.x *= scale;
-    rectToFit.y *= scale;
-}
-
-float EaseInOut(float t) {
-    return t < .5f ? 2.f * t * t : -1.f + (4.f - 2.f * t) * t;
-}
-float EaseIn(float t) {
-    return t * t;
-}
-float EaseOut(float t) {
-    return 1.f - (1.f - t) * (1.f - t);
-}
-
 } // namespace Common
