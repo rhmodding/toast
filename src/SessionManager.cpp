@@ -348,14 +348,22 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 
             TPL::TPLObject tplObject;
 
-            for (unsigned i = 0; i < session->sheets.size(); i++) {
-                auto tplTexture = session->sheets.at(i)->TPLTexture();
-                if (!tplTexture.has_value()) {
-                    this->currentError = OutError_FailTPLTextureExport;
-                    return -1;
-                }
+            SessionManager::Error error { Error_None };
+            MainThreadTaskManager::getInstance().enqueueCommand([session, &tplObject, &error]() {
+                for (unsigned i = 0; i < session->sheets.size(); i++) {
+                    auto tplTexture = session->sheets.at(i)->TPLTexture();
+                    if (!tplTexture.has_value()) {
+                        error = OutError_FailTPLTextureExport;
+                        return;
+                    }
 
-                tplObject.textures.push_back(std::move(*tplTexture));
+                    tplObject.textures.push_back(std::move(*tplTexture));
+                }
+            }).get();
+
+            if (error != Error_None) {
+                this->currentError = OutError_FailTPLTextureExport;
+                return -1;
             }
 
             file.data = tplObject.Reserialize();
