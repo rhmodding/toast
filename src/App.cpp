@@ -43,7 +43,7 @@
 
 #include "task/AsyncTaskManager.hpp"
 
-#include "MtCommandManager.hpp"
+#include "MainThreadTaskManager.hpp"
 
 #include "App/Actions.hpp"
 #include "App/Shortcuts.hpp"
@@ -72,7 +72,7 @@ App::App(int argc, const char** argv) {
         __builtin_trap();
     }
 
-    MtCommandManager::createSingleton();
+    MainThreadTaskManager::createSingleton();
     AsyncTaskManager::createSingleton();
     AppState::createSingleton();
     ConfigManager::createSingleton();
@@ -209,11 +209,7 @@ App::~App() {
     ConfigManager::destroySingleton();
     PlayerManager::destroySingleton();
     AsyncTaskManager::destroySingleton();
-
-    // Fulfill MtCommands MtCommands submitted by dtors (if any.)
-    MtCommandManager::getInstance().Update();
-
-    MtCommandManager::destroySingleton();
+    MainThreadTaskManager::destroySingleton();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -885,7 +881,7 @@ void App::Update() {
 
     AsyncTaskManager::getInstance().UpdateTasks();
 
-    MtCommandManager::getInstance().Update();
+    MainThreadTaskManager::getInstance().Update();
 }
 
 void App::Draw() {

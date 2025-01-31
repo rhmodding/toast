@@ -9,7 +9,7 @@
 #include "../stb/stb_image_write.h"
 
 #include <future>
-#include "../MtCommandManager.hpp"
+#include "../MainThreadTaskManager.hpp"
 
 Texture::~Texture() {
     this->DestroyTexture();
@@ -19,7 +19,7 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
     this->width = width;
     this->height = height;
 
-    MtCommandManager::getInstance().enqueueCommand([this, data]() {
+    MainThreadTaskManager::getInstance().enqueueCommand([this, data]() {
         if (this->textureId == 0)
             glGenTextures(1, &this->textureId);
 
@@ -78,7 +78,7 @@ unsigned char* Texture::GetRGBA32() {
         return nullptr;
     }
 
-    MtCommandManager::getInstance().enqueueCommand([this, imageData]() {
+    MainThreadTaskManager::getInstance().enqueueCommand([this, imageData]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
@@ -95,7 +95,7 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
         return false;
     }
 
-    MtCommandManager::getInstance().enqueueCommand([this, buffer]() {
+    MainThreadTaskManager::getInstance().enqueueCommand([this, buffer]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
@@ -153,7 +153,7 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
 
     GLint wrapModes[2];
 
-    MtCommandManager::getInstance().enqueueCommand([this, &tplTexture, &wrapModes]() {
+    MainThreadTaskManager::getInstance().enqueueCommand([this, &tplTexture, &wrapModes]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
@@ -178,7 +178,7 @@ void Texture::DestroyTexture() {
     if (this->textureId == 0)
         return;
 
-    MtCommandManager::getInstance().enqueueCommand([textureId = this->textureId]() {
+    MainThreadTaskManager::getInstance().enqueueCommand([textureId = this->textureId]() {
         glDeleteTextures(1, &textureId);
     });
     this->textureId = 0;

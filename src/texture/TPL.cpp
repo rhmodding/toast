@@ -5,7 +5,7 @@
 
 #include <unordered_set>
 
-#include "../MtCommandManager.hpp"
+#include "../MainThreadTaskManager.hpp"
 
 #include "ImageConvert.hpp"
 
@@ -439,7 +439,7 @@ GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
         break;
     }
 
-    MtCommandManager::getInstance().enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
+    MainThreadTaskManager::getInstance().enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
         glGenTextures(1, &imageTexture);
         glBindTexture(GL_TEXTURE_2D, imageTexture);
 

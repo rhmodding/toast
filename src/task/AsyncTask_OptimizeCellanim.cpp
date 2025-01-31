@@ -52,7 +52,7 @@ static void bilinearScale(
 
 static void removeAnimationNames(SessionManager::Session* session) {
     auto& animationNames = session->getAnimationNames();
-    MtCommandManager::getInstance().enqueueCommand([&animationNames](){
+    MainThreadTaskManager::getInstance().enqueueCommand([&animationNames](){
         animationNames.clear();
     }).get();
 }
@@ -76,7 +76,7 @@ static void removeUnusedArrangements(SessionManager::Session* session) {
     auto& animations = cellanim->animations;
     auto& arrangements = cellanim->arrangements;
 
-    MtCommandManager::getInstance().enqueueCommand(
+    MainThreadTaskManager::getInstance().enqueueCommand(
     [&arrangements, &toErase, &animations]() {
         for (unsigned i = 0; i < toErase.size(); i++) {
             unsigned index = toErase.at(i);
@@ -129,7 +129,7 @@ static void downscaleSpritesheet(SessionManager::Session* session, const Optimiz
     // RGBA image
     unsigned char* originalPixels = new unsigned char[sheet->getWidth() * sheet->getHeight() * 4];
 
-    MtCommandManager::getInstance().enqueueCommand([&sheet, originalPixels]() {
+    MainThreadTaskManager::getInstance().enqueueCommand([&sheet, originalPixels]() {
         glBindTexture(GL_TEXTURE_2D, sheet->getTextureId());
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, originalPixels);
         glBindTexture(GL_TEXTURE_2D, 0);

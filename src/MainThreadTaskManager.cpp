@@ -1,6 +1,6 @@
-#include "MtCommandManager.hpp"
+#include "MainThreadTaskManager.hpp"
 
-std::future<void> MtCommandManager::enqueueCommand(std::function<void()> func) {
+std::future<void> MainThreadTaskManager::enqueueCommand(std::function<void()> func) {
     if (std::this_thread::get_id() == gAppPtr->getMainThreadId()) {
         func();
 
@@ -12,7 +12,7 @@ std::future<void> MtCommandManager::enqueueCommand(std::function<void()> func) {
 
     std::lock_guard<std::mutex> lock(this->mtx);
 
-    MtCommand command { func, std::promise<void>() };
+    MainThreadTask command { func, std::promise<void>() };
     std::future<void> future = command.promise.get_future();
 
     this->commandQueue.push(std::move(command));
@@ -22,7 +22,7 @@ std::future<void> MtCommandManager::enqueueCommand(std::function<void()> func) {
     return future;
 }
 
-void MtCommandManager::Update() {
+void MainThreadTaskManager::Update() {
     std::unique_lock<std::mutex> lock(this->mtx);
     while (!this->commandQueue.empty()) {
         auto command = std::move(this->commandQueue.front());

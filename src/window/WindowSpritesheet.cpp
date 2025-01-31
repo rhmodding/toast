@@ -24,7 +24,6 @@
 
 #include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"
-#include "../MtCommandManager.hpp"
 
 #include "../texture/ImageConvert.hpp"
 

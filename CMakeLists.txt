@@ -70,7 +70,7 @@ set(SOURCES
 
     src/ConfigManager.cpp
 
-    src/MtCommandManager.cpp
+    src/MainThreadTaskManager.cpp
 
     src/common.cpp
 )
