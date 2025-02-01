@@ -49,15 +49,15 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         .decompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize)),
     };
 
-    // Compression
-    {
+    // Compression using zlib-ng to find matches.
+    if (compressionLevel != 0) {
         struct CompressionState {
             std::vector<unsigned char>& buffer;
 
             unsigned pendingChunks { 0 };
 
-            unsigned groupHeaderOffset { sizeof(Yaz0Header) };
-            std::bitset<8> groupHeader;
+            unsigned operationsOffset { sizeof(Yaz0Header) };
+            std::bitset<8> operations;
 
             CompressionState(std::vector<unsigned char>& buffer) : buffer(buffer) {}
         } compressionState(result);
@@ -74,7 +74,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                     CompressionState* compressionState = reinterpret_cast<CompressionState*>(usrData);
 
                     if (dist == 0) {
-                        compressionState->groupHeader.set(7 - compressionState->pendingChunks);
+                        compressionState->operations.set(7 - compressionState->pendingChunks);
                         compressionState->buffer.push_back(static_cast<unsigned char>(lc));
                     }
                     else {
@@ -101,13 +101,13 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
                     if (++compressionState->pendingChunks == CHUNKS_PER_GROUP) {
                         // Write group header
-                        compressionState->buffer[compressionState->groupHeaderOffset] =
-                            static_cast<unsigned char>(compressionState->groupHeader.to_ulong());
+                        compressionState->buffer[compressionState->operationsOffset] =
+                            static_cast<unsigned char>(compressionState->operations.to_ulong());
 
                         // Reset values
                         compressionState->pendingChunks = 0;
-                        compressionState->groupHeader.reset();
-                        compressionState->groupHeaderOffset = static_cast<unsigned>(compressionState->buffer.size());
+                        compressionState->operations.reset();
+                        compressionState->operationsOffset = static_cast<unsigned>(compressionState->buffer.size());
 
                         compressionState->buffer.push_back(0xFFu);
                     }
@@ -120,8 +120,31 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
             }
 
             if (compressionState.pendingChunks != 0)
-                compressionState.buffer[compressionState.groupHeaderOffset] =
-                    static_cast<unsigned char>(compressionState.groupHeader.to_ulong());
+                compressionState.buffer[compressionState.operationsOffset] =
+                    static_cast<unsigned char>(compressionState.operations.to_ulong());
+        }
+    }
+    // Direct store. Result will be 12.5% bigger than the original data since one
+    // op byte is needed for every 8 bytes.
+    else {
+        // One op byte for every 8 bytes.
+        unsigned compressedSize = dataSize + ((dataSize + 7) / 8);
+        unsigned fullSize = sizeof(Yaz0Header) + compressedSize;
+
+        result.resize(fullSize);
+
+        const unsigned char* srcEnd = data + dataSize;
+        const unsigned char* dstEnd = result.data() + fullSize;
+
+        const unsigned char* currentSrc = data;
+        unsigned char* currentDst = result.data() + sizeof(Yaz0Header);
+
+        while (currentDst < dstEnd && currentSrc < srcEnd) {
+            *(currentDst++) = 0xFF; // All bits to 1.
+
+            // Copy 8 bytes.
+            *(uint64_t*)currentDst = *(uint64_t*)currentSrc;
+            currentSrc += 8; currentDst += 8;
         }
     }
 
@@ -136,7 +159,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
     const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(data);
     if (header->magic != HEADER_MAGIC) {
-        std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: header magic failed check!\n";
+        std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: header magic is nonmatching!\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -149,22 +172,24 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
     const unsigned char* dstStart = destination.data();
     const unsigned char* dstEnd = destination.data() + decompressedSize;
 
-    uint8_t headerByte, code = 0;
+    uint8_t opByte, opMask = 0;
 
     for (
         unsigned char* dstByte = destination.data();
-        dstByte < dstEnd; code >>= 1
+        dstByte < dstEnd; opMask >>= 1
     ) {
-        if (!code) {
-            code = 0x80;
-            headerByte = *(srcByte++);
+        // No more operation bits left. Refresh
+        if (opMask == 0) {
+            opByte = *(srcByte++);
+            opMask = (1 << 7);
         }
 
-        if (headerByte & code)
+        if (opByte & opMask) // Copy one byte.
             *(dstByte++) = *(srcByte++);
-        else {
+        else { // Run-length data.
             int distToDest = (*srcByte << 8) | *(srcByte + 1);
             srcByte += 2;
+
             int runSrcIdx = (dstByte - dstStart) - (distToDest & 0xfff);
 
             int runLen = ((distToDest >> 12) == 0) ?
@@ -172,7 +197,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
                 (distToDest >> 12) + 2;
 
             for (; runLen > 0; runLen--, dstByte++, runSrcIdx++) {
-                if (dstByte >= dstEnd) {
+                if (UNLIKELY(dstByte >= dstEnd)) {
                     std::cout << "[Yaz0::decompress] The Yaz0 data is malformed. The binary might be corrupted.\n";
                     return std::nullopt;
                 }

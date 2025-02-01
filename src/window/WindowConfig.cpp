@@ -123,15 +123,15 @@ void WindowConfig::Update() {
             } break;
 
             case Category_Export: {
-                enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_Count };
-                static const char* levelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low" };
+                enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_None, CL_Count };
+                static const char* levelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low", "None" };
 
                 static const int levelMap[CL_Count] = { 9, 8, 7, 4, 2 };
 
                 int selectedLevel;
                 {
                     static const int compressionLevels[] = {
-                        CL_Count, // 0
+                        CL_None, // 0
                         CL_Count, // 1
                         CL_VeryLow, // 2
                         CL_Count, // 3
@@ -153,7 +153,7 @@ void WindowConfig::Update() {
                     clName = levelNames[selectedLevel];
                 else {
                     static char buf[64];
-                    snprintf(buf, sizeof(buf), "Other (lvl %i)", this->selfConfig.compressionLevel);
+                    snprintf(buf, sizeof(buf), "Other (%d)", this->selfConfig.compressionLevel);
 
                     clName = buf;
                 }
