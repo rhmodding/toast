@@ -15,36 +15,18 @@ public:
         cellanimIndex(cellanimIndex), animationIndex(animationIndex),
         newName(name)
     {
-        if (this->getAnimationNames().find(animationIndex) != this->getAnimationNames().end()) {
-            this->oldName = this->getAnimationNames()[animationIndex];
-        }
+        this->oldName = this->getAnimation().name;
     }
     ~CommandModifyAnimationName() = default;
 
     void Execute() override {
-        if (
-            this->newName.empty() &&
-            this->getAnimationNames().find(animationIndex) != this->getAnimationNames().end()
-        ) {
-            this->getAnimationNames().erase(animationIndex);
-            return;
-        }
-
-        this->getAnimationNames()[animationIndex] = this->newName;
+        this->getAnimation().name = this->newName;
 
         SessionManager::getInstance().getCurrentSessionModified() = true;
     }
 
     void Rollback() override {
-        if (
-            this->oldName.empty() &&
-            this->getAnimationNames().find(animationIndex) != this->getAnimationNames().end()
-        ) {
-            this->getAnimationNames().erase(animationIndex);
-            return;
-        }
-
-        this->getAnimationNames()[animationIndex] = this->oldName;
+        this->getAnimation().name = this->oldName;
 
         SessionManager::getInstance().getCurrentSessionModified() = true;
     }
@@ -56,11 +38,10 @@ private:
     std::string oldName;
     std::string newName;
 
-    std::unordered_map<unsigned, std::string>& getAnimationNames() {
-        return
-            SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).
-            animNames;
+    RvlCellAnim::Animation& getAnimation() {
+        return SessionManager::getInstance().getCurrentSession()
+            ->cellanims.at(cellanimIndex).object
+            ->animations.at(animationIndex);
     }
 };
 

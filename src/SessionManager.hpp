@@ -43,7 +43,6 @@ public:
         struct CellanimData {
             std::shared_ptr<RvlCellAnim::RvlCellAnimObject> object;
             std::string name;
-            std::unordered_map<unsigned, std::string> animNames;
         };
         std::vector<CellanimData> cellanims;
         std::vector<std::shared_ptr<Texture>> sheets;
@@ -68,9 +67,6 @@ public:
         }
         std::shared_ptr<Texture>& getCellanimSheet() {
             return this->sheets.at(std::min<unsigned>(this->getCellanimObject()->sheetIndex, this->sheets.size() - 1));
-        }
-        std::unordered_map<unsigned, std::string>& getAnimationNames() {
-            return this->cellanims.at(this->currentCellanim).animNames;
         }
 
         bool arrangementMode { false };

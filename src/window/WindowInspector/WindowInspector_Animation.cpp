@@ -24,12 +24,11 @@ void WindowInspector::Level_Animation() {
 
     ImGui::SameLine();
 
-    const uint16_t animationIndex = globalAnimatable.getCurrentAnimationIndex();
-    auto query = sessionManager.getCurrentSession()->getAnimationNames().find(animationIndex);
+    unsigned animationIndex = globalAnimatable.getCurrentAnimationIndex();
 
-    const char* animationName =
-        query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
-            query->second.c_str() : nullptr;
+    const char* animName = globalAnimatable.cellanim->animations.at(animationIndex).name.c_str();
+    if (animName == nullptr)
+        animName = "(no macro defined)";
 
     ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
@@ -38,7 +37,7 @@ void WindowInspector::Level_Animation() {
         ImGui::Text("Animation no. %u:", animationIndex + 1);
 
         ImGui::PushFont(appState.fonts.large);
-        ImGui::TextWrapped("%s", animationName ? animationName : "(no macro defined)");
+        ImGui::TextWrapped("%s", animName);
         ImGui::PopFont();
 
         ImGui::PopStyleVar();

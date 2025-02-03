@@ -108,12 +108,11 @@ static void Popup_SwapAnimation(int animationIndex) {
 
                 int nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
 
-                auto query = sessionManager.getCurrentSession()->getAnimationNames().find(swapNames ? n : nI);
-
                 const char* animName =
-                    query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
-                        query->second.c_str() :
-                        "(no macro defined)";
+                    sessionManager.getCurrentSession()->getCellanimObject()
+                        ->animations.at(swapNames ? n : nI).name.c_str();
+                if (animName == nullptr)
+                    animName = "(no macro defined)";
 
                 fmtStream << std::to_string(nI+1) << ". " << animName;
                 if (nI != n)

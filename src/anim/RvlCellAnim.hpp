@@ -138,6 +138,7 @@ struct AnimationKey {
 
 struct Animation {
     std::vector<AnimationKey> keys;
+    std::string name;
 };
 
 class RvlCellAnimObject {

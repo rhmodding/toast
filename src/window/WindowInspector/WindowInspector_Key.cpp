@@ -26,18 +26,17 @@ void WindowInspector::Level_Key() {
     RvlCellAnim::AnimationKey newKey = *globalAnimatable.getCurrentKey();
     RvlCellAnim::AnimationKey originalKey = *globalAnimatable.getCurrentKey();
 
-    uint16_t animationIndex = globalAnimatable.getCurrentAnimationIndex();
-    auto query = sessionManager.getCurrentSession()->getAnimationNames().find(animationIndex);
+    unsigned animationIndex = globalAnimatable.getCurrentAnimationIndex();
 
-    const char* animationName =
-        query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
-            query->second.c_str() : nullptr;
+    const char* animName = globalAnimatable.cellanim->animations.at(animationIndex).name.c_str();
+    if (animName == nullptr)
+        animName = "no macro defined";
 
     ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
-        ImGui::Text("Anim \"%s\" (no. %u)", animationName ? animationName : "no macro defined", animationIndex+1);
+        ImGui::Text("Anim \"%s\" (no. %u)", animName, animationIndex+1);
 
         ImGui::PushFont(appState.fonts.large);
         ImGui::TextWrapped("Key no. %u", globalAnimatable.getCurrentKeyIndex() + 1);

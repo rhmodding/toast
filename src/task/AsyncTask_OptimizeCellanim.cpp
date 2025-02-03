@@ -51,9 +51,11 @@ static void bilinearScale(
 }
 
 static void removeAnimationNames(SessionManager::Session* session) {
-    auto& animationNames = session->getAnimationNames();
-    MainThreadTaskManager::getInstance().enqueueCommand([&animationNames](){
-        animationNames.clear();
+    auto& animations = session->getCellanimObject()->animations;
+
+    MainThreadTaskManager::getInstance().QueueTask([&animations]() {
+        for (auto& animation : animations)
+            animation.name.clear();
     }).get();
 }
 

@@ -30,20 +30,11 @@ public:
             this->getAnimations().at(animationIndexB)
         );
 
-        if (this->swapNames) {
-            auto& map = this->getAnimationNames();
-
-            if (map.find(animationIndexA) != map.end() && map.find(animationIndexB) != map.end()) {
-                std::swap(map[animationIndexA], map[animationIndexB]);
-            }
-            else if (map.find(animationIndexA) != map.end()) {
-                map[animationIndexB] = map[animationIndexA];
-                map.erase(animationIndexA);
-            }
-            else if (map.find(animationIndexB) != map.end()) {
-                map[animationIndexA] = map[animationIndexB];
-                map.erase(animationIndexB);
-            }
+        if (!this->swapNames) {
+            std::swap(
+                this->getAnimations().at(animationIndexA).name,
+                this->getAnimations().at(animationIndexB).name
+            );
         }
 
         this->updateAnimationState();
@@ -96,13 +87,6 @@ private:
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object
             ->animations;
-    }
-
-    std::unordered_map<unsigned, std::string>& getAnimationNames() {
-        return
-            SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).
-            animNames;
     }
 };
 

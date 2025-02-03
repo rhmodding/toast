@@ -29,15 +29,15 @@ static void Popup_EditAnimationName(int animationIndex) {
     GET_SESSION_MANAGER;
 
     if (!lateOpen && open) {
-        const auto& animNames = sessionManager.getCurrentSession()->getAnimationNames();
+        const auto& animation =
+            sessionManager.getCurrentSession()->getCellanimObject()->animations.at(animationIndex);
 
-        if (animNames.find(animationIndex) != animNames.end()) {
-            const auto& str = animNames.at(animationIndex);
-            strncpy(newMacro, str.c_str(), sizeof(newMacro) - 1);
-        }
-        else {
+        if (animation.name.empty()) {
             const std::string& str = sessionManager.getCurrentSession()->getCellanimName();
             snprintf(newMacro, sizeof(newMacro), "%.*s_", static_cast<int>(str.size() - 6), str.c_str());
+        }
+        else {
+            strncpy(newMacro, animation.name.c_str(), sizeof(newMacro) - 1);
         }
     }
 

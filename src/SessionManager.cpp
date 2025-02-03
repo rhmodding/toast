@@ -177,7 +177,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
                 if (commentPos != std::string::npos)
                     key = key.substr(0, commentPos);
 
-                newSession.cellanims.at(i).animNames.insert({ value, key });
+                newSession.cellanims.at(i).object->animations.at(value).name = key;
             }
         }
     }
@@ -251,7 +251,6 @@ int SessionManager::PushSessionTraditional(const char* brcadPath, const char* im
     }
 
     // animationNames
-    auto& animationNames = newSession.cellanims.at(0).animNames;
     {
         std::ifstream headerFile(headerPath);
         if (!headerFile.is_open()) {
@@ -273,7 +272,7 @@ int SessionManager::PushSessionTraditional(const char* brcadPath, const char* im
                 if (commentPos != std::string::npos)
                     key = key.substr(0, commentPos);
 
-                animationNames.insert({ value, key });
+                newSession.cellanims[0].object->animations.at(value).name = key;
             }
         }
     }
@@ -311,23 +310,14 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 
         // Header files
         for (unsigned i = 0; i < session->cellanims.size(); i++) {
-            const auto& map = session->cellanims.at(i).animNames;
-
-            if (map.empty())
-                continue; // Don't bother writing the header if there's no
-                          // definitions avaliable.
-            
-            // We need to sort the defines before writing.
-            std::vector<std::pair<unsigned, std::string>> vec(map.begin(), map.end());
-
-            std::sort(vec.begin(), vec.end(),
-            [](const std::pair<unsigned, std::string>& a, const std::pair<unsigned, std::string>& b) {
-                return a.first < b.first;
-            });
-
             std::ostringstream stream;
-            for (const auto& [animIndex, defineStr] : vec)
-                stream << "#define " << defineStr << " " << std::to_string(animIndex) << '\n';
+            for (unsigned j = 0; j < session->cellanims[i].object->animations.size(); j++) {
+                const auto& animation = session->cellanims[i].object->animations[j];
+                if (animation.name.empty())
+                    continue;
+
+                stream << "#define " << animation.name << " " << std::to_string(j) << '\n';
+            }
 
             const std::string& cellanimName = session->cellanims.at(i).name;
             U8::File file(

@@ -87,12 +87,9 @@ void WindowHybridList::Update() {
             for (unsigned n = 0; n < globalAnimatable.cellanim->animations.size(); n++) {
                 std::ostringstream fmtStream;
 
-                auto query = sessionManager.getCurrentSession()->getAnimationNames().find(n);
-
-                const char* animName =
-                    query != sessionManager.getCurrentSession()->getAnimationNames().end() ?
-                        query->second.c_str() :
-                        "(no macro defined)";
+                const char* animName = globalAnimatable.cellanim->animations[n].name.c_str();
+                if (animName == nullptr)
+                    animName = "(no macro defined)";
 
                 fmtStream << std::to_string(n+1) << ". " << animName;
 
