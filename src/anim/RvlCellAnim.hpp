@@ -59,7 +59,16 @@ struct TransformValues {
     bool operator!=(const TransformValues& other) const {
         return !(*this == other);
     }
-} __attribute__((packed));
+};
+
+struct CTRColor {
+    uint8_t r, g, b;
+};
+
+struct CTRDepth {
+    float topLeft { 0.f }, bottomLeft { 0.f };
+    float topRight { 0.f }, bottomRight { 0.f };
+};
 
 struct ArrangementPart {
     uint16_t regionX { 8 }, regionY { 8 };
@@ -72,6 +81,17 @@ struct ArrangementPart {
     bool flipX { false }, flipY { false };
 
     uint8_t opacity { 0xFFu };
+
+    // On CTR only.
+    CTRColor foreColor { 0xFF, 0xFF, 0xFF };
+    // On CTR only.
+    CTRColor backColor { 0x00, 0x00, 0x00 };
+
+    // On CTR only.
+    CTRDepth depth3D;
+
+    // On CTR only.
+    unsigned id { 0 };
 
     bool editorVisible { true };
     bool editorLocked { false };
@@ -119,6 +139,14 @@ struct AnimationKey {
     TransformValues transform;
 
     uint8_t opacity { 0xFFu };
+
+    // On CTR only.
+    CTRColor foreColor { 0xFF, 0xFF, 0xFF };
+    // On CTR only.
+    CTRColor backColor { 0x00, 0x00, 0x00 };
+
+    // On CTR only.
+    CTRDepth depth3D;
 
     bool operator==(const AnimationKey& other) const {
         return
