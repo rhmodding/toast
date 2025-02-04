@@ -18,7 +18,7 @@ static void Popup_DeleteAnimation(int animationIndex) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Are you sure?###DeleteAnimation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text(
-            "Are you sure you want to delete animation no. %i?\n"
+            "Are you sure you want to delete animation no. %d?\n"
             "This change will shift other animations indices.",
             animationIndex
         );
@@ -36,7 +36,7 @@ static void Popup_DeleteAnimation(int animationIndex) {
 
             GET_SESSION_MANAGER;
 
-            sessionManager.getCurrentSession()->executeCommand(
+            sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandDeleteAnimation>(
                 sessionManager.getCurrentSession()->currentCellanim,
                 animationIndex

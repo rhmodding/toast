@@ -65,7 +65,7 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Animation;
 
                 if (appState.getArrangementMode())
-                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    SessionManager::getInstance().getCurrentSession()->addCommand(
                         std::make_shared<CommandSetArrangementMode>(false)
                     );
 
@@ -75,7 +75,7 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Key;
 
                 if (appState.getArrangementMode())
-                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    SessionManager::getInstance().getCurrentSession()->addCommand(
                         std::make_shared<CommandSetArrangementMode>(false)
                     );
 
@@ -85,7 +85,7 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Arrangement_Im;
 
                 if (appState.getArrangementMode())
-                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    SessionManager::getInstance().getCurrentSession()->addCommand(
                         std::make_shared<CommandSetArrangementMode>(false)
                     );
 
@@ -95,7 +95,7 @@ void WindowInspector::Update() {
                 inspectorLevel = InspectorLevel_Arrangement;
 
                 if (!appState.getArrangementMode())
-                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    SessionManager::getInstance().getCurrentSession()->addCommand(
                         std::make_shared<CommandSetArrangementMode>(true)
                     );
 

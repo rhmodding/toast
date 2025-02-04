@@ -350,7 +350,7 @@ static void _ApplyInterpolation(
 
     newAnim.keys.at(currentKeyIndex).holdFrames = interval;
 
-    sessionManager.getCurrentSession()->executeCommand(
+    sessionManager.getCurrentSession()->addCommand(
     std::make_shared<CommandModifyAnimation>(
         sessionManager.getCurrentSession()->currentCellanim,
         animationIndex,

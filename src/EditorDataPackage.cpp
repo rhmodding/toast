@@ -77,7 +77,7 @@ struct TedNamedPartEntryOld {
 } __attribute__((packed));
 
 static RvlCellAnim::ArrangementPart* _TedGetPart(
-    const SessionManager::Session& session,
+    const Session& session,
     uint16_t cellIndex, uint16_t arrngIndex, uint16_t partIndex
 ) {
     if (cellIndex >= session.cellanims.size()) {
@@ -109,7 +109,7 @@ static RvlCellAnim::ArrangementPart* _TedGetPart(
         return &arrangement.parts.at(partIndex);
 }
 
-static void _TedApply(const unsigned char* data, const SessionManager::Session& session) {
+static void _TedApply(const unsigned char* data, const Session& session) {
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
     if (fileHeader->entryCount == 0)
         return;
@@ -204,7 +204,7 @@ static void _TedApply(const unsigned char* data, const SessionManager::Session& 
     }
 }
 
-static void _TedApplyOld(const unsigned char* data, const SessionManager::Session& session) {
+static void _TedApplyOld(const unsigned char* data, const Session& session) {
     const TedFileHeaderOld* fileHeader = reinterpret_cast<const TedFileHeaderOld*>(data);
     if (fileHeader->entryCount == 0)
         return;
@@ -295,7 +295,7 @@ static void _TedApplyOld(const unsigned char* data, const SessionManager::Sessio
     }
 }
 
-void TedApply(const unsigned char* data, const SessionManager::Session& session) {
+void TedApply(const unsigned char* data, const Session& session) {
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
 
     if (memcmp(fileHeader->magic, "TOAST", 5) != 0) {
@@ -332,10 +332,10 @@ struct TedWriteState {
 
     std::unordered_map<std::string, unsigned> nameOffsets;
 
-    const SessionManager::Session& session;
+    const Session& session;
 };
 
-TedWriteState* TedCreateWriteState(const SessionManager::Session& session) {
+TedWriteState* TedCreateWriteState(const Session& session) {
     return new TedWriteState {
         .session = session
     };

@@ -15,7 +15,7 @@ class ExportSessionTask : public AsyncTask {
 public:
     ExportSessionTask(
         uint32_t id,
-        SessionManager::Session* session, std::string outPath
+        Session* session, std::string outPath
     );
 
 protected:
@@ -23,7 +23,7 @@ protected:
     void Effect() override;
 
 private:
-    SessionManager::Session* session;
+    Session* session;
     std::string outPath;
 
     std::atomic<int> result { 0 };

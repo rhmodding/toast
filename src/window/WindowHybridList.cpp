@@ -243,7 +243,7 @@ void WindowHybridList::Update() {
             }
 
         if (command)
-            sessionManager.getCurrentSession()->executeCommand(command);
+            sessionManager.getCurrentSession()->addCommand(command);
     }
     ImGui::EndChild();
 

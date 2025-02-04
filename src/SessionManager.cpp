@@ -26,6 +26,46 @@
 
 #include "common.hpp"
 
+void Session::addCommand(std::shared_ptr<BaseCommand> command) {
+    command->Execute();
+    if (this->undoQueue.size() == SESSION_MAX_COMMANDS)
+        this->undoQueue.pop_front();
+
+    this->undoQueue.push_back(command);
+    this->redoQueue.clear();
+}
+
+void Session::undo() {
+    if (this->undoQueue.empty())
+        return;
+
+    auto command = undoQueue.back();
+    this->undoQueue.pop_back();
+
+    command->Rollback();
+
+    this->redoQueue.push_back(command);
+
+    this->modified = true;
+}
+
+void Session::redo() {
+    if (this->redoQueue.empty())
+        return;
+
+    auto command = redoQueue.back();
+    this->redoQueue.pop_back();
+
+    command->Execute();
+
+    if (this->undoQueue.size() == SESSION_MAX_COMMANDS)
+        this->undoQueue.pop_front();
+
+    this->undoQueue.push_back(command);
+
+    this->modified = true;
+}
+
 int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     if (!Common::checkIfFileExists(filePath)) {
         std::lock_guard<std::mutex> lock(this->mtx);
@@ -127,7 +167,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
                 file->data.data(), file->data.size()
             );
 
-        if (!cellanim.object->ok) {
+        if (!cellanim.object->isInitialized()) {
             std::lock_guard<std::mutex> lock(this->mtx);
             this->currentError = OpenError_FailOpenBXCAD;
 
@@ -230,7 +270,7 @@ int SessionManager::PushSessionTraditional(const char* brcadPath, const char* im
     cellanim.object = RvlCellAnim::readRvlCellAnimFile(brcadPath);
     if (
         !cellanim.object ||
-        !cellanim.object->ok
+        !cellanim.object->isInitialized()
     ) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_FailOpenBXCAD;
@@ -339,7 +379,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
             TPL::TPLObject tplObject;
 
             SessionManager::Error error { Error_None };
-            MainThreadTaskManager::getInstance().enqueueCommand([session, &tplObject, &error]() {
+            MainThreadTaskManager::getInstance().QueueTask([session, &tplObject, &error]() {
                 for (unsigned i = 0; i < session->sheets.size(); i++) {
                     auto tplTexture = session->sheets.at(i)->TPLTexture();
                     if (!tplTexture.has_value()) {
@@ -358,10 +398,10 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 
             file.data = tplObject.Reserialize();
 
-            directory.AddFile(file);
+            directory.AddFile(std::move(file));
         }
 
-        // supplemental editor data
+        // TED file
         {
             U8::File file(TED_ARC_FILENAME);
 
@@ -370,12 +410,12 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
                 TedWrite(state, file.data.data());
             TedDestroyWriteState(state);
 
-            directory.AddFile(file);
+            directory.AddFile(std::move(file));
         }
 
         directory.SortAlphabetically();
 
-        archive.structure.AddDirectory(directory);
+        archive.structure.AddDirectory(std::move(directory));
     }
 
     auto archiveRaw = archive.Reserialize();
@@ -405,8 +445,8 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
     std::ofstream file(outPath, std::ios::binary);
     if (file.is_open()) {
         file.write(
-            reinterpret_cast<const char*>((*compressedArchive).data()),
-            (*compressedArchive).size()
+            reinterpret_cast<const char*>(compressedArchive->data()),
+            compressedArchive->size()
         );
 
         file.close();
@@ -436,8 +476,8 @@ void SessionManager::SessionChanged() {
     GET_ANIMATABLE;
 
     globalAnimatable = Animatable(
-        this->sessionList[this->currentSessionIndex].getCellanimObject(),
-        this->sessionList[this->currentSessionIndex].getCellanimSheet()
+        this->sessionList[this->currentSessionIndex].getCurrentCellanim().object,
+        this->sessionList[this->currentSessionIndex].getCurrentCellanimSheet()
     );
 
     appState.selectedAnimation = std::min<unsigned>(
@@ -475,49 +515,4 @@ void SessionManager::FreeAllSessions() {
     this->sessionList.clear();
 
     this->currentSessionIndex = -1;
-}
-
-void SessionManager::Session::executeCommand(std::shared_ptr<BaseCommand> command) {
-    command->Execute();
-    if (this->undoQueue.size() == SESSION_MAX_COMMANDS)
-        this->undoQueue.pop_front();
-
-    this->undoQueue.push_back(command);
-    this->redoQueue.clear();
-}
-
-void SessionManager::Session::undo() {
-    if (this->undoQueue.empty())
-        return;
-
-    auto command = undoQueue.back();
-    this->undoQueue.pop_back();
-
-    command->Rollback();
-
-    this->redoQueue.push_back(command);
-
-    this->modified = true;
-}
-
-void SessionManager::Session::redo() {
-    if (this->redoQueue.empty())
-        return;
-
-    auto command = redoQueue.back();
-    this->redoQueue.pop_back();
-
-    command->Execute();
-
-    if (this->undoQueue.size() == SESSION_MAX_COMMANDS)
-        this->undoQueue.pop_front();
-
-    this->undoQueue.push_back(command);
-
-    this->modified = true;
-}
-
-void SessionManager::Session::clearUndoRedo() {
-    this->undoQueue.clear();
-    this->redoQueue.clear();
 }

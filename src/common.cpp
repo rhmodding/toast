@@ -1,12 +1,9 @@
 #include "common.hpp"
 
+#include <cstdio>
 #include <fstream>
 
-#include <cmath>
-
 #include <bit>
-
-#include "MainThreadTaskManager.hpp"
 
 namespace Common {
 
@@ -17,14 +14,15 @@ float byteswapFloat(float value) {
 }
 
 bool checkIfFileExists(const char* filePath) {
-    if (!filePath)
+    if (filePath == nullptr)
         return false;
 
-    if (FILE* file = fopen(filePath, "r")) {
-        fclose(file);
-        return true;
-    }
-    return false;
+    FILE* file = fopen(filePath, "r");
+    if (file == nullptr)
+        return false;
+
+    fclose(file);
+    return true;
 }
 
 // TODO: remove

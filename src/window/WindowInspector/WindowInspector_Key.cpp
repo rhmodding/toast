@@ -272,7 +272,7 @@ void WindowInspector::Level_Key() {
     if (newKey != originalKey) {
         *globalAnimatable.getCurrentKey() = originalKey;
 
-        SessionManager::getInstance().getCurrentSession()->executeCommand(
+        SessionManager::getInstance().getCurrentSession()->addCommand(
         std::make_shared<CommandModifyAnimationKey>(
             sessionManager.getCurrentSession()->currentCellanim,
             appState.globalAnimatable.getCurrentAnimationIndex(),

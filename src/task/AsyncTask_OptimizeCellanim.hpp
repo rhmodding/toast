@@ -30,7 +30,7 @@ class OptimizeCellanimTask : public AsyncTask {
 public:
     OptimizeCellanimTask(
         uint32_t id,
-        SessionManager::Session* session, OptimizeCellanimOptions options
+        Session* session, OptimizeCellanimOptions options
     );
 
 protected:
@@ -38,7 +38,7 @@ protected:
     void Effect() override;
 
 private:
-    SessionManager::Session* session;
+    Session* session;
     OptimizeCellanimOptions options;
 };
 

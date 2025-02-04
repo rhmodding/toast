@@ -143,7 +143,7 @@ void WindowInspector::Level_Arrangement() {
                 if (newKey != originalKey) {
                     *globalAnimatable.getCurrentKey() = originalKey;
 
-                    SessionManager::getInstance().getCurrentSession()->executeCommand(
+                    SessionManager::getInstance().getCurrentSession()->addCommand(
                     std::make_shared<CommandModifyAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
                         appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -333,7 +333,7 @@ void WindowInspector::Level_Arrangement() {
             if (newPart != originalPart) {
                 *partPtr = originalPart;
 
-                SessionManager::getInstance().getCurrentSession()->executeCommand(
+                SessionManager::getInstance().getCurrentSession()->addCommand(
                     std::make_shared<CommandModifyArrangementPart>(newPart)
                 );
             }
@@ -478,7 +478,7 @@ void WindowInspector::Level_Arrangement() {
                             copyParts.end()
                         );
 
-                        sessionManager.getCurrentSession()->executeCommand(
+                        sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyArrangement>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -498,7 +498,7 @@ void WindowInspector::Level_Arrangement() {
                             copyParts.end()
                         );
 
-                        sessionManager.getCurrentSession()->executeCommand(
+                        sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyArrangement>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -516,14 +516,24 @@ void WindowInspector::Level_Arrangement() {
                     if (ImGui::MenuItem("..here (replace)")) {
                         auto newArrangement = *appState.globalAnimatable.getCurrentArrangement();
 
-                        newArrangement.parts.erase(newArrangement.parts.begin() + n);
+                        std::sort(
+                            appState.selectedParts.begin(), appState.selectedParts.end(),
+                            [](const AppState::SelectedPart& a, const AppState::SelectedPart& b) {
+                                return a.index > b.index;
+                            }
+                        );
+                        for (const auto& [index, _] : appState.selectedParts) {
+                            if (index < newArrangement.parts.size())
+                                newArrangement.parts.erase(newArrangement.parts.begin() + index);
+                        }
+
                         newArrangement.parts.insert(
                             newArrangement.parts.begin() + n,
                             copyParts.begin(),
                             copyParts.end()
                         );
 
-                        sessionManager.getCurrentSession()->executeCommand(
+                        sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyArrangement>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -547,7 +557,7 @@ void WindowInspector::Level_Arrangement() {
                         newPart.flipX = copyParts[0].flipX;
                         newPart.flipY = copyParts[0].flipY;
 
-                        sessionManager.getCurrentSession()->executeCommand(
+                        sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyArrangementPart>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -563,7 +573,7 @@ void WindowInspector::Level_Arrangement() {
                         RvlCellAnim::ArrangementPart newPart = part;
                         newPart.opacity = copyParts[0].opacity;
 
-                        sessionManager.getCurrentSession()->executeCommand(
+                        sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyArrangementPart>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -584,7 +594,7 @@ void WindowInspector::Level_Arrangement() {
                         newPart.regionW = copyParts[0].regionW;
                         newPart.regionH = copyParts[0].regionH;
 
-                        sessionManager.getCurrentSession()->executeCommand(
+                        sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyArrangementPart>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -616,6 +626,13 @@ void WindowInspector::Level_Arrangement() {
                     if (isPartSelected) {
                         copyParts.resize(appState.selectedParts.size());
                         for (unsigned i = 0; i < appState.selectedParts.size(); i++) {
+                            std::sort(
+                                appState.selectedParts.begin(), appState.selectedParts.end(),
+                                [](const AppState::SelectedPart& a, const AppState::SelectedPart& b) {
+                                    return a.index > b.index;
+                                }
+                            );
+
                             copyParts[i] = arrangementPtr->parts.at(
                                 appState.selectedParts[i].index
                             );
@@ -743,7 +760,7 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::BeginDisabled(n == (int)arrangementPtr->parts.size() - 1);
             if (ImGui::SmallButton((const char*)ICON_FA_ARROW_UP "")) {
-                sessionManager.getCurrentSession()->executeCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandMoveArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -758,7 +775,7 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::BeginDisabled(n == 0);
             if (ImGui::SmallButton((const char*)ICON_FA_ARROW_DOWN "")) {
-                sessionManager.getCurrentSession()->executeCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandMoveArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -784,7 +801,7 @@ void WindowInspector::Level_Arrangement() {
             auto newArrangement = *arrangementPtr;
             appState.deleteSelectedParts(msIo, newArrangement.parts, itemCurrentIndexToFocus);
 
-            sessionManager.getCurrentSession()->executeCommand(
+            sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifyArrangement>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -794,7 +811,7 @@ void WindowInspector::Level_Arrangement() {
         }
 
         if (selDeleteSingle >= 0) {
-            sessionManager.getCurrentSession()->executeCommand(
+            sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -808,7 +825,7 @@ void WindowInspector::Level_Arrangement() {
             insertNewPart = 0;
 
         if (insertNewPart >= 0) {
-            sessionManager.getCurrentSession()->executeCommand(
+            sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandInsertArrangementPart>(
                 sessionManager.getCurrentSession()->currentCellanim,
                 appState.globalAnimatable.getCurrentKey()->arrangementIndex,

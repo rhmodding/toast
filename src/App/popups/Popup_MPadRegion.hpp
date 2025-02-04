@@ -97,7 +97,7 @@ static void Popup_MPadRegion() {
 
             GET_SESSION_MANAGER;
 
-            sessionManager.getCurrentSession()->executeCommand(
+            sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
                 sessionManager.getCurrentSession()->currentCellanim,
                 globalAnimatable.getCurrentKey()->arrangementIndex,

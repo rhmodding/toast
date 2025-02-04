@@ -46,7 +46,8 @@ static void Popup_WaitForModifiedTexture() {
             bool ok = newTexture->LoadSTBFile(texturePath);
 
             if (ok) {
-                auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
+                auto& cellanimSheet = sessionManager.getCurrentSession()
+                    ->getCurrentCellanimSheet();
                 switch (selectedFormatIndex) {
                 default:
                 case 0:
@@ -64,9 +65,11 @@ static void Popup_WaitForModifiedTexture() {
                 Popups::_oldTextureSizeX = cellanimSheet->getWidth();
                 Popups::_oldTextureSizeY = cellanimSheet->getHeight();
 
-                sessionManager.getCurrentSession()->executeCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifySpritesheet>(
-                    sessionManager.getCurrentSession()->getCellanimObject()->sheetIndex,
+                    sessionManager.getCurrentSession()
+                        ->getCurrentCellanim().object
+                        ->sheetIndex,
                     newTexture
                 ));
 

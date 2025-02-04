@@ -77,7 +77,7 @@ static void Popup_SessionErr() {
     default:
         snprintf(
             errorMessage, sizeof(errorMessage),
-            "An unknown error has occurred (code %i).", (int)error
+            "An unknown error has occurred (code %d).", (int)error
         );
         errorType = 2;
         break;
@@ -88,14 +88,14 @@ static void Popup_SessionErr() {
     case 0:
         snprintf(
             popupTitle, sizeof(popupTitle),
-            "There was an error opening the session (code %i).###SessionErr",
+            "There was an error opening the session (code %d).###SessionErr",
             (int)error
         );
         break;
     case 1:
         snprintf(
             popupTitle, sizeof(popupTitle),
-            "There was an error exporting the session (code %i).###SessionErr",
+            "There was an error exporting the session (code %d).###SessionErr",
             (int)error
         );
         break;
@@ -103,7 +103,7 @@ static void Popup_SessionErr() {
     default:
         snprintf(
             popupTitle, sizeof(popupTitle),
-            "There was an unknown session-related error (code %i).###SessionErr",
+            "There was an unknown session-related error (code %d).###SessionErr",
             (int)error
         );
         break;

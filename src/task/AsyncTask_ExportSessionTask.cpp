@@ -2,7 +2,7 @@
 
 ExportSessionTask::ExportSessionTask(
     uint32_t id,
-    SessionManager::Session* session, std::string outPath
+    Session* session, std::string outPath
 ) :
     AsyncTask(id, "Exporting session.."),
 
@@ -25,16 +25,5 @@ void ExportSessionTask::Effect() {
     this->session->traditionalMethod = false;
     this->session->mainPath = this->outPath;
 
-    GET_CONFIG_MANAGER;
-
-    auto newConfig = configManager.getConfig();
-
-    auto& recentlyOpened = newConfig.recentlyOpened;
-
-    recentlyOpened.erase(std::remove(recentlyOpened.begin(), recentlyOpened.end(), this->outPath), recentlyOpened.end());
-    newConfig.recentlyOpened.push_back(this->outPath);
-
-    configManager.setConfig(newConfig);
+    ConfigManager::getInstance().addRecentlyOpened(this->outPath);
 }
-
-

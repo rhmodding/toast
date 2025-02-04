@@ -97,7 +97,8 @@ void WindowSpritesheet::FormatPopup() {
     if (open) {
         GET_SESSION_MANAGER;
 
-        auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
+        std::shared_ptr cellanimSheet =
+            sessionManager.getCurrentSession()->getCurrentCellanimSheet();
 
         static std::shared_ptr<Texture> newTexture;
 
@@ -312,9 +313,10 @@ void WindowSpritesheet::FormatPopup() {
             ImGui::SameLine();
 
             if (ImGui::Button("Apply")) {
-                sessionManager.getCurrentSession()->executeCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifySpritesheet>(
-                    sessionManager.getCurrentSession()->getCellanimObject()->sheetIndex,
+                    sessionManager.getCurrentSession()
+                        ->getCurrentCellanim().object->sheetIndex,
                     newTexture
                 ));
 
@@ -390,8 +392,9 @@ bool RepackSheet() {
     GET_SESSION_MANAGER;
 
     auto& session = *sessionManager.getCurrentSession();
-    auto& cellanimSheet = session.getCellanimSheet();
-    auto cellanimObject = session.getCellanimObject();
+    std::shared_ptr cellanimSheet = session.getCurrentCellanimSheet();
+    std::shared_ptr cellanimObject = session.getCurrentCellanim().object;
+
     auto arrangements = cellanimObject->arrangements; // Copy
 
     struct RectComparator {
@@ -481,8 +484,8 @@ bool RepackSheet() {
         }
     }
 
-    session.executeCommand(std::make_shared<CommandModifySpritesheet>(cellanimObject->sheetIndex, newTexture));
-    session.executeCommand(std::make_shared<CommandModifyArrangements>(session.currentCellanim, std::move(arrangements)));
+    session.addCommand(std::make_shared<CommandModifySpritesheet>(cellanimObject->sheetIndex, newTexture));
+    session.addCommand(std::make_shared<CommandModifyArrangements>(session.currentCellanim, std::move(arrangements)));
 
     return true;
 }
@@ -498,7 +501,7 @@ void WindowSpritesheet::Update() {
 
     GET_SESSION_MANAGER;
 
-    auto& cellanimSheet = sessionManager.getCurrentSession()->getCellanimSheet();
+    std::shared_ptr cellanimSheet = sessionManager.getCurrentSession()->getCurrentCellanimSheet();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
     ImGui::Begin("Spritesheet", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar);
@@ -556,7 +559,7 @@ void WindowSpritesheet::Update() {
                 GET_SESSION_MANAGER;
                 GET_CONFIG_MANAGER;
 
-                if (sessionManager.getCurrentSession()->getCellanimSheet()->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
+                if (cellanimSheet->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
                     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
                     ImGui::OpenPopup("###WaitForModifiedTexture");
                     ImGui::PopID();
@@ -593,9 +596,10 @@ void WindowSpritesheet::Update() {
                         Popups::_oldTextureSizeX = cellanimSheet->getWidth();
                         Popups::_oldTextureSizeY = cellanimSheet->getHeight();
 
-                        sessionManager.getCurrentSession()->executeCommand(
+                        sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifySpritesheet>(
-                            sessionManager.getCurrentSession()->getCellanimObject()->sheetIndex,
+                            sessionManager.getCurrentSession()
+                                ->getCurrentCellanim().object->sheetIndex,
                             newTexture
                         ));
 
@@ -617,12 +621,8 @@ void WindowSpritesheet::Update() {
                     "Image file (.png)"
                 );
 
-                if (saveFileDialog) {
-                    GET_SESSION_MANAGER;
-
-                    sessionManager.getCurrentSession()->getCellanimSheet()
-                        ->ExportToFile(saveFileDialog);
-                }
+                if (saveFileDialog)
+                    cellanimSheet->ExportToFile(saveFileDialog);
             }
 
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
@@ -636,7 +636,8 @@ void WindowSpritesheet::Update() {
 
         if (ImGui::BeginMenu("Data")) {
             auto imageFormat =
-                sessionManager.getCurrentSession()->getCellanimSheet()->getTPLOutputFormat();
+                sessionManager.getCurrentSession()
+                    ->getCurrentCellanimSheet()->getTPLOutputFormat();
 
             ImGui::Text("Image Format: %s", TPL::getImageFormatName(imageFormat));
 

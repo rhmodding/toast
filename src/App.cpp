@@ -57,7 +57,48 @@
 #include "_binary/images/toastIcon.png.h"
 #endif // !defined(__APPLE__)
 
+#define WINDOW_TITLE "toast"
+
 App* gAppPtr { nullptr };
+
+static void SetupFonts() {
+    GET_IMGUI_IO;
+    GET_APP_STATE;
+
+    { // normal: SegoeUI (18px)
+        ImFontConfig fontConfig;
+        fontConfig.FontDataOwnedByAtlas = false;
+        //fontConfig.OversampleH = 1;
+
+        appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
+    }
+
+    { // icon: Font Awesome
+        static const ImWchar range[] { ICON_MIN_FA, ICON_MAX_FA, 0 };
+
+        ImFontConfig fontConfig;
+        fontConfig.MergeMode = true;
+        fontConfig.PixelSnapH = true;
+
+        appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range);
+    }
+
+    { // large: SegoeUI (24px)
+        ImFontConfig fontConfig;
+        fontConfig.FontDataOwnedByAtlas = false;
+        //fontConfig.OversampleH = 1;
+
+        appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
+    }
+
+    { // giant: SegoeUI (52px)
+        ImFontConfig fontConfig;
+        fontConfig.FontDataOwnedByAtlas = false;
+        //fontConfig.OversampleH = 1;
+
+        appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
+    }
+}
 
 App::App(int argc, const char** argv) {
     gAppPtr = this;
@@ -90,15 +131,15 @@ App::App(int argc, const char** argv) {
     const char* glslVersion = "#version 150";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Required on Mac
 #else
     // GL 3.0 + GLSL 130
     const char* glslVersion = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // 3.0+ only
 #endif // defined(__APPLE__), defined(IMGUI_IMPL_OPENGL_ES2)
 
     GET_CONFIG_MANAGER;
@@ -139,19 +180,20 @@ App::App(int argc, const char** argv) {
 
 #ifndef NDEBUG
     IMGUI_CHECKVERSION();
-#endif
+#endif // NDEBUG
 
     ImGui::CreateContext();
 
     GET_IMGUI_IO;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;       // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;     // Enable Multi-Viewport / Platform Windows
 
     AppState::getInstance().applyTheming();
 
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows
+    // can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         style.WindowRounding = 0.f;
@@ -180,9 +222,9 @@ App::App(int argc, const char** argv) {
     ImGui_ImplGlfw_InitForOpenGL(this->glfwWindowHndl, true);
     ImGui_ImplOpenGL3_Init(glslVersion);
 
-    this->SetupFonts();
+    SetupFonts();
 
-    // Open cellanim from arguemnt
+    // Open cellanim archive (.szs) from argument
     if (argc >= 2) {
         AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
             std::string(argv[1])
@@ -244,45 +286,6 @@ void App::AttemptExit(bool force) {
     this->running = false;
 }
 
-void App::SetupFonts() {
-    GET_IMGUI_IO;
-    GET_APP_STATE;
-
-    { // normal: SegoeUI (18px)
-        ImFontConfig fontConfig;
-        fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
-
-        appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
-    }
-
-    { // icon: Font Awesome
-        static const ImWchar range[] { ICON_MIN_FA, ICON_MAX_FA, 0 };
-
-        ImFontConfig fontConfig;
-        fontConfig.MergeMode = true;
-        fontConfig.PixelSnapH = true;
-
-        appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range);
-    }
-
-    { // large: SegoeUI (24px)
-        ImFontConfig fontConfig;
-        fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
-
-        appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
-    }
-
-    { // giant: SegoeUI (52px)
-        ImFontConfig fontConfig;
-        fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
-
-        appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
-    }
-}
-
 void App::Menubar() {
     GET_APP_STATE;
     GET_SESSION_MANAGER;
@@ -327,21 +330,19 @@ void App::Menubar() {
                 Actions::Dialog_CreateTraditionalSession();
 
             const auto& recentlyOpened = configManager.getConfig().recentlyOpened;
+
             if (ImGui::BeginMenu(
                 (const char*)ICON_FA_FILE_IMPORT " Open recent",
                 !recentlyOpened.empty()
             )) {
-                for (unsigned i = 0; i < 12; i++) {
+                for (unsigned i = 0; i < Config::MAX_RECENTLY_OPENED; i++) {
                     const int j = recentlyOpened.size() > i ? recentlyOpened.size() - 1 - i : -1;
                     const bool none = (j < 0);
 
-                    ImGui::BeginDisabled(none);
-
                     char label[128];
-                    if (none)
-                        snprintf(label, sizeof(label), "%u. -", i + 1);
-                    else
-                        snprintf(label, sizeof(label), "%u. %s", i + 1, recentlyOpened[j].c_str());
+                    snprintf(label, sizeof(label), "%u. %s", i + 1, none ? "-" : recentlyOpened[j].c_str());
+
+                    ImGui::BeginDisabled(none);
 
                     if (ImGui::MenuItem(label) && !none) {
                         AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
@@ -408,7 +409,7 @@ void App::Menubar() {
                         currentSession->currentCellanim == i
                     )) {
                         if (currentSession->currentCellanim != i) {
-                            currentSession->executeCommand(
+                            currentSession->addCommand(
                             std::make_shared<CommandSwitchCellanim>(
                                 sessionManager.currentSessionIndex, i
                             ));
@@ -490,7 +491,7 @@ void App::Menubar() {
             if (ImGui::BeginMenu("Move selected key ..")) {
                 ImGui::BeginDisabled(keyIndex == (playerManager.getKeyCount() - 1));
                 if (ImGui::MenuItem(".. up")) {
-                    sessionManager.getCurrentSession()->executeCommand(
+                    sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandMoveAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
                         appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -505,7 +506,7 @@ void App::Menubar() {
 
                 ImGui::BeginDisabled(keyIndex == 0);
                 if (ImGui::MenuItem(".. down")) {
-                    sessionManager.getCurrentSession()->executeCommand(
+                    sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandMoveAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
                         appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -523,7 +524,7 @@ void App::Menubar() {
 
             if (ImGui::BeginMenu("Duplicate selected key ..")) {
                 if (ImGui::MenuItem(".. after")) {
-                    sessionManager.getCurrentSession()->executeCommand(
+                    sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandInsertAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
                         appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -535,7 +536,7 @@ void App::Menubar() {
                 }
 
                 if (ImGui::MenuItem(".. before")) {
-                    sessionManager.getCurrentSession()->executeCommand(
+                    sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandInsertAnimationKey>(
                         sessionManager.getCurrentSession()->currentCellanim,
                         appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -552,7 +553,7 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete selected key")) {
-                sessionManager.getCurrentSession()->executeCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteAnimationKey>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -593,7 +594,7 @@ void App::Menubar() {
                         auto newKey = *key;
                         newKey.arrangementIndex = newIndex;
 
-                        sessionManager.getCurrentSession()->executeCommand(
+                        sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyAnimationKey>(
                             sessionManager.getCurrentSession()->currentCellanim,
                             appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -619,7 +620,7 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
-                sessionManager.getCurrentSession()->executeCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteArrangement>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     arrangementIndex
@@ -664,7 +665,7 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Delete")) {
-                sessionManager.getCurrentSession()->executeCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteArrangementPart>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -752,7 +753,7 @@ void App::Menubar() {
                             if (session.currentCellanim != i) {
                                 sessionManager.currentSessionIndex = n;
 
-                                session.executeCommand(
+                                session.addCommand(
                                 std::make_shared<CommandSwitchCellanim>(
                                     n, i
                                 ));
@@ -805,7 +806,9 @@ void App::Update() {
 
         if (workTime.count() < updateRate) {
             std::chrono::duration<double, std::milli> deltaMs(updateRate - workTime.count());
-            auto deltaMsDuration = std::chrono::duration_cast<std::chrono::milliseconds>(deltaMs);
+            std::chrono::milliseconds deltaMsDuration =
+                std::chrono::duration_cast<std::chrono::milliseconds>(deltaMs);
+
             std::this_thread::sleep_for(std::chrono::milliseconds(deltaMsDuration.count()));
         }
 
@@ -841,7 +844,6 @@ void App::Update() {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
-
         ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.f });
 
         ImGui::Begin(WINDOW_TITLE "###AppWindow", nullptr, windowFlags);
@@ -861,7 +863,6 @@ void App::Update() {
     if (SessionManager::getInstance().getSessionAvaliable()) {
         PlayerManager::getInstance().Update();
 
-        // Windows
         this->windowCanvas.Update();
         this->windowHybridList.Update();
         this->windowInspector.Update();
@@ -887,10 +888,10 @@ void App::Update() {
 void App::Draw() {
     ImGui::Render();
 
-    int framebufferSize[2];
-    glfwGetFramebufferSize(this->glfwWindowHndl, framebufferSize + 0, framebufferSize + 1);
+    int framebufferWidth, framebufferHeight;
+    glfwGetFramebufferSize(this->glfwWindowHndl, &framebufferWidth, &framebufferHeight);
 
-    glViewport(0, 0, framebufferSize[0], framebufferSize[1]);
+    glViewport(0, 0, framebufferWidth, framebufferHeight);
 
     const auto& clearColor = AppState::getInstance().getWindowClearColor();
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);

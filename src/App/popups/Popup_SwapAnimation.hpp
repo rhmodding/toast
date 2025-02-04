@@ -69,7 +69,7 @@ static void Popup_SwapAnimation(int animationIndex) {
             if (ImGui::Button("Apply")) {
                 GET_SESSION_MANAGER;
 
-                sessionManager.getCurrentSession()->executeCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandSwapAnimations>(
                     sessionManager.getCurrentSession()->currentCellanim,
                     animationIndex,
@@ -109,7 +109,7 @@ static void Popup_SwapAnimation(int animationIndex) {
                 int nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
 
                 const char* animName =
-                    sessionManager.getCurrentSession()->getCellanimObject()
+                    sessionManager.getCurrentSession()->getCurrentCellanim().object
                         ->animations.at(swapNames ? n : nI).name.c_str();
                 if (animName == nullptr)
                     animName = "(no macro defined)";

@@ -439,7 +439,7 @@ GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
         break;
     }
 
-    MainThreadTaskManager::getInstance().enqueueCommand([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
+    MainThreadTaskManager::getInstance().QueueTask([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
         glGenTextures(1, &imageTexture);
         glBindTexture(GL_TEXTURE_2D, imageTexture);
 

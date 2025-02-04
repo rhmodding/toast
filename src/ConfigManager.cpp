@@ -23,19 +23,11 @@ void ConfigManager::LoadConfig() {
     this->config = j.get<Config>();
 }
 
-void ConfigManager::SaveConfig() {
+void ConfigManager::SaveConfig() const {
     std::ofstream file(this->configPath);
     if (!file.is_open()) {
         std::cerr << "[ConfigManager::Save] Unable to open file for saving.\n";
         return;
-    }
-
-    auto& recentlyOpened = this->config.recentlyOpened;
-    if (recentlyOpened.size() > 12) {
-        recentlyOpened.erase(
-            recentlyOpened.begin(),
-            recentlyOpened.begin() + (recentlyOpened.size() - 12)
-        );
     }
 
     nlohmann::ordered_json j = config;
@@ -46,4 +38,23 @@ void ConfigManager::SaveConfig() {
 
 void ConfigManager::LoadDefaults() {
     this->config = Config {};
+}
+
+void ConfigManager::addRecentlyOpened(const std::string& path) {
+    auto& recentlyOpened = this->config.recentlyOpened;
+
+    // Remove duplicates
+    recentlyOpened.erase(
+        std::remove(recentlyOpened.begin(), recentlyOpened.end(), path),
+        recentlyOpened.end()
+    );
+
+    recentlyOpened.push_back(path);
+
+    if (recentlyOpened.size() > Config::MAX_RECENTLY_OPENED) {
+        recentlyOpened.erase(
+            recentlyOpened.begin(),
+            recentlyOpened.begin() + (recentlyOpened.size() - Config::MAX_RECENTLY_OPENED)
+        );
+    }
 }

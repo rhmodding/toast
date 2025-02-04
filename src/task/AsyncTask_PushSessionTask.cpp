@@ -25,14 +25,5 @@ void PushSessionTask::Effect() {
     sessionManager.currentSessionIndex = this->result;
     sessionManager.SessionChanged();
 
-    GET_CONFIG_MANAGER;
-
-    auto newConfig = configManager.getConfig();
-
-    auto& recentlyOpened = newConfig.recentlyOpened;
-
-    recentlyOpened.erase(std::remove(recentlyOpened.begin(), recentlyOpened.end(), filePath), recentlyOpened.end());
-    newConfig.recentlyOpened.push_back(filePath);
-
-    configManager.setConfig(newConfig);
+    ConfigManager::getInstance().addRecentlyOpened(filePath);
 }

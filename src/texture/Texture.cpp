@@ -19,7 +19,7 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
     this->width = width;
     this->height = height;
 
-    MainThreadTaskManager::getInstance().enqueueCommand([this, data]() {
+    MainThreadTaskManager::getInstance().QueueTask([this, data]() {
         if (this->textureId == 0)
             glGenTextures(1, &this->textureId);
 
@@ -78,7 +78,7 @@ unsigned char* Texture::GetRGBA32() {
         return nullptr;
     }
 
-    MainThreadTaskManager::getInstance().enqueueCommand([this, imageData]() {
+    MainThreadTaskManager::getInstance().QueueTask([this, imageData]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
@@ -95,7 +95,7 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
         return false;
     }
 
-    MainThreadTaskManager::getInstance().enqueueCommand([this, buffer]() {
+    MainThreadTaskManager::getInstance().QueueTask([this, buffer]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
@@ -114,11 +114,11 @@ bool Texture::ExportToFile(const char* filename) {
     }
 
     int write = stbi_write_png(
-        filename,
-        this->width, this->height,
-        4,
-        imageData,
-        0
+        filename, // filename
+        this->width, this->height, // x, y
+        4, // comp
+        imageData, // data
+        this->width * 4 // stride_bytes
     );
 
     delete[] imageData;
@@ -140,8 +140,8 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
     TPL::TPLTexture tplTexture {
         .mipMap = 1,
 
-        .width = (uint16_t)this->width,
-        .height = (uint16_t)this->height,
+        .width = static_cast<uint16_t>(this->width),
+        .height = static_cast<uint16_t>(this->height),
 
         .minFilter = TPL::TPL_TEX_FILTER_LINEAR,
         .magFilter = TPL::TPL_TEX_FILTER_LINEAR,
@@ -151,23 +151,23 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
         .data = std::vector<unsigned char>(this->width * this->height * 4)
     };
 
-    GLint wrapModes[2];
+    GLint wrapS, wrapT;
 
-    MainThreadTaskManager::getInstance().enqueueCommand([this, &tplTexture, &wrapModes]() {
+    MainThreadTaskManager::getInstance().QueueTask([this, &tplTexture, &wrapS, &wrapT]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
 
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapModes + 0);
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapModes + 1);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapS);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapT);
 
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
 
-    tplTexture.wrapS = wrapModes[0] == GL_REPEAT ?
+    tplTexture.wrapS = wrapS == GL_REPEAT ?
         TPL::TPL_WRAP_MODE_REPEAT :
         TPL::TPL_WRAP_MODE_CLAMP;
-    tplTexture.wrapT = wrapModes[1] == GL_REPEAT ?
+    tplTexture.wrapT = wrapT == GL_REPEAT ?
         TPL::TPL_WRAP_MODE_REPEAT :
         TPL::TPL_WRAP_MODE_CLAMP;
 
@@ -178,7 +178,7 @@ void Texture::DestroyTexture() {
     if (this->textureId == 0)
         return;
 
-    MainThreadTaskManager::getInstance().enqueueCommand([textureId = this->textureId]() {
+    MainThreadTaskManager::getInstance().QueueTask([textureId = this->textureId]() {
         glDeleteTextures(1, &textureId);
     });
     this->textureId = 0;

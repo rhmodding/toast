@@ -22,8 +22,6 @@
 
 #include "common.hpp"
 
-#define WINDOW_TITLE "toast"
-
 class App;
 
 extern App* gAppPtr;
@@ -52,10 +50,13 @@ public:
     }
 
 private:
-    void SetupFonts();
     void Menubar();
 
 private:
+    bool running { true };
+
+    GLFWwindow* glfwWindowHndl { nullptr };
+
     template <typename T>
     struct AppWindow {
     public:
@@ -96,11 +97,6 @@ private:
     AppWindow<WindowAbout> windowAbout;
 
     AppWindow<WindowImguiDemo> windowDemo;
-
-private:
-    bool running { true };
-
-    GLFWwindow* glfwWindowHndl { nullptr };
 
     std::thread::id mainThreadId;
 };

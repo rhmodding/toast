@@ -372,7 +372,7 @@ std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
 File* findFile(const char* path, Directory& directory) {
     const char* slash = strchr(path, '/');
 
-    if (!slash) { // Slash not found: it's a file, search for it
+    if (slash == nullptr) { // Slash not found: it's a file, search for it
         for (File& file : directory.files)
             if (strcmp(file.name.c_str(), path) == 0)
                 return &file;

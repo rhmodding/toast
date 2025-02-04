@@ -18,10 +18,8 @@ static void Popup_MOptimizeGlobal() {
         ImGui::TextUnformatted("Optimize the current Cellanim:");
         ImGui::BulletText("%u. \"%s\"",
             sessionManager.getCurrentSession()->currentCellanim + 1,
-            sessionManager.getCurrentSession()->getCellanimName().c_str()
+            sessionManager.getCurrentSession()->getCurrentCellanim().name.c_str()
         );
-
-        sessionManager.getCurrentSession()->getCellanimObject();
 
         ImGui::Dummy({ 0.f, 5.f });
         ImGui::Separator();

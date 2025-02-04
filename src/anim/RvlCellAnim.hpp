@@ -143,8 +143,14 @@ struct Animation {
 
 class RvlCellAnimObject {
 public:
-    bool ok { false };
+    RvlCellAnimObject(const unsigned char* data, const size_t dataSize);
+    RvlCellAnimObject() = default;
 
+    bool isInitialized() const { return this->initialized; };
+
+    std::vector<unsigned char> Reserialize();
+
+public:
     uint16_t sheetIndex;
 
     uint16_t textureW, textureH;
@@ -154,10 +160,8 @@ public:
     std::vector<Arrangement> arrangements;
     std::vector<Animation> animations;
 
-    std::vector<unsigned char> Reserialize();
-
-    RvlCellAnimObject(const unsigned char* data, const size_t dataSize);
-    RvlCellAnimObject() = default;
+private:
+    bool initialized { false };
 };
 
 std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char *filePath);

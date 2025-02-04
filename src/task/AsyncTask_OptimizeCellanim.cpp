@@ -2,7 +2,7 @@
 
 OptimizeCellanimTask::OptimizeCellanimTask(
     uint32_t id,
-    SessionManager::Session* session, OptimizeCellanimOptions options
+    Session* session, OptimizeCellanimOptions options
 ) :
     AsyncTask(id, "Optimizing cellanim .."),
 
@@ -50,8 +50,8 @@ static void bilinearScale(
     }
 }
 
-static void removeAnimationNames(SessionManager::Session* session) {
-    auto& animations = session->getCellanimObject()->animations;
+static void removeAnimationNames(Session* session) {
+    auto& animations = session->getCurrentCellanim().object->animations;
 
     MainThreadTaskManager::getInstance().QueueTask([&animations]() {
         for (auto& animation : animations)
@@ -59,8 +59,8 @@ static void removeAnimationNames(SessionManager::Session* session) {
     }).get();
 }
 
-static void removeUnusedArrangements(SessionManager::Session* session) {
-    std::shared_ptr cellanim = session->getCellanimObject();
+static void removeUnusedArrangements(Session* session) {
+    std::shared_ptr cellanim = session->getCurrentCellanim().object;
 
     std::unordered_set<unsigned> usedIndices;
     std::vector<unsigned> toErase;
@@ -78,7 +78,7 @@ static void removeUnusedArrangements(SessionManager::Session* session) {
     auto& animations = cellanim->animations;
     auto& arrangements = cellanim->arrangements;
 
-    MainThreadTaskManager::getInstance().enqueueCommand(
+    MainThreadTaskManager::getInstance().QueueTask(
     [&arrangements, &toErase, &animations]() {
         for (unsigned i = 0; i < toErase.size(); i++) {
             unsigned index = toErase.at(i);
@@ -101,8 +101,8 @@ static void removeUnusedArrangements(SessionManager::Session* session) {
     }).get();
 }
 
-static void downscaleSpritesheet(SessionManager::Session* session, const OptimizeCellanimOptions& options) {
-    auto sheet = session->getCellanimSheet();
+static void downscaleSpritesheet(Session* session, const OptimizeCellanimOptions& options) {
+    std::shared_ptr sheet = session->getCurrentCellanimSheet();
 
     unsigned newWidth = sheet->getWidth();
     unsigned newHeight = sheet->getHeight();
@@ -131,7 +131,7 @@ static void downscaleSpritesheet(SessionManager::Session* session, const Optimiz
     // RGBA image
     unsigned char* originalPixels = new unsigned char[sheet->getWidth() * sheet->getHeight() * 4];
 
-    MainThreadTaskManager::getInstance().enqueueCommand([&sheet, originalPixels]() {
+    MainThreadTaskManager::getInstance().QueueTask([&sheet, originalPixels]() {
         glBindTexture(GL_TEXTURE_2D, sheet->getTextureId());
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, originalPixels);
         glBindTexture(GL_TEXTURE_2D, 0);

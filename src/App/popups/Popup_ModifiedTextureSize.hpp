@@ -37,16 +37,16 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
         if (ImGui::Button("Apply region scaling")) {
             GET_SESSION_MANAGER;
 
-            SessionManager::Session* currentSession = sessionManager.getCurrentSession();
+            Session* currentSession = sessionManager.getCurrentSession();
 
             std::vector<RvlCellAnim::Arrangement> newArrangements =
-                currentSession->getCellanimObject()->arrangements;
+                currentSession->getCurrentCellanim().object->arrangements;
 
             float scaleX =
-                static_cast<float>(currentSession->getCellanimSheet()->getWidth()) /
+                static_cast<float>(currentSession->getCurrentCellanimSheet()->getWidth()) /
                 oldTextureSizeX;
             float scaleY =
-                static_cast<float>(currentSession->getCellanimSheet()->getHeight()) /
+                static_cast<float>(currentSession->getCurrentCellanimSheet()->getHeight()) /
                 oldTextureSizeY;
 
             for (auto& arrangement : newArrangements)
@@ -60,7 +60,7 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
                     part.transform.scaleY /= scaleY;
                 }
 
-            sessionManager.getCurrentSession()->executeCommand(
+            sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangements>(
                 sessionManager.getCurrentSession()->currentCellanim,
                 newArrangements

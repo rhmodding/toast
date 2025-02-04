@@ -91,7 +91,7 @@ static void Popup_MTransformArrangement() {
 
             GET_SESSION_MANAGER;
 
-            sessionManager.getCurrentSession()->executeCommand(
+            sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(
                 sessionManager.getCurrentSession()->currentCellanim,
                 globalAnimatable.getCurrentKey()->arrangementIndex,

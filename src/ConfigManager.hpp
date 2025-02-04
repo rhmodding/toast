@@ -37,6 +37,10 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ThemeChoice, {
 });
 
 struct Config {
+public:
+    static constexpr unsigned int MAX_RECENTLY_OPENED = 12;
+
+public:
     ThemeChoice theme { ThemeChoice_Dark };
 
     std::string imageEditorPath { "" };
@@ -113,9 +117,11 @@ public:
     void setConfig(const Config& newConfig) { config = newConfig; }
 
     void LoadConfig();
-    void SaveConfig();
+    void SaveConfig() const;
 
     void LoadDefaults();
+
+    void addRecentlyOpened(const std::string& path);
 
 private:
     Config config {};

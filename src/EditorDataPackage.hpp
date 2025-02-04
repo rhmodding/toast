@@ -6,11 +6,11 @@
 #define TED_ARC_FILENAME "TOAST.TED"
 #define TED_ARC_FILENAME_OLD "TOAST.DAT"
 
-void TedApply(const unsigned char* data, const SessionManager::Session& session);
+void TedApply(const unsigned char* data, const Session& session);
 
 struct TedWriteState;
 
-TedWriteState* TedCreateWriteState(const SessionManager::Session& session);
+TedWriteState* TedCreateWriteState(const Session& session);
 void TedDestroyWriteState(TedWriteState* state);
 
 unsigned TedPrepareWrite(TedWriteState* state);

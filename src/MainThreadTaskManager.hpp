@@ -5,7 +5,7 @@
     * MainThreadTaskManager
     *
     * MainThreadTaskManager enables threads to queue 'commands' on the main thread and await the result.
-    * If MainThreadTaskManager::enqueueCommand is called on the main thread, the passed command will
+    * If MainThreadTaskManager::Queue is called on the main thread, the passed command will
     * be executed immediately.
     * 
     * This is primarily used for GL calls, which will no-op if invoked outside of the main thread.
@@ -22,8 +22,6 @@
 
 #include <queue>
 
-#include "App.hpp"
-
 // Stores instance of MainThreadTaskManager in local MainThreadTaskManager.
 #define GET_MT_COMMAND_MANAGER MainThreadTaskManager& MainThreadTaskManager = MainThreadTaskManager::getInstance()
 
@@ -35,20 +33,23 @@ private:
 public:
     ~MainThreadTaskManager() = default;
 
-private:
-    std::mutex mtx;
-    std::condition_variable queueCondition;
 public:
     struct MainThreadTask {
         std::function<void()> func;
         std::promise<void> promise;
     };
-    std::queue<MainThreadTask> commandQueue;
 
-    std::future<void> enqueueCommand(std::function<void()> func);
+public:
+    std::future<void> QueueTask(std::function<void()> func);
 
     // Needs to run every cycle on the main thread
     void Update();
+
+private:
+    std::mutex mtx;
+    std::condition_variable queueCondition;
+
+    std::queue<MainThreadTask> taskQueue;
 };
 
 #endif // MainThreadTaskManager_HPP

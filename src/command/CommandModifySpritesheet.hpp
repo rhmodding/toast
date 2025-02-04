@@ -73,10 +73,10 @@ public:
 
         GET_SESSION_MANAGER;
 
-        SessionManager::Session* currentSession = sessionManager.getCurrentSession();
+        Session* currentSession = sessionManager.getCurrentSession();
 
-        currentSession->getCellanimObject()->textureW = newSheet->getWidth();
-        currentSession->getCellanimObject()->textureH = newSheet->getHeight();
+        currentSession->getCurrentCellanim().object->textureW = newSheet->getWidth();
+        currentSession->getCurrentCellanim().object->textureH = newSheet->getHeight();
         AppState::getInstance().globalAnimatable.texture = newSheet;
 
         sessionManager.getCurrentSessionModified() = true;
@@ -87,10 +87,10 @@ public:
         
         GET_SESSION_MANAGER;
 
-        SessionManager::Session* currentSession = sessionManager.getCurrentSession();
+        Session* currentSession = sessionManager.getCurrentSession();
 
-        currentSession->getCellanimObject()->textureW = oldSheet->getWidth();
-        currentSession->getCellanimObject()->textureH = oldSheet->getHeight();
+        currentSession->getCurrentCellanim().object->textureW = oldSheet->getWidth();
+        currentSession->getCurrentCellanim().object->textureH = oldSheet->getHeight();
         AppState::getInstance().globalAnimatable.texture = oldSheet;
 
         sessionManager.getCurrentSessionModified() = true;

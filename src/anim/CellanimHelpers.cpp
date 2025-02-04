@@ -7,9 +7,9 @@
 unsigned CellanimHelpers::DuplicateArrangement(unsigned arrangementIndex) {
     GET_SESSION_MANAGER;
 
-    auto object = sessionManager.getCurrentSession()->getCellanimObject();
+    std::shared_ptr object = sessionManager.getCurrentSession()->getCurrentCellanim().object;
 
-    sessionManager.getCurrentSession()->executeCommand(
+    sessionManager.getCurrentSession()->addCommand(
     std::make_shared<CommandInsertArrangement>(
         sessionManager.getCurrentSession()->currentCellanim,
         object->arrangements.size(),
@@ -22,7 +22,12 @@ unsigned CellanimHelpers::DuplicateArrangement(unsigned arrangementIndex) {
 bool CellanimHelpers::getArrangementUnique(unsigned arrangementIndex) {
     unsigned timesUsed { 0 };
 
-    for (const auto& animation : SessionManager::getInstance().getCurrentSession()->getCellanimObject()->animations) {
+    const auto& animations =
+        SessionManager::getInstance().getCurrentSession()
+            ->getCurrentCellanim().object
+            ->animations;
+
+    for (const auto& animation : animations) {
         for (const auto& key : animation.keys) {
             if (key.arrangementIndex == arrangementIndex)
                 timesUsed++;

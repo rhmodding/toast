@@ -22,7 +22,7 @@
 
 #define STR_LIT_LEN(stringLiteral) (sizeof((stringLiteral)) - 1)
 
-#define AVERAGE_FLOATS(a, b) (((float)((a) + (b))) / 2.0f)
+#define AVERAGE_FLOATS(a, b) (((float)((a) + (b))) / 2.f)
 #define AVERAGE_INTS(a, b) (((int32_t)((a) + (b))) / 2)
 #define AVERAGE_UINTS(a, b) (((uint32_t)((a) + (b))) / 2)
 
@@ -32,23 +32,23 @@
 )
 
 #define AVERAGE_IMVEC2(vecA, vecB) (ImVec2( \
-    ((vecA).x + (vecB).x) / 2.0f, ((vecA).y + (vecB).y) / 2.0f \
+    ((vecA).x + (vecB).x) / 2.f, ((vecA).y + (vecB).y) / 2.f \
 ))
 #define AVERAGE_IMVEC2_ROUND(vecA, vecB) (ImVec2( \
-    (float)(int)(((vecA).x + (vecB).x) / 2.0f + 0.5f), \
-    (float)(int)(((vecA).y + (vecB).y) / 2.0f + 0.5f) \
+    (float)(int)(((vecA).x + (vecB).x) / 2.f + .5f), \
+    (float)(int)(((vecA).y + (vecB).y) / 2.f + .5f) \
 ))
 
 #define ROUND_IMVEC2(vec) (ImVec2( \
-    (float)(int)((vec).x + 0.5f), \
-    (float)(int)((vec).y + 0.5f) \
+    (float)(int)((vec).x + .5f), \
+    (float)(int)((vec).y + .5f) \
 ))
 
 #define GET_IMGUI_IO ImGuiIO& io = ImGui::GetIO()
 #define GET_WINDOW_DRAWLIST ImDrawList* drawList = ImGui::GetWindowDrawList()
 
 #define CENTER_NEXT_WINDOW ImGui::SetNextWindowPos( \
-    ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f) \
+    ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f) \
 )
 
 #ifndef NDEBUG
@@ -73,12 +73,12 @@
         } \
     } while (0)
 
-#else
+#else // NDEBUG
 
 #define NONFATAL_ASSERT_RET(condition, shouldReturn) ((void)0)
 #define NONFATAL_ASSERT_RETVAL(condition, shouldReturn) ((void)0)
 
-#endif
+#endif // NDEBUG
 
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)

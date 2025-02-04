@@ -347,7 +347,7 @@ void WindowTimeline::Update() {
                                         std::clamp<uint16_t>(second, 1, std::numeric_limits<uint16_t>::max());
                                 }
 
-                                sessionManager.getCurrentSession()->executeCommand(
+                                sessionManager.getCurrentSession()->addCommand(
                                 std::make_shared<CommandModifyAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
                                     appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -357,7 +357,7 @@ void WindowTimeline::Update() {
 
                                 playerManager.setCurrentKeyIndex(i + 1);
 
-                                sessionManager.getCurrentSession()->executeCommand(
+                                sessionManager.getCurrentSession()->addCommand(
                                 std::make_shared<CommandInsertAnimationKey>(
                                     sessionManager.getCurrentSession()->currentCellanim,
                                     appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -371,7 +371,7 @@ void WindowTimeline::Update() {
                         ImGui::Separator();
 
                         if (ImGui::Selectable(!io.KeyAlt ? "Push key after" : "Duplicate key after")) {
-                            sessionManager.getCurrentSession()->executeCommand(
+                            sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandInsertAnimationKey>(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -383,7 +383,7 @@ void WindowTimeline::Update() {
                         }
 
                         if (ImGui::Selectable(!io.KeyAlt ? "Push key before" : "Duplicate key before")) {
-                            sessionManager.getCurrentSession()->executeCommand(
+                            sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandInsertAnimationKey>(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -398,7 +398,7 @@ void WindowTimeline::Update() {
 
                         ImGui::BeginDisabled(i == (playerManager.getKeyCount() - 1));
                         if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
-                            sessionManager.getCurrentSession()->executeCommand(
+                            sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandMoveAnimationKey>(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -413,7 +413,7 @@ void WindowTimeline::Update() {
 
                         ImGui::BeginDisabled(i == 0);
                         if (ImGui::Selectable(!io.KeyAlt ? "Move back" : "Move back (without hold frames)")) {
-                            sessionManager.getCurrentSession()->executeCommand(
+                            sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandMoveAnimationKey>(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -483,7 +483,7 @@ void WindowTimeline::Update() {
                     if (deleteKeyMode) {
                         switch (deleteKeyMode) {
                         case DeleteKeyMode_Current: {
-                            sessionManager.getCurrentSession()->executeCommand(
+                            sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandDeleteAnimationKey>(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -497,7 +497,7 @@ void WindowTimeline::Update() {
                             };
                             newAnimation.keys.erase(newAnimation.keys.begin(), newAnimation.keys.begin() + i);
 
-                            sessionManager.getCurrentSession()->executeCommand(
+                            sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyAnimation>(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 appState.globalAnimatable.getCurrentAnimationIndex(),
@@ -510,7 +510,7 @@ void WindowTimeline::Update() {
                             };
                             newAnimation.keys.erase(newAnimation.keys.begin() + i + 1, newAnimation.keys.end());
 
-                            sessionManager.getCurrentSession()->executeCommand(
+                            sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyAnimation>(
                                 sessionManager.getCurrentSession()->currentCellanim,
                                 appState.globalAnimatable.getCurrentAnimationIndex(),

@@ -33,17 +33,17 @@ public:
     void setTPLOutputFormat(TPL::TPLImageFormat format) { this->tplOutputFormat = format; };
 
     // Generate a texture & upload the RGBA32 data to it.
-    // Note: if a GL texture already exists, this will overwrite it's data.
+    // Note: if a GPU texture already exists, this will overwrite it's data.
     void LoadRGBA32(const unsigned char* data, unsigned width, unsigned height);
 
     // Generate a texture & use stb_image to load the image data from memory.
-    // Note: if a GL texture already exists, this will overwrite it's data.
+    // Note: if a GPU texture already exists, this will overwrite it's data.
     //
     // Returns: true if succeeded, false if failed
     bool LoadSTBMem(const unsigned char* data, unsigned dataSize);
 
     // Generate a texture & use stb_image to load the image data from the filesystem.
-    // Note: if a GL texture already exists, this will overwrite it's data.
+    // Note: if a GPU texture already exists, this will overwrite it's data.
     //
     // Returns: true if succeeded, false if failed
     bool LoadSTBFile(const char* filename);
@@ -71,7 +71,7 @@ public:
     // Returns: TPL::TPLTexture wrapped in std::optional
     std::optional<TPL::TPLTexture> TPLTexture();
 
-    // Destroy GL texture.
+    // Destroy GPU texture.
     void DestroyTexture();
 };
 

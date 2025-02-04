@@ -1,6 +1,9 @@
 #include "MainThreadTaskManager.hpp"
 
-std::future<void> MainThreadTaskManager::enqueueCommand(std::function<void()> func) {
+#include "App.hpp"
+
+std::future<void> MainThreadTaskManager::QueueTask(std::function<void()> func) {
+    // If we're already on the main thread, run the task now
     if (std::this_thread::get_id() == gAppPtr->getMainThreadId()) {
         func();
 
@@ -12,10 +15,13 @@ std::future<void> MainThreadTaskManager::enqueueCommand(std::function<void()> fu
 
     std::lock_guard<std::mutex> lock(this->mtx);
 
-    MainThreadTask command { func, std::promise<void>() };
-    std::future<void> future = command.promise.get_future();
+    MainThreadTask task {
+        .func = func,
+        .promise = std::promise<void>()
+    };
+    std::future<void> future = task.promise.get_future();
 
-    this->commandQueue.push(std::move(command));
+    this->taskQueue.push(std::move(task));
 
     this->queueCondition.notify_one();
 
@@ -24,14 +30,14 @@ std::future<void> MainThreadTaskManager::enqueueCommand(std::function<void()> fu
 
 void MainThreadTaskManager::Update() {
     std::unique_lock<std::mutex> lock(this->mtx);
-    while (!this->commandQueue.empty()) {
-        auto command = std::move(this->commandQueue.front());
-        this->commandQueue.pop();
+
+    while (!this->taskQueue.empty()) {
+        MainThreadTask task = std::move(this->taskQueue.front());
+        this->taskQueue.pop();
 
         lock.unlock();
-            command.func();
-
-            command.promise.set_value();
+            task.func();
+            task.promise.set_value();
         lock.lock();
     }
 }
