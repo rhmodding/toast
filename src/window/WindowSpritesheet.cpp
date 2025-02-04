@@ -100,8 +100,6 @@ void WindowSpritesheet::FormatPopup() {
         std::shared_ptr cellanimSheet =
             sessionManager.getCurrentSession()->getCurrentCellanimSheet();
 
-        static std::shared_ptr<Texture> newTexture;
-
         constexpr const char* formats = "RGBA32\0RGB5A3\0";
         static int selectedFormatIndex { 0 };
 
@@ -158,21 +156,21 @@ void WindowSpritesheet::FormatPopup() {
 
             delete[] imageBuffer;
 
-            newTexture->LoadRGBA32(
+            this->formatPreviewTexture->LoadRGBA32(
                 imageData,
                 cellanimSheet->getWidth(), cellanimSheet->getHeight()
             );
-            newTexture->setTPLOutputFormat(tplFormat);
+            this->formatPreviewTexture->setTPLOutputFormat(tplFormat);
 
             delete[] imageData;
         };
 
         if (!lateOpen) {
-            newTexture = std::make_shared<Texture>();
+            this->formatPreviewTexture = std::make_shared<Texture>();
 
             unsigned char* imageData = cellanimSheet->GetRGBA32();
             if (imageData) {
-                newTexture->LoadRGBA32(
+                this->formatPreviewTexture->LoadRGBA32(
                     imageData,
                     cellanimSheet->getWidth(), cellanimSheet->getHeight()
                 );
@@ -317,10 +315,10 @@ void WindowSpritesheet::FormatPopup() {
                 std::make_shared<CommandModifySpritesheet>(
                     sessionManager.getCurrentSession()
                         ->getCurrentCellanim().object->sheetIndex,
-                    newTexture
+                    this->formatPreviewTexture
                 ));
 
-                newTexture.reset();
+                this->formatPreviewTexture.reset();
 
                 ImGui::CloseCurrentPopup();
             }
@@ -365,9 +363,9 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::ColorConvertFloat4ToU32({ bgScale, bgScale, bgScale, 1.f })
             );
 
-            if (newTexture)
+            if (this->formatPreviewTexture)
                 ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)newTexture->getTextureId(),
+                    (ImTextureID)this->formatPreviewTexture->getTextureId(),
                     imagePosition,
                     { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
                 );

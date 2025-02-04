@@ -3,9 +3,13 @@
 
 #include "BaseWindow.hpp"
 
+#include <cstdint>
+
+#include <memory>
+
 #include <imgui.h>
 
-#include <cstdint>
+#include "../texture/Texture.hpp"
 
 class WindowSpritesheet : public BaseWindow {
 public:
@@ -32,6 +36,8 @@ private:
     ImVec2 sheetZoomedOffset { 0.f, 0.f };
 
     bool showPaletteWindow { false };
+
+    std::shared_ptr<Texture> formatPreviewTexture;
 
 private:
     void RunEditor();
