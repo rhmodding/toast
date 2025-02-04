@@ -58,8 +58,8 @@ struct TransformValuesRaw {
 
         const int additive = (isArrangementPart ? -512 : 0);
 
-        transformValues.positionX = BYTESWAP_16(this->positionX) + additive;
-        transformValues.positionY = BYTESWAP_16(this->positionY) + additive;
+        transformValues.positionX = static_cast<int>(int16_t(BYTESWAP_16(this->positionX) + additive));
+        transformValues.positionY = static_cast<int>(int16_t(BYTESWAP_16(this->positionY) + additive));
         transformValues.scaleX = Common::byteswapFloat(this->scaleX);
         transformValues.scaleY = Common::byteswapFloat(this->scaleY);
         transformValues.angle = Common::byteswapFloat(this->angle);
@@ -166,8 +166,8 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* data, const size_t dat
 
     this->sheetIndex = BYTESWAP_16(header->sheetIndex);
 
-    this->textureW = BYTESWAP_16(header->sheetW);
-    this->textureH = BYTESWAP_16(header->sheetH);
+    this->sheetW = BYTESWAP_16(header->sheetW);
+    this->sheetH = BYTESWAP_16(header->sheetH);
 
     this->usePalette = header->usePalette != 0x00;
 
@@ -268,8 +268,8 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
 
         .sheetIndex = BYTESWAP_16(this->sheetIndex),
 
-        .sheetW = BYTESWAP_16(this->textureW),
-        .sheetH = BYTESWAP_16(this->textureH)
+        .sheetW = BYTESWAP_16(this->sheetW),
+        .sheetH = BYTESWAP_16(this->sheetH)
     };
 
     unsigned char* currentData = result.data() + sizeof(RvlCellAnimHeader);

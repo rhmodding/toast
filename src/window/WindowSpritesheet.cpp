@@ -811,14 +811,14 @@ void WindowSpritesheet::Update() {
 
             RvlCellAnim::ArrangementPart& part = arrangementPtr->parts[i];
 
-            uint16_t sourceRect[4] {
+            unsigned sourceRect[4] {
                 part.regionX, part.regionY, part.regionW, part.regionH
             };
 
             float mismatchScaleX =
-                static_cast<float>(globalAnimatable.texture->getWidth()) / globalAnimatable.cellanim->textureW;
+                static_cast<float>(globalAnimatable.texture->getWidth()) / globalAnimatable.cellanim->sheetW;
             float mismatchScaleY =
-                static_cast<float>(globalAnimatable.texture->getHeight()) / globalAnimatable.cellanim->textureH;
+                static_cast<float>(globalAnimatable.texture->getHeight()) / globalAnimatable.cellanim->sheetH;
 
             ImVec2 topLeftOffset {
                 (sourceRect[0] * scale * mismatchScaleX) + imagePosition.x,

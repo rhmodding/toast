@@ -241,8 +241,8 @@ void Animatable::DrawKey(
 
     const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
-    const float texWidth = this->cellanim->textureW;
-    const float texHeight = this->cellanim->textureH;
+    const float texWidth = this->cellanim->sheetW;
+    const float texHeight = this->cellanim->sheetH;
 
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex != -1 && partIndex != (int)i)

@@ -48,19 +48,14 @@ void WindowInspector::Level_Arrangement() {
                 auto originalKey = *globalAnimatable.getCurrentKey();
                 auto newKey = *globalAnimatable.getCurrentKey();
 
-                static uint16_t oldArrangement { 0 };
-                uint16_t newArrangement = globalAnimatable.getCurrentKey()->arrangementIndex + 1;
+                static int oldArrangement { 0 };
+                int newArrangement = globalAnimatable.getCurrentKey()->arrangementIndex + 1;
 
                 ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
-                if (ImGui::InputScalar(
-                    "##ArrangementInput",
-                    ImGuiDataType_U16,
-                    &newArrangement,
-                    nullptr, nullptr,
-                    "%u"
-                )) {
-                    globalAnimatable.getCurrentKey()->arrangementIndex =
-                        std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
+                if (ImGui::InputInt("##ArrangementInput", &newArrangement)) {
+                    globalAnimatable.getCurrentKey()->arrangementIndex = std::min<unsigned>(
+                        newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1
+                    );
 
                     appState.correctSelectedParts();
                 }
@@ -70,8 +65,9 @@ void WindowInspector::Level_Arrangement() {
 
                 if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
                     originalKey.arrangementIndex = oldArrangement;
-                    newKey.arrangementIndex =
-                        std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
+                    newKey.arrangementIndex = std::min<unsigned>(
+                        newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1
+                    );
                 }
 
                 // Start +- Buttons
@@ -279,13 +275,16 @@ void WindowInspector::Level_Arrangement() {
                 {
                     static int oldPosition[2] { 0, 0 };
                     int positionValues[2] {
-                        partPtr->regionX,
-                        partPtr->regionY
+                        (int)partPtr->regionX,
+                        (int)partPtr->regionY
                     };
 
-                    if (ImGui::DragInt2("Position XY##Region", positionValues, 1.f)) {
-                        partPtr->regionX = static_cast<uint16_t>(positionValues[0]);
-                        partPtr->regionY = static_cast<uint16_t>(positionValues[1]);
+                    if (ImGui::DragInt2(
+                        "Position XY##Region", positionValues, 1.f,
+                        0, RvlCellAnim::ArrangementPart::MAX_REGION
+                    )) {
+                        partPtr->regionX = positionValues[0];
+                        partPtr->regionY = positionValues[1];
                     }
 
                     if (ImGui::IsItemActivated()) {
@@ -294,11 +293,11 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        originalPart.regionX = static_cast<uint16_t>(oldPosition[0]);
-                        originalPart.regionY = static_cast<uint16_t>(oldPosition[1]);
+                        originalPart.regionX = oldPosition[0];
+                        originalPart.regionY = oldPosition[1];
 
-                        newPart.regionX = static_cast<uint16_t>(positionValues[0]);
-                        newPart.regionY = static_cast<uint16_t>(positionValues[1]);
+                        newPart.regionX = positionValues[0];
+                        newPart.regionY = positionValues[1];
                     }
                 }
 
@@ -306,13 +305,16 @@ void WindowInspector::Level_Arrangement() {
                 {
                     static int oldSize[2] { 0, 0 };
                     int sizeValues[2] {
-                        newPart.regionW,
-                        newPart.regionH
+                        (int)newPart.regionW,
+                        (int)newPart.regionH
                     };
 
-                    if (ImGui::DragInt2("Size WH##Region", sizeValues, 1.f)) {
-                        partPtr->regionW = static_cast<uint16_t>(sizeValues[0]);
-                        partPtr->regionH = static_cast<uint16_t>(sizeValues[1]);
+                    if (ImGui::DragInt2(
+                        "Size WH##Region", sizeValues, 1.f,
+                        0, RvlCellAnim::ArrangementPart::MAX_REGION
+                    )) {
+                        partPtr->regionW = sizeValues[0];
+                        partPtr->regionH = sizeValues[1];
                     }
 
                     if (ImGui::IsItemActivated()) {
@@ -321,11 +323,11 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::IsItemDeactivated()) {
-                        originalPart.regionW = static_cast<uint16_t>(oldSize[0]);
-                        originalPart.regionH = static_cast<uint16_t>(oldSize[1]);
+                        originalPart.regionW = oldSize[0];
+                        originalPart.regionH = oldSize[1];
 
-                        newPart.regionW = static_cast<uint16_t>(sizeValues[0]);
-                        newPart.regionH = static_cast<uint16_t>(sizeValues[1]);
+                        newPart.regionW = sizeValues[0];
+                        newPart.regionH = sizeValues[1];
                     }
                 }
             }

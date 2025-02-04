@@ -13,14 +13,22 @@
 namespace RvlCellAnim {
 
 struct TransformValues {
-    int16_t positionX { 0 }, positionY { 0 };
+    // On all axes.
+    static constexpr int MIN_POSITION = -32768;
+    static constexpr int MAX_POSITION = 32767;
+
+    // In pixels.
+    int positionX { 0 }, positionY { 0 };
+    // Keys: scales from center
+    // Arrangement parts: scales from top-left
     float scaleX { 1.f }, scaleY { 1.f };
-    float angle { 0.f }; // Angle in degrees
+    // In degrees.
+    float angle { 0.f };
 
     TransformValues average(const TransformValues& other) const {
         TransformValues transform {
-            .positionX = (int16_t)AVERAGE_INTS(this->positionX, other.positionX),
-            .positionY = (int16_t)AVERAGE_INTS(this->positionY, other.positionY),
+            .positionX = AVERAGE_INTS(this->positionX, other.positionX),
+            .positionY = AVERAGE_INTS(this->positionY, other.positionY),
 
             .scaleX = AVERAGE_FLOATS(this->scaleX, other.scaleX),
             .scaleY = AVERAGE_FLOATS(this->scaleY, other.scaleY),
@@ -33,8 +41,8 @@ struct TransformValues {
 
     TransformValues lerp(const TransformValues& other, float t) const {
         TransformValues transform {
-            .positionX = (int16_t)std::lerp(this->positionX, other.positionX, t),
-            .positionY = (int16_t)std::lerp(this->positionY, other.positionY, t),
+            .positionX = int(std::lerp(this->positionX, other.positionX, t) + .5f),
+            .positionY = int(std::lerp(this->positionY, other.positionY, t) + .5f),
 
             .scaleX = std::lerp(this->scaleX, other.scaleX, t),
             .scaleY = std::lerp(this->scaleY, other.scaleY, t),
@@ -71,10 +79,17 @@ struct CTRDepth {
 };
 
 struct ArrangementPart {
-    uint16_t regionX { 8 }, regionY { 8 };
-    uint16_t regionW { 32 }, regionH { 32 };
+    // On all axes.
+    static constexpr unsigned MAX_REGION = 65535;
 
-    uint16_t textureVarying { 0 };
+    static constexpr unsigned MAX_TEX_VARY = 65535;
+    static constexpr unsigned MAX_ID = 255;
+
+    unsigned regionX { 8 }, regionY { 8 };
+    unsigned regionW { 32 }, regionH { 32 };
+
+    // TODO: implement
+    unsigned textureVarying { 0 };
 
     TransformValues transform;
 
@@ -132,9 +147,14 @@ struct Arrangement {
 };
 
 struct AnimationKey {
-    uint16_t arrangementIndex { 0 };
+    static constexpr unsigned MAX_ARRANGEMENT_IDX = 65535;
 
-    uint16_t holdFrames { 1 };
+    static constexpr unsigned MIN_HOLD_FRAMES = 1;
+    static constexpr unsigned MAX_HOLD_FRAMES = 65535;
+
+    unsigned arrangementIndex { 0 };
+
+    unsigned holdFrames { 1 };
 
     TransformValues transform;
 
@@ -179,9 +199,8 @@ public:
     std::vector<unsigned char> Reserialize();
 
 public:
-    uint16_t sheetIndex;
-
-    uint16_t textureW, textureH;
+    unsigned sheetIndex;
+    unsigned sheetW, sheetH;
     
     bool usePalette;
 
