@@ -20,9 +20,9 @@
 #include "../../AppState.hpp"
 
 void WindowInspector::Level_Arrangement() {
-    GET_APP_STATE;
-    GET_ANIMATABLE;
-    GET_SESSION_MANAGER;
+    AppState& appState = AppState::getInstance();
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     static std::vector<RvlCellAnim::ArrangementPart> copyParts;
 
@@ -631,7 +631,7 @@ void WindowInspector::Level_Arrangement() {
                             std::sort(
                                 appState.selectedParts.begin(), appState.selectedParts.end(),
                                 [](const AppState::SelectedPart& a, const AppState::SelectedPart& b) {
-                                    return a.index > b.index;
+                                    return a.index < b.index;
                                 }
                             );
 

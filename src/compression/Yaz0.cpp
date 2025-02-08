@@ -19,16 +19,16 @@
 
 #include "../common.hpp"
 
-#define HEADER_MAGIC IDENTIFIER_TO_U32('Y', 'a', 'z', '0')
+constexpr uint32_t YAZ0_MAGIC = IDENTIFIER_TO_U32('Y', 'a', 'z', '0');
 
-#define CHUNKS_PER_GROUP (8)
-#define MAX_MATCH_LENGTH (0xFF + 0x12)
-#define ZLIB_MIN_MATCH (3)
+constexpr unsigned int CHUNKS_PER_GROUP = 8;
+constexpr unsigned int MAX_MATCH_LENGTH = 0xFFu + 0x12u;
+constexpr unsigned int ZLIB_MIN_MATCH = 3;
 
 struct Yaz0Header {
-    // Magic value (should always equal to "Yaz0" if valid)
+    // Magic value (should always equal to "Yaz0" if valid).
     // Compare to HEADER_MAGIC
-    uint32_t magic { HEADER_MAGIC };
+    uint32_t magic { YAZ0_MAGIC };
 
     // Size of the file after decompression (in bytes).
     uint32_t decompressedSize;
@@ -78,11 +78,11 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                         compressionState->buffer.push_back(static_cast<unsigned char>(lc));
                     }
                     else {
-                        unsigned newDistance = dist - 1;
-                        unsigned matchLength = lc + ZLIB_MIN_MATCH;
+                        const unsigned newDistance = dist - 1;
+                        const unsigned matchLength = lc + ZLIB_MIN_MATCH;
 
                         if (matchLength < 18) {
-                            unsigned char firstByte = static_cast<unsigned char>(
+                            const unsigned char firstByte = static_cast<unsigned char>(
                                 ((matchLength - 2) << 4) | (newDistance >> 8)
                             );
 
@@ -100,11 +100,9 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                     }
 
                     if (++compressionState->pendingChunks == CHUNKS_PER_GROUP) {
-                        // Write group header
                         compressionState->buffer[compressionState->operationsOffset] =
                             static_cast<unsigned char>(compressionState->operations.to_ulong());
 
-                        // Reset values
                         compressionState->pendingChunks = 0;
                         compressionState->operations.reset();
                         compressionState->operationsOffset = static_cast<unsigned>(compressionState->buffer.size());
@@ -158,7 +156,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
     }
 
     const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(data);
-    if (header->magic != HEADER_MAGIC) {
+    if (header->magic != YAZ0_MAGIC) {
         std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: header magic is nonmatching!\n";
         return std::nullopt; // return nothing (std::optional)
     }

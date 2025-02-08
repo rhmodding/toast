@@ -19,7 +19,7 @@ static void Popup_MTransformArrangement() {
     static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MTransformArrangement");
 
-    GET_ANIMATABLE;
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
     RvlCellAnim::Arrangement* arrangement { nullptr };
 
@@ -89,7 +89,7 @@ static void Popup_MTransformArrangement() {
                     part.transform.angle = -part.transform.angle;
             }
 
-            GET_SESSION_MANAGER;
+            SessionManager& sessionManager = SessionManager::getInstance();
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(

@@ -19,14 +19,22 @@
 
 #include "common.hpp"
 
-// Stores instance of AppState in local appState.
-#define GET_APP_STATE AppState& appState = AppState::getInstance()
+#define BEGIN_GLOBAL_POPUP() \
+    do { \
+        ImGui::PushOverrideID(AppState::getInstance().globalPopupID); \
+    } while (0)
 
-// Stores globalAnimatable refpointer in local globalAnimatable.
-#define GET_ANIMATABLE Animatable& globalAnimatable = AppState::getInstance().globalAnimatable
+#define END_GLOBAL_POPUP() \
+    do { \
+        ImGui::PopID(); \
+    } while (0)
 
-#define BEGIN_GLOBAL_POPUP ImGui::PushOverrideID(AppState::getInstance().globalPopupID)
-#define END_GLOBAL_POPUP ImGui::PopID()
+#define OPEN_GLOBAL_POPUP(popupId) \
+    do { \
+        ImGui::PushOverrideID(AppState::getInstance().globalPopupID); \
+        ImGui::OpenPopup(popupId); \
+        ImGui::PopID(); \
+    } while (0)
 
 class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>; // Allow access to base class constructor
@@ -66,11 +74,6 @@ public:
     }
 
     ImGuiID globalPopupID { 0xBEEFAB1E };
-    void OpenGlobalPopup(const char* popupId) {
-        ImGui::PushOverrideID(this->globalPopupID);
-        ImGui::OpenPopup(popupId);
-        ImGui::PopID();
-    }
 
     struct Fonts {
         ImFont* normal;
@@ -80,7 +83,7 @@ public:
     } fonts;
 
     bool getArrangementMode() const {
-        GET_SESSION_MANAGER;
+        SessionManager& sessionManager = SessionManager::getInstance();
 
         if (sessionManager.getSessionAvaliable())
             return sessionManager.getCurrentSession()->arrangementMode;

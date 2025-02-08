@@ -20,14 +20,14 @@ public:
     ~CommandSwitchCellanim() = default;
 
     void Execute() override {
-        GET_SESSION_MANAGER;
+        SessionManager& sessionManager = SessionManager::getInstance();
 
         sessionManager.sessionList.at(this->sessionIndex).currentCellanim = this->cellanimIndex;
         sessionManager.SessionChanged();
     }
 
     void Rollback() override {
-        GET_SESSION_MANAGER;
+        SessionManager& sessionManager = SessionManager::getInstance();
 
         sessionManager.sessionList.at(this->sessionIndex).currentCellanim = this->previousCellanim;
         sessionManager.SessionChanged();

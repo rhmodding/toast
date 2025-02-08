@@ -13,7 +13,7 @@ static void Popup_DeleteAnimation(int animationIndex) {
     if (animationIndex < 0)
         return;
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Are you sure?###DeleteAnimation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -34,7 +34,7 @@ static void Popup_DeleteAnimation(int animationIndex) {
         if (ImGui::Button("Delete animation")) {
             ImGui::CloseCurrentPopup();
 
-            GET_SESSION_MANAGER;
+            SessionManager& sessionManager = SessionManager::getInstance();
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandDeleteAnimation>(

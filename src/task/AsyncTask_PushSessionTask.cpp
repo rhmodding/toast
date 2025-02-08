@@ -15,10 +15,10 @@ void PushSessionTask::Run() {
 }
 
 void PushSessionTask::Effect() {
-    GET_SESSION_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     if (this->result < 0) {
-        AppState::getInstance().OpenGlobalPopup("###SessionErr");
+        OPEN_GLOBAL_POPUP("###SessionErr");
         return;
     }
 

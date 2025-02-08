@@ -83,19 +83,16 @@ void WindowAbout::Update() {
     if (!this->open)
         return;
 
-    if (!this->imageLoaded) {
+    if (this->image.getTextureId() == 0)
         image.LoadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
-        this->imageLoaded = true;
-    }
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
     ImGui::SetNextWindowSize({ 820.f, 520.f });
 
     ImGui::Begin("About", &this->open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking);
 
-    GET_WINDOW_DRAWLIST;
-
     const ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
 
     const ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
     const ImVec2 canvasSize = ImGui::GetContentRegionAvail();
@@ -131,7 +128,7 @@ void WindowAbout::Update() {
         textPosition.y + (30.f / 2) - window->Pos.y
     });
 
-    GET_APP_STATE;
+    AppState& appState = AppState::getInstance();
 
     ImGui::PushFont(appState.fonts.giant);
 

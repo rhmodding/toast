@@ -7,9 +7,6 @@
 
 #include "AppState.hpp"
 
-// Stores instance of PlayerManager in local playerManager.
-#define GET_PLAYER_MANAGER PlayerManager& playerManager = PlayerManager::getInstance()
-
 class PlayerManager : public Singleton<PlayerManager> {
     friend class Singleton<PlayerManager>; // Allow access to base class constructor
 
@@ -28,16 +25,16 @@ public:
 
     void ResetTimer();
 
-    unsigned getCurrentKeyIndex() {
+    unsigned getCurrentKeyIndex() const {
         return AppState::getInstance().globalAnimatable.
             getCurrentKeyIndex();
     }
-    unsigned getKeyCount() {
+    unsigned getKeyCount() const {
         return AppState::getInstance().globalAnimatable.
             getCurrentAnimation()->keys.size();
     }
     
-    int getHoldFramesLeft() {
+    int getHoldFramesLeft() const {
         return AppState::getInstance().globalAnimatable.
             getHoldFramesLeft();
     }
@@ -46,11 +43,11 @@ public:
     void setPlaying(bool animating);
 
     // Pseudoframes are animation keys + their hold time.
-    unsigned getTotalPseudoFrames();
-    unsigned getElapsedPseudoFrames();
+    unsigned getTotalPseudoFrames() const;
+    unsigned getElapsedPseudoFrames() const;
 
     // 0.f - 1.f
-    float getAnimationProgression() {
+    float getAnimationProgression() const {
         return
             this->getElapsedPseudoFrames() /
             static_cast<float>(this->getTotalPseudoFrames());

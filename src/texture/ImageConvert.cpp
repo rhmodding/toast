@@ -7,7 +7,7 @@
 
 #include "../common.hpp"
 
-#define IMGFMT TPL::TPLImageFormat
+typedef TPL::TPLImageFormat ImageFormat;
 
 typedef void (*FromImplementation)(unsigned char*, unsigned, unsigned, const unsigned char*, const uint32_t*);
 typedef void (*ToImplementation)(unsigned char*, uint32_t*, unsigned*, unsigned, unsigned, const unsigned char*);
@@ -601,35 +601,35 @@ bool ImageConvert::toRGBA32(
 ) {
     FromImplementation implementation;
     switch (format) {
-    case IMGFMT::TPL_IMAGE_FORMAT_I4:
+    case ImageFormat::TPL_IMAGE_FORMAT_I4:
         implementation = IMPLEMENTATION_FROM_I4;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_I8:
+    case ImageFormat::TPL_IMAGE_FORMAT_I8:
         implementation = IMPLEMENTATION_FROM_I8;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_IA4:
+    case ImageFormat::TPL_IMAGE_FORMAT_IA4:
         implementation = IMPLEMENTATION_FROM_IA4;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_IA8:
+    case ImageFormat::TPL_IMAGE_FORMAT_IA8:
         implementation = IMPLEMENTATION_FROM_IA8;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
+    case ImageFormat::TPL_IMAGE_FORMAT_RGB565:
         implementation = IMPLEMENTATION_FROM_RGB565;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
+    case ImageFormat::TPL_IMAGE_FORMAT_RGB5A3:
         implementation = IMPLEMENTATION_FROM_RGB5A3;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
+    case ImageFormat::TPL_IMAGE_FORMAT_RGBA32:
         implementation = IMPLEMENTATION_FROM_RGBA32;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_C8:
+    case ImageFormat::TPL_IMAGE_FORMAT_C8:
         if (!palette) {
             std::cerr << "[ImageConvert::toRGBA32] Cannot convert C8 texture: palette is nullptr\n";
             return false;
@@ -637,7 +637,7 @@ bool ImageConvert::toRGBA32(
 
         implementation = IMPLEMENTATION_FROM_C8;
         break;
-    case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
+    case ImageFormat::TPL_IMAGE_FORMAT_C14X2:
         if (!palette) {
             std::cerr << "[ImageConvert::toRGBA32] Cannot convert C14X2 texture: palette is nullptr\n";
             return false;
@@ -646,7 +646,7 @@ bool ImageConvert::toRGBA32(
         implementation = IMPLEMENTATION_FROM_C14X2;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
+    case ImageFormat::TPL_IMAGE_FORMAT_CMPR:
         implementation = IMPLEMENTATION_FROM_CMPR;
         break;
 
@@ -684,11 +684,11 @@ bool ImageConvert::fromRGBA32(
 ) {
     ToImplementation implementation;
     switch (format) {
-    case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
+    case ImageFormat::TPL_IMAGE_FORMAT_RGB5A3:
         implementation = IMPLEMENTATION_TO_RGB5A3;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
+    case ImageFormat::TPL_IMAGE_FORMAT_RGBA32:
         implementation = IMPLEMENTATION_TO_RGBA32;
         break;
 
@@ -701,7 +701,7 @@ bool ImageConvert::fromRGBA32(
         //IMPLEMENTATION_TO_C8(buffer, paletteOut, paletteSizeOut, srcWidth, srcHeight, data);
         implementation = IMPLEMENTATION_TO_C8;
         break;
-    case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
+    case ImageFormat::TPL_IMAGE_FORMAT_C14X2:
         if (!paletteOut) {
             std::cerr << "[ImageConvert::fromRGBA32] Couldn't convert to C14X2 format: no color palette passed.\n";
             return false;
@@ -722,11 +722,11 @@ bool ImageConvert::fromRGBA32(
     TPL::TPLTexture& texture,
     unsigned char* buffer
 ) {
-    if (texture.format == IMGFMT::TPL_IMAGE_FORMAT_C14X2)
+    if (texture.format == ImageFormat::TPL_IMAGE_FORMAT_C14X2)
         texture.palette.resize(16384);
-    if (texture.format == IMGFMT::TPL_IMAGE_FORMAT_C8)
+    if (texture.format == ImageFormat::TPL_IMAGE_FORMAT_C8)
         texture.palette.resize(256);
-    if (texture.format == IMGFMT::TPL_IMAGE_FORMAT_C4)
+    if (texture.format == ImageFormat::TPL_IMAGE_FORMAT_C4)
         texture.palette.resize(16);
 
     unsigned paletteSize { 0 };
@@ -778,37 +778,37 @@ static unsigned ImageByteSize_CMPR(unsigned width, unsigned height) {
 
 unsigned ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, const unsigned height) {
     switch (type) {
-    case IMGFMT::TPL_IMAGE_FORMAT_I4:
+    case ImageFormat::TPL_IMAGE_FORMAT_I4:
         return ImageByteSize_4(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_I8:
+    case ImageFormat::TPL_IMAGE_FORMAT_I8:
         return ImageByteSize_8(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_IA4:
+    case ImageFormat::TPL_IMAGE_FORMAT_IA4:
         return ImageByteSize_8(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_IA8:
+    case ImageFormat::TPL_IMAGE_FORMAT_IA8:
         return ImageByteSize_16(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_RGB565:
+    case ImageFormat::TPL_IMAGE_FORMAT_RGB565:
         return ImageByteSize_16(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_RGB5A3:
+    case ImageFormat::TPL_IMAGE_FORMAT_RGB5A3:
         return ImageByteSize_16(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_RGBA32:
+    case ImageFormat::TPL_IMAGE_FORMAT_RGBA32:
         return ImageByteSize_32(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_C4:
+    case ImageFormat::TPL_IMAGE_FORMAT_C4:
         return ImageByteSize_4(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_C8:
+    case ImageFormat::TPL_IMAGE_FORMAT_C8:
         return ImageByteSize_8(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_C14X2:
+    case ImageFormat::TPL_IMAGE_FORMAT_C14X2:
         return ImageByteSize_16(width, height);
 
-    case IMGFMT::TPL_IMAGE_FORMAT_CMPR:
+    case ImageFormat::TPL_IMAGE_FORMAT_CMPR:
         return ImageByteSize_CMPR(width, height);
 
     default:

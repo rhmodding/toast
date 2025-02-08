@@ -13,7 +13,6 @@ public:
 
 private:
     Texture image;
-    bool imageLoaded { false };
 };
 
 #endif // WINDOWABOUT_HPP

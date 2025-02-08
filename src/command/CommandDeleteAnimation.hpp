@@ -27,7 +27,7 @@ public:
         PlayerManager::getInstance().clampCurrentKeyIndex();
         AppState::getInstance().correctSelectedParts();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
@@ -37,7 +37,7 @@ public:
         PlayerManager::getInstance().clampCurrentKeyIndex();
         AppState::getInstance().correctSelectedParts();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:

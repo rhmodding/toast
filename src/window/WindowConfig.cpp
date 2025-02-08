@@ -43,18 +43,17 @@ static bool TextInputStdString(const char* label, std::string& str) {
 }
 
 void WindowConfig::Update() {
-    static bool firstOpen { true };
+    ConfigManager& configManager = ConfigManager::getInstance();
 
     if (!this->open)
         return;
 
-    if (firstOpen) {
-        this->selfConfig = ConfigManager::getInstance().getConfig();
-
-        firstOpen = false;
+    if (this->firstOpen) {
+        this->selfConfig = configManager.getConfig();
+        this->firstOpen = false;
     }
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::SetNextWindowSize({ 500.f, 440.f }, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Config", &this->open, ImGuiWindowFlags_MenuBar)) {
@@ -179,8 +178,6 @@ void WindowConfig::Update() {
             }
 
             ImGui::EndChild();
-
-            GET_CONFIG_MANAGER;
 
             ImGui::BeginDisabled(this->selfConfig == configManager.getConfig());
             if (ImGui::Button("Revert")) {

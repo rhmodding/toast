@@ -7,8 +7,8 @@
 
 #include "../common.hpp"
 
-// Pre-byteswapped
-#define RCAD_REVISION_DATE (0xD8B43201)
+// Pre-byteswapped.
+constexpr uint32_t RCAD_REVISION_DATE = 0xD8B43201;
 
 struct RvlCellAnimHeader {
     // Format revision date (should equal 20100312 in BE (2010/03/12) if valid)

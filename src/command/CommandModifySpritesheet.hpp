@@ -69,31 +69,27 @@ public:
     ~CommandModifySpritesheet() = default;
 
     void Execute() override {
-        this->getSheet() = newSheet;
+        this->getSheet() = this->newSheet;
 
-        GET_SESSION_MANAGER;
+        Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
-        Session* currentSession = sessionManager.getCurrentSession();
+        currentSession->getCurrentCellanim().object->sheetW = this->newSheet->getWidth();
+        currentSession->getCurrentCellanim().object->sheetH = this->newSheet->getHeight();
+        AppState::getInstance().globalAnimatable.texture = this->newSheet;
 
-        currentSession->getCurrentCellanim().object->sheetW = newSheet->getWidth();
-        currentSession->getCurrentCellanim().object->sheetH = newSheet->getHeight();
-        AppState::getInstance().globalAnimatable.texture = newSheet;
-
-        sessionManager.getCurrentSessionModified() = true;
+        currentSession->modified = true;
     }
 
     void Rollback() override {
-        this->getSheet() = oldSheet;
+        this->getSheet() = this->oldSheet;
         
-        GET_SESSION_MANAGER;
+        Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
-        Session* currentSession = sessionManager.getCurrentSession();
+        currentSession->getCurrentCellanim().object->sheetW = this->oldSheet->getWidth();
+        currentSession->getCurrentCellanim().object->sheetH = this->oldSheet->getHeight();
+        AppState::getInstance().globalAnimatable.texture = this->oldSheet;
 
-        currentSession->getCurrentCellanim().object->sheetW = oldSheet->getWidth();
-        currentSession->getCurrentCellanim().object->sheetH = oldSheet->getHeight();
-        AppState::getInstance().globalAnimatable.texture = oldSheet;
-
-        sessionManager.getCurrentSessionModified() = true;
+        currentSession->modified = true;
     }
 
 private:

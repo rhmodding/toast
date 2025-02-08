@@ -20,12 +20,18 @@
 #include "../command/CommandModifyAnimationKey.hpp"
 #include "../command/CommandModifyAnimation.hpp"
 
-void WindowTimeline::Update() {
-    GET_APP_STATE;
-    GET_ANIMATABLE;
-    GET_SESSION_MANAGER;
+static const uint32_t u32_one = 1;
 
-    GET_PLAYER_MANAGER;
+static const uint8_t  u8_min  = 0;
+static const uint8_t  u8_max  = 0xFFu;
+
+void WindowTimeline::Update() {
+    AppState& appState = AppState::getInstance();
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+    SessionManager& sessionManager = SessionManager::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
+
+    const ImGuiIO& io = ImGui::GetIO(); 
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
     ImGui::Begin("Timeline");
@@ -178,11 +184,6 @@ void WindowTimeline::Update() {
 
                 ImGui::Separator();
 
-                static const uint32_t u32_one = 1;
-
-                static const uint8_t  u8_min  = 0;
-                static const uint8_t  u8_max  = 0xFFu;
-
                 ImGui::InputScalar("Back count", ImGuiDataType_U32, &appState.onionSkinState.backCount, &u32_one);
                 ImGui::InputScalar("Front count", ImGuiDataType_U32, &appState.onionSkinState.frontCount, &u32_one);
 
@@ -285,8 +286,6 @@ void WindowTimeline::Update() {
 
                         ImGui::Separator();
 
-                        GET_IMGUI_IO;
-
                         // Key splitting
                         {
                             bool splitPossible { false };
@@ -336,15 +335,13 @@ void WindowTimeline::Update() {
 
                                     newKey.opacity = AVERAGE_UCHARS(keyA.opacity, keyB.opacity);
 
-                                    uint16_t base = keyA.holdFrames - 1;
+                                    unsigned base = keyA.holdFrames - 1;
 
-                                    uint16_t first = base / 2;
-                                    uint16_t second = base - first;
+                                    unsigned first = base / 2;
+                                    unsigned second = base - first;
 
-                                    modKey.holdFrames =
-                                        std::clamp<uint16_t>(first, 1, std::numeric_limits<uint16_t>::max());
-                                    newKey.holdFrames =
-                                        std::clamp<uint16_t>(second, 1, std::numeric_limits<uint16_t>::max());
+                                    modKey.holdFrames = std::max(first, 1u);
+                                    newKey.holdFrames = std::max(second, 1u);
                                 }
 
                                 sessionManager.getCurrentSession()->addCommand(
@@ -548,7 +545,7 @@ void WindowTimeline::Update() {
                     // Key button dummy
                     ImGui::Dummy(buttonDimensions);
 
-                    uint16_t holdFrames = globalAnimatable.getCurrentAnimation()->keys.at(i).holdFrames;
+                    unsigned holdFrames = globalAnimatable.getCurrentAnimation()->keys.at(i).holdFrames;
                     if (holdFrames > 1) {
                         ImGui::SameLine();
 
@@ -629,7 +626,7 @@ void WindowTimeline::Update() {
                         ImGui::EndDisabled();
 
                         // Hold frame dummy
-                        uint16_t holdFrames = globalAnimatable.getCurrentAnimation()->keys.at(i).holdFrames;
+                        unsigned holdFrames = globalAnimatable.getCurrentAnimation()->keys.at(i).holdFrames;
                         if (holdFrames > 1) {
                             ImGui::SameLine();
                             ImGui::Dummy({ holdFrameWidth * holdFrames, buttonDimensions.y });

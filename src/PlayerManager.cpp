@@ -7,7 +7,7 @@
 #include "AppState.hpp"
 
 void PlayerManager::setCurrentKeyIndex(unsigned index) {
-    GET_APP_STATE;
+    AppState& appState = AppState::getInstance();
 
     if (this->getCurrentKeyIndex() >= this->getKeyCount()) {
         appState.globalAnimatable.setAnimationKeyFromIndex(index);
@@ -42,13 +42,11 @@ void PlayerManager::ResetTimer() {
 }
 
 void PlayerManager::setPlaying(bool animating) {
-    GET_ANIMATABLE;
-
     this->playing = animating;
-    globalAnimatable.setAnimating(animating);
+    AppState::getInstance().globalAnimatable.setAnimating(animating);
 }
 
-unsigned PlayerManager::getTotalPseudoFrames() {
+unsigned PlayerManager::getTotalPseudoFrames() const {
     const auto& keys =
         AppState::getInstance().globalAnimatable.getCurrentAnimation()->keys;
 
@@ -60,8 +58,8 @@ unsigned PlayerManager::getTotalPseudoFrames() {
     );
 }
 
-unsigned PlayerManager::getElapsedPseudoFrames() {
-    GET_ANIMATABLE;
+unsigned PlayerManager::getElapsedPseudoFrames() const {
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
     unsigned currentKeyIndex = this->getCurrentKeyIndex();
 
@@ -83,8 +81,8 @@ unsigned PlayerManager::getElapsedPseudoFrames() {
 }
 
 void PlayerManager::Update() {
-    GET_APP_STATE;
-    GET_ANIMATABLE;
+    AppState& appState = AppState::getInstance();
+    Animatable& globalAnimatable = appState.globalAnimatable;
 
     if (!this->playing)
         return;
@@ -94,7 +92,7 @@ void PlayerManager::Update() {
 
     this->previous = now;
 
-    const auto* arrangeBefore = appState.globalAnimatable.getCurrentArrangement();
+    const auto* arrangeBefore = globalAnimatable.getCurrentArrangement();
 
     while (delta >= this->timeLeft) {
         globalAnimatable.Update();
@@ -110,7 +108,7 @@ void PlayerManager::Update() {
         this->playing = globalAnimatable.getAnimating();
     }
 
-    const auto* arrangeAfter = appState.globalAnimatable.getCurrentArrangement();
+    const auto* arrangeAfter = globalAnimatable.getCurrentArrangement();
 
     if (arrangeBefore != arrangeAfter) {
         for (auto& part : appState.selectedParts) {

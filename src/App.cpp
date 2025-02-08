@@ -14,10 +14,6 @@
 #include <string>
 #include <sstream>
 
-#define STB_IMAGE_STATIC
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
-
 #include <tinyfiledialogs.h>
 
 #include "anim/RvlCellAnim.hpp"
@@ -54,23 +50,27 @@
 
 // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
+
 #include "_binary/images/toastIcon.png.h"
 #endif // !defined(__APPLE__)
 
 #define WINDOW_TITLE "toast"
 
-App* gAppPtr { nullptr };
+App* globlApp { nullptr };
 
 static void SetupFonts() {
-    GET_IMGUI_IO;
-    GET_APP_STATE;
+    AppState::Fonts& fonts = AppState::getInstance().fonts;
+    ImGuiIO& io = ImGui::GetIO();
 
     { // normal: SegoeUI (18px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
-        appState.fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
+        fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
     }
 
     { // icon: Font Awesome
@@ -80,7 +80,7 @@ static void SetupFonts() {
         fontConfig.MergeMode = true;
         fontConfig.PixelSnapH = true;
 
-        appState.fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range);
+        fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range);
     }
 
     { // large: SegoeUI (24px)
@@ -88,7 +88,7 @@ static void SetupFonts() {
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
-        appState.fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
+        fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
     }
 
     { // giant: SegoeUI (52px)
@@ -96,12 +96,12 @@ static void SetupFonts() {
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
-        appState.fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
+        fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
     }
 }
 
 App::App(int argc, const char** argv) {
-    gAppPtr = this;
+    globlApp = this;
 
     this->mainThreadId = std::this_thread::get_id();
 
@@ -142,7 +142,7 @@ App::App(int argc, const char** argv) {
     // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // 3.0+ only
 #endif // defined(__APPLE__), defined(IMGUI_IMPL_OPENGL_ES2)
 
-    GET_CONFIG_MANAGER;
+    ConfigManager& configManager = ConfigManager::getInstance();
     configManager.LoadConfig();
 
     this->glfwWindowHndl = glfwCreateWindow(
@@ -159,8 +159,8 @@ App::App(int argc, const char** argv) {
     }
 
     glfwSetWindowCloseCallback(this->glfwWindowHndl, [](GLFWwindow*) {
-        extern App* gAppPtr;
-        gAppPtr->AttemptExit();
+        extern App* globlApp;
+        globlApp->AttemptExit();
     });
 
     glfwMakeContextCurrent(this->glfwWindowHndl);
@@ -184,7 +184,7 @@ App::App(int argc, const char** argv) {
 
     ImGui::CreateContext();
 
-    GET_IMGUI_IO;
+    ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   // Enable Keyboard Controls
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;       // Enable Docking
@@ -262,11 +262,10 @@ App::~App() {
 }
 
 void App::AttemptExit(bool force) {
-    GET_SESSION_MANAGER;
-
+    const auto& sessionList = SessionManager::getInstance().sessionList;
     if (!force) {
-        for (unsigned i = 0; i < sessionManager.sessionList.size(); i++) {
-            if (sessionManager.sessionList[i].modified) {
+        for (unsigned i = 0; i < sessionList.size(); i++) {
+            if (sessionList[i].modified) {
                 Popups::_openExitWithChangesPopup = true;
 
                 return; // Cancel
@@ -274,7 +273,7 @@ void App::AttemptExit(bool force) {
         }
     }
 
-    GET_CONFIG_MANAGER;
+    ConfigManager& configManager = ConfigManager::getInstance();
 
     Config config = configManager.getConfig();
 
@@ -287,10 +286,10 @@ void App::AttemptExit(bool force) {
 }
 
 void App::Menubar() {
-    GET_APP_STATE;
-    GET_SESSION_MANAGER;
-    GET_PLAYER_MANAGER;
-    GET_CONFIG_MANAGER;
+    const AppState& appState = AppState::getInstance();
+    SessionManager& sessionManager = SessionManager::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
+    ConfigManager& configManager = ConfigManager::getInstance();
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
@@ -423,7 +422,7 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Optimize .."))
-                appState.OpenGlobalPopup("###MOptimizeGlobal");
+                OPEN_GLOBAL_POPUP("###MOptimizeGlobal");
 
             ImGui::EndMenu();
         }
@@ -448,14 +447,14 @@ void App::Menubar() {
 
             if (ImGui::MenuItem("Edit macro name ..")) {
                 Popups::_editAnimationNameIdx = animIndex;
-                appState.OpenGlobalPopup("###EditAnimationName");
+                OPEN_GLOBAL_POPUP("###EditAnimationName");
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Swap index ..")) {
                 Popups::_swapAnimationIdx = animIndex;
-                appState.OpenGlobalPopup("###SwapAnimation");
+                OPEN_GLOBAL_POPUP("###SwapAnimation");
             }
 
             ImGui::EndMenu();
@@ -484,7 +483,7 @@ void App::Menubar() {
                 keyIndex + 1 <
                 appState.globalAnimatable.getCurrentAnimation()->keys.size()
             ))
-                appState.OpenGlobalPopup("MInterpolateKeys");
+                OPEN_GLOBAL_POPUP("MInterpolateKeys");
 
             ImGui::Separator();
 
@@ -615,7 +614,7 @@ void App::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Transform as whole .."))
-                appState.OpenGlobalPopup("MTransformArrangement");
+                OPEN_GLOBAL_POPUP("MTransformArrangement");
 
             ImGui::Separator();
 
@@ -653,7 +652,7 @@ void App::Menubar() {
 
             if (ImGui::BeginMenu("Region")) {
                 if (ImGui::MenuItem("Pad (Expand/Contract) .."))
-                    appState.OpenGlobalPopup("MPadRegion");
+                    OPEN_GLOBAL_POPUP("MPadRegion");
 
                 ImGui::EndMenu();
             }
@@ -709,7 +708,7 @@ void App::Menubar() {
             ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll |
             ImGuiTabBarFlags_AutoSelectNewTabs;
 
-        GET_SESSION_MANAGER;
+        SessionManager& sessionManager = SessionManager::getInstance();
 
         if (ImGui::BeginTabBar("FileTabBar", tabBarFlags)) {
             for (unsigned n = 0; n < sessionManager.sessionList.size(); n++) {
@@ -777,7 +776,7 @@ void App::Menubar() {
                     sessionManager.sessionClosingIndex = n;
 
                     if (session.modified)
-                        AppState::getInstance().OpenGlobalPopup("###CloseModifiedSession");
+                        OPEN_GLOBAL_POPUP("###CloseModifiedSession");
                     else {
                         sessionManager.FreeSessionIndex(n);
                         sessionManager.SessionChanged();

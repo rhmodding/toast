@@ -27,25 +27,25 @@ public:
     void Execute() override {
         this->getAnimation() = this->newAnimation;
 
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         if (!appState.getArrangementMode())
             PlayerManager::getInstance().clampCurrentKeyIndex();
         AppState::getInstance().correctSelectedParts();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
         this->getAnimation() = this->oldAnimation;
 
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         if (!appState.getArrangementMode())
             PlayerManager::getInstance().clampCurrentKeyIndex();
         AppState::getInstance().correctSelectedParts();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:

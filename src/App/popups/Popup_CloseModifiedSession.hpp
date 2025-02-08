@@ -8,7 +8,7 @@
 #include "../../common.hpp"
 
 static void Popup_CloseModifiedSession() {
-    GET_SESSION_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     if (
         sessionManager.sessionClosingIndex < 0 || 
@@ -26,7 +26,7 @@ static void Popup_CloseModifiedSession() {
         sessionPath.c_str()
     );
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {

@@ -11,9 +11,6 @@
 
 #include "common.hpp"
 
-// Stores instance of ConfigManager in local configManager.
-#define GET_CONFIG_MANAGER ConfigManager& configManager = ConfigManager::getInstance()
-
 enum BackupBehaviour {
     BackupBehaviour_None,
     BackupBehaviour_SaveOnce,

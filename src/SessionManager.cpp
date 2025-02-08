@@ -420,7 +420,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 
     auto archiveRaw = archive.Reserialize();
 
-    GET_CONFIG_MANAGER;
+    const ConfigManager& configManager = ConfigManager::getInstance();
 
     auto compressedArchive = Yaz0::compress(
         archiveRaw.data(), archiveRaw.size(),
@@ -472,8 +472,8 @@ void SessionManager::SessionChanged() {
     if (this->currentSessionIndex < 0)
         return;
 
-    GET_APP_STATE;
-    GET_ANIMATABLE;
+    AppState& appState = AppState::getInstance();
+    Animatable& globalAnimatable = appState.globalAnimatable;
 
     globalAnimatable = Animatable(
         this->sessionList[this->currentSessionIndex].getCurrentCellanim().object,

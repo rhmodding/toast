@@ -11,9 +11,11 @@
 #include "anim/RvlCellAnim.hpp"
 
 // Major version must be changed for any breaking changes.
-#define TED_VERSION_MAJOR (0) // 0 - 16
+constexpr unsigned int TED_VERSION_MAJOR = 0;
+constexpr unsigned int TED_VERSION_MINOR = 0;
 
-#define TED_VERSION_MINOR (0) // 0 - 16
+static_assert(TED_VERSION_MAJOR < 16, "TED_VERSION_MAJOR must be less than 16");
+static_assert(TED_VERSION_MINOR < 16, "TED_VERSION_MINOR must be less than 16");
 
 struct TedFileHeader {
     char magic[5] { 'T', 'O', 'A', 'S', 'T' };

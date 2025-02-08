@@ -24,7 +24,7 @@ static void Popup_SwapAnimation(int animationIndex) {
     if (animationIndex < 0)
         return;
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     if (ImGui::BeginPopupModal("Swap animations###SwapAnimation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         static float animationBegin { static_cast<float>(ImGui::GetTime()) };
@@ -67,7 +67,7 @@ static void Popup_SwapAnimation(int animationIndex) {
 
             ImGui::BeginDisabled(swapAnim < 0);
             if (ImGui::Button("Apply")) {
-                GET_SESSION_MANAGER;
+                SessionManager& sessionManager = SessionManager::getInstance();
 
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandSwapAnimations>(
@@ -99,12 +99,12 @@ static void Popup_SwapAnimation(int animationIndex) {
 
             float beginCursorY = ImGui::GetCursorPosY();
 
-            GET_ANIMATABLE;
+            Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
             for (int n = 0; n < (int)globalAnimatable.cellanim->animations.size(); n++) {
                 std::ostringstream fmtStream;
 
-                GET_SESSION_MANAGER;
+                SessionManager& sessionManager = SessionManager::getInstance();
 
                 int nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
 

@@ -13,7 +13,7 @@
 static void Popup_MOptimizeGlobal() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Optimize Cellanim###MOptimizeGlobal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        GET_SESSION_MANAGER;
+        SessionManager& sessionManager = SessionManager::getInstance();
 
         ImGui::TextUnformatted("Optimize the current Cellanim:");
         ImGui::BulletText("%u. \"%s\"",

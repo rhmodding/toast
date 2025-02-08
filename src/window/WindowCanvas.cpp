@@ -16,6 +16,9 @@
 
 #include "../common.hpp"
 
+constexpr float CANVAS_ZOOM_SPEED = .04f;
+constexpr float CANVAS_ZOOM_SPEED_FAST = .08f;
+
 static void fitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
     float widthRatio = targetRect.x / rectToFit.x;
     float heightRatio = targetRect.y / rectToFit.y;
@@ -68,14 +71,14 @@ static bool pointInPolygon(const ImVec2& point, const ImVec2* vertices, unsigned
 }
 
 // Calculate quad bounding of all selected parts
-static std::array<ImVec2, 4> calculatepartsBounding(const RvlCellAnim::Arrangement& arrangement, float& quadRotation) {
+static std::array<ImVec2, 4> calculatePartsBounding(const RvlCellAnim::Arrangement& arrangement, float& quadRotation) {
     std::array<ImVec2, 4> partsBounding ({{ -FLT_MAX, -FLT_MAX }});
 
     FLT_EPSILON;
     
     quadRotation = 0.f;
 
-    GET_APP_STATE;
+    AppState& appState = AppState::getInstance();
 
     if (!appState.anyPartsSelected())
         return partsBounding;
@@ -134,7 +137,7 @@ static std::array<ImVec2, 4> calculatepartsBounding(const RvlCellAnim::Arrangeme
 
 // Check if selectedParts or arrangement index has changed since last cycle.
 static bool selectionChangedSinceLastCycle() {
-    GET_APP_STATE;
+    AppState& appState = AppState::getInstance();
 
     const auto& currentSelected = appState.selectedParts;
     const auto& currentArrangeIdx = appState.globalAnimatable.getCurrentKey()->arrangementIndex;
@@ -175,12 +178,12 @@ static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
 }
 
 // Screen safe area for Fever (RVL)
-#define RVL_SAFE_X (832)
-#define RVL_SAFE_Y (456)
+constexpr float RVL_SAFE_X = 832;
+constexpr float RVL_SAFE_Y = 456;
 
 // Screen safe area for Megamix (CTR)
-#define CTR_SAFE_X (440)
-#define CTR_SAFE_Y (240)
+constexpr float CTR_SAFE_X = 440;
+constexpr float CTR_SAFE_Y = 240;
 
 void WindowCanvas::Menubar() {
     if (ImGui::BeginMenuBar()) {
@@ -293,6 +296,10 @@ void WindowCanvas::Update() {
     ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_MenuBar);
     ImGui::PopStyleVar();
 
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+    const ImGuiIO& io = ImGui::GetIO();
+
     // Note: ImDrawList uses screen coordinates
     this->canvasTopLeft = ImGui::GetCursorScreenPos();
     this->canvasSize = ImGui::GetContentRegionAvail();
@@ -329,9 +336,6 @@ void WindowCanvas::Update() {
     default:
         break;
     }
-
-    GET_IMGUI_IO;
-    GET_WINDOW_DRAWLIST;
 
     drawList->AddRectFilled(this->canvasTopLeft, canvasBottomRight, backgroundColor);
 
@@ -398,8 +402,8 @@ void WindowCanvas::Update() {
     static float pivotBeforeMoveLocal[2] { 0.f, 0.f };
     static float pivotBeforeMoveWorld[2] { 0.f, 0.f };
 
-    GET_ANIMATABLE;
-    GET_APP_STATE;
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+    AppState& appState = AppState::getInstance();
 
     RvlCellAnim::Arrangement& arrangement = *globalAnimatable.getCurrentArrangement();
 
@@ -424,8 +428,6 @@ void WindowCanvas::Update() {
         const float minZoom = .1f;
 
         if (interactionHovered) {
-            GET_IMGUI_IO;
-
             if (io.MouseWheel != 0) {
                 if (io.KeyShift)
                     this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
@@ -447,7 +449,7 @@ void WindowCanvas::Update() {
     globalAnimatable.scaleY = this->canvasZoom;
 
     float quadRotation { 0.f };
-    std::array<ImVec2, 4> partsBounding = calculatepartsBounding(arrangement, quadRotation);
+    std::array<ImVec2, 4> partsBounding = calculatePartsBounding(arrangement, quadRotation);
 
     ImVec2 partsBoundingCenter = AVERAGE_IMVEC2(partsBounding[0], partsBounding[2]);
     ImVec2 partsAnmSpaceCenter (
@@ -462,7 +464,7 @@ void WindowCanvas::Update() {
         hoveringOverParts = pointInPolygon(io.MousePos, partsBounding.data(), 4);
     
     // Top-left, top-right, bottom-right, bottom-left, top, right, bottom, left
-    bool hoveringTransformHandles[8];
+    bool hoveringTransformHandles[8] { false };
     // We can't use hoveringOverParts because the handles hang off the edge.
     if (interactionHovered && !noParts) {
         constexpr float hoverRadius = 7.5f;
@@ -542,6 +544,8 @@ void WindowCanvas::Update() {
             hoveringTransformHandles[4] || hoveringTransformHandles[5] ||
             hoveringTransformHandles[6] || hoveringTransformHandles[7];
 
+        bool doRotate = io.KeyAlt;
+
         if (hoveringOverPivot) {
             movingPivot = true;
 
@@ -550,7 +554,7 @@ void WindowCanvas::Update() {
             pivotBeforeMoveWorld[0] = pivotPoint.x;
             pivotBeforeMoveWorld[1] = pivotPoint.y;
         }
-        else if (hoveringAnyTransformHandle) {
+        else if (hoveringAnyTransformHandle && !doRotate) {
             pivotBeforeMoveLocal[0] = partsTransformation.pivotX;
             pivotBeforeMoveLocal[1] = partsTransformation.pivotY;
             pivotBeforeMoveWorld[0] = pivotPoint.x;
@@ -579,7 +583,7 @@ void WindowCanvas::Update() {
             pivotBeforeMoveWorld[1] = pivotPoint.y;
 
             partsTransformation = PartsTransformation {
-                .type = PartsTransformType_Translate, // TODO
+                .type = doRotate ? PartsTransformType_Rotate : PartsTransformType_Translate, // TODO
                 .active = true,
 
                 .pivotX = pivotPoint.x,
@@ -601,6 +605,8 @@ void WindowCanvas::Update() {
         partsTransformation.pivotY =
             pivotBeforeMoveLocal[1] + (dragDelta.y / this->canvasZoom);
     }
+
+    auto myPartsBounding = partsBounding;
 
     // Temporarily apply partsTransformation (reset on end of update)
     if (partsTransformation.active) {
@@ -651,36 +657,28 @@ void WindowCanvas::Update() {
                 3,  2
             */
 
-            std::array<ImVec2, 4> myPartsBounding = partsBounding;
-            ImVec2 myPivotPoint = pivotPoint;
+            float compensateRot = -keyTransform.angle;
 
-            ImVec2 myMouseDragStart = mouseDragStart;
-            ImVec2 myDragDelta = dragDelta;
+            printf("compensateRot:%f\n", compensateRot);
 
-            float compensateAngle = -(keyTransform.angle + quadRotation);
-
+            myPartsBounding = partsBounding;
             for (auto& point : myPartsBounding)
-                rotateVec2(point, compensateAngle, origin);
+                point = rotateVec2(point, compensateRot, origin);
 
-            rotateVec2(myPivotPoint, compensateAngle, { 0.f, 0.f });
-            myPivotPoint.x *= this->canvasZoom;
-            myPivotPoint.y *= this->canvasZoom;
+            auto myMouseDragStart = rotateVec2(mouseDragStart, compensateRot, { 0.f, 0.f });
 
-            rotateVec2(myMouseDragStart, compensateAngle, { 0.f, 0.f });
-            rotateVec2(myDragDelta, compensateAngle, { 0.f, 0.f });
+            auto myDragDelta = rotateVec2(dragDelta, compensateRot, { 0.f, 0.f });
 
-            float startWidth = myPartsBounding[3].x - myPartsBounding[0].x;
-            float startHeight = myPartsBounding[3].y - myPartsBounding[0].y;
-
-            //printf("%f, %f\n", startWidth, startHeight);
+            float startWidth = myPartsBounding[2].x - myPartsBounding[0].x;
+            float startHeight = myPartsBounding[2].y - myPartsBounding[0].y;
 
             float pivotRealX = (partsTransformation.pivotX * this->canvasZoom);
             float pivotRealY = (partsTransformation.pivotY * this->canvasZoom);
 
-            const float rangeStartX = AVERAGE_FLOATS(myPartsBounding[0].x, myPartsBounding[3].x) - origin.x;
-            const float rangeEndX = AVERAGE_FLOATS(myPartsBounding[1].x, myPartsBounding[2].x) - origin.x;
-            const float rangeStartY = AVERAGE_FLOATS(myPartsBounding[0].y, myPartsBounding[1].y) - origin.y;
-            const float rangeEndY = AVERAGE_FLOATS(myPartsBounding[3].y, myPartsBounding[2].y) - origin.y;
+            const float rangeStartX = myPartsBounding[0].x - origin.x;
+            const float rangeEndX = myPartsBounding[1].x - origin.x;
+            const float rangeStartY = myPartsBounding[0].y - origin.y;
+            const float rangeEndY = myPartsBounding[3].y - origin.y;
 
             const float rangeMapX = mapRange(myMouseDragStart.x, rangeStartX, rangeEndX);
             const float rangeMapY = mapRange(myMouseDragStart.y, rangeStartY, rangeEndY);
@@ -697,8 +695,18 @@ void WindowCanvas::Update() {
             float newWidth = startWidth * (1.f - mapX);
             float newHeight = startHeight * (1.f - mapY);
 
-            partsTransformation.scaleX = newWidth / startWidth;
-            partsTransformation.scaleY = newHeight / startHeight;
+            float scaleX = (newWidth / startWidth);
+            float scaleY = (newHeight / startHeight);
+
+            if (shiftHeld) {
+                float scale = AVERAGE_FLOATS(scaleX, scaleY);
+                partsTransformation.scaleX = scale;
+                partsTransformation.scaleY = scale;
+            }
+            else {
+                partsTransformation.scaleX = scaleX;
+                partsTransformation.scaleY = scaleY;
+            }
         } break;
         case PartsTransformType_Rotate: {
             float pivotRealX = (partsTransformation.pivotX * this->canvasZoom);
@@ -779,7 +787,7 @@ void WindowCanvas::Update() {
             part.transform.angle += partsTransformation.rotation;
         }
 
-        partsBounding = calculatepartsBounding(arrangement, quadRotation);
+        partsBounding = calculatePartsBounding(arrangement, quadRotation);
         partsBoundingCenter = AVERAGE_IMVEC2(partsBounding[0], partsBounding[2]);
         partsAnmSpaceCenter = ImVec2(
             (partsBoundingCenter.x - origin.x) / this->canvasZoom,
@@ -831,12 +839,12 @@ void WindowCanvas::Update() {
                 partsAnmSpaceCenter.y + newPivotY
             );
 
-            GET_SESSION_MANAGER;
+            SessionManager& sessionManager = SessionManager::getInstance();
 
             // Reverse the role of arrangementBeforeMutation for the command submit
             std::swap(arrangementBeforeMutation, arrangement);
 
-            sessionManager.getCurrentSession()->executeCommand(
+            sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(
                 sessionManager.getCurrentSession()->currentCellanim,
                 appState.globalAnimatable.getCurrentKey()->arrangementIndex,
@@ -989,6 +997,8 @@ void WindowCanvas::Update() {
 
             drawList->AddQuad(partsBounding[0], partsBounding[1], partsBounding[2], partsBounding[3], colorLine, lineThickness);
 
+            drawList->AddQuad(myPartsBounding[0], myPartsBounding[1], myPartsBounding[2], myPartsBounding[3], colorLine, lineThickness);
+
             // Corners
             for (unsigned i = 0; i < 4; i++) {
                 const ImVec2& center = partsBounding[i];
@@ -1081,6 +1091,8 @@ void WindowCanvas::Update() {
 }
 
 void WindowCanvas::DrawCanvasText() {
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
     uint32_t textColor { 0xFF000000 }; // Black
     switch (this->gridType) {
     case GridType_None:
@@ -1111,9 +1123,10 @@ void WindowCanvas::DrawCanvasText() {
         break;
     }
 
-    float textDrawHeight = this->canvasTopLeft.y + 5.f;
+    const float textDrawLeft = this->canvasTopLeft.x + 10.f;
+    float textDrawTop = this->canvasTopLeft.y + 5.f;
 
-    GET_WINDOW_DRAWLIST;
+    constexpr float textDrawGap = 3.f;
 
     if ((this->canvasOffset.x != 0.f) || (this->canvasOffset.y != 0.f)) {
         std::string str;
@@ -1128,12 +1141,11 @@ void WindowCanvas::DrawCanvasText() {
         }
 
         drawList->AddText(
-            // TODO replace 10.f with constant
-            { this->canvasTopLeft.x + 10.f, textDrawHeight },
+            { textDrawLeft, textDrawTop },
             textColor, str.c_str()
         );
 
-        textDrawHeight += 3.f + ImGui::CalcTextSize(str.c_str()).y;
+        textDrawTop += textDrawGap + ImGui::CalcTextSize(str.c_str()).y;
     }
 
     if (this->canvasZoom != 1.f) {
@@ -1149,21 +1161,21 @@ void WindowCanvas::DrawCanvasText() {
         }
 
         drawList->AddText(
-            { this->canvasTopLeft.x + 10.f, textDrawHeight },
+            { textDrawLeft, textDrawTop },
             textColor, str.c_str()
         );
 
-        textDrawHeight += 3.f + ImGui::CalcTextSize(str.c_str()).y;
+        textDrawTop += textDrawGap + ImGui::CalcTextSize(str.c_str()).y;
     }
 
     if (!AppState::getInstance().globalAnimatable.getDoesDraw(this->allowOpacity)) {
         const char* text = "Nothing to draw on this frame";
 
         drawList->AddText(
-            { this->canvasTopLeft.x + 10.f, textDrawHeight },
+            { textDrawLeft, textDrawTop },
             textColor, text
         );
 
-        textDrawHeight += 3.f + ImGui::CalcTextSize(text).y;
+        textDrawTop += textDrawGap + ImGui::CalcTextSize(text).y;
     }
 }

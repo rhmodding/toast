@@ -18,7 +18,7 @@ void ExportSessionTask::Run() {
 
 void ExportSessionTask::Effect() {
     if (this->result < 0) {
-        AppState::getInstance().OpenGlobalPopup("###SessionErr");
+        OPEN_GLOBAL_POPUP("###SessionErr");
         return;
     }
 

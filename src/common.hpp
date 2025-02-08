@@ -44,12 +44,12 @@
     (float)(int)((vec).y + .5f) \
 ))
 
-#define GET_IMGUI_IO ImGuiIO& io = ImGui::GetIO()
-#define GET_WINDOW_DRAWLIST ImDrawList* drawList = ImGui::GetWindowDrawList()
-
-#define CENTER_NEXT_WINDOW ImGui::SetNextWindowPos( \
-    ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f) \
-)
+#define CENTER_NEXT_WINDOW() \
+    do { \
+        ImGui::SetNextWindowPos( \
+            ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f) \
+        ); \
+    } while (0)
 
 #ifndef NDEBUG
 

@@ -40,13 +40,13 @@ public:
     void Execute() override {
         this->getPart() = this->newPart;
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
         this->getPart() = this->oldPart;
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:

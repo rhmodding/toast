@@ -22,10 +22,7 @@
 
 #include "common.hpp"
 
-#define SESSION_MAX_COMMANDS 512
-
-// Stores instance of SessionManager in local sessionManager.
-#define GET_SESSION_MANAGER SessionManager& sessionManager = SessionManager::getInstance()
+constexpr unsigned int SESSION_MAX_COMMANDS = 512;
 
 class Session {
 public:
@@ -127,11 +124,18 @@ public:
         return nullptr;
     }
 
-    bool& getCurrentSessionModified() {
-        return this->getCurrentSession()->modified;
+    bool getCurrentSessionModified() const {
+        if (this->currentSessionIndex >= 0)
+            return this->sessionList.at(this->currentSessionIndex).modified;
+        else
+            return false;
+    }
+    void setCurrentSessionModified(bool modified) {
+        if (this->currentSessionIndex >= 0)
+            this->sessionList.at(this->currentSessionIndex).modified = modified;
     }
 
-    bool getSessionAvaliable() {
+    bool getSessionAvaliable() const {
         return this->currentSessionIndex >= 0;
     }
 

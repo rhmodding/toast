@@ -18,8 +18,8 @@ static void Popup_MPadRegion() {
     static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MPadRegion");
 
-    GET_APP_STATE;
-    GET_ANIMATABLE;
+    AppState& appState = AppState::getInstance();
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
     RvlCellAnim::ArrangementPart* part { nullptr };
 
@@ -95,7 +95,7 @@ static void Popup_MPadRegion() {
             part->transform.positionX = origPosition[0];
             part->transform.positionY = origPosition[1];
 
-            GET_SESSION_MANAGER;
+            SessionManager& sessionManager = SessionManager::getInstance();
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(

@@ -36,6 +36,8 @@ void Dialog_CreateCompressedArcSession() {
 }
 
 void Dialog_CreateTraditionalSession() {
+    SessionManager& sessionManager = SessionManager::getInstance();
+
     char* brcadPath, *imagePath, *headerPath;
 
     const char* vFiltersBrcad[] { "*.brcad" };
@@ -89,15 +91,13 @@ void Dialog_CreateTraditionalSession() {
 
     headerPath = strdup(tempStr);
 
-    GET_SESSION_MANAGER;
-
     // TODO: separate this into Task
     int result = sessionManager.PushSessionTraditional(brcadPath, imagePath, headerPath);
 
     free(brcadPath); free(imagePath); free(headerPath);
 
     if (result < 0)
-        AppState::getInstance().OpenGlobalPopup("###SessionErr");
+        OPEN_GLOBAL_POPUP("###SessionErr");
     else {
         sessionManager.currentSessionIndex = result;
         sessionManager.SessionChanged();
@@ -105,8 +105,8 @@ void Dialog_CreateTraditionalSession() {
 }
 
 void Dialog_SaveCurrentSessionAsSzs() {
-    GET_SESSION_MANAGER;
-    GET_ASYNC_TASK_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
+    AsyncTaskManager& asyncTaskManager = AsyncTaskManager::getInstance();
 
     if (
         !sessionManager.getSessionAvaliable() ||
@@ -130,8 +130,8 @@ void Dialog_SaveCurrentSessionAsSzs() {
 }
 
 void SaveCurrentSessionSzs() {
-    GET_SESSION_MANAGER;
-    GET_ASYNC_TASK_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
+    AsyncTaskManager& asyncTaskManager = AsyncTaskManager::getInstance();
 
     if (
         !sessionManager.getSessionAvaliable() ||

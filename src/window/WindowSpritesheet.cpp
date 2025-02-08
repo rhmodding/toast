@@ -54,25 +54,25 @@ static void fitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
     rectToFit.y *= scale;
 }
 
-#define SHEET_ZOOM_TIME (.3f) // seconds
+constexpr float SHEET_ZOOM_TIME = .3f; // seconds
 
 void WindowSpritesheet::RunEditor() {
-    GET_CONFIG_MANAGER;
+    const Config& config = ConfigManager::getInstance().getConfig();
 
     // Some apps like Photoshop complain about relative paths
-    std::string imagePath = std::filesystem::absolute(configManager.getConfig().textureEditPath.c_str()).string();
+    std::string imagePath = std::filesystem::absolute(config.textureEditPath.c_str()).string();
 
     std::ostringstream commandStream;
 
 #ifdef __WIN32__
     commandStream <<
         "cmd.exe /c \"\"" <<
-        configManager.getConfig().imageEditorPath <<
+        config.imageEditorPath <<
         "\" \"" << imagePath << "\"\"";
 #else
     commandStream <<
         "\"" <<
-        configManager.getConfig().imageEditorPath <<
+        config.imageEditorPath <<
         "\" \"" << imagePath << "\"";
 #endif // __WIN32__
 
@@ -85,9 +85,9 @@ void WindowSpritesheet::RunEditor() {
 }
 
 void WindowSpritesheet::FormatPopup() {
-    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
+    BEGIN_GLOBAL_POPUP();
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::SetNextWindowSize({ 800.f, 550.f }, ImGuiCond_Appearing);
 
@@ -95,12 +95,12 @@ void WindowSpritesheet::FormatPopup() {
     bool open = ImGui::BeginPopupModal("Re-encode image..###ReencodePopup", nullptr);
 
     if (open) {
-        GET_SESSION_MANAGER;
+        SessionManager& sessionManager = SessionManager::getInstance();
 
         std::shared_ptr cellanimSheet =
             sessionManager.getCurrentSession()->getCurrentCellanimSheet();
 
-        constexpr const char* formats = "RGBA32\0RGB5A3\0";
+        constexpr const char* formats = "RGBA32\0RGB5A3\0CMPR\0";
         static int selectedFormatIndex { 0 };
 
         TPL::TPLImageFormat tplFormat;
@@ -110,6 +110,9 @@ void WindowSpritesheet::FormatPopup() {
             break;
         case 1:
             tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
+            break;
+        case 2:
+            tplFormat = TPL::TPL_IMAGE_FORMAT_CMPR;
             break;
 
         default:
@@ -125,6 +128,9 @@ void WindowSpritesheet::FormatPopup() {
                 break;
             case 1:
                 tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
+                break;
+            case 2:
+                tplFormat = TPL::TPL_IMAGE_FORMAT_CMPR;
                 break;
 
             default:
@@ -182,6 +188,9 @@ void WindowSpritesheet::FormatPopup() {
                     break;
                 case TPL::TPL_IMAGE_FORMAT_RGB5A3:
                     selectedFormatIndex = 1;
+                    break;
+                case TPL::TPL_IMAGE_FORMAT_CMPR:
+                    selectedFormatIndex = 2;
                     break;
                 
                 default:
@@ -284,6 +293,10 @@ void WindowSpritesheet::FormatPopup() {
                             "      12-bit, 4096 colors";
                         alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
                         break;
+                    case TPL::TPL_IMAGE_FORMAT_CMPR:
+                        colorDesc = "Colors: 16-bit (interpolated), 65536 colors";
+                        alphaDesc = "Alpha: 1-bit, either opaque or transparent";
+                        break;
                     default:
                         colorDesc = "";
                         alphaDesc = "";
@@ -378,7 +391,7 @@ void WindowSpritesheet::FormatPopup() {
     else
         lateOpen = false;
 
-    ImGui::PopID();
+    END_GLOBAL_POPUP();
 }
 
 // TODO: move this somewhere else
@@ -387,7 +400,7 @@ bool RepackSheet() {
     constexpr int PADDING_HALF = PADDING / 2;
     constexpr uint32_t BORDER_COLOR = 0xFF000000; // Black
 
-    GET_SESSION_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     auto& session = *sessionManager.getCurrentSession();
     std::shared_ptr cellanimSheet = session.getCurrentCellanimSheet();
@@ -497,7 +510,7 @@ void WindowSpritesheet::Update() {
         firstOpen = false;
     }
 
-    GET_SESSION_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     std::shared_ptr cellanimSheet = sessionManager.getCurrentSession()->getCurrentCellanimSheet();
 
@@ -505,7 +518,11 @@ void WindowSpritesheet::Update() {
     ImGui::Begin("Spritesheet", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar);
     ImGui::PopStyleVar();
 
-    ImVec2 windowSize = ImGui::GetContentRegionAvail();
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+    const ImGuiIO& io = ImGui::GetIO();
+
+    const ImVec2 windowSize = ImGui::GetContentRegionAvail();
 
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Grid")) {
@@ -554,8 +571,8 @@ void WindowSpritesheet::Update() {
             bool imageEditorDefined = !ConfigManager::getInstance().getConfig().imageEditorPath.empty();
 
             if (ImGui::MenuItem("Edit in editing tool...", nullptr, false, imageEditorDefined)) {
-                GET_SESSION_MANAGER;
-                GET_CONFIG_MANAGER;
+                SessionManager& sessionManager = SessionManager::getInstance();
+                const ConfigManager& configManager = ConfigManager::getInstance();
 
                 if (cellanimSheet->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
                     ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
@@ -581,7 +598,7 @@ void WindowSpritesheet::Update() {
                 );
 
                 if (openFileDialog) {
-                    GET_SESSION_MANAGER;
+                    SessionManager& sessionManager = SessionManager::getInstance();
 
                     std::shared_ptr<Texture> newTexture = std::make_shared<Texture>();
                     bool ok = newTexture->LoadSTBFile(openFileDialog);
@@ -626,7 +643,7 @@ void WindowSpritesheet::Update() {
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
                 bool ok = RepackSheet();
                 if (!ok)
-                    AppState::getInstance().OpenGlobalPopup("###SheetRepackFailed");
+                    OPEN_GLOBAL_POPUP("###SheetRepackFailed");
             }
 
             ImGui::EndMenu();
@@ -700,8 +717,6 @@ void WindowSpritesheet::Update() {
         break;
     }
 
-    GET_WINDOW_DRAWLIST;
-
     drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor);
 
     // This catches interactions
@@ -750,8 +765,6 @@ void WindowSpritesheet::Update() {
     ImVec2 canvasOffset;
 
     if (draggingCanvas) {
-        GET_IMGUI_IO;
-
         this->sheetZoomedOffset.x += io.MouseDelta.x;
         this->sheetZoomedOffset.y += io.MouseDelta.y;
 
@@ -762,9 +775,7 @@ void WindowSpritesheet::Update() {
     if (this->sheetZoomTriggered) {
         float rel = (ImGui::GetTime() - this->sheetZoomTimer) / SHEET_ZOOM_TIME;
         float rScale = (this->sheetZoomEnabled ? Easings::In : Easings::Out)(
-            this->sheetZoomEnabled ?
-                1.f - rel :
-                rel
+            this->sheetZoomEnabled ? 1.f - rel : rel
         ) + 1.f;
 
         scale *= rScale;
@@ -796,10 +807,10 @@ void WindowSpritesheet::Update() {
         { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
     );
 
-    GET_APP_STATE;
+    AppState& appState = AppState::getInstance();
 
     if (this->drawBounding) {
-        GET_ANIMATABLE;
+        Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
         RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
 

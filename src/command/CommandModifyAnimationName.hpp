@@ -22,13 +22,13 @@ public:
     void Execute() override {
         this->getAnimation().name = this->newName;
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
         this->getAnimation().name = this->oldName;
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:

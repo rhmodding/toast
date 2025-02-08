@@ -6,7 +6,7 @@
 #include "../../common.hpp"
 
 static void Popup_SheetRepackFailed() {
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("The spritesheet could not be repacked.###SheetRepackFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {

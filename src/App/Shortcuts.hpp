@@ -45,7 +45,7 @@ void Handle() {
     else if (ImGui::Shortcut(SC_LAUNCH_SAVE_AS_SZS_DIALOG, ImGuiInputFlags_RouteAlways))
         return Actions::Dialog_SaveCurrentSessionAsSzs();
 
-    GET_SESSION_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     if (sessionManager.getSessionAvaliable()) {
         if (ImGui::Shortcut(SC_UNDO, ImGuiInputFlags_RouteAlways | ImGuiInputFlags_Repeat))

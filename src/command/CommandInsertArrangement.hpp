@@ -29,13 +29,13 @@ public:
         auto it = arrangements.begin() + this->arrangementIndex;
         arrangements.insert(it, this->arrangement);
 
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         if (!appState.getArrangementMode())
             PlayerManager::getInstance().clampCurrentKeyIndex();
         AppState::getInstance().correctSelectedParts();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
@@ -50,13 +50,13 @@ public:
                     key.arrangementIndex = 0;
             }
 
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         if (!appState.getArrangementMode())
             PlayerManager::getInstance().clampCurrentKeyIndex();
         AppState::getInstance().correctSelectedParts();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:

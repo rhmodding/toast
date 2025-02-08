@@ -13,12 +13,13 @@
 
 #include "../common.hpp"
 
-#define TPL_VERSION_NUMBER (0x30AF2000)
+// Pre-byteswapped.
+constexpr uint32_t TPL_VERSION_NUMBER = 0x30AF2000;
 
 struct TPLClutHeader {
     uint16_t numEntries;
 
-    // Boolean value, used in official SDK to keep track of status
+    // Boolean value, used in official SDK to keep track of TPL state.
     uint8_t _unpacked { 0x00 };
 
     uint8_t _pad8 { 0x00 };
@@ -29,22 +30,22 @@ struct TPLClutHeader {
 } __attribute__((packed));
 
 struct TPLPalette {
-    // 2142000 in big-endian. This is a revision date (Feb 14 2000)
-    uint32_t versionNumber;
+    // 2142000 in big-endian. This is a date (Feb 14 2000).
+    uint32_t versionNumber { TPL_VERSION_NUMBER };
     
-    // Amount of descriptors in descriptor table
+    // Amount of descriptors in the descriptor table.
     uint32_t descriptorCount;
 
-    // Offset to begin of descriptor table
+    // Offset to the start of the descriptor table.
     uint32_t descriptorsOffset;
 } __attribute__((packed));
 
 struct TPLDescriptor {
-    // Offset to the begin of the associated texture header (TPLHeader)
+    // Offset to the start of the associated texture header (TPLHeader).
     uint32_t textureHeaderOffset;
 
-    // Offset to the begin of the associated CLUT header (TPLClutHeader)
-    // (if zero, then no CLUT header is linked)
+    // Offset to the begin of the associated CLUT header (TPLClutHeader).
+    // (Can be NULL.)
     uint32_t CLUTHeaderOffset;
 } __attribute__((packed));
 
@@ -229,7 +230,10 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     result.resize(fullSize);
 
     TPLPalette* palette = reinterpret_cast<TPLPalette*>(result.data());
-    palette->versionNumber = TPL_VERSION_NUMBER;
+    *palette = TPLPalette {
+        .descriptorCount = BYTESWAP_32(textureCount),
+        .descriptorsOffset = BYTESWAP_32(sizeof(TPLPalette))
+    };
     palette->descriptorCount = BYTESWAP_32(textureCount);
     palette->descriptorsOffset = BYTESWAP_32(sizeof(TPLPalette));
 

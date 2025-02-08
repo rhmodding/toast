@@ -10,23 +10,21 @@
 
 #include "../../common.hpp"
 
-#define MACRO_BUF_SIZE (256)
-
 static void Popup_EditAnimationName(int animationIndex) {
     if (animationIndex < 0)
         return;
 
     static bool lateOpen { false };
 
-    static char newMacro[MACRO_BUF_SIZE] { '\0' };
+    static char newMacro[256] { '\0' };
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     bool open = ImGui::BeginPopupModal("Edit animation macro###EditAnimationName", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::PopStyleVar();
 
-    GET_SESSION_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     if (!lateOpen && open) {
         const auto& animation =

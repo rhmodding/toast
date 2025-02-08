@@ -12,12 +12,10 @@
 
 #include "../../AppState.hpp"
 
-const uint16_t uint16_one = 1;
-
 void WindowInspector::Level_Key() {
-    GET_APP_STATE;
-    GET_ANIMATABLE;
-    GET_SESSION_MANAGER;
+    AppState& appState = AppState::getInstance();
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     DrawPreview(&globalAnimatable);
 
@@ -154,22 +152,31 @@ void WindowInspector::Level_Key() {
     ImGui::SeparatorText((const char*)ICON_FA_PAUSE " Hold");
 
     {
-        static uint16_t oldHoldFrames { 0 };
-        uint16_t holdFrames = animKey->holdFrames;
+        static unsigned oldHoldFrames { 0 };
+        int holdFrames = animKey->holdFrames;
 
-        if (ImGui::InputScalar("Hold Frames", ImGuiDataType_U16, &holdFrames, &uint16_one, nullptr, "%u")) {
-            if (holdFrames <= 1)
-                holdFrames = 1;
-
-            animKey->holdFrames = holdFrames;
+        if (ImGui::InputInt("Hold Frames", &holdFrames)) {
+            animKey->holdFrames = std::clamp<unsigned>(
+                holdFrames,
+                RvlCellAnim::AnimationKey::MIN_HOLD_FRAMES,
+                RvlCellAnim::AnimationKey::MAX_HOLD_FRAMES
+            );
         };
 
         if (ImGui::IsItemActivated())
             oldHoldFrames = originalKey.holdFrames;
 
         if (ImGui::IsItemDeactivated()) {
-            originalKey.holdFrames = oldHoldFrames;
-            newKey.holdFrames = holdFrames;
+            originalKey.holdFrames = std::clamp<unsigned>(
+                oldHoldFrames,
+                RvlCellAnim::AnimationKey::MIN_HOLD_FRAMES,
+                RvlCellAnim::AnimationKey::MAX_HOLD_FRAMES
+            );;
+            newKey.holdFrames = std::clamp<unsigned>(
+                holdFrames,
+                RvlCellAnim::AnimationKey::MIN_HOLD_FRAMES,
+                RvlCellAnim::AnimationKey::MAX_HOLD_FRAMES
+            );;
         }
     }
 
@@ -186,8 +193,8 @@ void WindowInspector::Level_Key() {
         if (ImGui::DragInt2(
             "Position XY",
             positionValues, 1.f,
-            std::numeric_limits<int16_t>::min(),
-            std::numeric_limits<int16_t>::max()
+            RvlCellAnim::TransformValues::MIN_POSITION,
+            RvlCellAnim::TransformValues::MAX_POSITION
         )) {
             animKey->transform.positionX = positionValues[0];
             animKey->transform.positionY = positionValues[1];

@@ -270,8 +270,8 @@ static void _ApplyInterpolation(
     RvlCellAnim::AnimationKey* backKey, RvlCellAnim::AnimationKey* frontKey,
     const RvlCellAnim::Animation& animation, unsigned animationIndex
 ) {
-    GET_APP_STATE;
-    GET_ANIMATABLE;
+    AppState& appState = AppState::getInstance();
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
     const RvlCellAnim::Arrangement* endArrangement = &globalAnimatable.cellanim->arrangements.at(backKey->arrangementIndex);
 
@@ -341,7 +341,7 @@ static void _ApplyInterpolation(
         }
     }
 
-    GET_SESSION_MANAGER;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     unsigned currentKeyIndex = globalAnimatable.getCurrentKeyIndex();
 
@@ -364,7 +364,7 @@ static void Popup_MInterpolateKeys() {
     static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MInterpolateKeys");
 
-    GET_ANIMATABLE;
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
     bool condition = globalAnimatable.cellanim.get();
 

@@ -24,7 +24,7 @@
 
 class App;
 
-extern App* gAppPtr;
+extern App* globlApp;
 
 class App {
 public:

@@ -41,7 +41,7 @@ void AsyncTask::ShowPopup() const {
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
     if (ImGui::BeginPopupModal((const char*)ICON_FA_WAND_MAGIC_SPARKLES "  Toasting ..###WORKING", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted(this->message);
 

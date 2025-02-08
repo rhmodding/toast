@@ -15,7 +15,7 @@
 #include "../Popups.hpp"
 
 static void Popup_WaitForModifiedTexture() {
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Modifying texture via image editor###WaitForModifiedTexture", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -38,7 +38,7 @@ static void Popup_WaitForModifiedTexture() {
         ImGui::Dummy({ 0.f, 5.f });
 
         if (ImGui::Button("Ready", { 120.f, 0.f })) {
-            GET_SESSION_MANAGER;
+            SessionManager& sessionManager = SessionManager::getInstance();
 
             const char* texturePath = ConfigManager::getInstance().getConfig().textureEditPath.c_str();
 
@@ -76,7 +76,7 @@ static void Popup_WaitForModifiedTexture() {
                 ImGui::CloseCurrentPopup();
 
                 if (diffSize)
-                    AppState::getInstance().OpenGlobalPopup("###ModifiedTextureSize");
+                    OPEN_GLOBAL_POPUP("###ModifiedTextureSize");
             }
             else
                 ImGui::CloseCurrentPopup();

@@ -41,7 +41,7 @@ public:
                 key.arrangementIndex = 0;
         }
 
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         if (!appState.getArrangementMode())
             PlayerManager::getInstance().clampCurrentKeyIndex();
@@ -53,7 +53,7 @@ public:
 
         appState.correctSelectedParts();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
@@ -71,7 +71,7 @@ public:
                 key.arrangementIndex++;
         }
 
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         if (!appState.getArrangementMode())
             PlayerManager::getInstance().clampCurrentKeyIndex();
@@ -83,7 +83,7 @@ public:
 
         appState.correctSelectedParts();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:

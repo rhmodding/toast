@@ -16,9 +16,9 @@
 #include "../../App/Popups.hpp"
 
 void WindowInspector::Level_Animation() {
-    GET_APP_STATE;
-    GET_ANIMATABLE;
-    GET_SESSION_MANAGER;
+    AppState& appState = AppState::getInstance();
+    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     this->DrawPreview(&globalAnimatable);
 
@@ -48,13 +48,13 @@ void WindowInspector::Level_Animation() {
     ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Properties");
     if (ImGui::Button("Edit macro name..")) {
         Popups::_editAnimationNameIdx = animationIndex;
-        appState.OpenGlobalPopup("###EditAnimationName");
+        OPEN_GLOBAL_POPUP("###EditAnimationName");
     }
 
     ImGui::SameLine();
     if (ImGui::Button("Swap index..")) {
         Popups::_swapAnimationIdx = animationIndex;
-        appState.OpenGlobalPopup("###SwapAnimation");
+        OPEN_GLOBAL_POPUP("###SwapAnimation");
     }
 
     ImGui::Indent();

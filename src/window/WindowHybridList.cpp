@@ -31,10 +31,10 @@ void WindowHybridList::ResetFlash() {
     this->flashTrigger = false;
 }
 
-#define WINDOW_FLASH_TIME (.3f) // seconds
+constexpr float WINDOW_FLASH_TIME = .3f; // seconds
 
 void WindowHybridList::Update() {
-    GET_APP_STATE;
+    AppState& appState = AppState::getInstance();
 
     static bool lastArrangementMode { appState.getArrangementMode() };
     if (lastArrangementMode != appState.getArrangementMode()) {
@@ -80,8 +80,8 @@ void WindowHybridList::Update() {
 
         std::shared_ptr<BaseCommand> command;
 
-        GET_SESSION_MANAGER;
-        GET_ANIMATABLE;
+        SessionManager& sessionManager = SessionManager::getInstance();
+        Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
         if (!appState.getArrangementMode())
             for (unsigned n = 0; n < globalAnimatable.cellanim->animations.size(); n++) {
@@ -149,7 +149,7 @@ void WindowHybridList::Update() {
 
                     if (ImGui::Selectable("Delete animation")) {
                         Popups::_deleteAnimationIdx = n;
-                        appState.OpenGlobalPopup("###DeleteAnimation");
+                        OPEN_GLOBAL_POPUP("###DeleteAnimation");
                     }
 
                     ImGui::EndPopup();

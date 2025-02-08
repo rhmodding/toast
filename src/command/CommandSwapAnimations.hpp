@@ -39,7 +39,7 @@ public:
 
         this->updateAnimationState();
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
@@ -55,7 +55,7 @@ private:
     bool swapNames;
 
     void updateAnimationState() {
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         unsigned newSelectedAnimation { 0 };
         bool selectedDifferentAnimation { false };

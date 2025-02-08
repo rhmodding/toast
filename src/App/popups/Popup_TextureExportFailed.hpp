@@ -6,7 +6,7 @@
 #include "../../common.hpp"
 
 static void Popup_TextureExportFailed() {
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("There was an error exporting the texture.###TextureExportFailed", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {

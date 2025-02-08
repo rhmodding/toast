@@ -17,7 +17,7 @@ public:
     ~CommandSetArrangementMode() = default;
 
     void Execute() override {
-        GET_SESSION_MANAGER;
+        SessionManager& sessionManager = SessionManager::getInstance();
 
         sessionManager.getCurrentSession()->arrangementMode = this->enabled;
 
@@ -25,7 +25,7 @@ public:
     }
 
     void Rollback() override {
-        GET_SESSION_MANAGER;
+        SessionManager& sessionManager = SessionManager::getInstance();
 
         sessionManager.getCurrentSession()->arrangementMode = !this->enabled;
 
@@ -34,7 +34,7 @@ public:
 
 private:
     void UpdateState(bool lEnabled) {
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         appState.correctSelectedParts();
 

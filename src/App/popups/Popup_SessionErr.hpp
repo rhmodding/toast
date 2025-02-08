@@ -111,7 +111,7 @@ static void Popup_SessionErr() {
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 15.f });
 
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::TextUnformatted(errorMessage);
 

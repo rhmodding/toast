@@ -10,9 +10,6 @@
 #include <memory>
 #include <atomic>
 
-// Stores instance of AsyncTaskManager in local asyncTaskManager.
-#define GET_ASYNC_TASK_MANAGER AsyncTaskManager& asyncTaskManager = AsyncTaskManager::getInstance()
-
 class AsyncTaskManager : public Singleton<AsyncTaskManager> {
     friend class Singleton<AsyncTaskManager>; // Allow access to base class constructor
 

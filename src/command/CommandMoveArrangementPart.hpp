@@ -24,7 +24,7 @@ public:
     ~CommandMoveArrangementPart() = default;
 
     void Execute() override {
-        GET_APP_STATE;
+        AppState& appState = AppState::getInstance();
 
         RvlCellAnim::Arrangement& arrangement = this->getArrangement();
 
@@ -44,7 +44,7 @@ public:
             appState.setPartSelected(this->partIndex, true);
         }
 
-        SessionManager::getInstance().getCurrentSessionModified() = true;
+        SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {

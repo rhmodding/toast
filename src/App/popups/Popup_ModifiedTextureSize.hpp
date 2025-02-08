@@ -12,7 +12,7 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
     if (oldTextureSizeX < 0 || oldTextureSizeY < 0)
         return;
     
-    CENTER_NEXT_WINDOW;
+    CENTER_NEXT_WINDOW();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     const bool active =
@@ -35,7 +35,7 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
         ImGui::SameLine();
 
         if (ImGui::Button("Apply region scaling")) {
-            GET_SESSION_MANAGER;
+            SessionManager& sessionManager = SessionManager::getInstance();
 
             Session* currentSession = sessionManager.getCurrentSession();
 

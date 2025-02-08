@@ -4,7 +4,7 @@
 
 std::future<void> MainThreadTaskManager::QueueTask(std::function<void()> func) {
     // If we're already on the main thread, run the task now
-    if (std::this_thread::get_id() == gAppPtr->getMainThreadId()) {
+    if (std::this_thread::get_id() == globlApp->getMainThreadId()) {
         func();
 
         std::promise<void> promise;

@@ -40,7 +40,7 @@ int _deleteAnimationIdx { -1 };
 #include "popups/Popup_SwapAnimation.hpp"
 
 void Popups::Update() {
-    BEGIN_GLOBAL_POPUP;
+    BEGIN_GLOBAL_POPUP();
 
     Popup_MTransformArrangement();
     Popup_MPadRegion();
@@ -59,7 +59,7 @@ void Popups::Update() {
     Popup_DeleteAnimation(_deleteAnimationIdx);
 
     if (_openExitWithChangesPopup) {
-        AppState::getInstance().OpenGlobalPopup("###ExitWithChanges");
+        OPEN_GLOBAL_POPUP("###ExitWithChanges");
         _openExitWithChangesPopup = false;
     }
 
@@ -70,5 +70,5 @@ void Popups::Update() {
     Popup_EditAnimationName(_editAnimationNameIdx);
     Popup_SwapAnimation(_swapAnimationIdx);
 
-    END_GLOBAL_POPUP;
+    END_GLOBAL_POPUP();
 }
