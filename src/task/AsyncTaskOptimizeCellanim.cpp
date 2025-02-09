@@ -1,6 +1,6 @@
-#include "AsyncTask_OptimizeCellanim.hpp"
+#include "AsyncTaskOptimizeCellanim.hpp"
 
-OptimizeCellanimTask::OptimizeCellanimTask(
+AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
     uint32_t id,
     Session* session, OptimizeCellanimOptions options
 ) :
@@ -149,7 +149,7 @@ static void downscaleSpritesheet(Session* session, const OptimizeCellanimOptions
     delete[] downscaledPixels;
 }
 
-void OptimizeCellanimTask::Run() {
+void AsyncTaskOptimizeCellanim::Run() {
     if (this->options.removeAnimationNames)
         removeAnimationNames(this->session);
 
@@ -160,7 +160,7 @@ void OptimizeCellanimTask::Run() {
         downscaleSpritesheet(this->session, this->options);
 }
 
-void OptimizeCellanimTask::Effect() {
+void AsyncTaskOptimizeCellanim::Effect() {
     // TODO: make this whole thing undo-able
     SessionManager::getInstance().getCurrentSession()->clearUndoRedo();
     SessionManager::getInstance().SessionChanged();

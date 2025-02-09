@@ -43,9 +43,9 @@ set(SOURCES
 
     src/task/AsyncTask.cpp
 
-    src/task/AsyncTask_ExportSessionTask.cpp
-    src/task/AsyncTask_PushSessionTask.cpp
-    src/task/AsyncTask_OptimizeCellanim.cpp
+    src/task/AsyncTaskExportSession.cpp
+    src/task/AsyncTaskPushSession.cpp
+    src/task/AsyncTaskOptimizeCellanim.cpp
 
     src/window/WindowTimeline.cpp
     src/window/WindowCanvas.cpp

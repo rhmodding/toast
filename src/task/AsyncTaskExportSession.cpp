@@ -1,6 +1,6 @@
-#include "AsyncTask_ExportSessionTask.hpp"
+#include "AsyncTaskExportSession.hpp"
 
-ExportSessionTask::ExportSessionTask(
+AsyncTaskExportSession::AsyncTaskExportSession(
     uint32_t id,
     Session* session, std::string outPath
 ) :
@@ -9,14 +9,14 @@ ExportSessionTask::ExportSessionTask(
     session(session), outPath(outPath)
 {}
 
-void ExportSessionTask::Run() {
+void AsyncTaskExportSession::Run() {
     int exportResult = SessionManager::getInstance().ExportSessionCompressedArc(
         this->session, this->outPath.c_str()
     );
     this->result.store(exportResult);
 }
 
-void ExportSessionTask::Effect() {
+void AsyncTaskExportSession::Effect() {
     if (this->result < 0) {
         OPEN_GLOBAL_POPUP("###SessionErr");
         return;

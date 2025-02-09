@@ -226,7 +226,7 @@ App::App(int argc, const char** argv) {
 
     // Open cellanim archive (.szs) from argument
     if (argc >= 2) {
-        AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
+        AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(
             std::string(argv[1])
         );
     }
@@ -344,7 +344,7 @@ void App::Menubar() {
                     ImGui::BeginDisabled(none);
 
                     if (ImGui::MenuItem(label) && !none) {
-                        AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
+                        AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(
                             recentlyOpened[j]
                         );
                     }

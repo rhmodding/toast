@@ -8,7 +8,7 @@
 #include "../../SessionManager.hpp"
 
 #include "../../task/AsyncTaskManager.hpp"
-#include "../../task/AsyncTask_OptimizeCellanim.hpp"
+#include "../../task/AsyncTaskOptimizeCellanim.hpp"
 
 static void Popup_MOptimizeGlobal() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
@@ -61,7 +61,7 @@ static void Popup_MOptimizeGlobal() {
         if (ImGui::Button("OK", { 120.f, 0.f })) {
             ImGui::CloseCurrentPopup();
 
-            AsyncTaskManager::getInstance().StartTask<OptimizeCellanimTask>(
+            AsyncTaskManager::getInstance().StartTask<AsyncTaskOptimizeCellanim>(
                 sessionManager.getCurrentSession(), options
             );
         } ImGui::SetItemDefaultFocus();

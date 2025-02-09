@@ -1,5 +1,5 @@
-#ifndef ASYNCTASK_EXPORTSESSIONTASK_HPP
-#define ASYNCTASK_EXPORTSESSIONTASK_HPP
+#ifndef ASYNCTASK_EXPORTSESSION_HPP
+#define ASYNCTASK_EXPORTSESSION_HPP
 
 #include "AsyncTask.hpp"
 
@@ -11,9 +11,9 @@
 
 #include "../AppState.hpp"
 
-class ExportSessionTask : public AsyncTask {
+class AsyncTaskExportSession : public AsyncTask {
 public:
-    ExportSessionTask(
+    AsyncTaskExportSession(
         uint32_t id,
         Session* session, std::string outPath
     );
@@ -29,4 +29,4 @@ private:
     std::atomic<int> result { 0 };
 };
 
-#endif // ASYNCTASK_EXPORTSESSIONTASK_HPP
+#endif // ASYNCTASK_EXPORTSESSION_HPP

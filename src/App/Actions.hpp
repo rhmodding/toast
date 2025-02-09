@@ -8,8 +8,8 @@
 #include "../SessionManager.hpp"
 
 #include "../task/AsyncTaskManager.hpp"
-#include "../task/AsyncTask_PushSessionTask.hpp"
-#include "../task/AsyncTask_ExportSessionTask.hpp"
+#include "../task/AsyncTaskPushSession.hpp"
+#include "../task/AsyncTaskExportSession.hpp"
 
 #include <string>
 
@@ -30,7 +30,7 @@ void Dialog_CreateCompressedArcSession() {
     if (!openFileDialog)
         return;
 
-    AsyncTaskManager::getInstance().StartTask<PushSessionTask>(
+    AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(
         std::string(openFileDialog)
     );
 }
@@ -110,7 +110,7 @@ void Dialog_SaveCurrentSessionAsSzs() {
 
     if (
         !sessionManager.getSessionAvaliable() ||
-        asyncTaskManager.HasTaskOfType<ExportSessionTask>()
+        asyncTaskManager.HasTaskOfType<AsyncTaskExportSession>()
     )
         return;
 
@@ -123,7 +123,7 @@ void Dialog_SaveCurrentSessionAsSzs() {
     );
 
     if (saveFileDialog)
-        asyncTaskManager.StartTask<ExportSessionTask>(
+        asyncTaskManager.StartTask<AsyncTaskExportSession>(
             sessionManager.getCurrentSession(),
             std::string(saveFileDialog)
         );
@@ -137,11 +137,11 @@ void SaveCurrentSessionSzs() {
         !sessionManager.getSessionAvaliable() ||
         sessionManager.getCurrentSession()->traditionalMethod ||
 
-        asyncTaskManager.HasTaskOfType<ExportSessionTask>()
+        asyncTaskManager.HasTaskOfType<AsyncTaskExportSession>()
     )
         return;
 
-    asyncTaskManager.StartTask<ExportSessionTask>(
+    asyncTaskManager.StartTask<AsyncTaskExportSession>(
         sessionManager.getCurrentSession(),
         sessionManager.getCurrentSession()->mainPath
     );

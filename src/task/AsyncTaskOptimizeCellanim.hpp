@@ -26,9 +26,9 @@ struct OptimizeCellanimOptions {
     } downscaleSpritesheet { DownscaleOption_None };
 };
 
-class OptimizeCellanimTask : public AsyncTask {
+class AsyncTaskOptimizeCellanim : public AsyncTask {
 public:
-    OptimizeCellanimTask(
+    AsyncTaskOptimizeCellanim(
         uint32_t id,
         Session* session, OptimizeCellanimOptions options
     );
