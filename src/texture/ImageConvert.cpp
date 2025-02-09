@@ -539,7 +539,7 @@ static void IMPLEMENTATION_TO_CMPR(unsigned char* result, uint32_t*, unsigned*, 
                 uint8_t (*block)[4][4] = blocks[i];
                 unsigned char* blockData = result + writeOffset + (i * 8);
 
-                // This uses a modified version of stb_dxt 
+                // This uses a modified version of stb_dxt that encodes to CMPR.
                 stb_compress_dxt_block(blockData, block[0][0], 0, STB_DXT_HIGHQUAL);
 
                 uint16_t* color1 = reinterpret_cast<uint16_t*>(blockData + 0);
