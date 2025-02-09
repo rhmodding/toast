@@ -506,16 +506,14 @@ static void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint32_t*, unsigned*
     }
 }
 
-// TODO: redo this implementation IT FUCKING SUCKS
 static void IMPLEMENTATION_TO_CMPR(unsigned char* result, uint32_t*, unsigned*, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     unsigned writeOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 8) {
         for (unsigned xx = 0; xx < srcWidth; xx += 8) {
-            // 4 4x4 RGBA blocks to process
             uint8_t blocks[4][4][4][4];
 
-            // Extract 4x4 blocks from the RGBA input
+            // Fill blocks
             for (unsigned y = 0; y < 8; y++) {
                 if (yy + y >= srcHeight) break;
 
@@ -536,33 +534,27 @@ static void IMPLEMENTATION_TO_CMPR(unsigned char* result, uint32_t*, unsigned*, 
                 }
             }
 
-            // Compress each 4x4 block
+            // Encode
             for (unsigned i = 0; i < 4; i++) {
                 uint8_t (*block)[4][4] = blocks[i];
                 unsigned char* blockData = result + writeOffset + (i * 8);
 
-                bool transparentBlock = false;
-                for (unsigned j = 0; j < 4*4; j++) {
-                    if (block[j / 4][j % 4][3] < 0x7F) {
-                        transparentBlock = true;
-                        break;
-                    }
-                }
+                // This uses a modified version of stb_dxt 
+                stb_compress_dxt_block(blockData, block[0][0], 0, STB_DXT_HIGHQUAL);
 
-                stb_compress_dxt_block(blockData, &block[0][0][0], 0, STB_DXT_HIGHQUAL);
+                uint16_t* color1 = reinterpret_cast<uint16_t*>(blockData + 0);
+                uint16_t* color2 = reinterpret_cast<uint16_t*>(blockData + 2);
+                uint32_t* indexBits = reinterpret_cast<uint32_t*>(blockData + 4);
 
-                *(uint16_t*)(blockData + 0) = BYTESWAP_16(*(uint16_t*)(blockData + 0));
-                *(uint16_t*)(blockData + 2) = BYTESWAP_16(*(uint16_t*)(blockData + 2));
+                *color1 = BYTESWAP_16(*color1);
+                *color2 = BYTESWAP_16(*color2);
 
-                uint32_t indices = *(uint32_t*)(blockData + 4);
-                for (unsigned i = 0; i < 4; ++i) {
+                for (unsigned i = 0; i < 4; i++) {
                     unsigned shift = i * 8;
-                    uint8_t row = (indices >> shift) & 0xFF;
+                    unsigned row = (*indexBits >> shift) & 0xFF;
                     row = ((row & 0x03) << 6) | ((row & 0x0C) << 2) | ((row & 0x30) >> 2) | ((row & 0xC0) >> 6);
-                    indices = (indices & ~(0xFF << shift)) | (row << shift);
+                    *indexBits = (*indexBits & ~(0xFF << shift)) | (row << shift);
                 }
-
-                *(uint32_t*)(blockData + 4) = indices;
             }
 
             writeOffset += 8 * 4;

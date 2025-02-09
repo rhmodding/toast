@@ -1,3 +1,10 @@
+/*
+   This source file has been modified (specifically the function
+   stb__CompressColorBlock) to target CMPR encoding.
+
+   Original source: stb_dxt.h by Sean Barrett (https://github.com/nothings/stb)
+*/
+
 // stb_dxt.h - v1.12 - DXT1/DXT5 compressor - public domain
 // original by fabian "ryg" giesen - ported to C by stb
 // use '#define STB_DXT_IMPLEMENTATION' before including to create the implementation
@@ -476,37 +483,50 @@ static int stb__RefineBlock(unsigned char *block, unsigned short *pmax16, unsign
 }
 
 // Color block compression
+// MODIFICATION: Added extra functionality to target CMPR encoding.
 static void stb__CompressColorBlock(unsigned char *dest, unsigned char *block, int mode)
 {
    unsigned int mask;
    int i;
+   int isTransparent;
    int refinecount;
    unsigned short max16, min16;
    unsigned char color[4*4];
 
    refinecount = (mode & STB_DXT_HIGHQUAL) ? 2 : 1;
 
+   // Check if block is transparent.
+   isTransparent = 0;
+   for (i = 0; i < 16; i++) {
+      if (block[(i * 4) + 3] <= 0x7F) {
+         isTransparent = 1;
+         break;
+      }
+   }
+
    // check if block is constant
-   for (i=1;i<16;i++)
+   for (i = 1; i < 16; i++)
       if (((unsigned int *) block)[i] != ((unsigned int *) block)[0])
          break;
 
-   if(i == 16) { // constant color
+   if (i == 16) { // constant color
       int r = block[0], g = block[1], b = block[2];
       mask  = 0xaaaaaaaa;
       max16 = (stb__OMatch5[r][0]<<11) | (stb__OMatch6[g][0]<<5) | stb__OMatch5[b][0];
       min16 = (stb__OMatch5[r][1]<<11) | (stb__OMatch6[g][1]<<5) | stb__OMatch5[b][1];
-   } else {
+   }
+   else {
       // first step: PCA+map along principal axis
       stb__OptimizeColorsBlock(block,&max16,&min16);
       if (max16 != min16) {
          stb__EvalColors(color,max16,min16);
          mask = stb__MatchColorsBlock(block,color);
-      } else
+      }
+      else
          mask = 0;
 
       // third step: refine (multiple times if requested)
-      for (i=0;i<refinecount;i++) {
+      for (i = 0; i < refinecount; i++) {
          unsigned int lastmask = mask;
 
          if (stb__RefineBlock(block,&max16,&min16,mask)) {
@@ -519,28 +539,54 @@ static void stb__CompressColorBlock(unsigned char *dest, unsigned char *block, i
             }
          }
 
-         if(mask == lastmask)
+         if (mask == lastmask)
             break;
       }
   }
 
-  // write the color block
-  if(max16 < min16)
-  {
-     unsigned short t = min16;
-     min16 = max16;
-     max16 = t;
-     mask ^= 0x55555555;
-  }
+   if (isTransparent) {
+      // For transparent blocks color order must be minmax
+      if (max16 > min16) {
+         unsigned short t = min16;
+         min16 = max16;
+         max16 = t;
+         mask ^= 0x55555555; // Flip mask.
+      }
 
-  dest[0] = (unsigned char) (max16);
-  dest[1] = (unsigned char) (max16 >> 8);
-  dest[2] = (unsigned char) (min16);
-  dest[3] = (unsigned char) (min16 >> 8);
-  dest[4] = (unsigned char) (mask);
-  dest[5] = (unsigned char) (mask >> 8);
-  dest[6] = (unsigned char) (mask >> 16);
-  dest[7] = (unsigned char) (mask >> 24);
+      // Replace all instances of 0b11 with 0b10.
+      for (i = 0; i < 16; i++) {
+         unsigned int myMask = 0b11 << (i * 2);
+         unsigned int extracted = (mask & myMask) >> (i * 2);
+
+         if (extracted == 0b11)
+            mask = (mask & ~myMask) | (0b10 << (i * 2));
+      }
+
+      // Set transparent pixels.
+      for (i = 0; i < 16; i++) {
+         if (block[(i * 4) + 3] < 0x80) {
+            mask |= (0b11 << (i*2));
+         }
+      }
+   }
+   else {
+      // For opaque blocks color order must be maxmin
+      if (max16 < min16) {
+         unsigned short t = min16;
+         min16 = max16;
+         max16 = t;
+         mask ^= 0x55555555; // Flip mask.
+      }
+   }
+
+   dest[0] = (unsigned char)(max16);
+   dest[1] = (unsigned char)(max16 >> 8);
+   dest[2] = (unsigned char)(min16);
+   dest[3] = (unsigned char)(min16 >> 8);
+   dest[4] = (unsigned char)(mask);
+   dest[5] = (unsigned char)(mask >> 8);
+   dest[6] = (unsigned char)(mask >> 16);
+   dest[7] = (unsigned char)(mask >> 24);
 }
 
 // Alpha block compression (this is easy for a change)
