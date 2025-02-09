@@ -40,7 +40,7 @@ private:
     uint32_t nameOffset : 24;
 
 public:
-    bool getIsDir() const {
+    bool isDirectory() const {
         return this->isDir != 0x00;
     }
 
@@ -49,9 +49,10 @@ public:
         return BYTESWAP_32(this->nameOffset << 8);
     }
 
-    // nameOffset is relative to string pool start
-    void setAttributes(bool _isDir, unsigned _nameOffset) {
+    void setIsDirectory(bool _isDir) {
         this->isDir = _isDir ? 0x01 : 0x00;
+    }
+    void setNameOffset(unsigned _nameOffset) {
         this->nameOffset = BYTESWAP_32(_nameOffset) >> 8;
     }
 
@@ -136,7 +137,7 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSiz
 
         const char* name = stringPool + node->getNameOffset();
 
-        if (node->getIsDir()) {
+        if (node->isDirectory()) {
             Directory directory(name);
             currentDirectory->AddDirectory(directory);
 
@@ -292,27 +293,26 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
             (sizeof(U8ArchiveNode) * i)
         );
 
+        node->setIsDirectory(entry.isDir);
+        node->setNameOffset(stringOffsets[i]);
+
         if (entry.isDir) {
-            node->setAttributes(true, stringOffsets[i]);
             node->sizeOrNextEntry = BYTESWAP_32(entry.nextOutOfDir);
             node->dataOffsetOrParent = BYTESWAP_32(entry.parent);
 
-            // Copy directory name
-            if (entry.ptr)
-                strcpy(
-                    reinterpret_cast<char*>(
-                        result.data() + sizeof(U8ArchiveHeader) +
-                        (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-                        stringOffsets[i]
-                    ),
-                    reinterpret_cast<Directory*>(entry.ptr)->name.c_str()
-                );
+            strcpy(
+                reinterpret_cast<char*>(
+                    result.data() + sizeof(U8ArchiveHeader) +
+                    (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
+                    stringOffsets[i]
+                ),
+                reinterpret_cast<Directory*>(entry.ptr)->name.c_str()
+            );
         } 
         else {
             unsigned char* fileData = reinterpret_cast<File*>(entry.ptr)->data.data();
             unsigned fileDataSize = reinterpret_cast<File*>(entry.ptr)->data.size();
 
-            node->setAttributes(false, stringOffsets[i]);
             node->sizeOrNextEntry = BYTESWAP_32(fileDataSize);
             node->dataOffsetOrParent = BYTESWAP_32(dataOffsets[i]);
 
