@@ -181,8 +181,8 @@ void WindowInspector::Level_Arrangement() {
                     if (ImGui::DragInt2(
                         "Position XY##World",
                         positionValues, 1.f,
-                        std::numeric_limits<int16_t>::min(),
-                        std::numeric_limits<int16_t>::max() - 512
+                        RvlCellAnim::TransformValues::MIN_POSITION,
+                        RvlCellAnim::TransformValues::MAX_POSITION
                     )) {
                         partPtr->transform.positionX = static_cast<int16_t>(positionValues[0]);
                         partPtr->transform.positionY = static_cast<int16_t>(positionValues[1]);
@@ -336,15 +336,19 @@ void WindowInspector::Level_Arrangement() {
                 *partPtr = originalPart;
 
                 SessionManager::getInstance().getCurrentSession()->addCommand(
-                    std::make_shared<CommandModifyArrangementPart>(newPart)
-                );
+                std::make_shared<CommandModifyArrangementPart>(
+                    sessionManager.getCurrentSession()->currentCellanim,
+                    appState.globalAnimatable.getCurrentKey()->arrangementIndex,
+                    appState.selectedParts.at(0).index,
+                    newPart
+                ));
             }
 
             ImGui::EndDisabled();
         }
         else {
             if (appState.multiplePartsSelected())
-                ImGui::TextWrapped("Multiple parts selected -- inspector unavaliable.");
+                ImGui::TextWrapped("Multiple parts selected -- inspector unavaliable."); // TODOLT: implement
             else
                 ImGui::TextWrapped("No part selected.");
         }

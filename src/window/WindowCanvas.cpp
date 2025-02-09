@@ -583,7 +583,7 @@ void WindowCanvas::Update() {
             pivotBeforeMoveWorld[1] = pivotPoint.y;
 
             partsTransformation = PartsTransformation {
-                .type = doRotate ? PartsTransformType_Rotate : PartsTransformType_Translate, // TODO
+                .type = doRotate ? PartsTransformType_Rotate : PartsTransformType_Translate,
                 .active = true,
 
                 .pivotX = pivotPoint.x,
@@ -646,8 +646,7 @@ void WindowCanvas::Update() {
             partsTransformation.pivotY = pivotBeforeMoveWorld[1] + int(scaledOffset.y);
         } break;
         case PartsTransformType_Scale: {
-            // TODO:
-            // Not working as expected when key or part rotation is applied.
+            // TODO: PRIORITY scaling not working as expected with any type of rotation
 
             const auto& keyTransform = globalAnimatable.getCurrentKey()->transform;
 

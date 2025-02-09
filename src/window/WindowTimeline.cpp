@@ -151,9 +151,7 @@ void WindowTimeline::Update() {
 
             ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
             if (ImGui::InputScalar("Key No.", ImGuiDataType_U32, &keyNo, nullptr, nullptr, "%u")) {
-                playerManager.setCurrentKeyIndex(std::clamp<unsigned>(
-                    keyNo - 1, 1, std::numeric_limits<unsigned>::max()
-                ));
+                playerManager.setCurrentKeyIndex(std::max<unsigned>(keyNo - 1, 1));
             }
 
             ImGui::SameLine();

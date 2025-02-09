@@ -59,7 +59,7 @@ void WindowConfig::Update() {
     if (ImGui::Begin("Config", &this->open, ImGuiWindowFlags_MenuBar)) {
         if (ImGui::BeginMenuBar()) {
             if (ImGui::BeginMenu("Config")) {
-                if (ImGui::MenuItem("Clear..", nullptr)) {
+                if (ImGui::MenuItem("Reset to defaults", nullptr)) {
                     this->selfConfig = Config {};
                 }
                 ImGui::EndMenu();
@@ -105,15 +105,16 @@ void WindowConfig::Update() {
 
                 ImGui::Separator();
 
-                const unsigned min = 30;
+                static const unsigned min = 30;
 
                 unsigned updateRate = this->selfConfig.updateRate;
-                if (ImGui::DragScalar("App update rate", ImGuiDataType_U32, &updateRate, .5f, &min, nullptr, "%u cycles per second"))
-                    this->selfConfig.updateRate = std::clamp<unsigned>(updateRate, min, UINT32_MAX);
+                if (ImGui::DragScalar("App update rate", ImGuiDataType_U32, &updateRate, .5f, &min, nullptr, "%u cycles per second")) {
+                    this->selfConfig.updateRate = std::max<unsigned>(updateRate, min);
+                }
 
                 ImGui::Separator();
 
-                const char* backupOptions[] {
+                static const char* backupOptions[] {
                     "Don't backup",
                     "Backup (don't overwrite last backup)",
                     "Backup (always overwrite last backup)"
