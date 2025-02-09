@@ -5,11 +5,19 @@
 
 #include <iostream>
 
+#include <bit>
+
 #include <imgui.h>
 
 #define BYTESWAP_64 __builtin_bswap64
 #define BYTESWAP_32 __builtin_bswap32
 #define BYTESWAP_16 __builtin_bswap16
+
+#define BYTESWAP_FLOAT(x) ( \
+    std::bit_cast<float, uint32_t>( \
+        BYTESWAP_32(std::bit_cast<uint32_t, float>(x)) \
+    ) \
+)
 
 #define IDENTIFIER_TO_U32(char1, char2, char3, char4) ( \
     ((uint32_t)(char4) << 24) | ((uint32_t)(char3) << 16) | \
@@ -82,15 +90,5 @@
 
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
-
-namespace Common {
-
-float byteswapFloat(float value);
-
-bool checkIfFileExists(const char* filePath);
-
-bool SaveBackupFile(const char* filePath, bool once);
-
-} // namespace Common
 
 #endif // COMMON_HPP

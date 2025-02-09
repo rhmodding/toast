@@ -24,6 +24,8 @@
 
 #include "AppState.hpp"
 
+#include "files.hpp"
+
 #include "common.hpp"
 
 void Session::addCommand(std::shared_ptr<BaseCommand> command) {
@@ -67,7 +69,7 @@ void Session::redo() {
 }
 
 int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
-    if (!Common::checkIfFileExists(filePath)) {
+    if (!Files::doesFileExist(filePath)) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_FileDoesNotExist;
 
@@ -358,15 +360,15 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         return -1;
     }
 
-    if (
-        configManager.getConfig().backupBehaviour != BackupBehaviour_None &&
-        !Common::SaveBackupFile(
+    if (configManager.getConfig().backupBehaviour != BackupBehaviour_None) {
+        bool backedUp = Files::BackupFile(
             outPath,
-
             configManager.getConfig().backupBehaviour == BackupBehaviour_SaveOnce
-        )
-    )
-        std::cerr << "[SessionManager::ExportSessionCompressedArc] Failed to save backup of file!\n";
+        );
+
+        if (!backedUp)
+            std::cerr << "[SessionManager::ExportSessionCompressedArc] Failed to save backup of file!\n";
+    }
 
     std::ofstream file(outPath, std::ios::binary);
     if (file.is_open()) {

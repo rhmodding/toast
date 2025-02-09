@@ -48,9 +48,9 @@ struct TransformValuesRaw {
 
         this->positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.positionX + additive));
         this->positionY = BYTESWAP_16(static_cast<int16_t>(transformValues.positionY + additive));
-        this->scaleX = Common::byteswapFloat(transformValues.scaleX);
-        this->scaleY = Common::byteswapFloat(transformValues.scaleY);
-        this->angle = Common::byteswapFloat(transformValues.angle);
+        this->scaleX = BYTESWAP_FLOAT(transformValues.scaleX);
+        this->scaleY = BYTESWAP_FLOAT(transformValues.scaleY);
+        this->angle = BYTESWAP_FLOAT(transformValues.angle);
     }
 
     RvlCellAnim::TransformValues toTransformValues(bool isArrangementPart) const {
@@ -60,9 +60,9 @@ struct TransformValuesRaw {
 
         transformValues.positionX = static_cast<int>(int16_t(BYTESWAP_16(this->positionX) + additive));
         transformValues.positionY = static_cast<int>(int16_t(BYTESWAP_16(this->positionY) + additive));
-        transformValues.scaleX = Common::byteswapFloat(this->scaleX);
-        transformValues.scaleY = Common::byteswapFloat(this->scaleY);
-        transformValues.angle = Common::byteswapFloat(this->angle);
+        transformValues.scaleX = BYTESWAP_FLOAT(this->scaleX);
+        transformValues.scaleY = BYTESWAP_FLOAT(this->scaleY);
+        transformValues.angle = BYTESWAP_FLOAT(this->angle);
 
         return transformValues;
     }
@@ -98,8 +98,8 @@ struct ArrangementPartRaw {
 
         this->transform = TransformValuesRaw(arrangementPart.transform, true);
 
-        this->flipX = arrangementPart.flipX ? 1 : 0;
-        this->flipY = arrangementPart.flipY ? 1 : 0;
+        this->flipX = arrangementPart.flipX ? 0x01 : 0x00;
+        this->flipY = arrangementPart.flipY ? 0x01 : 0x00;
 
         this->opacity = arrangementPart.opacity;
     }
@@ -266,10 +266,10 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     *header = RvlCellAnimHeader {
         .usePalette = static_cast<uint8_t>(this->usePalette ? 0x01 : 0x00),
 
-        .sheetIndex = BYTESWAP_16(this->sheetIndex),
+        .sheetIndex = BYTESWAP_16(static_cast<uint16_t>(this->sheetIndex)),
 
-        .sheetW = BYTESWAP_16(this->sheetW),
-        .sheetH = BYTESWAP_16(this->sheetH)
+        .sheetW = BYTESWAP_16(static_cast<uint16_t>(this->sheetW)),
+        .sheetH = BYTESWAP_16(static_cast<uint16_t>(this->sheetH))
     };
 
     unsigned char* currentData = result.data() + sizeof(RvlCellAnimHeader);

@@ -72,7 +72,7 @@ set(SOURCES
 
     src/MainThreadTaskManager.cpp
 
-    src/common.cpp
+    src/files.cpp
 )
 
 IF (APPLE)
