@@ -30,8 +30,8 @@ static void Popup_MTransformArrangement() {
     static const float noScale[2] { 1.f, 1.f };
 
     if (!active && lateOpen && arrangement) {
-        memcpy(arrangement->tempOffset, noOffset, sizeof(int)*2);
-        memcpy(arrangement->tempScale, noScale, sizeof(float)*2);
+        memcpy(arrangement->tempOffset, noOffset, sizeof(arrangement->tempOffset));
+        memcpy(arrangement->tempScale, noScale, sizeof(arrangement->tempScale));
 
         lateOpen = false;
     }
@@ -68,8 +68,8 @@ static void Popup_MTransformArrangement() {
         ImGui::Separator();
 
         if (ImGui::Button("Apply")) {
-            memcpy(arrangement->tempOffset, noOffset, sizeof(int)*2);
-            memcpy(arrangement->tempScale, noScale, sizeof(float)*2);
+            memcpy(arrangement->tempOffset, noOffset, sizeof(arrangement->tempOffset));
+            memcpy(arrangement->tempScale, noScale, sizeof(arrangement->tempScale));
 
             auto newArrangement = *arrangement;
             for (auto& part : newArrangement.parts) {
@@ -114,8 +114,8 @@ static void Popup_MTransformArrangement() {
             lateOpen = false;
         }
 
-        memcpy(arrangement->tempOffset, offset, sizeof(int)*2);
-        memcpy(arrangement->tempScale, scale, sizeof(float)*2);
+        memcpy(arrangement->tempOffset, offset, sizeof(arrangement->tempOffset));
+        memcpy(arrangement->tempScale, scale, sizeof(arrangement->tempScale));
 
         ImGui::EndPopup();
     }
