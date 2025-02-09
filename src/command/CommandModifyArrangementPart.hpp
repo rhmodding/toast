@@ -24,7 +24,7 @@ public:
     ~CommandModifyArrangementPart() = default;
 
     // Constructor: Modify selected part.
-    // TODO: remove this later
+    // TODO: Remove this ASAP
     CommandModifyArrangementPart(
         RvlCellAnim::ArrangementPart newPart
     ) :

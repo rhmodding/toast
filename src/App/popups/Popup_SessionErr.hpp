@@ -20,7 +20,7 @@ static void Popup_SessionErr() {
         errorType = 0;
         break;
     case SessionManager::OpenError_FailOpenArchive:
-        strcpy(errorMessage, "The archive could not be opened. Is this a cellanim file?");
+        strcpy(errorMessage, "The archive could not be opened. Is this a cellanim archive?");
         errorType = 0;
         break;
     case SessionManager::OpenError_FailFindTPL:
@@ -32,32 +32,24 @@ static void Popup_SessionErr() {
         errorType = 0;
         break;
     case SessionManager::OpenError_NoBXCADsFound:
-        strcpy(errorMessage, "The archive does not contain any brcad/bccad files.");
+        // TODOLT: replace brcad with brcad/bccad when Megamix support is implemented
+        strcpy(errorMessage, "The archive does not contain any cellanim files (.brcad).");
         errorType = 0;
         break;
     case SessionManager::OpenError_FailOpenBXCAD:
-        // TODO: replace brcad with brcad/bccad when Megamix support is implemented
-        strcpy(errorMessage, "The cellanim file (.brcad) could not be opened.");
+        // TODOLT: replace brcad with brcad/bccad when Megamix support is implemented
+        strcpy(errorMessage, "The cellanim file (.brcad) could not be opened. It might be corrupted.");
         errorType = 0;
         break;
     case SessionManager::OpenError_FailOpenTPL:
-        strcpy(errorMessage, "The TPL file could not be opened.");
+        strcpy(errorMessage, "The TPL file could not be opened. It might be corrupted.");
         errorType = 0;
         break; 
-    case SessionManager::OpenError_FailOpenImage:
-        strcpy(errorMessage, "The image file could not be opened.");
-        errorType = 0;
-        break;
-    case SessionManager::OpenError_FailOpenHFile:
-        strcpy(errorMessage, "The header file (.h) could not be opened.");
-        errorType = 0;
-        break;
     case SessionManager::OpenError_LayoutArchive:
-        strcpy(errorMessage, "The selected archive is a layout archive. Please choose a\ncellanim archive instead (cellanim.szs).");
-        errorType = 0;
-        break;
-    case SessionManager::OpenError_SessionsFull:
-        strcpy(errorMessage, "The maximum amount of sessions are already open.");
+        strcpy(errorMessage,
+            "The selected archive is a layout archive. Please choose a\n"
+            "cellanim archive instead (those named cellanim.szs)."
+        );
         errorType = 0;
         break;
 

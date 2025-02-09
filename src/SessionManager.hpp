@@ -143,9 +143,6 @@ public:
 
     // Push session from a Yaz0-compressed U8 archive (SZS).
     int PushSessionFromCompressedArc(const char* filePath);
-    // Push session from separated files on FS.
-    // TODO: Restructure this whole thing
-    int PushSessionTraditional(const char* brcadPath, const char* imagePath, const char* headerPath);
 
     int ExportSessionCompressedArc(Session* session, const char* outPath);
 
@@ -165,10 +162,7 @@ public:
         OpenError_NoBXCADsFound,
         OpenError_FailOpenBXCAD,
         OpenError_FailOpenTPL,
-        OpenError_FailOpenImage,
-        OpenError_FailOpenHFile,
         OpenError_LayoutArchive, // The user selected a layout archive instead of a cellanim archive.
-        OpenError_SessionsFull,
 
         OutError_FailOpenFile,
         OutError_ZlibError,

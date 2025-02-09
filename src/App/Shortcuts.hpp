@@ -14,9 +14,6 @@
 #define SCS_LAUNCH_OPEN_SZS_DIALOG SCST_CTRL "+O"
 #define SC_LAUNCH_OPEN_SZS_DIALOG (ImGuiKey_O | ImGuiMod_Ctrl)
 
-#define SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG SCST_CTRL "+Shift+O"
-#define SC_LAUNCH_OPEN_TRADITIONAL_DIALOG (ImGuiKey_O | ImGuiMod_Ctrl | ImGuiMod_Shift)
-
 #define SCS_SAVE_CURRENT_SESSION_SZS SCST_CTRL "+S"
 #define SC_SAVE_CURRENT_SESSION_SZS (ImGuiKey_S | ImGuiMod_Ctrl)
 
@@ -37,8 +34,6 @@ void Handle() {
 
     if (ImGui::Shortcut(SC_LAUNCH_OPEN_SZS_DIALOG, ImGuiInputFlags_RouteAlways))
         return Actions::Dialog_CreateCompressedArcSession();
-    else if (ImGui::Shortcut(SC_LAUNCH_OPEN_TRADITIONAL_DIALOG, ImGuiInputFlags_RouteAlways))
-        return Actions::Dialog_CreateTraditionalSession();
 
     if (ImGui::Shortcut(SC_SAVE_CURRENT_SESSION_SZS, ImGuiInputFlags_RouteAlways))
         return Actions::SaveCurrentSessionSzs();

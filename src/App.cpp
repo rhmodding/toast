@@ -321,13 +321,6 @@ void App::Menubar() {
             ))
                 Actions::Dialog_CreateCompressedArcSession();
 
-            if (ImGui::MenuItem(
-                (const char*)ICON_FA_FILE_IMPORT " Open (seperated)...",
-                SCS_LAUNCH_OPEN_TRADITIONAL_DIALOG,
-                nullptr
-            ))
-                Actions::Dialog_CreateTraditionalSession();
-
             const auto& recentlyOpened = configManager.getConfig().recentlyOpened;
 
             if (ImGui::BeginMenu(
