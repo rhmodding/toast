@@ -5,6 +5,10 @@
 
 #include <iostream>
 
+#define STB_DXT_IMPLEMENTATION
+#define STB_DXT_STATIC
+#include "../stb/stb_dxt.h"
+
 #include "../common.hpp"
 
 typedef TPL::TPLImageFormat ImageFormat;
@@ -502,6 +506,70 @@ static void IMPLEMENTATION_TO_RGBA32(unsigned char* result, uint32_t*, unsigned*
     }
 }
 
+// TODO: redo this implementation IT FUCKING SUCKS
+static void IMPLEMENTATION_TO_CMPR(unsigned char* result, uint32_t*, unsigned*, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    unsigned writeOffset { 0 };
+
+    for (unsigned yy = 0; yy < srcHeight; yy += 8) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
+            // 4 4x4 RGBA blocks to process
+            uint8_t blocks[4][4][4][4];
+
+            // Extract 4x4 blocks from the RGBA input
+            for (unsigned y = 0; y < 8; y++) {
+                if (yy + y >= srcHeight) break;
+
+                const unsigned rowBase = srcWidth * (yy + y);
+
+                for (unsigned x = 0; x < 8; x++) {
+                    if (xx + x >= srcWidth) break;
+
+                    unsigned blockIdx = (y >= 4) * 2 + (x >= 4);
+                    unsigned localY = y % 4;
+                    unsigned localX = x % 4;
+                    const unsigned readOffset = (rowBase + xx + x) * 4;
+
+                    blocks[blockIdx][localY][localX][0] = data[readOffset + 0];
+                    blocks[blockIdx][localY][localX][1] = data[readOffset + 1];
+                    blocks[blockIdx][localY][localX][2] = data[readOffset + 2];
+                    blocks[blockIdx][localY][localX][3] = data[readOffset + 3];
+                }
+            }
+
+            // Compress each 4x4 block
+            for (unsigned i = 0; i < 4; i++) {
+                uint8_t (*block)[4][4] = blocks[i];
+                unsigned char* blockData = result + writeOffset + (i * 8);
+
+                bool transparentBlock = false;
+                for (unsigned j = 0; j < 4*4; j++) {
+                    if (block[j / 4][j % 4][3] < 0x7F) {
+                        transparentBlock = true;
+                        break;
+                    }
+                }
+
+                stb_compress_dxt_block(blockData, &block[0][0][0], 0, STB_DXT_HIGHQUAL);
+
+                *(uint16_t*)(blockData + 0) = BYTESWAP_16(*(uint16_t*)(blockData + 0));
+                *(uint16_t*)(blockData + 2) = BYTESWAP_16(*(uint16_t*)(blockData + 2));
+
+                uint32_t indices = *(uint32_t*)(blockData + 4);
+                for (unsigned i = 0; i < 4; ++i) {
+                    unsigned shift = i * 8;
+                    uint8_t row = (indices >> shift) & 0xFF;
+                    row = ((row & 0x03) << 6) | ((row & 0x0C) << 2) | ((row & 0x30) >> 2) | ((row & 0xC0) >> 6);
+                    indices = (indices & ~(0xFF << shift)) | (row << shift);
+                }
+
+                *(uint32_t*)(blockData + 4) = indices;
+            }
+
+            writeOffset += 8 * 4;
+        }
+    }
+}
+
 
 static void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     std::unordered_map<uint32_t, uint8_t> colorToIndex;
@@ -692,7 +760,11 @@ bool ImageConvert::fromRGBA32(
         implementation = IMPLEMENTATION_TO_RGBA32;
         break;
 
-    case IMGFMT::TPL_IMAGE_FORMAT_C8:
+    case ImageFormat::TPL_IMAGE_FORMAT_CMPR:
+        implementation = IMPLEMENTATION_TO_CMPR;
+        break;
+
+    case ImageFormat::TPL_IMAGE_FORMAT_C8:
         if (!paletteOut) {
             std::cerr << "[ImageConvert::fromRGBA32] Couldn't convert to C8 format: no color palette passed.\n";
             return false;
