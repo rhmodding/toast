@@ -29,7 +29,6 @@ public:
 public:
     std::future<void> QueueTask(std::function<void()> func);
 
-    // Needs to run every cycle on the main thread
     void Update();
 
 private:
