@@ -12,6 +12,9 @@ int _oldTextureSizeY { -1 };
 
 int _deleteAnimationIdx { -1 };
 
+int _editPartNameArrangeIdx { -1 };
+int _editPartNamePartIdx { -1 };
+
 } // namespace Popups
 
 #include "../AppState.hpp"
@@ -38,6 +41,8 @@ int _deleteAnimationIdx { -1 };
 
 #include "popups/Popup_EditAnimationName.hpp"
 #include "popups/Popup_SwapAnimation.hpp"
+
+#include "popups/Popup_EditPartName.hpp"
 
 void Popups::Update() {
     BEGIN_GLOBAL_POPUP();
@@ -69,6 +74,8 @@ void Popups::Update() {
 
     Popup_EditAnimationName(_editAnimationNameIdx);
     Popup_SwapAnimation(_swapAnimationIdx);
+
+    Popup_EditPartName(_editPartNameArrangeIdx, _editPartNamePartIdx);
 
     END_GLOBAL_POPUP();
 }

@@ -651,7 +651,13 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Set name (identifier) .."); // TODO
+            if (ImGui::MenuItem("Set editor name ..")) {
+                Popups::_editPartNameArrangeIdx =
+                    appState.globalAnimatable.getCurrentKey()->arrangementIndex;
+                Popups::_editPartNamePartIdx = appState.selectedParts[0].index;
+
+                OPEN_GLOBAL_POPUP("###EditPartName");
+            }
 
             ImGui::Separator();
 

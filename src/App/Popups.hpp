@@ -13,6 +13,9 @@ extern int _oldTextureSizeY;
 
 extern int _deleteAnimationIdx;
 
+extern int _editPartNameArrangeIdx;
+extern int _editPartNamePartIdx;
+
 void Update();
 
 } // namespace Popups
