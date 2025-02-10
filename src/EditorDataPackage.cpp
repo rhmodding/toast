@@ -181,7 +181,7 @@ static void _TedApply(const unsigned char* data, const Session& session) {
                     strncpy(
                         part->editorName,
                         (char*)data + fileHeader->stringPoolOffset + currentEntry->nameOffset,
-                        32
+                        sizeof(part->editorName)
                     );
                 else
                     return;
@@ -273,7 +273,7 @@ static void _TedApplyOld(const unsigned char* data, const Session& session) {
                 );
 
                 if (part)
-                    strncpy(part->editorName, currentEntry->name, 32);
+                    strncpy(part->editorName, currentEntry->name, sizeof(part->editorName));
                 else
                     return;
 

@@ -695,7 +695,7 @@ void App::Menubar() {
     }
 
     if (ImGui::BeginMenuBar()) {
-        static const ImGuiTabBarFlags tabBarFlags =
+        constexpr ImGuiTabBarFlags tabBarFlags =
             ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_TabListPopupButton |
             ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_FittingPolicyScroll |
             ImGuiTabBarFlags_AutoSelectNewTabs;
@@ -817,10 +817,10 @@ void App::Update() {
 
     // Begin main window
     {
-        static const ImGuiDockNodeFlags dockspaceFlags =
+        constexpr ImGuiDockNodeFlags dockspaceFlags =
             ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode |
             ImGuiWindowFlags_NoBackground;
-        static const ImGuiWindowFlags windowFlags =
+        constexpr ImGuiWindowFlags windowFlags =
             ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
             ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |

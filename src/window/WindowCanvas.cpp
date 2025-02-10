@@ -888,9 +888,9 @@ void WindowCanvas::Update() {
             if (this->enableGridLines && this->gridType != GridType_None) {
                 const float GRID_STEP = 64.f * this->canvasZoom;
 
-                static const uint32_t normalColor = IM_COL32(200, 200, 200, 40);
-                static const uint32_t centerColorX = IM_COL32(255, 0, 0, 70);
-                static const uint32_t centerColorY = IM_COL32(0, 255, 0, 70);
+                constexpr uint32_t normalColor = IM_COL32(200, 200, 200, 40);
+                constexpr uint32_t centerColorX = IM_COL32(255, 0, 0, 70);
+                constexpr uint32_t centerColorY = IM_COL32(0, 255, 0, 70);
 
                 for (
                     float x = fmodf(this->canvasOffset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP);

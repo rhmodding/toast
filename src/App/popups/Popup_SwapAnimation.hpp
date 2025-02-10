@@ -28,7 +28,7 @@ static void Popup_SwapAnimation(int animationIndex) {
 
     if (ImGui::BeginPopupModal("Swap animations###SwapAnimation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         static float animationBegin { static_cast<float>(ImGui::GetTime()) };
-        static const float animationTime { .25f };
+        constexpr float animationTime { .25f };
 
         static bool swapNames { true };
 
