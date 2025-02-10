@@ -101,6 +101,8 @@ struct TPLTexture {
 
     std::vector<unsigned char> data;
     std::vector<uint32_t> palette;
+
+    GLuint createGPUTexture() const;
 };
 
 class TPLObject {
@@ -117,8 +119,6 @@ public:
 };
 
 std::optional<TPLObject> readTPLFile(const std::string& filePath);
-
-GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture);
 
 } // namespace TPL
 

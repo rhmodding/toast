@@ -232,7 +232,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
 
         sheet = std::make_shared<Texture>(
             texture.width, texture.height,
-            TPL::LoadTPLTextureIntoGLTexture(texture)
+            texture.createGPUTexture()
         );
         sheet->setTPLOutputFormat(texture.format);
     }

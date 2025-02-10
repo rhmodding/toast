@@ -101,6 +101,67 @@ const char* getImageFormatName(TPLImageFormat format) {
     return strings[format];
 }
 
+GLuint TPLTexture::createGPUTexture() const {
+    GLuint textureId { 0 };
+
+    GLint minFilter { GL_LINEAR };
+    GLint magFilter { GL_LINEAR };
+
+    switch (this->minFilter) {
+    case TPL::TPL_TEX_FILTER_NEAR:
+        minFilter = GL_NEAREST;
+        break;
+    case TPL::TPL_TEX_FILTER_LINEAR:
+        break;
+    case TPL::TPL_TEX_FILTER_NEAR_MIP_NEAR:
+        minFilter = GL_NEAREST_MIPMAP_NEAREST;
+        break;
+    case TPL::TPL_TEX_FILTER_LIN_MIP_NEAR:
+        minFilter = GL_LINEAR_MIPMAP_NEAREST;
+        break;
+    case TPL::TPL_TEX_FILTER_NEAR_MIP_LIN:
+        minFilter = GL_NEAREST_MIPMAP_LINEAR;
+        break;
+    case TPL::TPL_TEX_FILTER_LIN_MIP_LIN:
+        minFilter = GL_LINEAR_MIPMAP_LINEAR;
+        break;
+    default:
+        break;
+    }
+
+    switch (this->magFilter) {
+    case TPL::TPL_TEX_FILTER_NEAR:
+        magFilter = GL_NEAREST;
+        break;
+    case TPL::TPL_TEX_FILTER_LINEAR:
+        break;
+    default:
+        break;
+    }
+
+    MainThreadTaskManager::getInstance().QueueTask([this, &textureId, &minFilter, &magFilter]() {
+        glGenTextures(1, &textureId);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+
+        glTexParameteri(
+            GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+            this->wrapS == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
+        );
+        glTexParameteri(
+            GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+            this->wrapT == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
+        );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data.data());
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }).get();
+
+    return textureId;
+}
+
 TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
     if (dataSize < sizeof(TPLPalette)) {
         std::cerr << "[TPLObject::TPLObject] Invalid TPL binary: data size smaller than palette size!\n";
@@ -403,67 +464,6 @@ std::optional<TPLObject> readTPLFile(const std::string& filePath) {
         reinterpret_cast<unsigned char*>(fileContent.data()),
         fileSize
     );
-}
-
-GLuint LoadTPLTextureIntoGLTexture(const TPL::TPLTexture& tplTexture) {
-    GLuint imageTexture;
-
-    GLint minFilter { GL_LINEAR };
-    GLint magFilter { GL_LINEAR };
-
-    switch (tplTexture.minFilter) {
-    case TPL::TPL_TEX_FILTER_NEAR:
-        minFilter = GL_NEAREST;
-        break;
-    case TPL::TPL_TEX_FILTER_LINEAR:
-        break;
-    case TPL::TPL_TEX_FILTER_NEAR_MIP_NEAR:
-        minFilter = GL_NEAREST_MIPMAP_NEAREST;
-        break;
-    case TPL::TPL_TEX_FILTER_LIN_MIP_NEAR:
-        minFilter = GL_LINEAR_MIPMAP_NEAREST;
-        break;
-    case TPL::TPL_TEX_FILTER_NEAR_MIP_LIN:
-        minFilter = GL_NEAREST_MIPMAP_LINEAR;
-        break;
-    case TPL::TPL_TEX_FILTER_LIN_MIP_LIN:
-        minFilter = GL_LINEAR_MIPMAP_LINEAR;
-        break;
-    default:
-        break;
-    }
-
-    switch (tplTexture.magFilter) {
-    case TPL::TPL_TEX_FILTER_NEAR:
-        magFilter = GL_NEAREST;
-        break;
-    case TPL::TPL_TEX_FILTER_LINEAR:
-        break;
-    default:
-        break;
-    }
-
-    MainThreadTaskManager::getInstance().QueueTask([&imageTexture, &tplTexture, &minFilter, &magFilter]() {
-        glGenTextures(1, &imageTexture);
-        glBindTexture(GL_TEXTURE_2D, imageTexture);
-
-        glTexParameteri(
-            GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-            tplTexture.wrapS == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
-        );
-        glTexParameteri(
-            GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-            tplTexture.wrapT == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
-        );
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tplTexture.width, tplTexture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }).get();
-
-    return imageTexture;
 }
 
 } // namespace TPL
