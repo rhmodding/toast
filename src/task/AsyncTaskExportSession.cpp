@@ -22,8 +22,7 @@ void AsyncTaskExportSession::Effect() {
         return;
     }
 
-    this->session->traditionalMethod = false;
-    this->session->mainPath = this->outPath;
+    this->session->resourcePath = this->outPath;
 
     ConfigManager::getInstance().addRecentlyOpened(this->outPath);
 }

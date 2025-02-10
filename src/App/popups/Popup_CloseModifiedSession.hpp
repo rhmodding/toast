@@ -17,7 +17,7 @@ static void Popup_CloseModifiedSession() {
         return;
 
     const std::string& sessionPath =
-        sessionManager.sessionList.at(sessionManager.sessionClosingIndex).mainPath;
+        sessionManager.sessionList.at(sessionManager.sessionClosingIndex).resourcePath;
 
     char popupTitle[512];
     snprintf(

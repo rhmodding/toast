@@ -66,15 +66,13 @@ void SaveCurrentSessionSzs() {
 
     if (
         !sessionManager.getSessionAvaliable() ||
-        sessionManager.getCurrentSession()->traditionalMethod ||
-
         asyncTaskManager.HasTaskOfType<AsyncTaskExportSession>()
     )
         return;
 
     asyncTaskManager.StartTask<AsyncTaskExportSession>(
         sessionManager.getCurrentSession(),
-        sessionManager.getCurrentSession()->mainPath
+        sessionManager.getCurrentSession()->resourcePath
     );
 }
 

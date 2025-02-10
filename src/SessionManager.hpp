@@ -33,10 +33,7 @@ public:
         : cellanims(std::move(other.cellanims)),
           sheets(std::move(other.sheets)),
           currentCellanim(other.currentCellanim),
-          mainPath(std::move(other.mainPath)),
-          traditionalMethod(other.traditionalMethod),
-          imagePath(std::move(other.imagePath)),
-          headerPath(std::move(other.headerPath)),
+          resourcePath(std::move(other.resourcePath)),
           arrangementMode(other.arrangementMode),
           modified(other.modified),
           undoQueue(std::move(other.undoQueue)),
@@ -47,10 +44,7 @@ public:
             cellanims = std::move(other.cellanims);
             sheets = std::move(other.sheets);
             currentCellanim = other.currentCellanim;
-            mainPath = std::move(other.mainPath);
-            traditionalMethod = other.traditionalMethod;
-            imagePath = std::move(other.imagePath);
-            headerPath = std::move(other.headerPath);
+            resourcePath = std::move(other.resourcePath);
             arrangementMode = other.arrangementMode;
             modified = other.modified;
             undoQueue = std::move(other.undoQueue);
@@ -93,11 +87,7 @@ public:
 
     unsigned currentCellanim { 0 };
 
-    std::string mainPath;
-
-    bool traditionalMethod { false }; // Has this session been opened with separate files on the FS?
-    std::unique_ptr<std::string> imagePath;
-    std::unique_ptr<std::string> headerPath;
+    std::string resourcePath;
 
     bool arrangementMode { false };
 

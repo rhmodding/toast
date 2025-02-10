@@ -352,8 +352,7 @@ void App::Menubar() {
 
             if (ImGui::MenuItem(
                 (const char*)ICON_FA_FILE_EXPORT " Save (szs)", SCS_SAVE_CURRENT_SESSION_SZS, false,
-                    sessionManager.getSessionAvaliable() &&
-                    !sessionManager.getCurrentSession()->traditionalMethod
+                    sessionManager.getSessionAvaliable()
             ))
                 Actions::SaveCurrentSessionSzs();
 
@@ -711,7 +710,7 @@ void App::Menubar() {
 
                 bool sessionOpen { true };
                 bool tabVisible = ImGui::BeginTabItem(
-                    session.mainPath.c_str(),
+                    session.resourcePath.c_str(),
                     &sessionOpen,
                     ImGuiTabItemFlags_None | (
                         session.modified ?
@@ -761,7 +760,7 @@ void App::Menubar() {
                 ).name;
                 ImGui::SetItemTooltip(
                     "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
-                    session.mainPath.c_str(),
+                    session.resourcePath.c_str(),
                     cellanimName.substr(0, cellanimName.size() - 6).c_str()
                 );
 

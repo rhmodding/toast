@@ -249,7 +249,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         }
     }
 
-    newSession.mainPath = filePath;
+    newSession.resourcePath = filePath;
 
     std::lock_guard<std::mutex> lock(this->mtx);
 
