@@ -212,7 +212,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
 
         textureData.format = static_cast<TPLImageFormat>(BYTESWAP_32(header->format));
 
-        textureData.mipMap = header->minLOD == header->maxLOD ? 0 : 1;
+        textureData.mipCount = header->maxLOD - header->minLOD + 1;
 
         textureData.wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(header->wrapS));
         textureData.wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(header->wrapT));
@@ -364,47 +364,47 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
         if (header->width > 1024 || header->height > 1024) {
             std::cerr <<
-                "[TPLObject::Reserialize] The dimensions of the texture exceed 1024x1024 " <<
-                '(' << header->width << 'x' << header->height << ')' <<
-                ", the game will most likely be unable to read it properly.\n";
+                "[TPLObject::Reserialize] The dimensions of the texture exceed 1024x1024 "
+                "(" << header->width << 'x' << header->height << "),\n"
+                "                         the game will most likely be unable to read it properly.\n";
         }
 
-        header->width = BYTESWAP_16(texture.width);
-        header->height = BYTESWAP_16(texture.height);
+        header->width = BYTESWAP_16(static_cast<uint16_t>(texture.width));
+        header->height = BYTESWAP_16(static_cast<uint16_t>(texture.height));
 
-        header->format = BYTESWAP_32(texture.format);
+        header->format = BYTESWAP_32(static_cast<uint32_t>(texture.format));
 
         // header->dataOffset gets set in the image data writing portion.
 
         if (
-            header->wrapS != TPL_WRAP_MODE_CLAMP &&
-            !IS_POWER_OF_TWO(header->width)
+            texture.wrapS != TPL_WRAP_MODE_CLAMP &&
+            !IS_POWER_OF_TWO(texture.width)
         ) {
             std::cerr << "[TPLObject::Reserialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP\n";
-            header->wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(TPL_WRAP_MODE_CLAMP));
+            header->wrapS = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
-            header->wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(texture.wrapS));
+            header->wrapS = BYTESWAP_32(static_cast<uint32_t>(texture.wrapS));
 
         if (
-            header->wrapT != TPL_WRAP_MODE_CLAMP &&
-            !IS_POWER_OF_TWO(header->height)
+            texture.wrapT != TPL_WRAP_MODE_CLAMP &&
+            !IS_POWER_OF_TWO(texture.height)
         ) {
             std::cerr << "[TPLObject::Reserialize] Image width is not a power of two, so vertical wrap will be set to CLAMP\n";
-            header->wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(TPL_WRAP_MODE_CLAMP));
+            header->wrapT = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
-            header->wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(texture.wrapT));
+            header->wrapT = BYTESWAP_32(static_cast<uint32_t>(texture.wrapT));
 
-        header->minFilter = static_cast<TPLTexFilter>(BYTESWAP_32(texture.minFilter));
-        header->magFilter = static_cast<TPLTexFilter>(BYTESWAP_32(texture.magFilter));
+        header->minFilter = BYTESWAP_32(static_cast<uint32_t>(texture.minFilter));
+        header->magFilter = BYTESWAP_32(static_cast<uint32_t>(texture.magFilter));
 
         header->LODBias = 0.f;
 
-        header->edgeLODEnable = 0x00;
+        header->edgeLODEnable = 0;
 
-        header->maxLOD = 0x00;
-        header->minLOD = 0x00;
+        header->maxLOD = 0;
+        header->minLOD = 0;
     }
 
     // Image Data

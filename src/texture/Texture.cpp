@@ -138,7 +138,7 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
     }
 
     TPL::TPLTexture tplTexture {
-        .mipMap = 1,
+        .mipCount = 1,
 
         .width = static_cast<uint16_t>(this->width),
         .height = static_cast<uint16_t>(this->height),

@@ -87,13 +87,14 @@ enum TPLClutFormat : uint32_t {
 const char* getImageFormatName(TPLImageFormat format);
 
 struct TPLTexture {
-    uint8_t mipMap;
+    unsigned mipCount;
 
-    uint16_t width;
-    uint16_t height;
+    unsigned width;
+    unsigned height;
 
     TPLWrapMode wrapS;
     TPLWrapMode wrapT;
+
     TPLTexFilter minFilter;
     TPLTexFilter magFilter;
 
