@@ -253,15 +253,15 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
             reinterpret_cast<File*>(entry.ptr)->name.size()
         ) + 1;
 
-        nextStringPoolOffset = (nextStringPoolOffset + 3) & ~3;
+        nextStringPoolOffset = ALIGN_UP_4(nextStringPoolOffset);
     }
 
     // Calculate data offset
-    unsigned baseDataOffset = (
+    unsigned baseDataOffset = ALIGN_UP_32(
         sizeof(U8ArchiveHeader) +
         (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-        nextStringPoolOffset + 31
-    ) & ~31;
+        nextStringPoolOffset
+    );
     unsigned nextDataOffset = baseDataOffset;
 
     // Calculate data offsets
@@ -272,7 +272,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
             dataOffsets[i] = nextDataOffset;
 
             nextDataOffset += reinterpret_cast<File*>(entry.ptr)->data.size();
-            nextDataOffset = (nextDataOffset + 31) & ~31;
+            nextDataOffset = ALIGN_UP_32(nextDataOffset);
         }
     }
 

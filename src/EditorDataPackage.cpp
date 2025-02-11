@@ -380,7 +380,7 @@ unsigned TedPrepareWrite(TedWriteState* state) {
                         state->nameOffsets[name] = nextNameOffset;
 
                         nextNameOffset += strlen(part.editorName) + 1;
-                        nextNameOffset = (nextNameOffset + 3) & ~3;
+                        nextNameOffset = ALIGN_UP_4(nextNameOffset);
                     }
                     // Name not unique, reuse offset
                     else {

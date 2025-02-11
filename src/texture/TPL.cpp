@@ -267,13 +267,11 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     }
 
     unsigned headerSectionStart = (
-        ((
+        ALIGN_UP_32(
             sizeof(TPLPalette) +
             (sizeof(TPLDescriptor) * textureCount) +
-            (sizeof(TPLClutHeader) * paletteTextures.size()) +
-            31
-        ) & ~31) + // Align to 32 bytes
-        paletteEntriesSize
+            (sizeof(TPLClutHeader) * paletteTextures.size())
+        ) + paletteEntriesSize
     );
 
     unsigned dataSectionStart = headerSectionStart + (sizeof(TPLHeader) * textureCount);
@@ -284,7 +282,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     for (unsigned i = 0; i < textureCount; i++) {
         const unsigned imageSize = ImageConvert::getImageByteSize(this->textures[i]);
 
-        fullSize = (fullSize + 63) & ~63; // Align to 64
+        fullSize = ALIGN_UP_64(fullSize);
         fullSize += imageSize;
     }
 
@@ -300,12 +298,11 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
     unsigned nextClutOffset { 0 };
     if (!paletteTextures.empty())
-        nextClutOffset = (
+        nextClutOffset = ALIGN_UP_32(
             sizeof(TPLPalette) +
             (sizeof(TPLDescriptor) * textureCount) +
             (sizeof(TPLClutHeader) * paletteTextures.size())
-            + 31
-        ) & ~31;
+        );
 
     TPLHeader* headers = reinterpret_cast<TPLHeader*>(result.data() + headerSectionStart);
     TPLDescriptor* descriptors = reinterpret_cast<TPLDescriptor*>(result.data() + sizeof(TPLPalette));
@@ -413,8 +410,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     for (unsigned i = 0; i < textureCount; i++) {
         TPL::TPLTexture& texture = this->textures[i];
 
-        // Align writeOffset to 64 bytes
-        writeOffset = (writeOffset + 63) & ~63;
+        writeOffset = ALIGN_UP_64(writeOffset);
         headers[i].dataOffset = BYTESWAP_32(writeOffset);
 
         const unsigned imageSize = ImageConvert::getImageByteSize(texture);

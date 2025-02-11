@@ -28,6 +28,9 @@
 
 #define IS_POWER_OF_TWO(x) (((x) > 0) && !((x) & ((x) - 1)))
 
+#define ALIGN_DOWN_32(value) ( (value) & ~(32 - 1) )
+#define ALIGN_UP_32(value) ( ((value) + 32 - 1) & ~(32 - 1) )
+
 #define STR_LIT_LEN(stringLiteral) (sizeof((stringLiteral)) - 1)
 
 #define AVERAGE_FLOATS(a, b) (((float)((a) + (b))) / 2.f)
