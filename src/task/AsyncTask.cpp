@@ -12,7 +12,7 @@ AsyncTask::AsyncTask(uint32_t id, const char* message) :
     startTime(static_cast<float>(ImGui::GetTime()))
 {
     char str[32];
-    snprintf(str, sizeof(str) - 1, "Task%u", this->id);
+    snprintf(str, sizeof(str), "Task%u", this->id);
 
     this->imguiID = ImHashStr(str);
 };
