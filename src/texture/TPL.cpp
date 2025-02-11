@@ -362,10 +362,10 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
         TPLHeader* header = headers + i;
 
-        if (header->width > 1024 || header->height > 1024) {
+        if (texture.width > 1024 || texture.height > 1024) {
             std::cerr <<
                 "[TPLObject::Reserialize] The dimensions of the texture exceed 1024x1024 "
-                "(" << header->width << 'x' << header->height << "),\n"
+                "(" << texture.width << 'x' << texture.height << "),\n"
                 "                         the game will most likely be unable to read it properly.\n";
         }
 
