@@ -352,7 +352,7 @@ unsigned TedPrepareWrite(TedWriteState* state) {
     unsigned nextNameOffset = 0;
 
     for (uint16_t i = 0; i < state->session.cellanims.size(); i++) {
-        const auto cellanim = state->session.cellanims[i].object;
+        const std::shared_ptr cellanim = state->session.cellanims[i].object;
 
         for (uint16_t j = 0; j < cellanim->arrangements.size(); j++) {
             const auto& arrangement = cellanim->arrangements[j];
@@ -431,7 +431,7 @@ void TedWrite(TedWriteState* state, unsigned char* buffer) {
             reinterpret_cast<TedSectionHeader*>(writeData);
         *header = TedSectionHeader {
             .identifier = IDENTIFIER_TO_U32('E','I','P','T'),
-            .entryCount = (uint16_t)state->invisibleParts.size(),
+            .entryCount = static_cast<uint16_t>(state->invisibleParts.size()),
             .nextSectionOffset = endOffset
         };
         writeData += sizeof(TedSectionHeader);
@@ -453,7 +453,7 @@ void TedWrite(TedWriteState* state, unsigned char* buffer) {
             reinterpret_cast<TedSectionHeader*>(writeData);
         *header = TedSectionHeader {
             .identifier = IDENTIFIER_TO_U32('E','L','P','T'),
-            .entryCount = (uint16_t)state->lockedParts.size(),
+            .entryCount = static_cast<uint16_t>(state->lockedParts.size()),
             .nextSectionOffset = endOffset
         };
         writeData += sizeof(TedSectionHeader);
@@ -475,7 +475,7 @@ void TedWrite(TedWriteState* state, unsigned char* buffer) {
             reinterpret_cast<TedSectionHeader*>(writeData);
         *header = TedSectionHeader {
             .identifier = IDENTIFIER_TO_U32('A','P','N','T'),
-            .entryCount = (uint16_t)state->namedParts.size(),
+            .entryCount = static_cast<uint16_t>(state->namedParts.size()),
             .nextSectionOffset = endOffset
         };
         writeData += sizeof(TedSectionHeader);
