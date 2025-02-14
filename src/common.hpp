@@ -28,8 +28,14 @@
 
 #define IS_POWER_OF_TWO(x) (((x) > 0) && !((x) & ((x) - 1)))
 
+#define ALIGN_DOWN_4(value) ( (value) & ~(4 - 1) )
+#define ALIGN_UP_4(value) ( ((value) + 4 - 1) & ~(4 - 1) )
+
 #define ALIGN_DOWN_32(value) ( (value) & ~(32 - 1) )
 #define ALIGN_UP_32(value) ( ((value) + 32 - 1) & ~(32 - 1) )
+
+#define ALIGN_DOWN_64(value) ( (value) & ~(64 - 1) )
+#define ALIGN_UP_64(value) ( ((value) + 64 - 1) & ~(64 - 1) )
 
 #define STR_LIT_LEN(stringLiteral) (sizeof((stringLiteral)) - 1)
 
