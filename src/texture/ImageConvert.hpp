@@ -34,7 +34,9 @@ bool fromRGBA32(
     unsigned char* buffer
 );
 
+// Note: for paletted image types this does not include the lookup table.
 unsigned getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, const unsigned height);
+// Note: for paletted image types this does not include the lookup table.
 unsigned getImageByteSize(const TPL::TPLTexture& texture);
 
 } // namespace ImageConvert

@@ -96,7 +96,7 @@ void CLUTtoRGBA32Palette(
 
 bool WriteRGBA32Palette(
     const uint32_t* data,
-    const uint16_t numEntries,
+    const unsigned numEntries,
 
     const TPL::TPLClutFormat format,
 

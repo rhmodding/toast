@@ -49,14 +49,14 @@ public:
     bool LoadSTBFile(const char* filename);
 
     // Download the texture from the GPU as RGBA32 image data.
-    // Note A: The resulting pointer is dynamically allocated and must be freed by the caller.
-    // Note B: The size of the data is this->getPixelCount() * 4
+    // Note A: the resulting pointer is dynamically allocated and must be freed by the caller.
+    // Note B: the size of the data is this->getPixelCount() * 4
     //
     // Returns: pointer to linear RGBA32 image data if succeeded, nullptr if failed
     unsigned char* GetRGBA32();
 
     // Download the texture from the GPU into a RGBA32 image buffer.
-    // Note: The size of the buffer must be this->getPixelCount() * 4
+    // Note: the size of the buffer must be this->getPixelCount() * 4
     // 
     // Returns: true if succeeded, false if failed
     bool GetRGBA32(unsigned char* buffer);
