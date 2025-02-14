@@ -284,7 +284,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
                 if (animation.name.empty())
                     continue;
 
-                stream << "#define " << animation.name << " " << std::to_string(j) << '\n';
+                stream << "#define " << animation.name << '\t' << std::to_string(j) << "\t// (null)\n";
             }
 
             const std::string& cellanimName = session->cellanims.at(i).name;
