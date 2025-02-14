@@ -294,13 +294,13 @@ static void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, u
 
                 if (color1 > color2) {
                     for (unsigned j = 0; j < 4; ++j)
-                        colors[2][j] = colors[0][j] * 2 / 3 + colors[1][j] / 3;
+                        colors[2][j] = (unsigned)colors[0][j] * 2 / 3 + (unsigned)colors[1][j] / 3;
                     for (unsigned j = 0; j < 4; ++j)
-                        colors[3][j] = colors[0][j] / 3 + colors[1][j] * 2 / 3;
+                        colors[3][j] = (unsigned)colors[0][j] / 3 + (unsigned)colors[1][j] * 2 / 3;
                 }
                 else {
                     for (unsigned j = 0; j < 4; ++j)
-                        colors[2][j] = (colors[0][j] + colors[1][j]) / 2;
+                        colors[2][j] = ((unsigned)colors[0][j] + colors[1][j]) / 2;
                     colors[3][0] = colors[3][1] = colors[3][2] = colors[3][3] = 0x00;
                 }
 
@@ -549,6 +549,8 @@ static void IMPLEMENTATION_TO_CMPR(unsigned char* result, uint32_t*, unsigned*, 
                 *color1 = BYTESWAP_16(*color1);
                 *color2 = BYTESWAP_16(*color2);
 
+                // The indices are read in reverse. Since it's already in LE the bytes are
+                // fine but we still need to reverse the individual bits.
                 for (unsigned i = 0; i < 4; i++) {
                     unsigned shift = i * 8;
                     unsigned row = (*indexBits >> shift) & 0xFF;
