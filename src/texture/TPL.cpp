@@ -262,7 +262,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
             // Convieniently, every palette format's pixel is 16-bit
             paletteEntriesSize +=
-                paletteTextures[paletteTextures.size() - 1].palette.size() * 2;
+                ALIGN_UP_16(paletteTextures.back().palette.size()) * 2;
         }
     }
 
@@ -282,7 +282,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     for (unsigned i = 0; i < textureCount; i++) {
         const unsigned imageSize = ImageConvert::getImageByteSize(this->textures[i]);
 
-        fullSize = ALIGN_UP_64(fullSize);
+        fullSize = ALIGN_UP_32(fullSize);
         fullSize += imageSize;
     }
 
@@ -346,7 +346,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
         clutHeader->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
         clutHeader->dataOffset = BYTESWAP_32(nextClutOffset);
 
-        unsigned colorCount = paletteTextures[clutIndex].palette.size();
+        unsigned colorCount = ALIGN_UP_16(paletteTextures[clutIndex].palette.size());
         clutHeader->numEntries = BYTESWAP_16(colorCount);
 
         // Convieniently, every palette format's pixel is 16-bit
@@ -410,7 +410,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     for (unsigned i = 0; i < textureCount; i++) {
         TPL::TPLTexture& texture = this->textures[i];
 
-        writeOffset = ALIGN_UP_64(writeOffset);
+        writeOffset = ALIGN_UP_32(writeOffset);
         headers[i].dataOffset = BYTESWAP_32(writeOffset);
 
         const unsigned imageSize = ImageConvert::getImageByteSize(texture);
