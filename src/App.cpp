@@ -61,7 +61,7 @@
 
 App* globlApp { nullptr };
 
-static void SetupFonts() {
+static void setupFonts() {
     AppState::Fonts& fonts = AppState::getInstance().fonts;
     ImGuiIO& io = ImGui::GetIO();
 
@@ -100,16 +100,38 @@ static void SetupFonts() {
     }
 }
 
+// TODO: come up with a better name for this
+static void cycleSleep() {
+    static std::chrono::system_clock::time_point a { std::chrono::system_clock::now() };
+    static std::chrono::system_clock::time_point b { std::chrono::system_clock::now() };
+
+    a = std::chrono::system_clock::now();
+    std::chrono::duration<double, std::milli> workTime = a - b;
+
+    double updateRate = 1000. / ConfigManager::getInstance().getConfig().updateRate;
+
+    if (workTime.count() < updateRate) {
+        std::chrono::duration<double, std::milli> deltaMs(updateRate - workTime.count());
+        std::chrono::milliseconds deltaMsDuration =
+            std::chrono::duration_cast<std::chrono::milliseconds>(deltaMs);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(deltaMsDuration.count()));
+    }
+
+    b = std::chrono::system_clock::now();
+}
+
 App::App(int argc, const char** argv) {
     globlApp = this;
 
     this->mainThreadId = std::this_thread::get_id();
 
-    glfwSetErrorCallback([](int code, const char* description) {
-        std::cerr << "[glfwErrorCallback] GLFW Error (" << code << "): " << description << '\n';
+    glfwSetErrorCallback([](int code, const char* message) {
+        std::cerr << "[glfwErrorCallback] GLFW error (code " << code << "): " << message << std::endl;
     });
+
     if (!glfwInit()) {
-        std::cerr << "[App:App] Failed to init GLFW!\n";
+        std::cerr << "[App:App] Failed to init GLFW!" << std::endl;
         __builtin_trap();
     }
 
@@ -153,7 +175,7 @@ App::App(int argc, const char** argv) {
     );
 
     if (!this->glfwWindowHndl) {
-        std::cerr << "[App::App] glfwCreateWindow failed!\n";
+        std::cerr << "[App::App] glfwCreateWindow failed!" << std::endl;
         glfwTerminate();
         __builtin_trap();
     }
@@ -164,7 +186,7 @@ App::App(int argc, const char** argv) {
     });
 
     glfwMakeContextCurrent(this->glfwWindowHndl);
-    //glfwSwapInterval(1); // Enable vsync
+    //glfwSwapInterval(1); // Enable VSync
 
     // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
@@ -185,10 +207,10 @@ App::App(int argc, const char** argv) {
     ImGui::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   // Enable Keyboard Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;       // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;     // Enable Multi-Viewport / Platform Windows
+    io.ConfigFlags =
+        ImGuiConfigFlags_NavEnableKeyboard | // Enable Keyboard Controls
+        ImGuiConfigFlags_DockingEnable | // Enable Docking
+        ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 
     AppState::getInstance().applyTheming();
 
@@ -222,7 +244,7 @@ App::App(int argc, const char** argv) {
     ImGui_ImplGlfw_InitForOpenGL(this->glfwWindowHndl, true);
     ImGui_ImplOpenGL3_Init(glslVersion);
 
-    SetupFonts();
+    setupFonts();
 
     // Open cellanim archive (.szs) from argument
     if (argc >= 2) {
@@ -420,11 +442,8 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("Spritesheets", sessionAvaliable)) {
-            ImGui::MenuItem("Switch sheet .."); // TODO
-
-            ImGui::Separator();
-
-            ImGui::MenuItem("Remove unused sheets .."); // TODO
+            if (ImGui::MenuItem("Open spritesheet manager .."))
+                OPEN_GLOBAL_POPUP("###SpritesheetManager");
 
             ImGui::EndMenu();
         }
@@ -791,26 +810,7 @@ void App::Menubar() {
 }
 
 void App::Update() {
-    // Update rate
-    {
-        static std::chrono::system_clock::time_point a { std::chrono::system_clock::now() };
-        static std::chrono::system_clock::time_point b { std::chrono::system_clock::now() };
-
-        a = std::chrono::system_clock::now();
-        std::chrono::duration<double, std::milli> workTime = a - b;
-
-        double updateRate = 1000. / ConfigManager::getInstance().getConfig().updateRate;
-
-        if (workTime.count() < updateRate) {
-            std::chrono::duration<double, std::milli> deltaMs(updateRate - workTime.count());
-            std::chrono::milliseconds deltaMsDuration =
-                std::chrono::duration_cast<std::chrono::milliseconds>(deltaMs);
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(deltaMsDuration.count()));
-        }
-
-        b = std::chrono::system_clock::now();
-    }
+    cycleSleep();
 
     glfwMakeContextCurrent(this->glfwWindowHndl);
 
@@ -895,9 +895,14 @@ void App::Draw() {
 
     glClear(GL_COLOR_BUFFER_BIT);
 
+    ImDrawData* drawData = ImGui::GetDrawData();
+    if (drawData == nullptr) {
+        std::cerr << "[App:Draw] ImGui::GetDrawData returned NULL!" << std::endl;
+        __builtin_trap();
+    }
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    // Update and Render additional Platform Windows
+    // Update and x additional Platform Windows
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         GLFWwindow* backupCurrentContext = glfwGetCurrentContext();
 
