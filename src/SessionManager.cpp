@@ -158,7 +158,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     newSession.cellanims.resize(brcadFiles.size());
     newSession.sheets.resize(tplObject.textures.size());
 
-    // cellanims
+    // Cellanims
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
         auto& cellanim = newSession.cellanims[i];
         const auto* file = brcadFiles[i];
@@ -177,7 +177,7 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         }
     }
 
-    // animation names
+    // Headers (animation names)
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
         // Find header file
         const U8::File* headerFile { nullptr };
@@ -224,20 +224,24 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
         }
     }
 
-    // sheets
-    for (unsigned i = 0; i < tplObject.textures.size(); i++) {
-        auto& sheet = newSession.sheets[i];
+    // Sheets
+    // Note: this is wrapped in a MainThreadTask since we need to get access to the
+    //       GL context to create GPU textures. This can be outside of a MainThreadTask
+    //       but then it would use multiple MainThreadTasks instead of just one.
+    MainThreadTaskManager::getInstance().QueueTask([&tplObject, &newSession]() {
+        for (unsigned i = 0; i < tplObject.textures.size(); i++) {
+            auto& sheet = newSession.sheets[i];
+            auto& texture = tplObject.textures[i];
 
-        auto& texture = tplObject.textures[i];
+            sheet = std::make_shared<Texture>(
+                texture.width, texture.height,
+                texture.createGPUTexture()
+            );
+            sheet->setTPLOutputFormat(texture.format);
+        }
+    }).get();
 
-        sheet = std::make_shared<Texture>(
-            texture.width, texture.height,
-            texture.createGPUTexture()
-        );
-        sheet->setTPLOutputFormat(texture.format);
-    }
-
-    // internal editor data
+    // Editor data
     {
         U8::File* tedSearch = U8::findFile(TED_ARC_FILENAME, *rootDirIt);
         if (tedSearch)
