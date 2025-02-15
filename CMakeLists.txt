@@ -81,6 +81,8 @@ ELSE()
     add_executable (toast ${SOURCES} ${HEADERS})
 ENDIF()
 
+target_compile_definitions(toast PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
+
 # Include directories
 target_include_directories(toast PRIVATE
     ext/imgui/
