@@ -812,7 +812,9 @@ void WindowSpritesheet::Update() {
             const RvlCellAnim::ArrangementPart& part = arrangementPtr->parts[i];
 
             unsigned sourceRect[4] {
-                part.regionX, part.regionY, part.regionW, part.regionH
+                part.regionX % globalAnimatable.cellanim->sheetW,
+                part.regionY % globalAnimatable.cellanim->sheetH,
+                part.regionW, part.regionH
             };
 
             float mismatchScaleX =
