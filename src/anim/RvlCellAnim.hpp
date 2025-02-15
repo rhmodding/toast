@@ -187,6 +187,10 @@ struct AnimationKey {
 struct Animation {
     std::vector<AnimationKey> keys;
     std::string name;
+
+    // On CTR only.
+    // Note: arrangement parts are matched by id.
+    bool interpolated { false };
 };
 
 class RvlCellAnimObject {
