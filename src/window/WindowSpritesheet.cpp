@@ -216,7 +216,7 @@ void WindowSpritesheet::FormatPopup() {
             ImGui::BeginChild(
                 "Properties",
                 { 0.f, -ImGui::GetFrameHeightWithSpacing() },
-                ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX
+                ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX
             );
 
             {
@@ -227,7 +227,7 @@ void WindowSpritesheet::FormatPopup() {
                 if (ImGui::BeginChild(
                     "ImageInfoChild",
                     { 0.f, 0.f },
-                    ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY
+                    ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY
                 )) {
                     unsigned imageWidth = cellanimSheet->getWidth();
                     unsigned imageHeight = cellanimSheet->getHeight();
@@ -274,7 +274,7 @@ void WindowSpritesheet::FormatPopup() {
                 if (ImGui::BeginChild(
                     "FormatInfoChild",
                     { 0.f, 0.f },
-                    ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY
+                    ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY
                 )) {
                     const char* colorDesc;
                     const char* alphaDesc;

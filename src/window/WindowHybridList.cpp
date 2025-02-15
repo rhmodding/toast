@@ -70,7 +70,7 @@ void WindowHybridList::Update() {
     
     ImGui::Begin(windowLabel);
 
-    ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Border);
+    ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Borders);
     {
         static RvlCellAnim::Arrangement copyArrangement;
         static bool allowPasteArrangement { false };

@@ -83,7 +83,7 @@ void WindowInspector::Level_Key() {
 
         const ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
-        ImGui::PushButtonRepeat(true);
+        ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
 
         ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
         if (
@@ -110,7 +110,7 @@ void WindowInspector::Level_Key() {
             appState.correctSelectedParts();
         }
 
-        ImGui::PopButtonRepeat();
+        ImGui::PopItemFlag();
 
         ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
         ImGui::Text("Arrangement No.");

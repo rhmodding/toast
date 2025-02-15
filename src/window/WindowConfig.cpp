@@ -70,7 +70,7 @@ void WindowConfig::Update() {
         // Left
         static unsigned selected { 0 };
         {
-            ImGui::BeginChild("Categories", { 150.f, 0.f }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX);
+            ImGui::BeginChild("Categories", { 150.f, 0.f }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
             for (unsigned i = 0; i < Categories_End; i++) {
                 if (ImGui::Selectable(categoryNames[i], selected == i))
                     selected = i;

@@ -48,7 +48,7 @@ static void Popup_SwapAnimation(int animationIndex) {
             if (ImGui::BeginChild(
                 "Properties",
                 { 0.f, -ImGui::GetFrameHeightWithSpacing() },
-                ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX
+                ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX
             )) {
                 if (swapAnim < 0) {
                     ImGui::Bullet();
@@ -95,7 +95,7 @@ static void Popup_SwapAnimation(int animationIndex) {
                     std::numeric_limits<float>::max()
                 }
             );
-            ImGui::BeginChild("Visualization", { 0.f, 0.f }, ImGuiChildFlags_Border);
+            ImGui::BeginChild("Visualization", { 0.f, 0.f }, ImGuiChildFlags_Borders);
 
             float beginCursorY = ImGui::GetCursorPosY();
 
@@ -130,7 +130,7 @@ static void Popup_SwapAnimation(int animationIndex) {
                 float animProgression = std::clamp<float>((ImGui::GetTime() - animationBegin) / animationTime, 0.f, 1.f);
                 ImGui::SetCursorPosY(std::lerp(positionOrig, positionNew, Easings::InOut(animProgression)));
 
-                if (ImGui::Selectable(fmtStream.str().c_str(), animationIndex == n || swapAnim == n, ImGuiSelectableFlags_DontClosePopups)) {
+                if (ImGui::Selectable(fmtStream.str().c_str(), animationIndex == n || swapAnim == n, ImGuiSelectableFlags_NoAutoClosePopups)) {
                     swapAnim = n;
 
                     animationBegin = ImGui::GetTime();

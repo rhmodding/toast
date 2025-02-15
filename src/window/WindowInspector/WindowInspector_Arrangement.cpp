@@ -28,7 +28,7 @@ void WindowInspector::Level_Arrangement() {
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
-    ImGui::BeginChild("ArrangementOverview", { 0.f, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY);
+    ImGui::BeginChild("ArrangementOverview", { 0.f, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeY);
     ImGui::PopStyleVar();
     {
         this->DrawPreview(&globalAnimatable);
@@ -74,7 +74,7 @@ void WindowInspector::Level_Arrangement() {
 
                 const ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
-                ImGui::PushButtonRepeat(true);
+                ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
 
                 ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
                 if (
@@ -101,7 +101,7 @@ void WindowInspector::Level_Arrangement() {
                     appState.correctSelectedParts();
                 }
 
-                ImGui::PopButtonRepeat();
+                ImGui::PopItemFlag();
 
                 {
                     bool arrangementUnique = CellanimHelpers::getArrangementUnique(globalAnimatable.getCurrentKey()->arrangementIndex);
@@ -357,7 +357,7 @@ void WindowInspector::Level_Arrangement() {
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
-    ImGui::BeginChild("ArrangementParts", { 0.f, 0.f }, ImGuiChildFlags_Border);
+    ImGui::BeginChild("ArrangementParts", { 0.f, 0.f }, ImGuiChildFlags_Borders);
     ImGui::PopStyleVar();
     {
         ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Parts");
@@ -379,7 +379,7 @@ void WindowInspector::Level_Arrangement() {
         appState.processMultiSelectRequests(msIo);
 
         bool wantDeleteSelected = (
-            ImGui::Shortcut(ImGuiKey_Backspace | ImGuiKey_ModCtrl, ImGuiInputFlags_Repeat) ||
+            ImGui::Shortcut(ImGuiKey_Backspace | ImGuiMod_Ctrl, ImGuiInputFlags_Repeat) ||
             ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat)
         ) && appState.anyPartsSelected();
 
