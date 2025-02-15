@@ -323,10 +323,11 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             }
         );
         if (it != paletteTextures.end()) {
+            unsigned clutIndex = std::distance(paletteTextures.begin(), it);
             descriptor->CLUTHeaderOffset = BYTESWAP_32(static_cast<uint32_t>(
                 sizeof(TPLPalette) +
                 (sizeof(TPLDescriptor) * textureCount) +
-                (sizeof(TPLClutHeader) * std::distance(paletteTextures.begin(), it))
+                (sizeof(TPLClutHeader) * clutIndex)
             ));
         }
         else
@@ -343,6 +344,8 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     for (unsigned clutIndex = 0; clutIndex < paletteTextures.size(); clutIndex++) {
         TPLClutHeader* clutHeader = clutHeaders + clutIndex;
 
+        // RGB5A3 is the only CLUT format with support for transparency & full color at
+        // the same time.
         clutHeader->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
         clutHeader->dataOffset = BYTESWAP_32(nextClutOffset);
 

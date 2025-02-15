@@ -63,7 +63,7 @@ enum TPLImageFormat : uint32_t {
     //   - The index is actually 14 bits since the top 2 bits are ignored.
     TPL_IMAGE_FORMAT_C14X2,
 
-    // Color + Alpha (16-bit DXT1 compressed RGB565 with binary alpha)
+    // Color + Alpha (DXT1)
     TPL_IMAGE_FORMAT_CMPR = 0x0E,
 
     TPL_IMAGE_FORMAT_COUNT
@@ -76,9 +76,9 @@ enum TPLClutFormat : uint32_t {
     // Color (5 bits for red, 6 bits for green, 5 bits for blue)
     TPL_CLUT_FORMAT_RGB565,
 
-    // Color + Alpha (16-bit pixels)
-    //   - Pixel type A: 5 bits for each color
-    //   - Pixel type B: 4 bits for each color, 3 bit alpha
+    // Color + Alpha (16-bit pixels with variable modes)
+    //   - Pixel mode A: 5 bits for red, green and blue
+    //   - Pixel mode B: 4 bits for red, green, and blue + 3 bit alpha
     TPL_CLUT_FORMAT_RGB5A3,
 
     TPL_CLUT_FORMAT_COUNT
