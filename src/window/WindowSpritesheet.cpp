@@ -44,14 +44,16 @@ bool operator==(const stbrp_rect& lhs, const stbrp_rect& rhs) {
            lhs.y == rhs.y;
 }
 
-static void fitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
+static float fitRect(ImVec2 &rectToFit, const ImVec2 &targetRect) {
     float widthRatio = targetRect.x / rectToFit.x;
     float heightRatio = targetRect.y / rectToFit.y;
 
-    scale = std::min(widthRatio, heightRatio);
+    float scale = std::min(widthRatio, heightRatio);
 
     rectToFit.x *= scale;
     rectToFit.y *= scale;
+
+    return scale;
 }
 
 constexpr float SHEET_ZOOM_TIME = .3f; // seconds
@@ -362,8 +364,7 @@ void WindowSpritesheet::FormatPopup() {
                 static_cast<float>(cellanimSheet->getHeight())
             };
 
-            float scale;
-            fitRect(imageRect, ImGui::GetContentRegionAvail(), scale);
+            fitRect(imageRect, ImGui::GetContentRegionAvail());
 
             ImVec2 imagePosition {
                 ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * .5f,
@@ -575,16 +576,11 @@ void WindowSpritesheet::Update() {
                 const ConfigManager& configManager = ConfigManager::getInstance();
 
                 if (cellanimSheet->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
-                    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                    ImGui::OpenPopup("###WaitForModifiedTexture");
-                    ImGui::PopID();
-
+                    OPEN_GLOBAL_POPUP("###WaitForModifiedTexture");
                     this->RunEditor();
                 }
                 else {
-                    ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                    ImGui::OpenPopup("###TextureExportFailed");
-                    ImGui::PopID();
+                    OPEN_GLOBAL_POPUP("###TextureExportFailed");
                 }
             }
             if (ImGui::MenuItem("Replace with new image...", nullptr, false)) {
@@ -619,9 +615,7 @@ void WindowSpritesheet::Update() {
                         ));
 
                         if (diffSize) {
-                            ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                            ImGui::OpenPopup("###ModifiedTextureSize");
-                            ImGui::PopID();
+                            OPEN_GLOBAL_POPUP("###ModifiedTextureSize");
                         }
                     }
                 }
@@ -659,9 +653,7 @@ void WindowSpritesheet::Update() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Re-encode (change format)..")) {
-                ImGui::PushOverrideID(AppState::getInstance().globalPopupID);
-                ImGui::OpenPopup("###ReencodePopup");
-                ImGui::PopID();
+                OPEN_GLOBAL_POPUP("###ReencodePopup");
             }
 
             ImGui::EndMenu();
@@ -759,10 +751,7 @@ void WindowSpritesheet::Update() {
         static_cast<float>(cellanimSheet->getHeight())
     };
 
-    float scale;
-    fitRect(imageRect, canvasSize, scale);
-
-    ImVec2 canvasOffset;
+    float scale = fitRect(imageRect, canvasSize);
 
     if (draggingCanvas) {
         this->sheetZoomedOffset.x += io.MouseDelta.x;
@@ -771,6 +760,8 @@ void WindowSpritesheet::Update() {
         this->sheetZoomedOffset.x = std::clamp<float>(this->sheetZoomedOffset.x, -(imageRect.x / 2), imageRect.x / 2);
         this->sheetZoomedOffset.y = std::clamp<float>(this->sheetZoomedOffset.y, -(imageRect.y / 2), imageRect.y / 2);
     }
+
+    ImVec2 canvasOffset;
 
     if (this->sheetZoomTriggered) {
         float rel = (ImGui::GetTime() - this->sheetZoomTimer) / SHEET_ZOOM_TIME;
@@ -818,7 +809,7 @@ void WindowSpritesheet::Update() {
             if (appState.focusOnSelectedPart && !appState.isPartSelected(i))
                 continue;
 
-            RvlCellAnim::ArrangementPart& part = arrangementPtr->parts[i];
+            const RvlCellAnim::ArrangementPart& part = arrangementPtr->parts[i];
 
             unsigned sourceRect[4] {
                 part.regionX, part.regionY, part.regionW, part.regionH
