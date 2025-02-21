@@ -7,7 +7,7 @@
 
 #include "../SessionManager.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 class CommandInsertAnimationKey : public BaseCommand {
 public:
@@ -16,7 +16,7 @@ public:
         unsigned cellanimIndex,
         unsigned animationIndex,
         unsigned keyIndex,
-        RvlCellAnim::AnimationKey key
+        CellAnim::AnimationKey key
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex),
         key(key)
@@ -50,9 +50,9 @@ private:
     unsigned animationIndex;
     unsigned keyIndex;
 
-    RvlCellAnim::AnimationKey key;
+    CellAnim::AnimationKey key;
 
-    RvlCellAnim::Animation& getAnimation() {
+    CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

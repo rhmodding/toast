@@ -7,7 +7,7 @@
 
 #include <array>
 
-#include "../../anim/RvlCellAnim.hpp"
+#include "../../anim/CellAnim.hpp"
 
 #include "../../SessionManager.hpp"
 #include "../../command/CommandModifyAnimation.hpp"
@@ -267,20 +267,20 @@ static bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 static void _ApplyInterpolation(
     const std::array<float, 4>& curve,
     int interval,
-    RvlCellAnim::AnimationKey* backKey, RvlCellAnim::AnimationKey* frontKey,
-    const RvlCellAnim::Animation& animation, unsigned animationIndex
+    CellAnim::AnimationKey* backKey, CellAnim::AnimationKey* frontKey,
+    const CellAnim::Animation& animation, unsigned animationIndex
 ) {
     AppState& appState = AppState::getInstance();
 
     auto& arrangements = SessionManager::getInstance().getCurrentSession()
         ->getCurrentCellanim().object->arrangements;
 
-    const RvlCellAnim::Arrangement* endArrangement = &arrangements.at(backKey->arrangementIndex);
+    const CellAnim::Arrangement* endArrangement = &arrangements.at(backKey->arrangementIndex);
 
-    std::vector<RvlCellAnim::AnimationKey> addKeys((backKey->holdFrames / interval) - 1);
+    std::vector<CellAnim::AnimationKey> addKeys((backKey->holdFrames / interval) - 1);
 
     for (unsigned i = 0; i < addKeys.size(); i++) {
-        RvlCellAnim::AnimationKey& newKey = addKeys[i];
+        CellAnim::AnimationKey& newKey = addKeys[i];
         newKey = *backKey;
 
         float t = _Bezier::BezierValueY((((i+1) * interval)) / (float)backKey->holdFrames, curve.data(), addKeys.size()*2);
@@ -295,7 +295,7 @@ static void _ApplyInterpolation(
 
         // Create new interpolated arrangement if not equal
         if (backKey->arrangementIndex != frontKey->arrangementIndex) {
-            RvlCellAnim::Arrangement newArrangement = arrangements.at(backKey->arrangementIndex);
+            CellAnim::Arrangement newArrangement = arrangements.at(backKey->arrangementIndex);
 
             for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
                 auto& part = newArrangement.parts.at(j);
@@ -346,7 +346,7 @@ static void _ApplyInterpolation(
 
     unsigned currentKeyIndex = PlayerManager::getInstance().getKeyIndex();
 
-    RvlCellAnim::Animation newAnim = animation;
+    CellAnim::Animation newAnim = animation;
     newAnim.keys.insert(newAnim.keys.begin() + currentKeyIndex + 1, addKeys.begin(), addKeys.end());
 
     newAnim.keys.at(currentKeyIndex).holdFrames = interval;
@@ -369,15 +369,15 @@ static void Popup_MInterpolateKeys() {
 
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    static RvlCellAnim::Animation animationBackup { RvlCellAnim::Animation {} };
+    static CellAnim::Animation animationBackup { CellAnim::Animation {} };
 
-    RvlCellAnim::Animation* currentAnimation { nullptr };
+    CellAnim::Animation* currentAnimation { nullptr };
     unsigned animationIndex;
 
-    RvlCellAnim::AnimationKey* currentKey { nullptr };
+    CellAnim::AnimationKey* currentKey { nullptr };
     int currentKeyIndex = -1;
 
-    RvlCellAnim::AnimationKey* nextKey { nullptr };
+    CellAnim::AnimationKey* nextKey { nullptr };
 
     if (condition) {
         currentAnimation = &playerManager.getAnimation();

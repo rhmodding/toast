@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 
@@ -14,7 +14,7 @@ public:
     // Constructor: Replace key from cellanimIndex, animationIndex and keyIndex by newKey.
     CommandModifyAnimationKey(
         unsigned cellanimIndex, unsigned animationIndex, unsigned keyIndex,
-        RvlCellAnim::AnimationKey newKey
+        CellAnim::AnimationKey newKey
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex),
         newKey(newKey)
@@ -44,10 +44,10 @@ private:
     unsigned animationIndex;
     unsigned keyIndex;
 
-    RvlCellAnim::AnimationKey oldKey;
-    RvlCellAnim::AnimationKey newKey;
+    CellAnim::AnimationKey oldKey;
+    CellAnim::AnimationKey newKey;
 
-    RvlCellAnim::AnimationKey& getKey() {
+    CellAnim::AnimationKey& getKey() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object
@@ -55,7 +55,7 @@ private:
             .keys.at(this->keyIndex);
     }
 
-    RvlCellAnim::Arrangement& getArrangement() {
+    CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

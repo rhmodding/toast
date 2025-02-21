@@ -1,5 +1,5 @@
-#ifndef RVLCELLANIM_HPP
-#define RVLCELLANIM_HPP
+#ifndef CellAnim_HPP
+#define CellAnim_HPP
 
 #include <vector>
 
@@ -10,7 +10,7 @@
 
 #include "../common.hpp"
 
-namespace RvlCellAnim {
+namespace CellAnim {
 
 struct TransformValues {
     // On all axes.
@@ -88,7 +88,7 @@ struct ArrangementPart {
     unsigned regionX { 8 }, regionY { 8 };
     unsigned regionW { 32 }, regionH { 32 };
 
-    // TODO: implement
+    // On RVL only.
     unsigned textureVarying { 0 };
 
     TransformValues transform;
@@ -193,10 +193,10 @@ struct Animation {
     bool interpolated { false };
 };
 
-class RvlCellAnimObject {
+class CellAnimObject {
 public:
-    RvlCellAnimObject(const unsigned char* data, const size_t dataSize);
-    RvlCellAnimObject() = default;
+    CellAnimObject(const unsigned char* data, const size_t dataSize);
+    CellAnimObject() = default;
 
     bool isInitialized() const { return this->initialized; };
 
@@ -215,8 +215,8 @@ private:
     bool initialized { false };
 };
 
-std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char *filePath);
+std::shared_ptr<CellAnimObject> readCellAnimFile(const char *filePath);
 
-} // namespace RvlCellAnim
+} // namespace CellAnim
 
-#endif // RVLCELLANIM_HPP
+#endif // CellAnim_HPP

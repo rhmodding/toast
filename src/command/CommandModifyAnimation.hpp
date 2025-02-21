@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
@@ -15,7 +15,7 @@ public:
     // Constructor: Replace animation from cellanimIndex and animationIndex by newAnimation.
     CommandModifyAnimation(
         unsigned cellanimIndex, unsigned animationIndex,
-        RvlCellAnim::Animation newAnimation
+        CellAnim::Animation newAnimation
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex),
         newAnimation(newAnimation)
@@ -48,10 +48,10 @@ private:
     unsigned cellanimIndex;
     unsigned animationIndex;
 
-    RvlCellAnim::Animation oldAnimation;
-    RvlCellAnim::Animation newAnimation;
+    CellAnim::Animation oldAnimation;
+    CellAnim::Animation newAnimation;
 
-    RvlCellAnim::Animation& getAnimation() {
+    CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

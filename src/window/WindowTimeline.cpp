@@ -258,7 +258,7 @@ void WindowTimeline::Update() {
                         playerManager.setKeyIndex(i);
                     }
 
-                    RvlCellAnim::AnimationKey& key = playerManager.getAnimation().keys.at(i);
+                    CellAnim::AnimationKey& key = playerManager.getAnimation().keys.at(i);
 
                     enum DeleteKeyMode {
                         DeleteKeyMode_None,
@@ -286,8 +286,8 @@ void WindowTimeline::Update() {
                         // Key splitting
                         {
                             bool splitPossible { false };
-                            const RvlCellAnim::Arrangement* arrangementA { nullptr };
-                            const RvlCellAnim::Arrangement* arrangementB { nullptr };
+                            const CellAnim::Arrangement* arrangementA { nullptr };
+                            const CellAnim::Arrangement* arrangementB { nullptr };
 
                             auto& arrangements =
                                 sessionManager.getCurrentSession()
@@ -304,8 +304,8 @@ void WindowTimeline::Update() {
 
                             ImGui::BeginDisabled(!splitPossible);
                             if (ImGui::Selectable("Split key (interp, new arrange)")) {
-                                RvlCellAnim::AnimationKey newKey = key;
-                                RvlCellAnim::Arrangement newArrangement = *arrangementA;
+                                CellAnim::AnimationKey newKey = key;
+                                CellAnim::Arrangement newArrangement = *arrangementA;
 
                                 unsigned maxParts = std::min(arrangementA->parts.size(), arrangementB->parts.size());
                                 for (unsigned j = 0; j < maxParts; j++) {
@@ -322,7 +322,7 @@ void WindowTimeline::Update() {
 
                                 arrangements.push_back(newArrangement);
 
-                                RvlCellAnim::AnimationKey modKey = key;
+                                CellAnim::AnimationKey modKey = key;
 
                                 {
                                     newKey.arrangementIndex = arrangements.size() - 1;
@@ -372,7 +372,7 @@ void WindowTimeline::Update() {
                                 sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                                 playerManager.getAnimationIndex(),
                                 i + 1,
-                                io.KeyAlt ? key : RvlCellAnim::AnimationKey()
+                                io.KeyAlt ? key : CellAnim::AnimationKey()
                             ));
 
                             playerManager.setKeyIndex(i + 1);
@@ -384,7 +384,7 @@ void WindowTimeline::Update() {
                                 sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                                 playerManager.getAnimationIndex(),
                                 i,
-                                io.KeyAlt ? key : RvlCellAnim::AnimationKey()
+                                io.KeyAlt ? key : CellAnim::AnimationKey()
                             ));
 
                             playerManager.setKeyIndex(i);
@@ -489,7 +489,7 @@ void WindowTimeline::Update() {
 
                         case DeleteKeyMode_ToLeft: {
                             // Copy
-                            RvlCellAnim::Animation newAnimation = playerManager.getAnimation();
+                            CellAnim::Animation newAnimation = playerManager.getAnimation();
                             newAnimation.keys.erase(newAnimation.keys.begin(), newAnimation.keys.begin() + i);
 
                             sessionManager.getCurrentSession()->addCommand(
@@ -501,7 +501,7 @@ void WindowTimeline::Update() {
                         } break;
                         case DeleteKeyMode_ToRight: {
                             // Copy
-                            RvlCellAnim::Animation newAnimation = playerManager.getAnimation();
+                            CellAnim::Animation newAnimation = playerManager.getAnimation();
                             newAnimation.keys.erase(newAnimation.keys.begin() + i + 1, newAnimation.keys.end());
 
                             sessionManager.getCurrentSession()->addCommand(

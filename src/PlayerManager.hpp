@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "anim/RvlCellAnim.hpp"
+#include "anim/CellAnim.hpp"
 
 #include "SessionManager.hpp"
 
@@ -39,14 +39,14 @@ public:
     unsigned getAnimationIndex() const { return this->animationIndex; }
     void setAnimationIndex(unsigned index);
 
-    RvlCellAnim::Animation& getAnimation() const {
+    CellAnim::Animation& getAnimation() const {
         return this->getCellanim()->animations.at(this->animationIndex);
     }
 
     unsigned getKeyIndex() const { return this->keyIndex; }
     void setKeyIndex(unsigned index);
 
-    RvlCellAnim::AnimationKey& getKey() const {
+    CellAnim::AnimationKey& getKey() const {
         return this->getAnimation().keys.at(this->keyIndex);
     }
 
@@ -54,7 +54,7 @@ public:
         return this->getKey().arrangementIndex;
     }
 
-    RvlCellAnim::Arrangement& getArrangement() const {
+    CellAnim::Arrangement& getArrangement() const {
         return this->getCellanim()->arrangements.at(this->getArrangementIndex());
     }
 
@@ -79,18 +79,24 @@ public:
     // of animations, keys, or parts, the state needs to be 'corrected' to align with
     // the new circumstances.
     void correctState() {
-        unsigned animCount = this->getCellanim()->animations.size();
-        unsigned animIndex = std::min(
-            animCount - 1,
-            this->animationIndex
-        );
+        if (SessionManager::getInstance().getCurrentSessionIndex() >= 0) {
+            unsigned animCount = this->getCellanim()->animations.size();
+            unsigned animIndex = std::min(
+                animCount - 1,
+                this->animationIndex
+            );
 
-        // setAnimationIndex clamps the key count & corrects the part selection.
-        this->setAnimationIndex(animIndex);
+            // setAnimationIndex clamps the key index & corrects the part selection.
+            this->setAnimationIndex(animIndex);
+        }
+        else {
+            this->animationIndex = 0;
+            this->keyIndex = 0;
+        }
     }
 
 private:
-    const std::shared_ptr<RvlCellAnim::RvlCellAnimObject>& getCellanim() const {
+    const std::shared_ptr<CellAnim::CellAnimObject>& getCellanim() const {
         return SessionManager::getInstance().getCurrentSession()
             ->getCurrentCellanim().object;
     }

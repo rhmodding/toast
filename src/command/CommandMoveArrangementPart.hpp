@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 
@@ -26,7 +26,7 @@ public:
     void Execute() override {
         AppState& appState = AppState::getInstance();
 
-        RvlCellAnim::Arrangement& arrangement = this->getArrangement();
+        CellAnim::Arrangement& arrangement = this->getArrangement();
 
         int nSwap = this->partIndex + (moveDown ? -1 : 1);
         if (nSwap >= 0 && nSwap < (int)arrangement.parts.size())
@@ -59,7 +59,7 @@ private:
     unsigned arrangementIndex;
     unsigned partIndex;
 
-    RvlCellAnim::ArrangementPart& getPart() {
+    CellAnim::ArrangementPart& getPart() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object
@@ -67,7 +67,7 @@ private:
             .parts.at(this->partIndex);
     }
 
-    RvlCellAnim::Arrangement& getArrangement() {
+    CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

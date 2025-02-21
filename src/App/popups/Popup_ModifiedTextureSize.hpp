@@ -39,7 +39,7 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
 
             Session* currentSession = sessionManager.getCurrentSession();
 
-            std::vector<RvlCellAnim::Arrangement> newArrangements =
+            std::vector<CellAnim::Arrangement> newArrangements =
                 currentSession->getCurrentCellanim().object->arrangements;
 
             float scaleX =

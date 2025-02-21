@@ -1,4 +1,4 @@
-#include "anim/RvlCellAnim.hpp"
+#include "anim/CellAnim.hpp"
 
 #include <numeric>
 
@@ -6,7 +6,7 @@
 
 #include "AppState.hpp"
 
-static void matchSelectedParts(const RvlCellAnim::Arrangement& before, const RvlCellAnim::Arrangement& after) {
+static void matchSelectedParts(const CellAnim::Arrangement& before, const CellAnim::Arrangement& after) {
     AppState& appState = AppState::getInstance();
 
     for (auto& part : appState.selectedParts) {
@@ -57,7 +57,7 @@ unsigned PlayerManager::getTotalFrames() const {
 
     return std::accumulate(
         animation.keys.begin(), animation.keys.end(), 0u,
-        [](unsigned sum, const RvlCellAnim::AnimationKey& key) {
+        [](unsigned sum, const CellAnim::AnimationKey& key) {
             return sum + key.holdFrames;
         }
     );
@@ -71,7 +71,7 @@ unsigned PlayerManager::getElapsedFrames() const {
 
     unsigned result = std::accumulate(
         animation.keys.begin(), animation.keys.begin() + this->keyIndex, 0u,
-        [](unsigned sum, const RvlCellAnim::AnimationKey& key) {
+        [](unsigned sum, const CellAnim::AnimationKey& key) {
             return sum + key.holdFrames;
         }
     );

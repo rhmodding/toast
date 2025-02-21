@@ -72,10 +72,10 @@ void WindowHybridList::Update() {
 
     ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Borders);
     {
-        static RvlCellAnim::Arrangement copyArrangement;
+        static CellAnim::Arrangement copyArrangement;
         static bool allowPasteArrangement { false };
 
-        static RvlCellAnim::Animation copyAnimation;
+        static CellAnim::Animation copyAnimation;
         static bool allowPasteAnimation { false };
 
         std::shared_ptr<BaseCommand> command;
@@ -179,7 +179,7 @@ void WindowHybridList::Update() {
                         command = std::make_shared<CommandInsertArrangement>(
                             sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                             n+1,
-                            RvlCellAnim::Arrangement()
+                            CellAnim::Arrangement()
                         );
 
                         appState.controlKey.arrangementIndex = n + 1;
@@ -188,7 +188,7 @@ void WindowHybridList::Update() {
                         command = std::make_shared<CommandInsertArrangement>(
                             sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                             n,
-                            RvlCellAnim::Arrangement()
+                            CellAnim::Arrangement()
                         );
 
                         appState.controlKey.arrangementIndex = n;

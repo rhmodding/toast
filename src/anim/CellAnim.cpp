@@ -1,4 +1,4 @@
-#include "RvlCellAnim.hpp"
+#include "CellAnim.hpp"
 
 #include <cstring>
 
@@ -43,7 +43,7 @@ struct TransformValuesRaw {
     float angle { 0.f }; // In degrees.
 
     TransformValuesRaw() = default;
-    TransformValuesRaw(const RvlCellAnim::TransformValues& transformValues, bool isArrangementPart) {
+    TransformValuesRaw(const CellAnim::TransformValues& transformValues, bool isArrangementPart) {
         const int additive = (isArrangementPart ? 512 : 0);
 
         this->positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.positionX + additive));
@@ -53,8 +53,8 @@ struct TransformValuesRaw {
         this->angle = BYTESWAP_FLOAT(transformValues.angle);
     }
 
-    RvlCellAnim::TransformValues toTransformValues(bool isArrangementPart) const {
-        RvlCellAnim::TransformValues transformValues;
+    CellAnim::TransformValues toTransformValues(bool isArrangementPart) const {
+        CellAnim::TransformValues transformValues;
 
         const int additive = (isArrangementPart ? -512 : 0);
 
@@ -88,7 +88,7 @@ struct ArrangementPartRaw {
     uint8_t _pad8 { 0x00 };
 
     ArrangementPartRaw() = default;
-    ArrangementPartRaw(const RvlCellAnim::ArrangementPart& arrangementPart) {
+    ArrangementPartRaw(const CellAnim::ArrangementPart& arrangementPart) {
         this->regionX = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionX));
         this->regionY = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionY));
         this->regionW = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionW));
@@ -140,7 +140,7 @@ struct AnimationKeyRaw {
     uint8_t _pad24[3] { 0x00, 0x00, 0x00 };
 
     AnimationKeyRaw() = default;
-    AnimationKeyRaw(const RvlCellAnim::AnimationKey& animationKey) {
+    AnimationKeyRaw(const CellAnim::AnimationKey& animationKey) {
         this->arrangementIndex = BYTESWAP_16(animationKey.arrangementIndex);
         this->holdFrames = BYTESWAP_16(animationKey.holdFrames);
 
@@ -150,17 +150,17 @@ struct AnimationKeyRaw {
     }
 } __attribute__((packed));
 
-namespace RvlCellAnim {
+namespace CellAnim {
 
-RvlCellAnimObject::RvlCellAnimObject(const unsigned char* data, const size_t dataSize) {
+CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(RvlCellAnimHeader)) {
-        std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: data size smaller than header size!\n";
+        std::cerr << "[CellAnimObject::CellAnimObject] Invalid CellAnim binary: data size smaller than header size!\n";
         return;
     }
 
     const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(data);
     if (header->revisionDate != RCAD_REVISION_DATE) {
-        std::cerr << "[RvlCellAnimObject::RvlCellAnimObject] Invalid RvlCellAnim binary: revision date failed check!\n";
+        std::cerr << "[CellAnimObject::CellAnimObject] Invalid CellAnim binary: revision date failed check!\n";
         return;
     }
 
@@ -249,7 +249,7 @@ RvlCellAnimObject::RvlCellAnimObject(const unsigned char* data, const size_t dat
     this->initialized = true;
 }
 
-std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
+std::vector<unsigned char> CellAnimObject::Reserialize() {
     unsigned fullSize =
         sizeof(RvlCellAnimHeader) +
         sizeof(ArrangementsHeader) +
@@ -318,10 +318,10 @@ std::vector<unsigned char> RvlCellAnimObject::Reserialize() {
     return result;
 }
 
-std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char* filePath) {
+std::shared_ptr<CellAnimObject> readCellAnimFile(const char* filePath) {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        std::cerr << "[RvlCellAnim::readRvlCellAnimFile] Could not open file at path: " << filePath << '\n';
+        std::cerr << "[CellAnim::readCellAnimFile] Could not open file at path: " << filePath << '\n';
         return nullptr;
     }
 
@@ -333,12 +333,12 @@ std::shared_ptr<RvlCellAnimObject> readRvlCellAnimFile(const char* filePath) {
 
     file.close();
 
-    std::shared_ptr<RvlCellAnimObject> object =
-        std::make_shared<RvlCellAnimObject>(buffer, fileSize);
+    std::shared_ptr<CellAnimObject> object =
+        std::make_shared<CellAnimObject>(buffer, fileSize);
 
     delete[] buffer;
 
     return object;
 }
 
-} // namespace RvlCellAnim
+} // namespace CellAnim

@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 
@@ -24,7 +24,7 @@ public:
     ~CommandMoveAnimationKey() = default;
 
     void Execute() override {
-        RvlCellAnim::Animation& animation = this->getAnimation();
+        CellAnim::Animation& animation = this->getAnimation();
 
         // An signed int is used since nSwap can be negative.
         int nSwap = this->keyIndex + (moveDown ? -1 : 1);
@@ -45,7 +45,7 @@ public:
     }
 
     void Rollback() override {
-        RvlCellAnim::Animation& animation = this->getAnimation();
+        CellAnim::Animation& animation = this->getAnimation();
 
         int nSwap = this->keyIndex + (moveDown ? -1 : 1);
         if (nSwap >= 0 && nSwap < (int)animation.keys.size()) {
@@ -73,7 +73,7 @@ private:
     unsigned animationIndex;
     unsigned keyIndex;
 
-    RvlCellAnim::Animation& getAnimation() {
+    CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

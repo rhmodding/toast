@@ -3,7 +3,7 @@
 
 #include "Singleton.hpp"
 
-#include "anim/RvlCellAnim.hpp"
+#include "anim/CellAnim.hpp"
 
 #include "anim/CellanimRenderer.hpp"
 
@@ -96,7 +96,7 @@ public:
     }
 
     // This key object is meant for the arrangement mode to control the state of the key.
-    RvlCellAnim::AnimationKey controlKey;
+    CellAnim::AnimationKey controlKey;
 
     struct SelectedPart {
         unsigned index;
@@ -198,10 +198,10 @@ public:
 
     void deleteSelectedParts(
         ImGuiMultiSelectIO* msIo,
-        std::vector<RvlCellAnim::ArrangementPart>& parts,
+        std::vector<CellAnim::ArrangementPart>& parts,
         int itemCurrentIndexToSelect
     ) {
-        std::vector<RvlCellAnim::ArrangementPart> newParts;
+        std::vector<CellAnim::ArrangementPart> newParts;
         newParts.reserve(parts.size() - selectedParts.size());
 
         int itemNextIndexToSelect = -1;
@@ -244,8 +244,8 @@ public:
     }
 
     int getMatchingNamePartIndex(
-        const RvlCellAnim::ArrangementPart& part,
-        const RvlCellAnim::Arrangement& arrangement
+        const CellAnim::ArrangementPart& part,
+        const CellAnim::Arrangement& arrangement
     ) {
         if (part.editorName[0] == '\0')
             return -1;
@@ -263,8 +263,8 @@ public:
     }
 
     int getMatchingRegionPartIndex(
-        RvlCellAnim::ArrangementPart& part,
-        const RvlCellAnim::Arrangement& arrangement
+        CellAnim::ArrangementPart& part,
+        const CellAnim::Arrangement& arrangement
     ) {
         for (unsigned i = 0; i < arrangement.parts.size(); i++) {
             const auto& lPart = arrangement.parts[i];

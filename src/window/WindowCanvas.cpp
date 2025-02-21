@@ -73,7 +73,7 @@ static bool pointInPolygon(const ImVec2& point, const ImVec2* vertices, unsigned
 constexpr float BOUNDING_INVALID = std::numeric_limits<float>::max();
 
 // Calculate quad bounding of all selected parts
-static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& renderer, const RvlCellAnim::Arrangement& arrangement, float& quadRotation) {
+static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& renderer, const CellAnim::Arrangement& arrangement, float& quadRotation) {
     std::array<ImVec2, 4> partsBounding ({{ BOUNDING_INVALID, BOUNDING_INVALID }});
     
     quadRotation = 0.f;
@@ -394,7 +394,7 @@ void WindowCanvas::Update() {
     if (selectionChangedSinceLastCycle())
         partsTransformation = PartsTransformation {};
 
-    static RvlCellAnim::Arrangement arrangementBeforeMutation;
+    static CellAnim::Arrangement arrangementBeforeMutation;
 
     static bool movingPivot { false };
     static float pivotBeforeMoveLocal[2] { 0.f, 0.f };
@@ -403,7 +403,7 @@ void WindowCanvas::Update() {
     AppState& appState = AppState::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    RvlCellAnim::Arrangement& arrangement = playerManager.getArrangement();
+    CellAnim::Arrangement& arrangement = playerManager.getArrangement();
 
     // Select all parts with CTRL+A
     if (ImGui::Shortcut(ImGuiKey_A | ImGuiMod_Ctrl)) {

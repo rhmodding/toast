@@ -24,8 +24,8 @@ void WindowInspector::Level_Key() {
     const auto& arrangements = sessionManager.getCurrentSession()
         ->getCurrentCellanim().object->arrangements;
 
-    RvlCellAnim::AnimationKey newKey = playerManager.getKey();
-    RvlCellAnim::AnimationKey originalKey = playerManager.getKey();
+    CellAnim::AnimationKey newKey = playerManager.getKey();
+    CellAnim::AnimationKey originalKey = playerManager.getKey();
 
     unsigned animationIndex = playerManager.getAnimationIndex();
     const char* animationName = playerManager.getAnimation().name.c_str();
@@ -46,7 +46,7 @@ void WindowInspector::Level_Key() {
     }
     ImGui::EndChild();
 
-    RvlCellAnim::AnimationKey& animKey = playerManager.getKey();
+    CellAnim::AnimationKey& animKey = playerManager.getKey();
 
     ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Arrangement");
 
@@ -154,8 +154,8 @@ void WindowInspector::Level_Key() {
         if (ImGui::InputInt("Hold Frames", &holdFrames)) {
             animKey.holdFrames = std::clamp<unsigned>(
                 holdFrames,
-                RvlCellAnim::AnimationKey::MIN_HOLD_FRAMES,
-                RvlCellAnim::AnimationKey::MAX_HOLD_FRAMES
+                CellAnim::AnimationKey::MIN_HOLD_FRAMES,
+                CellAnim::AnimationKey::MAX_HOLD_FRAMES
             );
         };
 
@@ -165,13 +165,13 @@ void WindowInspector::Level_Key() {
         if (ImGui::IsItemDeactivated()) {
             originalKey.holdFrames = std::clamp<unsigned>(
                 oldHoldFrames,
-                RvlCellAnim::AnimationKey::MIN_HOLD_FRAMES,
-                RvlCellAnim::AnimationKey::MAX_HOLD_FRAMES
+                CellAnim::AnimationKey::MIN_HOLD_FRAMES,
+                CellAnim::AnimationKey::MAX_HOLD_FRAMES
             );;
             newKey.holdFrames = std::clamp<unsigned>(
                 holdFrames,
-                RvlCellAnim::AnimationKey::MIN_HOLD_FRAMES,
-                RvlCellAnim::AnimationKey::MAX_HOLD_FRAMES
+                CellAnim::AnimationKey::MIN_HOLD_FRAMES,
+                CellAnim::AnimationKey::MAX_HOLD_FRAMES
             );;
         }
     }
@@ -189,8 +189,8 @@ void WindowInspector::Level_Key() {
         if (ImGui::DragInt2(
             "Position XY",
             positionValues, 1.f,
-            RvlCellAnim::TransformValues::MIN_POSITION,
-            RvlCellAnim::TransformValues::MAX_POSITION
+            CellAnim::TransformValues::MIN_POSITION,
+            CellAnim::TransformValues::MAX_POSITION
         )) {
             animKey.transform.positionX = positionValues[0];
             animKey.transform.positionY = positionValues[1];

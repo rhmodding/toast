@@ -7,7 +7,7 @@
 
 #include "texture/TextureGroup.hpp"
 
-#include "anim/RvlCellAnim.hpp"
+#include "anim/CellAnim.hpp"
 
 #include "command/BaseCommand.hpp"
 
@@ -55,7 +55,7 @@ public:
 
 public:
     struct CellanimData {
-        std::shared_ptr<RvlCellAnim::RvlCellAnimObject> object;
+        std::shared_ptr<CellAnim::CellAnimObject> object;
         std::string name;
     };
 

@@ -26,7 +26,7 @@ set(SOURCES
     src/App/Popups.cpp
 
     src/anim/CellanimRenderer.cpp
-    src/anim/RvlCellAnim.cpp
+    src/anim/CellAnim.cpp
 
     src/anim/CellanimHelpers.cpp
 

@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include "anim/RvlCellAnim.hpp"
+#include "anim/CellAnim.hpp"
 
 // Major version must be changed for any breaking changes.
 constexpr unsigned int TED_VERSION_MAJOR = 0;
@@ -78,7 +78,7 @@ struct TedNamedPartEntryOld {
     char name[32];
 } __attribute__((packed));
 
-static RvlCellAnim::ArrangementPart* _TedGetPart(
+static CellAnim::ArrangementPart* _TedGetPart(
     const Session& session,
     uint16_t cellIndex, uint16_t arrngIndex, uint16_t partIndex
 ) {

@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
@@ -42,16 +42,16 @@ private:
     unsigned cellanimIndex;
     unsigned animationIndex;
 
-    RvlCellAnim::Animation animation;
+    CellAnim::Animation animation;
 
-    std::vector<RvlCellAnim::Animation>& getAnimations() {
+    std::vector<CellAnim::Animation>& getAnimations() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object
             ->animations;
     }
 
-    RvlCellAnim::Animation& getAnimation() {
+    CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

@@ -9,7 +9,7 @@
 
 #include "../common.hpp"
 
-void CellanimRenderer::Draw(ImDrawList* drawList, const RvlCellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
+void CellanimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
     NONFATAL_ASSERT_RET(this->textureGroup, true);
 
@@ -19,7 +19,7 @@ void CellanimRenderer::Draw(ImDrawList* drawList, const RvlCellAnim::Animation& 
     this->InternDraw(drawList, animation.keys.at(keyIndex), -1, 0xFFFFFFFFu, allowOpacity);
 }
 
-void CellanimRenderer::DrawOnionSkin(ImDrawList* drawList, const RvlCellAnim::Animation& animation, unsigned keyIndex, unsigned backCount, unsigned frontCount, bool rollOver, uint8_t opacity) {
+void CellanimRenderer::DrawOnionSkin(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, unsigned backCount, unsigned frontCount, bool rollOver, uint8_t opacity) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
     NONFATAL_ASSERT_RET(this->textureGroup, true);
 
@@ -72,13 +72,13 @@ static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
     return { x + origin.x, y + origin.y };
 }
 
-std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const RvlCellAnim::AnimationKey& key, unsigned partIndex) const {
+std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const CellAnim::AnimationKey& key, unsigned partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
     NONFATAL_ASSERT_RETVAL(this->cellanim, transformedQuad);
 
-    const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key.arrangementIndex);
-    const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
+    const CellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key.arrangementIndex);
+    const CellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
 
     const int*   tempOffset = arrangement.tempOffset;
     const float* tempScale  = arrangement.tempScale;
@@ -147,12 +147,12 @@ std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const RvlCellAnim::Anim
     return transformedQuad;
 }
 
-std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const RvlCellAnim::TransformValues keyTransform, const RvlCellAnim::Arrangement& arrangement, unsigned partIndex) const {
+std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const CellAnim::TransformValues keyTransform, const CellAnim::Arrangement& arrangement, unsigned partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
     NONFATAL_ASSERT_RETVAL(this->cellanim, transformedQuad);
 
-    const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
+    const CellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
 
     const int*   tempOffset = arrangement.tempOffset;
     const float* tempScale  = arrangement.tempScale;
@@ -221,7 +221,7 @@ std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const RvlCellAnim::Tran
     return transformedQuad;
 }
 
-ImRect CellanimRenderer::getKeyWorldRect(const RvlCellAnim::AnimationKey& key) const {
+ImRect CellanimRenderer::getKeyWorldRect(const CellAnim::AnimationKey& key) const {
     NONFATAL_ASSERT_RETVAL(this->cellanim, ImRect());
 
     const auto& arrangement = this->cellanim->arrangements.at(key.arrangementIndex);
@@ -249,13 +249,13 @@ ImRect CellanimRenderer::getKeyWorldRect(const RvlCellAnim::AnimationKey& key) c
 
 void CellanimRenderer::InternDraw(
     ImDrawList* drawList,
-    const RvlCellAnim::AnimationKey& key, int partIndex,
+    const CellAnim::AnimationKey& key, int partIndex,
     uint32_t colorMod,
     bool allowOpacity
 ) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
 
-    const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key.arrangementIndex);
+    const CellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key.arrangementIndex);
 
     const float texWidth = this->cellanim->sheetW;
     const float texHeight = this->cellanim->sheetH;
@@ -264,7 +264,7 @@ void CellanimRenderer::InternDraw(
         if (partIndex != -1 && partIndex != (int)i)
             continue;
 
-        const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(i);
+        const CellAnim::ArrangementPart& part = arrangement.parts.at(i);
 
         // Skip invisible parts
         if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)
@@ -387,17 +387,17 @@ unsigned Animatable::getCurrentKeyIndex() const {
     return this->currentKeyIndex;
 }
 
-RvlCellAnim::AnimationKey* Animatable::getCurrentKey() const {
+CellAnim::AnimationKey* Animatable::getCurrentKey() const {
     if (this->overrideKey)
         return this->overrideKey;
     return &this->cellanim->animations.at(this->currentAnimationIndex).keys.at(this->currentKeyIndex);
 }
 
-RvlCellAnim::Animation* Animatable::getCurrentAnimation() const {
+CellAnim::Animation* Animatable::getCurrentAnimation() const {
     return &this->cellanim->animations.at(this->currentAnimationIndex);
 }
 
-RvlCellAnim::Arrangement* Animatable::getCurrentArrangement() const {
+CellAnim::Arrangement* Animatable::getCurrentArrangement() const {
     return &this->cellanim->arrangements.at(this->getCurrentKey()->arrangementIndex);
 }
 
@@ -405,7 +405,7 @@ int Animatable::getHoldFramesLeft() const {
     return this->holdKey;
 }
 
-ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
+ImRect Animatable::getKeyWorldRect(CellAnim::AnimationKey* key) const {
     const auto& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
     std::vector<std::array<ImVec2, 4>> quads(arrangement.parts.size());
@@ -430,13 +430,13 @@ ImRect Animatable::getKeyWorldRect(RvlCellAnim::AnimationKey* key) const {
 }
 
 // Top-left, top-right, bottom-right, bottom-left
-std::array<ImVec2, 4> Animatable::getPartWorldQuad(const RvlCellAnim::AnimationKey* key, unsigned partIndex) const {
+std::array<ImVec2, 4> Animatable::getPartWorldQuad(const CellAnim::AnimationKey* key, unsigned partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
     NONFATAL_ASSERT_RETVAL(this->cellanim, transformedQuad);
 
-    const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
-    const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
+    const CellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
+    const CellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
 
     const int*   arrngOffset = arrangement.tempOffset;
     const float* arrngScale  = arrangement.tempScale;
@@ -517,7 +517,7 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
     if (!this->visible)
         return false;
 
-    const RvlCellAnim::Arrangement& arrangement =
+    const CellAnim::Arrangement& arrangement =
         this->cellanim->arrangements.at(this->getCurrentKey()->arrangementIndex);
 
     if (!allowOpacity && !arrangement.parts.empty())
@@ -531,7 +531,7 @@ bool Animatable::getDoesDraw(bool allowOpacity) const {
     return false;
 }
 
-void Animatable::overrideAnimationKey(RvlCellAnim::AnimationKey* key) {
+void Animatable::overrideAnimationKey(CellAnim::AnimationKey* key) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
     NONFATAL_ASSERT_RET(key, true);
 
@@ -540,7 +540,7 @@ void Animatable::overrideAnimationKey(RvlCellAnim::AnimationKey* key) {
 }
 
 void Animatable::DrawKey(
-    const RvlCellAnim::AnimationKey* key,
+    const CellAnim::AnimationKey* key,
     ImDrawList* drawList,
 
     int partIndex,
@@ -549,7 +549,7 @@ void Animatable::DrawKey(
 ) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
 
-    const RvlCellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
+    const CellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key->arrangementIndex);
 
     const float texWidth = this->cellanim->sheetW;
     const float texHeight = this->cellanim->sheetH;
@@ -558,7 +558,7 @@ void Animatable::DrawKey(
         if (partIndex != -1 && partIndex != (int)i)
             continue;
 
-        const RvlCellAnim::ArrangementPart& part = arrangement.parts.at(i);
+        const CellAnim::ArrangementPart& part = arrangement.parts.at(i);
 
         // Skip invisible parts
         if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)

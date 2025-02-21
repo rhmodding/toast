@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
@@ -15,7 +15,7 @@ public:
     // Constructor: Replace arrangement from cellanimIndex and arrangementIndex by newArrangement.
     CommandModifyArrangement(
         unsigned cellanimIndex, unsigned arrangementIndex,
-        RvlCellAnim::Arrangement newArrangement
+        CellAnim::Arrangement newArrangement
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex),
         newArrangement(newArrangement)
@@ -44,10 +44,10 @@ private:
     unsigned cellanimIndex;
     unsigned arrangementIndex;
 
-    RvlCellAnim::Arrangement oldArrangement;
-    RvlCellAnim::Arrangement newArrangement;
+    CellAnim::Arrangement oldArrangement;
+    CellAnim::Arrangement newArrangement;
 
-    RvlCellAnim::Arrangement& getArrangement() {
+    CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

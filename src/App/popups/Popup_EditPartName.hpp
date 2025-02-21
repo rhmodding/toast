@@ -14,7 +14,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
 
     static bool lateOpen { false };
 
-    static char newName[sizeof(RvlCellAnim::ArrangementPart::editorName)] { '\0' };
+    static char newName[sizeof(CellAnim::ArrangementPart::editorName)] { '\0' };
 
     CENTER_NEXT_WINDOW();
 
@@ -25,7 +25,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
     SessionManager& sessionManager = SessionManager::getInstance();
 
     if (!lateOpen && open) {
-        const RvlCellAnim::ArrangementPart& part =
+        const CellAnim::ArrangementPart& part =
             sessionManager.getCurrentSession()
                 ->getCurrentCellanim().object
                 ->arrangements.at(arrangementIndex).parts.at(partIndex);
@@ -45,7 +45,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
         ImGui::Dummy({ 0.f, 5.f });
 
         if (ImGui::Button("OK", { 120.f, 0.f })) {
-            RvlCellAnim::ArrangementPart newPart =
+            CellAnim::ArrangementPart newPart =
                 sessionManager.getCurrentSession()
                 ->getCurrentCellanim().object
                 ->arrangements.at(arrangementIndex).parts.at(partIndex);

@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
@@ -70,16 +70,16 @@ private:
     unsigned cellanimIndex;
     unsigned arrangementIndex;
 
-    RvlCellAnim::Arrangement arrangement;
+    CellAnim::Arrangement arrangement;
 
-    std::vector<RvlCellAnim::Arrangement>& getArrangements() {
+    std::vector<CellAnim::Arrangement>& getArrangements() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object
             ->arrangements;
     }
 
-    RvlCellAnim::Arrangement& getArrangement() {
+    CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

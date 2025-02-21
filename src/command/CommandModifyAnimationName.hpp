@@ -38,7 +38,7 @@ private:
     std::string oldName;
     std::string newName;
 
-    RvlCellAnim::Animation& getAnimation() {
+    CellAnim::Animation& getAnimation() {
         return SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(cellanimIndex).object
             ->animations.at(animationIndex);

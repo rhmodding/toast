@@ -16,7 +16,7 @@
 
 #include <tinyfiledialogs.h>
 
-#include "anim/RvlCellAnim.hpp"
+#include "anim/CellAnim.hpp"
 
 #include "font/SegoeUI.h"
 #include "font/FontAwesome.h"

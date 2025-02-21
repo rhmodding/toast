@@ -24,7 +24,7 @@ void WindowInspector::Level_Arrangement() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    static std::vector<RvlCellAnim::ArrangementPart> copyParts;
+    static std::vector<CellAnim::ArrangementPart> copyParts;
 
     const auto& arrangements = sessionManager.getCurrentSession()
         ->getCurrentCellanim().object->arrangements;
@@ -159,8 +159,8 @@ void WindowInspector::Level_Arrangement() {
         if (appState.singlePartSelected()) {
             auto& part = playerManager.getArrangement().parts.at(appState.selectedParts[0].index);
 
-            RvlCellAnim::ArrangementPart newPart = part;
-            RvlCellAnim::ArrangementPart originalPart = part;
+            CellAnim::ArrangementPart newPart = part;
+            CellAnim::ArrangementPart originalPart = part;
 
             ImGui::BeginDisabled(part.editorLocked);
 
@@ -181,8 +181,8 @@ void WindowInspector::Level_Arrangement() {
                     if (ImGui::DragInt2(
                         "Position XY##World",
                         positionValues, 1.f,
-                        RvlCellAnim::TransformValues::MIN_POSITION,
-                        RvlCellAnim::TransformValues::MAX_POSITION
+                        CellAnim::TransformValues::MIN_POSITION,
+                        CellAnim::TransformValues::MAX_POSITION
                     )) {
                         part.transform.positionX = static_cast<int16_t>(positionValues[0]);
                         part.transform.positionY = static_cast<int16_t>(positionValues[1]);
@@ -281,7 +281,7 @@ void WindowInspector::Level_Arrangement() {
 
                     if (ImGui::DragInt2(
                         "Position XY##Region", positionValues, 1.f,
-                        0, RvlCellAnim::ArrangementPart::MAX_REGION
+                        0, CellAnim::ArrangementPart::MAX_REGION
                     )) {
                         part.regionX = positionValues[0];
                         part.regionY = positionValues[1];
@@ -311,7 +311,7 @@ void WindowInspector::Level_Arrangement() {
 
                     if (ImGui::DragInt2(
                         "Size WH##Region", sizeValues, 1.f,
-                        0, RvlCellAnim::ArrangementPart::MAX_REGION
+                        0, CellAnim::ArrangementPart::MAX_REGION
                     )) {
                         part.regionW = sizeValues[0];
                         part.regionH = sizeValues[1];
@@ -555,7 +555,7 @@ void WindowInspector::Level_Arrangement() {
 
                 if (ImGui::BeginMenu("Paste single part (special)..", copyParts.size() == 1)) {
                     if (ImGui::MenuItem("..transform")) {
-                        RvlCellAnim::ArrangementPart newPart = part;
+                        CellAnim::ArrangementPart newPart = part;
 
                         newPart.transform = copyParts[0].transform;
 
@@ -575,7 +575,7 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::MenuItem("..opacity")) {
-                        RvlCellAnim::ArrangementPart newPart = part;
+                        CellAnim::ArrangementPart newPart = part;
                         newPart.opacity = copyParts[0].opacity;
 
                         sessionManager.getCurrentSession()->addCommand(
@@ -591,7 +591,7 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::MenuItem("..region")) {
-                        RvlCellAnim::ArrangementPart newPart = part;
+                        CellAnim::ArrangementPart newPart = part;
 
                         newPart.regionX = copyParts[0].regionX;
                         newPart.regionY = copyParts[0].regionY;
@@ -837,7 +837,7 @@ void WindowInspector::Level_Arrangement() {
                 sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                 playerManager.getArrangementIndex(),
                 insertNewPart,
-                RvlCellAnim::ArrangementPart {}
+                CellAnim::ArrangementPart {}
             ));
 
             appState.clearSelectedParts();

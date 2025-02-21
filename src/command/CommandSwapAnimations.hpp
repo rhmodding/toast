@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
@@ -82,7 +82,7 @@ private:
         }
     }
 
-    std::vector<RvlCellAnim::Animation>& getAnimations() {
+    std::vector<CellAnim::Animation>& getAnimations() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

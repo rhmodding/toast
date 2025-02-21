@@ -9,7 +9,7 @@
 
 #include <filesystem>
 
-#include "anim/RvlCellAnim.hpp"
+#include "anim/CellAnim.hpp"
 
 #include "archive/U8.hpp"
 #include "compression/Yaz0.hpp"
@@ -189,7 +189,7 @@ int SessionManager::CreateSession(const char* filePath) {
 
         cellanim.name = file->name;
         cellanim.object =
-            std::make_shared<RvlCellAnim::RvlCellAnimObject>(
+            std::make_shared<CellAnim::CellAnimObject>(
                 file->data.data(), file->data.size()
             );
 

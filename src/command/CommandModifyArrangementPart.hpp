@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 
@@ -14,7 +14,7 @@ public:
     // Constructor: Replace part from cellanimIndex, arrangementIndex and partIndex by newPart.
     CommandModifyArrangementPart(
         unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex,
-        RvlCellAnim::ArrangementPart newPart
+        CellAnim::ArrangementPart newPart
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
         newPart(newPart)
@@ -40,10 +40,10 @@ private:
     unsigned arrangementIndex;
     unsigned partIndex;
 
-    RvlCellAnim::ArrangementPart oldPart;
-    RvlCellAnim::ArrangementPart newPart;
+    CellAnim::ArrangementPart oldPart;
+    CellAnim::ArrangementPart newPart;
 
-    RvlCellAnim::ArrangementPart& getPart() {
+    CellAnim::ArrangementPart& getPart() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

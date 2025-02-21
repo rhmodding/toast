@@ -22,7 +22,7 @@ static void Popup_MTransformArrangement() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    RvlCellAnim::Arrangement* arrangement { nullptr };
+    CellAnim::Arrangement* arrangement { nullptr };
 
     if (sessionManager.getCurrentSessionIndex() >= 0)
         arrangement = &playerManager.getArrangement();

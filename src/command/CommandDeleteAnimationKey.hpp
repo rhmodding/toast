@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
@@ -21,7 +21,7 @@ public:
     ~CommandDeleteAnimationKey() = default;
 
     void Execute() override {
-        RvlCellAnim::Animation& animation = this->getAnimation();
+        CellAnim::Animation& animation = this->getAnimation();
 
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.erase(it);
@@ -32,7 +32,7 @@ public:
     }
 
     void Rollback() override {
-        RvlCellAnim::Animation& animation = this->getAnimation();
+        CellAnim::Animation& animation = this->getAnimation();
 
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.insert(it, this->key);
@@ -47,9 +47,9 @@ private:
     unsigned animationIndex;
     unsigned keyIndex;
 
-    RvlCellAnim::AnimationKey key;
+    CellAnim::AnimationKey key;
 
-    RvlCellAnim::AnimationKey& getKey() {
+    CellAnim::AnimationKey& getKey() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object
@@ -57,7 +57,7 @@ private:
             .keys.at(this->keyIndex);
     }
 
-    RvlCellAnim::Animation& getAnimation() {
+    CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

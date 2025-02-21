@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 
@@ -14,7 +14,7 @@ public:
     // Constructor: Insert part by cellanimIndex, arrangementIndex and partIndex from part.
     CommandInsertArrangementPart(
         unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex,
-        RvlCellAnim::ArrangementPart part
+        CellAnim::ArrangementPart part
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
         part(part)
@@ -22,7 +22,7 @@ public:
     ~CommandInsertArrangementPart() = default;
 
     void Execute() override {
-        RvlCellAnim::Arrangement& arrangement = this->getArrangement();
+        CellAnim::Arrangement& arrangement = this->getArrangement();
 
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.insert(it, this->part);
@@ -33,7 +33,7 @@ public:
     }
 
     void Rollback() override {
-        RvlCellAnim::Arrangement& arrangement = this->getArrangement();
+        CellAnim::Arrangement& arrangement = this->getArrangement();
 
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.erase(it);
@@ -48,9 +48,9 @@ private:
     unsigned arrangementIndex;
     unsigned partIndex;
 
-    RvlCellAnim::ArrangementPart part;
+    CellAnim::ArrangementPart part;
 
-    RvlCellAnim::Arrangement& getArrangement() {
+    CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object

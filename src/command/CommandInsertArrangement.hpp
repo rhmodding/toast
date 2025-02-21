@@ -8,7 +8,7 @@
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 class CommandInsertArrangement : public BaseCommand {
 public:
@@ -16,7 +16,7 @@ public:
     CommandInsertArrangement(
         unsigned cellanimIndex,
         unsigned arrangementIndex,
-        RvlCellAnim::Arrangement arrangement
+        CellAnim::Arrangement arrangement
     ) :
         cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex),
         arrangement(arrangement)
@@ -56,9 +56,9 @@ private:
 
     unsigned arrangementIndex;
 
-    RvlCellAnim::Arrangement arrangement;
+    CellAnim::Arrangement arrangement;
 
-    std::shared_ptr<RvlCellAnim::RvlCellAnimObject> getCellanim() {
+    std::shared_ptr<CellAnim::CellAnimObject> getCellanim() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object;

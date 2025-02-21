@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/RvlCellAnim.hpp"
+#include "../anim/CellAnim.hpp"
 
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
@@ -21,7 +21,7 @@ public:
     ~CommandDeleteArrangementPart() = default;
 
     void Execute() override {
-        RvlCellAnim::Arrangement& arrangement = this->getArrangement();
+        CellAnim::Arrangement& arrangement = this->getArrangement();
 
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.erase(it);
@@ -32,7 +32,7 @@ public:
     }
 
     void Rollback() override {
-        RvlCellAnim::Arrangement& arrangement = this->getArrangement();
+        CellAnim::Arrangement& arrangement = this->getArrangement();
 
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.insert(it, this->part);
@@ -47,9 +47,9 @@ private:
     unsigned arrangementIndex;
     unsigned partIndex;
 
-    RvlCellAnim::ArrangementPart part;
+    CellAnim::ArrangementPart part;
 
-    RvlCellAnim::ArrangementPart& getPart() {
+    CellAnim::ArrangementPart& getPart() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object
@@ -57,7 +57,7 @@ private:
             .parts.at(this->partIndex);
     }
 
-    RvlCellAnim::Arrangement& getArrangement() {
+    CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object
