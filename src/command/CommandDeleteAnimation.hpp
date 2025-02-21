@@ -24,8 +24,7 @@ public:
         auto it = this->getAnimations().begin() + this->animationIndex;
         this->getAnimations().erase(it);
 
-        PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -34,15 +33,14 @@ public:
         auto it = this->getAnimations().begin() + this->animationIndex;
         this->getAnimations().insert(it, this->animation);
 
-        PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint16_t animationIndex;
+    unsigned cellanimIndex;
+    unsigned animationIndex;
 
     RvlCellAnim::Animation animation;
 

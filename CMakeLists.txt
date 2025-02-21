@@ -25,7 +25,7 @@ set(SOURCES
 
     src/App/Popups.cpp
 
-    src/anim/Animatable.cpp
+    src/anim/CellanimRenderer.cpp
     src/anim/RvlCellAnim.cpp
 
     src/anim/CellanimHelpers.cpp
@@ -35,6 +35,7 @@ set(SOURCES
     src/compression/Yaz0.cpp
 
     src/texture/Texture.cpp
+    src/texture/TextureGroup.cpp
 
     src/texture/ImageConvert.cpp
     src/texture/TPL.cpp

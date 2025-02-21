@@ -271,9 +271,11 @@ static void _ApplyInterpolation(
     const RvlCellAnim::Animation& animation, unsigned animationIndex
 ) {
     AppState& appState = AppState::getInstance();
-    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
 
-    const RvlCellAnim::Arrangement* endArrangement = &globalAnimatable.cellanim->arrangements.at(backKey->arrangementIndex);
+    auto& arrangements = SessionManager::getInstance().getCurrentSession()
+        ->getCurrentCellanim().object->arrangements;
+
+    const RvlCellAnim::Arrangement* endArrangement = &arrangements.at(backKey->arrangementIndex);
 
     std::vector<RvlCellAnim::AnimationKey> addKeys((backKey->holdFrames / interval) - 1);
 
@@ -293,8 +295,7 @@ static void _ApplyInterpolation(
 
         // Create new interpolated arrangement if not equal
         if (backKey->arrangementIndex != frontKey->arrangementIndex) {
-            RvlCellAnim::Arrangement newArrangement =
-                globalAnimatable.cellanim->arrangements.at(backKey->arrangementIndex);
+            RvlCellAnim::Arrangement newArrangement = arrangements.at(backKey->arrangementIndex);
 
             for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
                 auto& part = newArrangement.parts.at(j);
@@ -334,16 +335,16 @@ static void _ApplyInterpolation(
                 );
             }
 
-            newKey.arrangementIndex = globalAnimatable.cellanim->arrangements.size();
-            globalAnimatable.cellanim->arrangements.push_back(newArrangement);
+            newKey.arrangementIndex = arrangements.size();
+            arrangements.push_back(newArrangement);
 
-            endArrangement = &globalAnimatable.cellanim->arrangements.at(frontKey->arrangementIndex);
+            endArrangement = &arrangements.at(frontKey->arrangementIndex);
         }
     }
 
     SessionManager& sessionManager = SessionManager::getInstance();
 
-    unsigned currentKeyIndex = globalAnimatable.getCurrentKeyIndex();
+    unsigned currentKeyIndex = PlayerManager::getInstance().getKeyIndex();
 
     RvlCellAnim::Animation newAnim = animation;
     newAnim.keys.insert(newAnim.keys.begin() + currentKeyIndex + 1, addKeys.begin(), addKeys.end());
@@ -352,7 +353,7 @@ static void _ApplyInterpolation(
 
     sessionManager.getCurrentSession()->addCommand(
     std::make_shared<CommandModifyAnimation>(
-        sessionManager.getCurrentSession()->currentCellanim,
+        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
         animationIndex,
         newAnim
     ));
@@ -364,9 +365,9 @@ static void Popup_MInterpolateKeys() {
     static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MInterpolateKeys");
 
-    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+    bool condition = SessionManager::getInstance().getCurrentSessionIndex() >= 0;
 
-    bool condition = globalAnimatable.cellanim.get();
+    PlayerManager& playerManager = PlayerManager::getInstance();
 
     static RvlCellAnim::Animation animationBackup { RvlCellAnim::Animation {} };
 
@@ -379,21 +380,23 @@ static void Popup_MInterpolateKeys() {
     RvlCellAnim::AnimationKey* nextKey { nullptr };
 
     if (condition) {
-        currentAnimation = globalAnimatable.getCurrentAnimation();
-        animationIndex = globalAnimatable.getCurrentAnimationIndex();
+        currentAnimation = &playerManager.getAnimation();
+        animationIndex = playerManager.getAnimationIndex();
 
-        currentKey = globalAnimatable.getCurrentKey();
-        nextKey = currentKey + 1;
+        currentKey = &playerManager.getKey();
+        currentKeyIndex = static_cast<int>(playerManager.getKeyIndex());
 
-        currentKeyIndex = static_cast<int>(globalAnimatable.getCurrentKeyIndex());
+        bool nextKeyExists = currentKeyIndex + 1 < (int)currentAnimation->keys.size();
 
-        // Does next key exist?
-        condition = currentKeyIndex + 1 < (int)currentAnimation->keys.size();
+        if (nextKeyExists)
+            nextKey = &playerManager.getAnimation().keys.at(currentKeyIndex + 1);
+
+        condition = nextKeyExists;
     }
 
     if (!active && lateOpen && condition) {
         *currentAnimation = animationBackup;
-        PlayerManager::getInstance().clampCurrentKeyIndex();
+        playerManager.correctState();
 
         lateOpen = false;
     }
@@ -524,8 +527,8 @@ static void Popup_MInterpolateKeys() {
             );
 
             // Refresh pointers since parent vector could have reallocated
-            currentAnimation = globalAnimatable.getCurrentAnimation();
-            currentKey = globalAnimatable.getCurrentKey();
+            currentAnimation = &playerManager.getAnimation();
+            currentKey = &playerManager.getKey();
             nextKey = currentKey + 1;
 
             ImGui::CloseCurrentPopup();

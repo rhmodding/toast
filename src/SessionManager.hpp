@@ -5,6 +5,8 @@
 
 #include "texture/Texture.hpp"
 
+#include "texture/TextureGroup.hpp"
+
 #include "anim/RvlCellAnim.hpp"
 
 #include "command/BaseCommand.hpp"
@@ -21,8 +23,6 @@
 #include <mutex>
 
 #include "common.hpp"
-
-constexpr unsigned int SESSION_MAX_COMMANDS = 512;
 
 class Session {
 public:
@@ -70,22 +70,25 @@ public:
 
     void clearUndoRedo() { this->undoQueue.clear(); this->redoQueue.clear(); };
 
+    unsigned getCurrentCellanimIndex() const { return this->currentCellanim; }
+    void setCurrentCellanimIndex(unsigned index);
+
     CellanimData& getCurrentCellanim() {
         return this->cellanims.at(this->currentCellanim);
     }
 
+
     std::shared_ptr<Texture>& getCurrentCellanimSheet() {
-        return this->sheets.at(std::min<unsigned>(
-            this->cellanims.at(this->currentCellanim).object->sheetIndex,
-            this->sheets.size() - 1
-        ));
+        return this->sheets->getTextureByIndex(
+            this->cellanims.at(this->currentCellanim).object->sheetIndex
+        );
     }
 
 public:
-    std::vector<CellanimData> cellanims;
-    std::vector<std::shared_ptr<Texture>> sheets;
+    static constexpr unsigned int COMMANDS_MAX = 512;
 
-    unsigned currentCellanim { 0 };
+    std::vector<CellanimData> cellanims;
+    std::shared_ptr<TextureGroup> sheets { std::make_shared<TextureGroup>() };
 
     std::string resourcePath;
 
@@ -96,6 +99,8 @@ public:
 private:
     std::deque<std::shared_ptr<BaseCommand>> undoQueue;
     std::deque<std::shared_ptr<BaseCommand>> redoQueue;
+
+    unsigned currentCellanim { 0 };
 };
 
 class SessionManager : public Singleton<SessionManager> {
@@ -106,40 +111,51 @@ private:
 public:
     ~SessionManager() = default;
 
+private:
+    void onSessionChange();
+
 public:
     Session* getCurrentSession() {
         if (this->currentSessionIndex >= 0)
-            return &this->sessionList.at(this->currentSessionIndex);
+            return &this->sessions.at(this->currentSessionIndex);
 
         return nullptr;
     }
 
     bool getCurrentSessionModified() const {
         if (this->currentSessionIndex >= 0)
-            return this->sessionList.at(this->currentSessionIndex).modified;
+            return this->sessions.at(this->currentSessionIndex).modified;
         else
             return false;
     }
     void setCurrentSessionModified(bool modified) {
         if (this->currentSessionIndex >= 0)
-            this->sessionList.at(this->currentSessionIndex).modified = modified;
+            this->sessions.at(this->currentSessionIndex).modified = modified;
     }
 
     bool getSessionAvaliable() const {
         return this->currentSessionIndex >= 0;
     }
 
-    void SessionChanged();
+    int  getCurrentSessionIndex() const { return this->currentSessionIndex; }
+    void setCurrentSessionIndex(int sessionIndex);
 
-    // Push session from a Yaz0-compressed U8 archive (SZS).
-    int PushSessionFromCompressedArc(const char* filePath);
+    // Create a new session from the path of a cellanim archive (.szs).
+    //
+    // Returns: index of new session if succeeded, -1 if failed
+    int CreateSession(const char* filePath);
 
-    int ExportSessionCompressedArc(Session* session, const char* outPath);
+    // Export a session as a cellanim archive (.szs) to the specified path.
+    // Note: if dstFilePath is NULL, then the session's resourcePath is used.
+    //
+    // Returns: true if succeeded, false if failed
+    bool ExportSession(unsigned sessionIndex, const char* dstFilePath = nullptr);
 
-    void ClearSessionPtr(Session* session);
-    void FreeSessionIndex(int index);
+    // Remove a session by it's index.
+    void RemoveSession(unsigned sessionIndex);
 
-    void FreeAllSessions();
+    // Remove all sessions.
+    void RemoveAllSessions();
 
 public:
     enum Error {
@@ -161,9 +177,11 @@ public:
 
     Error currentError { Error_None };
 
-    std::deque<Session> sessionList;
+    std::vector<Session> sessions;
 
+private:
     int currentSessionIndex { -1 };
+public:
     // Current session being closed. Used for closing while modified warning.
     int sessionClosingIndex { -1 };
 

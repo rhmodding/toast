@@ -30,7 +30,7 @@
 
 void Session::addCommand(std::shared_ptr<BaseCommand> command) {
     command->Execute();
-    if (this->undoQueue.size() == SESSION_MAX_COMMANDS)
+    if (this->undoQueue.size() == COMMANDS_MAX)
         this->undoQueue.pop_front();
 
     this->undoQueue.push_back(command);
@@ -60,7 +60,7 @@ void Session::redo() {
 
     command->Execute();
 
-    if (this->undoQueue.size() == SESSION_MAX_COMMANDS)
+    if (this->undoQueue.size() == COMMANDS_MAX)
         this->undoQueue.pop_front();
 
     this->undoQueue.push_back(command);
@@ -68,7 +68,30 @@ void Session::redo() {
     this->modified = true;
 }
 
-int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
+void Session::setCurrentCellanimIndex(unsigned index) {
+    if (index >= this->cellanims.size())
+        return;
+
+    this->currentCellanim = index;
+    this->sheets->setBaseTextureIndex(
+        this->cellanims.at(index).object->sheetIndex
+    );
+
+    PlayerManager::getInstance().correctState();
+}
+
+void SessionManager::setCurrentSessionIndex(int sessionIndex) {
+    std::lock_guard<std::mutex> lock(this->mtx);
+
+    if (sessionIndex >= this->sessions.size())
+        return;
+    
+    this->currentSessionIndex = sessionIndex;
+
+    PlayerManager::getInstance().correctState();
+}
+
+int SessionManager::CreateSession(const char* filePath) {
     if (!Files::doesFileExist(filePath)) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_FileDoesNotExist;
@@ -156,7 +179,8 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     });
 
     newSession.cellanims.resize(brcadFiles.size());
-    newSession.sheets.resize(tplObject.textures.size());
+
+    newSession.sheets->getVector().reserve(tplObject.textures.size());
 
     // Cellanims
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
@@ -219,7 +243,9 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
                 if (commentPos != std::string::npos)
                     key = key.substr(0, commentPos);
 
-                newSession.cellanims.at(i).object->animations.at(value).name = key;
+                auto& animations = newSession.cellanims[i].object->animations;
+                if (value < animations.size())
+                    newSession.cellanims[i].object->animations.at(value).name = key;
             }
         }
     }
@@ -230,14 +256,15 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     //       but then it would use multiple MainThreadTasks instead of just one.
     MainThreadTaskManager::getInstance().QueueTask([&tplObject, &newSession]() {
         for (unsigned i = 0; i < tplObject.textures.size(); i++) {
-            auto& sheet = newSession.sheets[i];
             auto& texture = tplObject.textures[i];
 
-            sheet = std::make_shared<Texture>(
+            std::shared_ptr<Texture> sheet = std::make_shared<Texture>(
                 texture.width, texture.height,
                 texture.createGPUTexture()
             );
             sheet->setTPLOutputFormat(texture.format);
+
+            newSession.sheets->addTexture(std::move(sheet));
         }
     }).get();
 
@@ -254,18 +281,27 @@ int SessionManager::PushSessionFromCompressedArc(const char* filePath) {
     }
 
     newSession.resourcePath = filePath;
+    newSession.setCurrentCellanimIndex(0);
 
     std::lock_guard<std::mutex> lock(this->mtx);
 
-    this->sessionList.push_back(std::move(newSession));
+    this->sessions.push_back(std::move(newSession));
 
     this->currentError = Error_None;
 
-    return static_cast<int>(this->sessionList.size() - 1);
+    return static_cast<int>(this->sessions.size() - 1);
 }
 
-int SessionManager::ExportSessionCompressedArc(Session* session, const char* outPath) {
+bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePath) {
     std::lock_guard<std::mutex> lock(this->mtx);
+
+    if (sessionIndex >= this->sessions.size())
+        return false;
+    
+    auto& session = this->sessions[sessionIndex];
+
+    if (dstFilePath == nullptr)
+        dstFilePath = session.resourcePath.c_str();
 
     U8::U8ArchiveObject archive;
 
@@ -273,25 +309,25 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         U8::Directory directory(".");
 
         // BRCAD files
-        for (unsigned i = 0; i < session->cellanims.size(); i++) {
-            U8::File file(session->cellanims.at(i).name);
-            file.data = session->cellanims.at(i).object->Reserialize();
+        for (unsigned i = 0; i < session.cellanims.size(); i++) {
+            U8::File file(session.cellanims[i].name);
+            file.data = session.cellanims[i].object->Reserialize();
 
             directory.AddFile(std::move(file));
         }
 
         // Header files
-        for (unsigned i = 0; i < session->cellanims.size(); i++) {
+        for (unsigned i = 0; i < session.cellanims.size(); i++) {
             std::ostringstream stream;
-            for (unsigned j = 0; j < session->cellanims[i].object->animations.size(); j++) {
-                const auto& animation = session->cellanims[i].object->animations[j];
+            for (unsigned j = 0; j < session.cellanims[i].object->animations.size(); j++) {
+                const auto& animation = session.cellanims[i].object->animations[j];
                 if (animation.name.empty())
                     continue;
 
                 stream << "#define " << animation.name << '\t' << std::to_string(j) << "\t// (null)\n";
             }
 
-            const std::string& cellanimName = session->cellanims.at(i).name;
+            const std::string& cellanimName = session.cellanims[i].name;
             U8::File file(
                 "rcad_" +
                 cellanimName.substr(0, cellanimName.size() - STR_LIT_LEN(".brcad")) +
@@ -311,9 +347,9 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
             TPL::TPLObject tplObject;
 
             SessionManager::Error error { Error_None };
-            MainThreadTaskManager::getInstance().QueueTask([session, &tplObject, &error]() {
-                for (unsigned i = 0; i < session->sheets.size(); i++) {
-                    auto tplTexture = session->sheets.at(i)->TPLTexture();
+            MainThreadTaskManager::getInstance().QueueTask([&session, &tplObject, &error]() {
+                for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
+                    auto tplTexture = session.sheets->getTextureByIndex(i)->TPLTexture();
                     if (!tplTexture.has_value()) {
                         error = OutError_FailTPLTextureExport;
                         return;
@@ -337,7 +373,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         {
             U8::File file(TED_ARC_FILENAME);
 
-            TedWriteState* state = TedCreateWriteState(*session);
+            TedWriteState* state = TedCreateWriteState(session);
                 file.data.resize(TedPrepareWrite(state));
                 TedWrite(state, file.data.data());
             TedDestroyWriteState(state);
@@ -366,7 +402,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
 
     if (configManager.getConfig().backupBehaviour != BackupBehaviour_None) {
         bool backedUp = Files::BackupFile(
-            outPath,
+            dstFilePath,
             configManager.getConfig().backupBehaviour == BackupBehaviour_SaveOnce
         );
 
@@ -374,7 +410,7 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
             std::cerr << "[SessionManager::ExportSessionCompressedArc] Failed to save backup of file!\n";
     }
 
-    std::ofstream file(outPath, std::ios::binary);
+    std::ofstream file(dstFilePath, std::ios::binary);
     if (file.is_open()) {
         file.write(
             reinterpret_cast<const char*>(compressedArchive->data()),
@@ -388,63 +424,35 @@ int SessionManager::ExportSessionCompressedArc(Session* session, const char* out
         return -1;
     }
 
-    session->modified = false;
+    session.modified = false;
 
     return 0;
 }
 
-void SessionManager::SessionChanged() {
+void SessionManager::RemoveSession(unsigned sessionIndex) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
-    this->currentSessionIndex = std::clamp<int>(
-        this->currentSessionIndex,
-        -1, this->sessionList.size() - 1
-    );
-
-    if (this->currentSessionIndex < 0)
+    if (sessionIndex >= this->sessions.size())
         return;
 
-    AppState& appState = AppState::getInstance();
-    Animatable& globalAnimatable = appState.globalAnimatable;
+    auto sessionIt = this->sessions.begin() + sessionIndex;
+    this->sessions.erase(sessionIt);
 
-    globalAnimatable = Animatable(
-        this->sessionList[this->currentSessionIndex].getCurrentCellanim().object,
-        this->sessionList[this->currentSessionIndex].getCurrentCellanimSheet()
-    );
-
-    appState.selectedAnimation = std::min<unsigned>(
-        appState.selectedAnimation,
-        globalAnimatable.cellanim->animations.size() - 1
-    );
-
-    globalAnimatable.setAnimationFromIndex(appState.selectedAnimation);
-
-    if (appState.getArrangementMode()) {
-        appState.controlKey.arrangementIndex = std::min<uint16_t>(
-            appState.controlKey.arrangementIndex,
-            globalAnimatable.cellanim->arrangements.size() - 1
+    if (this->sessions.empty())
+        this->currentSessionIndex = -1;
+    else {
+        this->currentSessionIndex = std::min(
+            this->currentSessionIndex,
+            static_cast<int>(this->sessions.size()) - 1
         );
 
-        PlayerManager::getInstance().setPlaying(false);
-        globalAnimatable.overrideAnimationKey(&appState.controlKey);
+        PlayerManager::getInstance().correctState();
     }
-
-    appState.correctSelectedParts();
 }
 
-void SessionManager::FreeSessionIndex(int index) {
+void SessionManager::RemoveAllSessions() {
     std::lock_guard<std::mutex> lock(this->mtx);
 
-    auto it = this->sessionList.begin() + index;
-    this->sessionList.erase(it);
-
-    this->currentSessionIndex =
-        std::clamp<int>(this->currentSessionIndex, -1, this->sessionList.size() - 1);
-}
-
-void SessionManager::FreeAllSessions() {
-    std::lock_guard<std::mutex> lock(this->mtx);
-    this->sessionList.clear();
-
+    this->sessions.clear();
     this->currentSessionIndex = -1;
 }

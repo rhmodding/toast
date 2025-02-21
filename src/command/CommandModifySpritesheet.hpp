@@ -75,8 +75,6 @@ public:
 
         currentSession->getCurrentCellanim().object->sheetW = this->newSheet->getWidth();
         currentSession->getCurrentCellanim().object->sheetH = this->newSheet->getHeight();
-        AppState::getInstance().globalAnimatable.texture = this->newSheet;
-
         currentSession->modified = true;
     }
 
@@ -87,7 +85,6 @@ public:
 
         currentSession->getCurrentCellanim().object->sheetW = this->oldSheet->getWidth();
         currentSession->getCurrentCellanim().object->sheetH = this->oldSheet->getHeight();
-        AppState::getInstance().globalAnimatable.texture = this->oldSheet;
 
         currentSession->modified = true;
     }
@@ -99,7 +96,8 @@ private:
     std::shared_ptr<Texture> oldSheet;
 
     std::shared_ptr<Texture>& getSheet() {
-        return SessionManager::getInstance().getCurrentSession()->sheets.at(this->sheetIndex);
+        return SessionManager::getInstance().getCurrentSession()
+            ->sheets->getTextureByIndex(this->sheetIndex);
     }
 };
 

@@ -62,7 +62,7 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangements>(
-                sessionManager.getCurrentSession()->currentCellanim,
+                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                 newArrangements
             ));
 

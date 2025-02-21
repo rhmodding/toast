@@ -15,29 +15,34 @@ public:
         cellanimIndex(cellanimIndex),
         sessionIndex(sessionIndex)
     {
-        this->previousCellanim = SessionManager::getInstance().sessionList.at(this->sessionIndex).currentCellanim;
+        this->previousCellanim =
+            SessionManager::getInstance().sessions.at(this->sessionIndex).getCurrentCellanimIndex();
     }
     ~CommandSwitchCellanim() = default;
 
     void Execute() override {
         SessionManager& sessionManager = SessionManager::getInstance();
+        
+        auto& session = sessionManager.sessions.at(this->sessionIndex);
+        session.setCurrentCellanimIndex(this->cellanimIndex);
 
-        sessionManager.sessionList.at(this->sessionIndex).currentCellanim = this->cellanimIndex;
-        sessionManager.SessionChanged();
+        PlayerManager::getInstance().correctState();
     }
 
     void Rollback() override {
         SessionManager& sessionManager = SessionManager::getInstance();
+        
+        auto& session = sessionManager.sessions.at(this->sessionIndex);
+        session.setCurrentCellanimIndex(this->previousCellanim);
 
-        sessionManager.sessionList.at(this->sessionIndex).currentCellanim = this->previousCellanim;
-        sessionManager.SessionChanged();
+        PlayerManager::getInstance().correctState();
     }
 
 private:
+    unsigned sessionIndex;
+
     unsigned cellanimIndex;
     unsigned previousCellanim;
-
-    unsigned sessionIndex;
 };
 
 #endif // COMMANDSWITCHCELLANIM_HPP

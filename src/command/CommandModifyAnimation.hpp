@@ -29,9 +29,7 @@ public:
 
         AppState& appState = AppState::getInstance();
 
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -41,9 +39,7 @@ public:
 
         AppState& appState = AppState::getInstance();
 
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

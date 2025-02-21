@@ -41,17 +41,7 @@ public:
                 key.arrangementIndex = 0;
         }
 
-        AppState& appState = AppState::getInstance();
-
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        else
-            appState.controlKey.arrangementIndex = std::min<uint16_t>(
-                appState.controlKey.arrangementIndex,
-                arrangements.size() - 1
-            );
-
-        appState.correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -71,17 +61,7 @@ public:
                 key.arrangementIndex++;
         }
 
-        AppState& appState = AppState::getInstance();
-
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        else
-            appState.controlKey.arrangementIndex = std::min<uint16_t>(
-                appState.controlKey.arrangementIndex,
-                arrangements.size() - 1
-            );
-
-        appState.correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

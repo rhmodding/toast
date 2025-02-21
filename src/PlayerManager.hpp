@@ -5,13 +5,24 @@
 
 #include <algorithm>
 
-#include "AppState.hpp"
+#include <chrono>
+
+#include <memory>
+
+#include "anim/RvlCellAnim.hpp"
+
+#include "SessionManager.hpp"
 
 class PlayerManager : public Singleton<PlayerManager> {
     friend class Singleton<PlayerManager>; // Allow access to base class constructor
 
 private:
-    std::chrono::steady_clock::time_point previous;
+    int holdFramesLeft { 0 };
+
+    unsigned animationIndex { 0 };
+    unsigned keyIndex { 0 };
+
+    std::chrono::steady_clock::time_point tickPrev;
     float timeLeft { 0.f };
 public:
     bool playing { false };
@@ -25,42 +36,65 @@ public:
 
     void ResetTimer();
 
-    unsigned getCurrentKeyIndex() const {
-        return AppState::getInstance().globalAnimatable.
-            getCurrentKeyIndex();
-    }
-    unsigned getKeyCount() const {
-        return AppState::getInstance().globalAnimatable.
-            getCurrentAnimation()->keys.size();
-    }
-    
-    int getHoldFramesLeft() const {
-        return AppState::getInstance().globalAnimatable.
-            getHoldFramesLeft();
+    unsigned getAnimationIndex() const { return this->animationIndex; }
+    void setAnimationIndex(unsigned index);
+
+    RvlCellAnim::Animation& getAnimation() const {
+        return this->getCellanim()->animations.at(this->animationIndex);
     }
 
-    void setCurrentKeyIndex(unsigned index);
+    unsigned getKeyIndex() const { return this->keyIndex; }
+    void setKeyIndex(unsigned index);
+
+    RvlCellAnim::AnimationKey& getKey() const {
+        return this->getAnimation().keys.at(this->keyIndex);
+    }
+
+    unsigned getArrangementIndex() const {
+        return this->getKey().arrangementIndex;
+    }
+
+    RvlCellAnim::Arrangement& getArrangement() const {
+        return this->getCellanim()->arrangements.at(this->getArrangementIndex());
+    }
+
+    unsigned getKeyCount() const {
+        return this->getAnimation().keys.size();
+    }
+    int getHoldFramesLeft() const { return this->holdFramesLeft; }
+
+    bool getPlaying() const { return this->playing; }
     void setPlaying(bool animating);
 
-    // Pseudoframes are animation keys + their hold time.
-    unsigned getTotalPseudoFrames() const;
-    unsigned getElapsedPseudoFrames() const;
+    unsigned getTotalFrames() const;
+    unsigned getElapsedFrames() const;
 
     // 0.f - 1.f
     float getAnimationProgression() const {
         return
-            this->getElapsedPseudoFrames() /
-            static_cast<float>(this->getTotalPseudoFrames());
+            static_cast<float>(this->getTotalFrames()) / this->getElapsedFrames();
     }
 
-    void clampCurrentKeyIndex() {
-        this->setCurrentKeyIndex(std::min<unsigned>(
-            this->getCurrentKeyIndex(),
-            this->getKeyCount() - 1
-        ));
+    // After for example a session switch or another change that can reduce the amount
+    // of animations, keys, or parts, the state needs to be 'corrected' to align with
+    // the new circumstances.
+    void correctState() {
+        unsigned animCount = this->getCellanim()->animations.size();
+        unsigned animIndex = std::min(
+            animCount - 1,
+            this->animationIndex
+        );
+
+        // setAnimationIndex clamps the key count & corrects the part selection.
+        this->setAnimationIndex(animIndex);
     }
 
 private:
+    const std::shared_ptr<RvlCellAnim::RvlCellAnimObject>& getCellanim() const {
+        return SessionManager::getInstance().getCurrentSession()
+            ->getCurrentCellanim().object;
+    }
+
     PlayerManager() {} // Private constructor to prevent instantiation
 };
 

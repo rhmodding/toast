@@ -1,17 +1,29 @@
 #include "AsyncTaskExportSession.hpp"
 
 AsyncTaskExportSession::AsyncTaskExportSession(
-    uint32_t id,
-    Session* session, std::string outPath
+    AsyncTaskId id,
+    unsigned sessionIndex, std::string filePath
 ) :
     AsyncTask(id, "Exporting session.."),
 
-    session(session), outPath(outPath)
+    sessionIndex(sessionIndex), filePath(filePath),
+    useSessionPath(false)
+{}
+
+AsyncTaskExportSession::AsyncTaskExportSession(
+    AsyncTaskId id,
+    unsigned sessionIndex
+) :
+    AsyncTask(id, "Exporting session.."),
+
+    sessionIndex(sessionIndex),
+    useSessionPath(true)
 {}
 
 void AsyncTaskExportSession::Run() {
-    int exportResult = SessionManager::getInstance().ExportSessionCompressedArc(
-        this->session, this->outPath.c_str()
+    int exportResult = SessionManager::getInstance().ExportSession(
+        this->sessionIndex,
+        this->useSessionPath ? nullptr : this->filePath.c_str()
     );
     this->result.store(exportResult);
 }
@@ -22,7 +34,9 @@ void AsyncTaskExportSession::Effect() {
         return;
     }
 
-    this->session->resourcePath = this->outPath;
+    auto& session = SessionManager::getInstance().sessions.at(this->sessionIndex);
+    if (!this->useSessionPath)
+        session.resourcePath = this->filePath;
 
-    ConfigManager::getInstance().addRecentlyOpened(this->outPath);
+    ConfigManager::getInstance().addRecentlyOpened(this->filePath);
 }

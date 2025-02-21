@@ -5,7 +5,9 @@
 
 #include "../command/CommandSetArrangementMode.hpp"
 
-void WindowInspector::DrawPreview(Animatable* animatable) {
+void WindowInspector::DrawPreview() {
+    PlayerManager& playerManager = PlayerManager::getInstance();
+
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
     const ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
@@ -25,20 +27,25 @@ void WindowInspector::DrawPreview(Animatable* animatable) {
 
     //drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
 
-    ImRect keyRect = animatable->getKeyWorldRect(animatable->getCurrentKey());
+    const auto& currentSession = SessionManager::getInstance().getCurrentSession();
 
-    float scaleX = canvasSize.x / (keyRect.GetWidth() * (1 / animatable->scaleX));
-    float scaleY = canvasSize.y / (keyRect.GetHeight() * (1 / animatable->scaleY));
+    this->previewRenderer.linkCellanim(currentSession->getCurrentCellanim().object);
+    this->previewRenderer.linkTextureGroup(currentSession->sheets);
 
-    animatable->offset = { 0.f, 0.f };
-    animatable->scaleX = std::min(scaleX, scaleY);
-    animatable->scaleY = std::min(scaleX, scaleY);
+    ImRect keyRect = this->previewRenderer.getKeyWorldRect(playerManager.getKey());
+
+    float scaleX = canvasSize.x / (keyRect.GetWidth() * (1.f / this->previewRenderer.scaleX));
+    float scaleY = canvasSize.y / (keyRect.GetHeight() * (1.f / this->previewRenderer.scaleY));
+
+    this->previewRenderer.offset = { 0.f, 0.f };
+    this->previewRenderer.scaleX = std::min(scaleX, scaleY);
+    this->previewRenderer.scaleY = std::min(scaleX, scaleY);
 
     // Recalculate
-    ImVec2 keyCenter = animatable->getKeyWorldRect(animatable->getCurrentKey()).GetCenter();
-    animatable->offset = { origin.x - keyCenter.x, origin.y - keyCenter.y };
+    ImVec2 keyCenter = this->previewRenderer.getKeyWorldRect(playerManager.getKey()).GetCenter();
+    this->previewRenderer.offset = { origin.x - keyCenter.x, origin.y - keyCenter.y };
 
-    animatable->Draw(drawList);
+    this->previewRenderer.Draw(drawList, playerManager.getAnimation(), playerManager.getKeyIndex());
 
     //drawList->PopClipRect();
 

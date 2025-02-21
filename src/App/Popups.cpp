@@ -44,6 +44,8 @@ int _editPartNamePartIdx { -1 };
 
 #include "popups/Popup_EditPartName.hpp"
 
+#include "popups/Popup_SpritesheetManager.hpp"
+
 void Popups::Update() {
     BEGIN_GLOBAL_POPUP();
 
@@ -76,6 +78,8 @@ void Popups::Update() {
     Popup_SwapAnimation(_swapAnimationIdx);
 
     Popup_EditPartName(_editPartNameArrangeIdx, _editPartNamePartIdx);
+
+    Popup_SpritesheetManager();
 
     END_GLOBAL_POPUP();
 }

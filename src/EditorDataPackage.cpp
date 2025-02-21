@@ -84,7 +84,7 @@ static RvlCellAnim::ArrangementPart* _TedGetPart(
 ) {
     if (cellIndex >= session.cellanims.size()) {
             std::cerr <<
-                "[TedApply] Invalid editor data binary: oob cellanim index!:\n" <<
+                "[TedApply] Invalid editor data binary: oob cellanim index!:\n"
                 "   - Cellanim Index: " << cellIndex << '\n';
             return nullptr;
         }
@@ -92,8 +92,8 @@ static RvlCellAnim::ArrangementPart* _TedGetPart(
         auto& arrangements = session.cellanims.at(cellIndex).object->arrangements;
         if (arrngIndex >= arrangements.size()) {
             std::cerr <<
-                "[TedApply] Invalid editor data binary: oob arrangement index!:" <<
-                "   - Cellanim Index: " << cellIndex << '\n' <<
+                "[TedApply] Invalid editor data binary: oob arrangement index!:"
+                "   - Cellanim Index: " << cellIndex << "\n"
                 "   - Arrangement Index: " << arrngIndex << '\n';
             return nullptr;
         }
@@ -101,9 +101,9 @@ static RvlCellAnim::ArrangementPart* _TedGetPart(
         auto& arrangement = arrangements.at(arrngIndex);
         if (partIndex >= arrangement.parts.size()) {
             std::cerr <<
-                "[TedApply] Invalid editor data binary: oob part index!:" <<
-                "   - Cellanim Index: " << cellIndex << '\n' <<
-                "   - Arrangement Index: " << arrngIndex << '\n' <<
+                "[TedApply] Invalid editor data binary: oob part index!:"
+                "   - Cellanim Index: " << cellIndex << "\n"
+                "   - Arrangement Index: " << arrngIndex << "\n"
                 "   - Part Index: " << partIndex << '\n';
             return nullptr;
         }
@@ -309,7 +309,7 @@ void TedApply(const unsigned char* data, const Session& session) {
     // TODO: remove this on release
     if (fileHeader->magic[5] == 'D') {
         std::cout <<
-            "[TedApply] An older TED version has been provided. Support for this will be dropped on final release.\n" <<
+            "[TedApply] An older TED version has been provided. Support for this will be dropped on final release.\n"
             "           Please migrate your cellanim projects by opening them and resaving.\n";
 
         _TedApplyOld(data, session);

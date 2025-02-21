@@ -140,9 +140,17 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         while (currentDst < dstEnd && currentSrc < srcEnd) {
             *(currentDst++) = 0xFF; // All bits to 1.
 
-            // Copy 8 bytes.
-            *(uint64_t*)currentDst = *(uint64_t*)currentSrc;
-            currentSrc += 8; currentDst += 8;
+            // Copy 8 bytes directly.
+            if ((srcEnd - currentSrc) >= 8) {
+                *(uint64_t*)currentDst = *(uint64_t*)currentSrc;
+                currentSrc += 8; currentDst += 8;
+            }
+            else {
+                unsigned nBytes = srcEnd - currentSrc;
+                memcpy(currentDst, currentSrc, nBytes);
+
+                currentSrc += nBytes; currentDst += nBytes;
+            }
         }
     }
 

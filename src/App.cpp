@@ -284,12 +284,10 @@ App::~App() {
 }
 
 void App::AttemptExit(bool force) {
-    const auto& sessionList = SessionManager::getInstance().sessionList;
     if (!force) {
-        for (unsigned i = 0; i < sessionList.size(); i++) {
-            if (sessionList[i].modified) {
+        for (const auto& session : SessionManager::getInstance().sessions) {
+            if (session.modified) {
                 Popups::_openExitWithChangesPopup = true;
-
                 return; // Cancel
             }
         }
@@ -419,12 +417,12 @@ void App::Menubar() {
 
                     if (ImGui::MenuItem(
                         fmtStream.str().c_str(), nullptr,
-                        currentSession->currentCellanim == i
+                        currentSession->getCurrentCellanimIndex() == i
                     )) {
-                        if (currentSession->currentCellanim != i) {
+                        if (currentSession->getCurrentCellanimIndex() != i) {
                             currentSession->addCommand(
                             std::make_shared<CommandSwitchCellanim>(
-                                sessionManager.currentSessionIndex, i
+                                sessionManager.getCurrentSessionIndex(), i
                             ));
                         }
                     }
@@ -449,8 +447,7 @@ void App::Menubar() {
         }
 
         if (ImGui::BeginMenu("Animation", sessionAvaliable)) {
-            const unsigned animIndex =
-                appState.globalAnimatable.getCurrentAnimationIndex();
+            const unsigned animIndex = playerManager.getAnimationIndex();
 
             ImGui::Text("Selected animation (no. %u)", animIndex + 1);
 
@@ -476,9 +473,8 @@ void App::Menubar() {
             !sessionManager.getInstance().getCurrentSession()->arrangementMode &&
             !playerManager.playing
         )) {
-            const unsigned keyIndex =
-                appState.globalAnimatable.getCurrentKeyIndex();
-            auto* key = appState.globalAnimatable.getCurrentKey();
+            const unsigned keyIndex = playerManager.getKeyIndex();
+            const auto& key = playerManager.getKey();
 
             ImGui::Text(
                 "Selected key (no. %u)",
@@ -490,9 +486,7 @@ void App::Menubar() {
             if (ImGui::MenuItem(
                 "Tween ..",
                 nullptr, nullptr,
-
-                keyIndex + 1 <
-                appState.globalAnimatable.getCurrentAnimation()->keys.size()
+                keyIndex + 1 < playerManager.getKeyCount()
             ))
                 OPEN_GLOBAL_POPUP("MInterpolateKeys");
 
@@ -503,14 +497,14 @@ void App::Menubar() {
                 if (ImGui::MenuItem(".. up")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandMoveAnimationKey>(
-                        sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable.getCurrentAnimationIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        playerManager.getAnimationIndex(),
                         keyIndex,
                         false,
                         false
                     ));
 
-                    playerManager.setCurrentKeyIndex(keyIndex + 1);
+                    playerManager.setKeyIndex(keyIndex + 1);
                 }
                 ImGui::EndDisabled();
 
@@ -518,14 +512,14 @@ void App::Menubar() {
                 if (ImGui::MenuItem(".. down")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandMoveAnimationKey>(
-                        sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable.getCurrentAnimationIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        playerManager.getAnimationIndex(),
                         keyIndex,
                         true,
                         false
                     ));
 
-                    playerManager.setCurrentKeyIndex(keyIndex - 1);
+                    playerManager.setKeyIndex(keyIndex - 1);
                 }
                 ImGui::EndDisabled();
 
@@ -536,25 +530,25 @@ void App::Menubar() {
                 if (ImGui::MenuItem(".. after")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandInsertAnimationKey>(
-                        sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable.getCurrentAnimationIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        playerManager.getAnimationIndex(),
                         keyIndex + 1,
-                        *key
+                        key
                     ));
 
-                    playerManager.setCurrentKeyIndex(keyIndex + 1);
+                    playerManager.setKeyIndex(keyIndex + 1);
                 }
 
                 if (ImGui::MenuItem(".. before")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandInsertAnimationKey>(
-                        sessionManager.getCurrentSession()->currentCellanim,
-                        appState.globalAnimatable.getCurrentAnimationIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        playerManager.getAnimationIndex(),
                         keyIndex,
-                        *key
+                        key
                     ));
 
-                    playerManager.setCurrentKeyIndex(keyIndex);
+                    playerManager.setKeyIndex(keyIndex);
                 }
 
                 ImGui::EndMenu();
@@ -565,9 +559,9 @@ void App::Menubar() {
             if (ImGui::MenuItem("Delete selected key")) {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteAnimationKey>(
-                    sessionManager.getCurrentSession()->currentCellanim,
-                    appState.globalAnimatable.getCurrentAnimationIndex(),
-                    appState.globalAnimatable.getCurrentKeyIndex()
+                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                    playerManager.getAnimationIndex(),
+                    playerManager.getKeyIndex()
                 ));
             }
 
@@ -578,8 +572,7 @@ void App::Menubar() {
             sessionAvaliable &&
             !playerManager.playing
         )) {
-            const unsigned arrangementIndex =
-                appState.globalAnimatable.getCurrentKey()->arrangementIndex;
+            const unsigned arrangementIndex = playerManager.getArrangementIndex();
 
             ImGui::Text(
                 "Current arrangement (no. %u)",
@@ -590,30 +583,29 @@ void App::Menubar() {
 
             // Duplicate option
             {
-                const unsigned keyIndex =
-                    appState.globalAnimatable.getCurrentKeyIndex();
-                auto* key = appState.globalAnimatable.getCurrentKey();
+                const unsigned keyIndex = playerManager.getKeyIndex();
+                auto& key = playerManager.getKey();
 
-                bool arrangementUnique = CellanimHelpers::getArrangementUnique(key->arrangementIndex);
+                bool arrangementUnique = CellanimHelpers::getArrangementUnique(key.arrangementIndex);
                 ImGui::BeginDisabled(arrangementUnique);
 
                 if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
-                    unsigned newIndex = CellanimHelpers::DuplicateArrangement(key->arrangementIndex);
+                    unsigned newIndex = CellanimHelpers::DuplicateArrangement(key.arrangementIndex);
 
                     if (!appState.getArrangementMode()) {
-                        auto newKey = *key;
+                        auto newKey = key;
                         newKey.arrangementIndex = newIndex;
 
                         sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyAnimationKey>(
-                            sessionManager.getCurrentSession()->currentCellanim,
-                            appState.globalAnimatable.getCurrentAnimationIndex(),
+                            sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                            playerManager.getAnimationIndex(),
                             keyIndex,
                             newKey
                         ));
                     }
                     else
-                        key->arrangementIndex = newIndex;
+                        key.arrangementIndex = newIndex;
                 }
 
                 ImGui::EndDisabled();
@@ -632,7 +624,7 @@ void App::Menubar() {
             if (ImGui::MenuItem("Delete")) {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteArrangement>(
-                    sessionManager.getCurrentSession()->currentCellanim,
+                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                     arrangementIndex
                 ));
             }
@@ -645,9 +637,7 @@ void App::Menubar() {
             appState.singlePartSelected() &&
             !playerManager.playing
         )) {
-            auto* part =
-                &appState.globalAnimatable.getCurrentArrangement()
-                ->parts.at(appState.selectedParts[0].index);
+            auto& part = playerManager.getArrangement().parts.at(appState.selectedParts[0].index);
 
             ImGui::Text(
                 "Selected part (no. %u)",
@@ -656,8 +646,8 @@ void App::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Visible", nullptr, &part->editorVisible);
-            ImGui::MenuItem("Locked", nullptr, &part->editorLocked);
+            ImGui::MenuItem("Visible", nullptr, &part.editorVisible);
+            ImGui::MenuItem("Locked", nullptr, &part.editorLocked);
 
             ImGui::Separator();
 
@@ -672,7 +662,7 @@ void App::Menubar() {
 
             if (ImGui::MenuItem("Set editor name ..")) {
                 Popups::_editPartNameArrangeIdx =
-                    appState.globalAnimatable.getCurrentKey()->arrangementIndex;
+                    playerManager.getArrangementIndex();
                 Popups::_editPartNamePartIdx = appState.selectedParts[0].index;
 
                 OPEN_GLOBAL_POPUP("###EditPartName");
@@ -683,8 +673,8 @@ void App::Menubar() {
             if (ImGui::MenuItem("Delete")) {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteArrangementPart>(
-                    sessionManager.getCurrentSession()->currentCellanim,
-                    appState.globalAnimatable.getCurrentKey()->arrangementIndex,
+                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                    playerManager.getArrangementIndex(),
                     appState.selectedParts[0].index
                 ));
             }
@@ -728,10 +718,10 @@ void App::Menubar() {
         SessionManager& sessionManager = SessionManager::getInstance();
 
         if (ImGui::BeginTabBar("FileTabBar", tabBarFlags)) {
-            for (unsigned n = 0; n < sessionManager.sessionList.size(); n++) {
+            for (unsigned n = 0; n < sessionManager.sessions.size(); n++) {
                 ImGui::PushID(n);
 
-                auto& session = sessionManager.sessionList[n];
+                auto& session = sessionManager.sessions[n];
 
                 bool sessionOpen { true };
                 bool tabVisible = ImGui::BeginTabItem(
@@ -746,9 +736,8 @@ void App::Menubar() {
                 if (tabVisible)
                     ImGui::EndTabItem();
 
-                if (ImGui::IsItemClicked() && sessionManager.currentSessionIndex != (int)n) {
-                    sessionManager.currentSessionIndex = n;
-                    sessionManager.SessionChanged();
+                if (ImGui::IsItemClicked() && sessionManager.getCurrentSessionIndex() != (int)n) {
+                    sessionManager.setCurrentSessionIndex(n);
                 }
 
                 if (tabVisible && ImGui::BeginPopupContextItem()) {
@@ -762,12 +751,12 @@ void App::Menubar() {
 
                         if (ImGui::MenuItem(
                             fmtStream.str().c_str(), nullptr,
-                            session.currentCellanim == i
+                            session.getCurrentCellanimIndex() == i
                         )) {
                             ImGui::CloseCurrentPopup();
 
-                            if (session.currentCellanim != i) {
-                                sessionManager.currentSessionIndex = n;
+                            if (session.getCurrentCellanimIndex() != i) {
+                                sessionManager.setCurrentSessionIndex(n);
 
                                 session.addCommand(
                                 std::make_shared<CommandSwitchCellanim>(
@@ -780,9 +769,7 @@ void App::Menubar() {
                     ImGui::EndPopup();
                 }
 
-                const std::string& cellanimName = session.cellanims.at(
-                    session.currentCellanim
-                ).name;
+                const std::string& cellanimName = session.getCurrentCellanim().name;
                 ImGui::SetItemTooltip(
                     "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
                     session.resourcePath.c_str(),
@@ -795,8 +782,7 @@ void App::Menubar() {
                     if (session.modified)
                         OPEN_GLOBAL_POPUP("###CloseModifiedSession");
                     else {
-                        sessionManager.FreeSessionIndex(n);
-                        sessionManager.SessionChanged();
+                        sessionManager.RemoveSession(n);
                     }
                 }
 

@@ -35,19 +35,17 @@ public:
 private:
     void UpdateState(bool lEnabled) {
         AppState& appState = AppState::getInstance();
+        PlayerManager& playerManager = PlayerManager::getInstance();
 
-        appState.correctSelectedParts();
-
-        auto& globalAnimatable = appState.globalAnimatable;
+        playerManager.correctState();
 
         if (lEnabled) {
-            appState.controlKey.arrangementIndex = globalAnimatable.getCurrentKey()->arrangementIndex;
+            // TODO
+            // appState.controlKey.arrangementIndex = playerManager.getKey().arrangementIndex;
 
-            PlayerManager::getInstance().setPlaying(false);
-            globalAnimatable.overrideAnimationKey(&appState.controlKey);
-        }
-        else {
-            globalAnimatable.setAnimationFromIndex(appState.selectedAnimation);
+            playerManager.setPlaying(false);
+            // TODO
+            // globalAnimatable.overrideAnimationKey(&appState.controlKey);
         }
     }
 

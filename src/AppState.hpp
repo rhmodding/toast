@@ -3,10 +3,14 @@
 
 #include "Singleton.hpp"
 
-#include "anim/Animatable.hpp"
 #include "anim/RvlCellAnim.hpp"
 
+#include "anim/CellanimRenderer.hpp"
+
 #include "SessionManager.hpp"
+
+#include "PlayerManager.hpp"
+
 #include "ConfigManager.hpp"
 
 #include <algorithm>
@@ -93,9 +97,6 @@ public:
 
     // This key object is meant for the arrangement mode to control the state of the key.
     RvlCellAnim::AnimationKey controlKey;
-
-    unsigned selectedAnimation { 0 };
-    //int selectedPart { -1 };
 
     struct SelectedPart {
         unsigned index;
@@ -280,20 +281,23 @@ public:
     }
 
     void correctSelectedParts() {
-        unsigned size = this->globalAnimatable.getCurrentArrangement()->parts.size();
+        unsigned size = PlayerManager::getInstance().getArrangement().parts.size();
 
         // Create local clone of selectedParts since setPartSelected
         // will mutate the original
-        auto sp = this->selectedParts;
-        for (const auto& [index, _] : sp) {
-            if (index >= size)
-                this->setPartSelected(index, false);
+        std::vector<SelectedPart> newSelected;
+        newSelected.reserve(this->selectedParts.size());
+
+        for (const auto& [index, order] : this->selectedParts) {
+            if (index < size)
+                newSelected.push_back({ index, order });
         }
+
+        this->selectedParts = newSelected;
+        resetSelectionOrder();
     }
 
     bool focusOnSelectedPart { false };
-
-    Animatable globalAnimatable {};
 
     struct OnionSkinState {
         bool enabled { false };

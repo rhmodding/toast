@@ -54,7 +54,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
-                sessionManager.getCurrentSession()->currentCellanim,
+                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                 arrangementIndex, partIndex,
                 newPart
             ));

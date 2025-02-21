@@ -70,15 +70,16 @@ static bool pointInPolygon(const ImVec2& point, const ImVec2* vertices, unsigned
     return inside;
 }
 
-// Calculate quad bounding of all selected parts
-static std::array<ImVec2, 4> calculatePartsBounding(const RvlCellAnim::Arrangement& arrangement, float& quadRotation) {
-    std::array<ImVec2, 4> partsBounding ({{ -FLT_MAX, -FLT_MAX }});
+constexpr float BOUNDING_INVALID = std::numeric_limits<float>::max();
 
-    FLT_EPSILON;
+// Calculate quad bounding of all selected parts
+static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& renderer, const RvlCellAnim::Arrangement& arrangement, float& quadRotation) {
+    std::array<ImVec2, 4> partsBounding ({{ BOUNDING_INVALID, BOUNDING_INVALID }});
     
     quadRotation = 0.f;
 
     AppState& appState = AppState::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
 
     if (!appState.anyPartsSelected())
         return partsBounding;
@@ -88,9 +89,7 @@ static std::array<ImVec2, 4> calculatePartsBounding(const RvlCellAnim::Arrangeme
         const auto& part = arrangement.parts.at(index);
 
         if (!part.editorLocked) {
-            partsBounding = appState.globalAnimatable.getPartWorldQuad(
-                appState.globalAnimatable.getCurrentKey(), index
-            );
+            partsBounding = renderer.getPartWorldQuad(playerManager.getKey().transform, arrangement, index);
 
             quadRotation = part.transform.angle;
         }
@@ -113,9 +112,7 @@ static std::array<ImVec2, 4> calculatePartsBounding(const RvlCellAnim::Arrangeme
         
         any = true;
 
-        std::array<ImVec2, 4> quad = appState.globalAnimatable.getPartWorldQuad(
-            appState.globalAnimatable.getCurrentKey(), index
-        );
+        std::array<ImVec2, 4> quad = renderer.getPartWorldQuad(playerManager.getKey().transform, arrangement, index);
         
         for (const auto& vertex : quad) {
             minX = std::min(minX, vertex.x);
@@ -138,12 +135,13 @@ static std::array<ImVec2, 4> calculatePartsBounding(const RvlCellAnim::Arrangeme
 // Check if selectedParts or arrangement index has changed since last cycle.
 static bool selectionChangedSinceLastCycle() {
     AppState& appState = AppState::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
 
     const auto& currentSelected = appState.selectedParts;
-    const auto& currentArrangeIdx = appState.globalAnimatable.getCurrentKey()->arrangementIndex;
+    unsigned currentArrangeIdx = playerManager.getArrangementIndex();
 
     static auto lastSelected { currentSelected };
-    static auto lastArrangeIdx { currentArrangeIdx };
+    static unsigned lastArrangeIdx { currentArrangeIdx };
 
     bool result = (currentSelected != lastSelected) || (currentArrangeIdx != lastArrangeIdx);
 
@@ -402,10 +400,10 @@ void WindowCanvas::Update() {
     static float pivotBeforeMoveLocal[2] { 0.f, 0.f };
     static float pivotBeforeMoveWorld[2] { 0.f, 0.f };
 
-    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
     AppState& appState = AppState::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
 
-    RvlCellAnim::Arrangement& arrangement = *globalAnimatable.getCurrentArrangement();
+    RvlCellAnim::Arrangement& arrangement = playerManager.getArrangement();
 
     // Select all parts with CTRL+A
     if (ImGui::Shortcut(ImGuiKey_A | ImGuiMod_Ctrl)) {
@@ -443,13 +441,13 @@ void WindowCanvas::Update() {
         }
     }
 
-    globalAnimatable.offset = origin;
+    this->cellanimRenderer.offset = origin;
 
-    globalAnimatable.scaleX = this->canvasZoom;
-    globalAnimatable.scaleY = this->canvasZoom;
+    this->cellanimRenderer.scaleX = this->canvasZoom;
+    this->cellanimRenderer.scaleY = this->canvasZoom;
 
     float quadRotation { 0.f };
-    std::array<ImVec2, 4> partsBounding = calculatePartsBounding(arrangement, quadRotation);
+    std::array<ImVec2, 4> partsBounding = calculatePartsBounding(this->cellanimRenderer, arrangement, quadRotation);
 
     ImVec2 partsBoundingCenter = AVERAGE_IMVEC2(partsBounding[0], partsBounding[2]);
     ImVec2 partsAnmSpaceCenter (
@@ -457,7 +455,7 @@ void WindowCanvas::Update() {
         (partsBoundingCenter.y - origin.y) / this->canvasZoom
     );
 
-    const bool noParts = partsBounding[0].x == -FLT_MAX;
+    const bool noParts = partsBounding[0].x == BOUNDING_INVALID;
 
     bool hoveringOverParts { false };
     if (interactionHovered && !noParts)
@@ -629,13 +627,15 @@ void WindowCanvas::Update() {
                 dragDelta.y / this->canvasZoom
             );
 
-            float theta = -globalAnimatable.getCurrentKey()->transform.angle * M_PI / 180.f;
+            const auto& key = playerManager.getKey();
+
+            float theta = -key.transform.angle * M_PI / 180.f;
 
             float rotatedX = scaledOffset.x * cosf(theta) - scaledOffset.y * sinf(theta);
             float rotatedY = scaledOffset.x * sinf(theta) + scaledOffset.y * cosf(theta);
 
-            float offsX = rotatedX / globalAnimatable.getCurrentKey()->transform.scaleX;
-            float offsY = rotatedY / globalAnimatable.getCurrentKey()->transform.scaleY;
+            float offsX = rotatedX / key.transform.scaleX;
+            float offsY = rotatedY / key.transform.scaleY;
 
             partsTransformation.translateX = offsX;
             partsTransformation.translateY = offsY;
@@ -648,7 +648,7 @@ void WindowCanvas::Update() {
         case PartsTransformType_Scale: {
             // TODO: PRIORITY scaling not working as expected with any type of rotation
 
-            const auto& keyTransform = globalAnimatable.getCurrentKey()->transform;
+            const auto& keyTransform = playerManager.getKey().transform;
 
             /*
                 quad
@@ -744,11 +744,12 @@ void WindowCanvas::Update() {
             if (!partsTransformation.canScaleVertically)
                 partsTransformation.scaleY = 1.f;
 
-            // Obtain key transformation values
-            float keyScaleX = globalAnimatable.getCurrentKey()->transform.scaleX;
-            float keyScaleY = globalAnimatable.getCurrentKey()->transform.scaleY;
-            float keyPosX = globalAnimatable.getCurrentKey()->transform.positionX;
-            float keyPosY = globalAnimatable.getCurrentKey()->transform.positionY;
+            const auto& keyTransform = playerManager.getKey().transform;
+
+            float keyScaleX = keyTransform.scaleX;
+            float keyScaleY = keyTransform.scaleY;
+            float keyPosX = keyTransform.positionX;
+            float keyPosY = keyTransform.positionY;
 
             // Transform to part-space
             float pivotPSX = (partsTransformation.pivotX - keyPosX) / keyScaleX;
@@ -786,7 +787,7 @@ void WindowCanvas::Update() {
             part.transform.angle += partsTransformation.rotation;
         }
 
-        partsBounding = calculatePartsBounding(arrangement, quadRotation);
+        partsBounding = calculatePartsBounding(this->cellanimRenderer, arrangement, quadRotation);
         partsBoundingCenter = AVERAGE_IMVEC2(partsBounding[0], partsBounding[2]);
         partsAnmSpaceCenter = ImVec2(
             (partsBoundingCenter.x - origin.x) / this->canvasZoom,
@@ -845,8 +846,8 @@ void WindowCanvas::Update() {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(
-                sessionManager.getCurrentSession()->currentCellanim,
-                appState.globalAnimatable.getCurrentKey()->arrangementIndex,
+                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                playerManager.getArrangementIndex(),
                 arrangementBeforeMutation // Used as the new arrangement
             ));
         }
@@ -919,14 +920,20 @@ void WindowCanvas::Update() {
                 }
             }
 
-            // Draw animatable
+            // Draw cellanim.
             {
+                const auto& currentSession = SessionManager::getInstance().getCurrentSession();
+
+                this->cellanimRenderer.linkCellanim(currentSession->getCurrentCellanim().object);
+                this->cellanimRenderer.linkTextureGroup(currentSession->sheets);
+
                 bool drawOnionSkin = appState.onionSkinState.enabled;
                 bool drawUnder = appState.onionSkinState.drawUnder;
 
                 if (drawOnionSkin && drawUnder) {
-                    globalAnimatable.DrawOnionSkin(
+                    this->cellanimRenderer.DrawOnionSkin(
                         drawList,
+                        playerManager.getAnimation(), playerManager.getKeyIndex(),
                         appState.onionSkinState.backCount,
                         appState.onionSkinState.frontCount,
                         appState.onionSkinState.rollOver,
@@ -934,11 +941,16 @@ void WindowCanvas::Update() {
                     );
                 }
 
-                globalAnimatable.Draw(drawList, this->allowOpacity);
+                this->cellanimRenderer.Draw(
+                    drawList,
+                    playerManager.getAnimation(), playerManager.getKeyIndex(),
+                    this->allowOpacity
+                );
 
                 if (drawOnionSkin && !drawUnder) {
-                    globalAnimatable.DrawOnionSkin(
+                    this->cellanimRenderer.DrawOnionSkin(
                         drawList,
+                        playerManager.getAnimation(), playerManager.getKeyIndex(),
                         appState.onionSkinState.backCount,
                         appState.onionSkinState.frontCount,
                         appState.onionSkinState.rollOver,
@@ -1165,16 +1177,5 @@ void WindowCanvas::DrawCanvasText() {
         );
 
         textDrawTop += textDrawGap + ImGui::CalcTextSize(str.c_str()).y;
-    }
-
-    if (!AppState::getInstance().globalAnimatable.getDoesDraw(this->allowOpacity)) {
-        const char* text = "Nothing to draw on this frame";
-
-        drawList->AddText(
-            { textDrawLeft, textDrawTop },
-            textColor, text
-        );
-
-        textDrawTop += textDrawGap + ImGui::CalcTextSize(text).y;
     }
 }

@@ -63,7 +63,7 @@ static void Popup_EditAnimationName(int animationIndex) {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyAnimationName>(
-                sessionManager.getCurrentSession()->currentCellanim,
+                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                 animationIndex,
                 newMacro
             ));

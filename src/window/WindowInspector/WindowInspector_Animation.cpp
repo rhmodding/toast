@@ -4,7 +4,7 @@
 
 #include "../../SessionManager.hpp"
 
-#include "../../anim/Animatable.hpp"
+#include "../../anim/CellanimRenderer.hpp"
 
 #include "../../command/CommandModifyAnimationName.hpp"
 #include "../../command/CommandSwapAnimations.hpp"
@@ -17,18 +17,17 @@
 
 void WindowInspector::Level_Animation() {
     AppState& appState = AppState::getInstance();
-    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
     SessionManager& sessionManager = SessionManager::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
 
-    this->DrawPreview(&globalAnimatable);
+    this->DrawPreview();
 
     ImGui::SameLine();
 
-    unsigned animationIndex = globalAnimatable.getCurrentAnimationIndex();
-
-    const char* animName = globalAnimatable.cellanim->animations.at(animationIndex).name.c_str();
-    if (animName == nullptr)
-        animName = "(no macro defined)";
+    unsigned animationIndex = playerManager.getAnimationIndex();
+    const char* animationName = playerManager.getAnimation().name.c_str();
+    if (animationName[0] == '\0')
+        animationName = "(no macro defined)";
 
     ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
@@ -37,7 +36,7 @@ void WindowInspector::Level_Animation() {
         ImGui::Text("Animation no. %u:", animationIndex + 1);
 
         ImGui::PushFont(appState.fonts.large);
-        ImGui::TextWrapped("%s", animName);
+        ImGui::TextWrapped("%s", animationName);
         ImGui::PopFont();
 
         ImGui::PopStyleVar();

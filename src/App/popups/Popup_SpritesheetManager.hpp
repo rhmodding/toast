@@ -1,0 +1,98 @@
+#ifndef POPUP_SPRITESHEETMANAGER_HPP
+#define POPUP_SPRITESHEETMANAGER_HPP
+
+#include <imgui.h>
+
+#include "../../SessionManager.hpp"
+
+#include "../../common.hpp"
+
+static void Popup_SpritesheetManager() {
+    static unsigned selectedSheet { 0 };
+
+    SessionManager& sessionManager = SessionManager::getInstance();
+    if (sessionManager.getCurrentSession() == nullptr)
+        return;
+
+    CENTER_NEXT_WINDOW();
+
+    if (ImGui::BeginPopupModal("Spritesheet Manager###SpritesheetManager")) {
+        if (ImGui::IsWindowAppearing())
+            selectedSheet = sessionManager.getCurrentSession()
+                ->getCurrentCellanim().object->sheetIndex;
+        
+        auto& sheets = sessionManager.getCurrentSession()->sheets;
+
+        // Left
+        {
+            ImGui::BeginChild("SheetList", { 150.f, 0.f }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
+            for (unsigned i = 0; i < sheets->getTextureCount(); i++) {
+                char label[32];
+                snprintf(label, sizeof(label), "Sheet no. %u", i + 1);
+                if (ImGui::Selectable(label, selectedSheet == i))
+                    selectedSheet = i;
+            }
+            ImGui::EndChild();
+        }
+
+        const std::shared_ptr cellanimSheet = sheets->getTextureByIndex(selectedSheet);
+
+        ImGui::SameLine();
+
+        // Right
+        {
+            ImGui::BeginGroup();
+
+            ImGui::SetNextWindowSizeConstraints(
+                { 256.f, 0.f },
+                {
+                    std::numeric_limits<float>::max(),
+                    std::numeric_limits<float>::max()
+                }
+            );
+            ImGui::BeginChild("Preview", { 0.f, -ImGui::GetFrameHeightWithSpacing() });
+
+            static float bgScale { .215f };
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGui::SliderFloat("##BGSlider", &bgScale, 0.f, 1.f, "BG: %.3f");
+
+            ImVec2 imageRect {
+                static_cast<float>(cellanimSheet->getWidth()),
+                static_cast<float>(cellanimSheet->getHeight())
+            };
+
+            float imageScale = std::min(
+                ImGui::GetContentRegionAvail().x / imageRect.x, // width ratio
+                ImGui::GetContentRegionAvail().y / imageRect.y // height ratio
+            );
+            imageRect.x *= imageScale;
+            imageRect.y *= imageScale;
+
+            ImVec2 imagePosition {
+                ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * .5f,
+                ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - imageRect.y) * .5f
+            };
+
+            ImGui::GetWindowDrawList()->AddRectFilled(
+                imagePosition,
+                { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, },
+                ImGui::ColorConvertFloat4ToU32({ bgScale, bgScale, bgScale, 1.f })
+            );
+
+            ImGui::GetWindowDrawList()->AddImage(
+                (ImTextureID)cellanimSheet->getTextureId(),
+                imagePosition,
+                { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
+            );
+
+            ImGui::EndChild();
+
+            ImGui::EndGroup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+#endif // POPUP_SPRITESHEETMANAGER_HPP

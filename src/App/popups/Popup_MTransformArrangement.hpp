@@ -6,7 +6,7 @@
 
 #include <imgui.h>
 
-#include "../../anim/Animatable.hpp"
+#include "../../anim/CellanimRenderer.hpp"
 
 #include "../../AppState.hpp"
 
@@ -19,12 +19,13 @@ static void Popup_MTransformArrangement() {
     static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MTransformArrangement");
 
-    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+    SessionManager& sessionManager = SessionManager::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
 
     RvlCellAnim::Arrangement* arrangement { nullptr };
 
-    if (globalAnimatable.cellanim)
-        arrangement = globalAnimatable.getCurrentArrangement();
+    if (sessionManager.getCurrentSessionIndex() >= 0)
+        arrangement = &playerManager.getArrangement();
 
     static const int noOffset[2] { 0, 0 };
     static const float noScale[2] { 1.f, 1.f };
@@ -93,8 +94,8 @@ static void Popup_MTransformArrangement() {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(
-                sessionManager.getCurrentSession()->currentCellanim,
-                globalAnimatable.getCurrentKey()->arrangementIndex,
+                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                playerManager.getArrangementIndex(),
                 newArrangement
             ));
 

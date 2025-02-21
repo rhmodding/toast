@@ -1,14 +1,17 @@
 #ifndef ASYNCTASK_HPP
 #define ASYNCTASK_HPP
 
+#include <imgui.h>
+
 #include <atomic>
 
 #include "../common.hpp"
 
+typedef uint32_t AsyncTaskId;
+
 class AsyncTask {
 public:
-    AsyncTask(uint32_t id, const char* message);
-
+    AsyncTask(AsyncTaskId id, const char* message);
     virtual ~AsyncTask() = default;
 
     void Start();
@@ -26,14 +29,12 @@ protected:
     virtual void Effect() = 0;
 
 private:
-    uint32_t id;
+    AsyncTaskId id;
 
     std::atomic<bool> isComplete { false };
     std::atomic<bool> hasEffectRun { false };
 
     const char* message;
-
-    ImGuiID imguiID;
 
     float startTime;
 };

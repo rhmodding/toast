@@ -7,14 +7,10 @@
 
 #include "../font/FontAwesome.h"
 
-AsyncTask::AsyncTask(uint32_t id, const char* message) :
-    id(id), message(message),
-    startTime(static_cast<float>(ImGui::GetTime()))
+AsyncTask::AsyncTask(AsyncTaskId id, const char* message) :
+    id(id), message(message)
 {
-    char str[32];
-    snprintf(str, sizeof(str), "Task%u", this->id);
-
-    this->imguiID = ImHashStr(str);
+    this->startTime = static_cast<float>(ImGui::GetTime());
 };
 
 void AsyncTask::Start() {
@@ -34,7 +30,7 @@ void AsyncTask::RunEffectIfComplete() {
 }
 
 void AsyncTask::ShowPopup() const {
-    ImGui::PushID(this->imguiID);
+    ImGui::PushID(this->id);
 
     if (!this->isComplete)
         ImGui::OpenPopup("###WORKING");

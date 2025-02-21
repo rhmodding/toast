@@ -29,11 +29,7 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.insert(it, this->key);
 
-        AppState& appState = AppState::getInstance();
-
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -44,11 +40,7 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.erase(it);
 
-        AppState& appState = AppState::getInstance();
-
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

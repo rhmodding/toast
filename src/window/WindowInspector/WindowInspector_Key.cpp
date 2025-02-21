@@ -2,7 +2,7 @@
 
 #include "../../SessionManager.hpp"
 
-#include "../../anim/Animatable.hpp"
+#include "../../anim/CellanimRenderer.hpp"
 
 #include "../../command/CommandModifyAnimationKey.hpp"
 
@@ -14,60 +14,56 @@
 
 void WindowInspector::Level_Key() {
     AppState& appState = AppState::getInstance();
-    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
     SessionManager& sessionManager = SessionManager::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
 
-    DrawPreview(&globalAnimatable);
+    DrawPreview();
 
     ImGui::SameLine();
 
-    RvlCellAnim::AnimationKey newKey = *globalAnimatable.getCurrentKey();
-    RvlCellAnim::AnimationKey originalKey = *globalAnimatable.getCurrentKey();
+    const auto& arrangements = sessionManager.getCurrentSession()
+        ->getCurrentCellanim().object->arrangements;
 
-    unsigned animationIndex = globalAnimatable.getCurrentAnimationIndex();
+    RvlCellAnim::AnimationKey newKey = playerManager.getKey();
+    RvlCellAnim::AnimationKey originalKey = playerManager.getKey();
 
-    const char* animName = globalAnimatable.cellanim->animations.at(animationIndex).name.c_str();
-    if (animName == nullptr)
-        animName = "no macro defined";
+    unsigned animationIndex = playerManager.getAnimationIndex();
+    const char* animationName = playerManager.getAnimation().name.c_str();
+    if (animationName[0] == '\0')
+        animationName = "(no macro defined)";
 
     ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
-        ImGui::Text("Anim \"%s\" (no. %u)", animName, animationIndex+1);
+        ImGui::Text("Anim \"%s\" (no. %u)", animationName, animationIndex+1);
 
         ImGui::PushFont(appState.fonts.large);
-        ImGui::TextWrapped("Key no. %u", globalAnimatable.getCurrentKeyIndex() + 1);
+        ImGui::TextWrapped("Key no. %u", playerManager.getKeyIndex() + 1);
         ImGui::PopFont();
 
         ImGui::PopStyleVar();
     }
     ImGui::EndChild();
 
-    RvlCellAnim::AnimationKey* animKey = globalAnimatable.getCurrentKey();
+    RvlCellAnim::AnimationKey& animKey = playerManager.getKey();
 
     ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Arrangement");
 
     // Arrangement Input
     {
-        static uint16_t oldArrangement { 0 };
-        uint16_t newArrangement = globalAnimatable.getCurrentKey()->arrangementIndex + 1;
+        static int oldArrangement { 0 };
+        int newArrangement = playerManager.getArrangementIndex() + 1;
 
         ImGui::SetNextItemWidth(
             ImGui::CalcItemWidth() -
             (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x) * 2
         );
-        if (ImGui::InputScalar(
-            "##Arrangement No.",
-            ImGuiDataType_U16,
-            &newArrangement,
-            nullptr, nullptr,
-            "%u"
-        )) {
-            globalAnimatable.getCurrentKey()->arrangementIndex =
-                std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
 
-            appState.correctSelectedParts();
+        if (ImGui::InputInt("##Arrangement No.", &newArrangement)) {
+            playerManager.getKey().arrangementIndex =
+                std::min<unsigned>(newArrangement - 1, arrangements.size() - 1);
+            PlayerManager::getInstance().correctState();
         }
 
         if (ImGui::IsItemActivated())
@@ -76,7 +72,7 @@ void WindowInspector::Level_Key() {
         if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
             originalKey.arrangementIndex = oldArrangement;
             newKey.arrangementIndex =
-                std::min<uint16_t>(newArrangement - 1, globalAnimatable.cellanim->arrangements.size() - 1);
+                std::min<uint16_t>(newArrangement - 1, arrangements.size() - 1);
         }
 
         // Start +- Buttons
@@ -88,26 +84,26 @@ void WindowInspector::Level_Key() {
         ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
         if (
             ImGui::Button("-##Arrangement No._dec", buttonSize) &&
-            globalAnimatable.getCurrentKey()->arrangementIndex > 0
+            playerManager.getArrangementIndex() > 0
         ) {
             if (!appState.getArrangementMode())
                 newKey.arrangementIndex--;
             else
-                globalAnimatable.getCurrentKey()->arrangementIndex--;
+                playerManager.getKey().arrangementIndex--;
 
-            appState.correctSelectedParts();
+            PlayerManager::getInstance().correctState();
         }
         ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
         if (
             ImGui::Button("+##Arrangement No._inc", buttonSize) &&
-            (globalAnimatable.getCurrentKey()->arrangementIndex + 1) < globalAnimatable.cellanim->arrangements.size()
+            (playerManager.getArrangementIndex() + 1) < arrangements.size()
         ) {
             if (!appState.getArrangementMode())
                 newKey.arrangementIndex++;
             else
-                globalAnimatable.getCurrentKey()->arrangementIndex++;
+                playerManager.getKey().arrangementIndex++;
 
-            appState.correctSelectedParts();
+            PlayerManager::getInstance().correctState();
         }
 
         ImGui::PopItemFlag();
@@ -117,12 +113,12 @@ void WindowInspector::Level_Key() {
     }
 
     {
-        bool arrangementUnique = CellanimHelpers::getArrangementUnique(globalAnimatable.getCurrentKey()->arrangementIndex);
+        bool arrangementUnique = CellanimHelpers::getArrangementUnique(playerManager.getArrangementIndex());
         ImGui::BeginDisabled(arrangementUnique);
 
         if (ImGui::Button("Make arrangement unique (duplicate)"))
             newKey.arrangementIndex =
-                CellanimHelpers::DuplicateArrangement(animKey->arrangementIndex);
+                CellanimHelpers::DuplicateArrangement(playerManager.getArrangementIndex());
 
         ImGui::EndDisabled();
 
@@ -139,7 +135,7 @@ void WindowInspector::Level_Key() {
 
             if (ImGui::Selectable("Ok"))
                 newKey.arrangementIndex =
-                    CellanimHelpers::DuplicateArrangement(animKey->arrangementIndex);
+                    CellanimHelpers::DuplicateArrangement(playerManager.getArrangementIndex());
             ImGui::Selectable("Nevermind");
 
             ImGui::EndPopup();
@@ -153,10 +149,10 @@ void WindowInspector::Level_Key() {
 
     {
         static unsigned oldHoldFrames { 0 };
-        int holdFrames = animKey->holdFrames;
+        int holdFrames = animKey.holdFrames;
 
         if (ImGui::InputInt("Hold Frames", &holdFrames)) {
-            animKey->holdFrames = std::clamp<unsigned>(
+            animKey.holdFrames = std::clamp<unsigned>(
                 holdFrames,
                 RvlCellAnim::AnimationKey::MIN_HOLD_FRAMES,
                 RvlCellAnim::AnimationKey::MAX_HOLD_FRAMES
@@ -186,8 +182,8 @@ void WindowInspector::Level_Key() {
     {
         static int oldPosition[2] { 0, 0 };
         int positionValues[2] {
-            animKey->transform.positionX,
-            animKey->transform.positionY
+            animKey.transform.positionX,
+            animKey.transform.positionY
         };
 
         if (ImGui::DragInt2(
@@ -196,8 +192,8 @@ void WindowInspector::Level_Key() {
             RvlCellAnim::TransformValues::MIN_POSITION,
             RvlCellAnim::TransformValues::MAX_POSITION
         )) {
-            animKey->transform.positionX = positionValues[0];
-            animKey->transform.positionY = positionValues[1];
+            animKey.transform.positionX = positionValues[0];
+            animKey.transform.positionY = positionValues[1];
         }
 
         if (ImGui::IsItemActivated()) {
@@ -217,11 +213,11 @@ void WindowInspector::Level_Key() {
     // Scale XY
     {
         static float oldScale[2] { 0.f, 0.f };
-        float scaleValues[2] { animKey->transform.scaleX, animKey->transform.scaleY };
+        float scaleValues[2] { animKey.transform.scaleX, animKey.transform.scaleY };
 
         if (ImGui::DragFloat2("Scale XY", scaleValues, .01f)) {
-            animKey->transform.scaleX = scaleValues[0];
-            animKey->transform.scaleY = scaleValues[1];
+            animKey.transform.scaleX = scaleValues[0];
+            animKey.transform.scaleY = scaleValues[1];
         }
 
         if (ImGui::IsItemActivated()) {
@@ -241,10 +237,10 @@ void WindowInspector::Level_Key() {
     // Angle Z slider
     {
         static float oldAngle { 0.f };
-        float newAngle = animKey->transform.angle;
+        float newAngle = animKey.transform.angle;
 
         if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
-            animKey->transform.angle = newAngle;
+            animKey.transform.angle = newAngle;
 
         if (ImGui::IsItemActivated())
             oldAngle = originalKey.transform.angle;
@@ -263,9 +259,9 @@ void WindowInspector::Level_Key() {
         static const uint8_t max { 0xFF };
 
         static uint8_t oldOpacity { 0 };
-        uint8_t newOpacity = animKey->opacity;
+        uint8_t newOpacity = animKey.opacity;
         if (ImGui::SliderScalar("Opacity", ImGuiDataType_U8, &newOpacity, &min, &max, "%u"))
-            animKey->opacity = newOpacity;
+            animKey.opacity = newOpacity;
 
         if (ImGui::IsItemActivated())
             oldOpacity = originalKey.opacity;
@@ -277,13 +273,13 @@ void WindowInspector::Level_Key() {
     }
 
     if (newKey != originalKey) {
-        *globalAnimatable.getCurrentKey() = originalKey;
+        playerManager.getKey() = originalKey;
 
         SessionManager::getInstance().getCurrentSession()->addCommand(
         std::make_shared<CommandModifyAnimationKey>(
-            sessionManager.getCurrentSession()->currentCellanim,
-            appState.globalAnimatable.getCurrentAnimationIndex(),
-            appState.globalAnimatable.getCurrentKeyIndex(),
+            sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+            playerManager.getAnimationIndex(),
+            playerManager.getKeyIndex(),
             newKey
         ));
     }

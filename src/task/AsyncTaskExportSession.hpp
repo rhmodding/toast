@@ -14,8 +14,12 @@
 class AsyncTaskExportSession : public AsyncTask {
 public:
     AsyncTaskExportSession(
-        uint32_t id,
-        Session* session, std::string outPath
+        AsyncTaskId id,
+        unsigned sessionIndex, std::string filePath
+    );
+    AsyncTaskExportSession(
+        AsyncTaskId id,
+        unsigned sessionIndex
     );
 
 protected:
@@ -23,8 +27,10 @@ protected:
     void Effect() override;
 
 private:
-    Session* session;
-    std::string outPath;
+    unsigned sessionIndex;
+
+    bool useSessionPath;
+    std::string filePath;
 
     std::atomic<int> result { 0 };
 };

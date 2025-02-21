@@ -24,6 +24,8 @@ static void Popup_SwapAnimation(int animationIndex) {
     if (animationIndex < 0)
         return;
 
+    SessionManager& sessionManager = SessionManager::getInstance();
+
     CENTER_NEXT_WINDOW();
 
     if (ImGui::BeginPopupModal("Swap animations###SwapAnimation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -67,11 +69,9 @@ static void Popup_SwapAnimation(int animationIndex) {
 
             ImGui::BeginDisabled(swapAnim < 0);
             if (ImGui::Button("Apply")) {
-                SessionManager& sessionManager = SessionManager::getInstance();
-
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandSwapAnimations>(
-                    sessionManager.getCurrentSession()->currentCellanim,
+                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                     animationIndex,
                     swapAnim,
                     swapNames
@@ -99,19 +99,16 @@ static void Popup_SwapAnimation(int animationIndex) {
 
             float beginCursorY = ImGui::GetCursorPosY();
 
-            Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+            const auto& animations = sessionManager.getCurrentSession()
+                ->getCurrentCellanim().object->animations;
 
-            for (int n = 0; n < (int)globalAnimatable.cellanim->animations.size(); n++) {
+            for (int n = 0; n < (int)animations.size(); n++) {
                 std::ostringstream fmtStream;
-
-                SessionManager& sessionManager = SessionManager::getInstance();
 
                 int nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
 
-                const char* animName =
-                    sessionManager.getCurrentSession()->getCurrentCellanim().object
-                        ->animations.at(swapNames ? n : nI).name.c_str();
-                if (animName == nullptr)
+                const char* animName = animations.at(swapNames ? n : nI).name.c_str();
+                if (animName[0] == '\0')
                     animName = "(no macro defined)";
 
                 fmtStream << std::to_string(nI+1) << ". " << animName;

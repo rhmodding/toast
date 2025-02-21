@@ -26,7 +26,7 @@ public:
     void Execute() override {
         this->getKey() = this->newKey;
 
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -34,7 +34,7 @@ public:
     void Rollback() override {
         this->getKey() = this->oldKey;
 
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

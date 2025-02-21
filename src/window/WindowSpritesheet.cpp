@@ -496,8 +496,66 @@ bool RepackSheet() {
         }
     }
 
-    session.addCommand(std::make_shared<CommandModifySpritesheet>(cellanimObject->sheetIndex, newTexture));
-    session.addCommand(std::make_shared<CommandModifyArrangements>(session.currentCellanim, std::move(arrangements)));
+    session.addCommand(std::make_shared<CommandModifySpritesheet>(
+        cellanimObject->sheetIndex, newTexture
+    ));
+    session.addCommand(std::make_shared<CommandModifyArrangements>(
+        session.getCurrentCellanimIndex(), std::move(arrangements)
+    ));
+
+    return true;
+}
+
+// TODO: move this somewhere else
+bool FixSheetEdgePixels() {
+    SessionManager& sessionManager = SessionManager::getInstance();
+
+    auto& session = *sessionManager.getCurrentSession();
+
+    std::shared_ptr cellanimObject = session.getCurrentCellanim().object;
+    const auto& arrangements = cellanimObject->arrangements;
+
+    std::shared_ptr cellanimSheet = session.getCurrentCellanimSheet();
+
+    const unsigned width = cellanimSheet->getWidth();
+    const unsigned height = cellanimSheet->getHeight();
+    const unsigned pixelCount = cellanimSheet->getPixelCount();
+
+    std::unique_ptr<unsigned char[]> texture(new unsigned char[pixelCount * 4]());
+    cellanimSheet->GetRGBA32(texture.get());
+
+    // Attempt to 'fix' every pixel
+    for (unsigned y = 0; y < height; y++) {
+        for (unsigned x = 0; x < width; x++) {
+            unsigned pixelIndex = (y * width + x) * 4;
+
+            // Pixel is #00000000
+            if (*(uint32_t*)(texture.get() + pixelIndex) == 0) {
+                static const int offsets[4][2] = {
+                    // left, right,  up,      down
+                    {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+                };
+
+                for (unsigned i = 0; i < 4; i++) {
+                    int nx = x + offsets[i][0];
+                    int ny = y + offsets[i][1];
+
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                        unsigned neighborIndex = (ny * width + nx) * 4;
+
+                        if (texture[neighborIndex + 3] > 0) {
+                            texture[pixelIndex + 0] = texture[neighborIndex + 0];
+                            texture[pixelIndex + 1] = texture[neighborIndex + 1];
+                            texture[pixelIndex + 2] = texture[neighborIndex + 2];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    cellanimSheet->LoadRGBA32(texture.get(), width, height);
 
     return true;
 }
@@ -638,6 +696,10 @@ void WindowSpritesheet::Update() {
                 bool ok = RepackSheet();
                 if (!ok)
                     OPEN_GLOBAL_POPUP("###SheetRepackFailed");
+            }
+
+            if (ImGui::MenuItem((const char*)ICON_FA_STAR " Fix sheet transparency", nullptr, false)) {
+                FixSheetEdgePixels();
             }
 
             ImGui::EndMenu();
@@ -801,26 +863,33 @@ void WindowSpritesheet::Update() {
     AppState& appState = AppState::getInstance();
 
     if (this->drawBounding) {
-        Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+        PlayerManager& playerManager = PlayerManager::getInstance();
 
-        RvlCellAnim::Arrangement* arrangementPtr = globalAnimatable.getCurrentArrangement();
+        const auto& session = sessionManager.getCurrentSession();
 
-        for (unsigned i = 0; i < arrangementPtr->parts.size(); i++) {
+        const auto& textureGroup = session->sheets;
+        const std::shared_ptr cellanimObject = session->getCurrentCellanim().object;
+
+        const auto& arrangement = playerManager.getArrangement();
+
+        for (unsigned i = 0; i < arrangement.parts.size(); i++) {
             if (appState.focusOnSelectedPart && !appState.isPartSelected(i))
                 continue;
 
-            const RvlCellAnim::ArrangementPart& part = arrangementPtr->parts[i];
+            const auto& part = arrangement.parts[i];
 
             unsigned sourceRect[4] {
-                part.regionX % globalAnimatable.cellanim->sheetW,
-                part.regionY % globalAnimatable.cellanim->sheetH,
+                part.regionX % cellanimObject->sheetW,
+                part.regionY % cellanimObject->sheetH,
                 part.regionW, part.regionH
             };
 
+            const auto& associatedTex = textureGroup->getTextureByVarying(part.textureVarying);
+
             float mismatchScaleX =
-                static_cast<float>(globalAnimatable.texture->getWidth()) / globalAnimatable.cellanim->sheetW;
+                static_cast<float>(associatedTex->getWidth()) / cellanimObject->sheetW;
             float mismatchScaleY =
-                static_cast<float>(globalAnimatable.texture->getHeight()) / globalAnimatable.cellanim->sheetH;
+                static_cast<float>(associatedTex->getHeight()) / cellanimObject->sheetH;
 
             ImVec2 topLeftOffset {
                 (sourceRect[0] * scale * mismatchScaleX) + imagePosition.x,

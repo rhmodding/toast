@@ -55,7 +55,7 @@ void Dialog_SaveCurrentSessionAsSzs() {
 
     if (saveFileDialog)
         asyncTaskManager.StartTask<AsyncTaskExportSession>(
-            sessionManager.getCurrentSession(),
+            sessionManager.getCurrentSessionIndex(),
             std::string(saveFileDialog)
         );
 }
@@ -71,8 +71,7 @@ void SaveCurrentSessionSzs() {
         return;
 
     asyncTaskManager.StartTask<AsyncTaskExportSession>(
-        sessionManager.getCurrentSession(),
-        sessionManager.getCurrentSession()->resourcePath
+        sessionManager.getCurrentSessionIndex()
     );
 }
 

@@ -27,11 +27,7 @@ public:
     void Execute() override {
         this->getArrangements() = this->newArrangements;
 
-        AppState& appState = AppState::getInstance();
-
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -39,11 +35,7 @@ public:
     void Rollback() override {
         this->getArrangements() = this->oldArrangements;
 
-        AppState& appState = AppState::getInstance();
-
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

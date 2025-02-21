@@ -28,7 +28,7 @@ public:
     bool HasTaskOfType() const;
 
 private:
-    std::atomic<uint32_t> nextId { 0 };
+    std::atomic<AsyncTaskId> nextId { 0 };
     std::vector<std::unique_ptr<AsyncTask>> tasks;
 };
 

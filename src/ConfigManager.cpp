@@ -3,6 +3,15 @@
 #include <iostream>
 #include <fstream>
 
+inline void clampRecentlyOpened(std::vector<std::string>& recentlyOpened) {
+    if (recentlyOpened.size() > Config::MAX_RECENTLY_OPENED) {
+        recentlyOpened.erase(
+            recentlyOpened.begin(),
+            recentlyOpened.begin() + (recentlyOpened.size() - Config::MAX_RECENTLY_OPENED)
+        );
+    }
+}
+
 void ConfigManager::LoadConfig() {
     std::ifstream file(this->configPath);
 
@@ -21,6 +30,8 @@ void ConfigManager::LoadConfig() {
     file.close();
 
     this->config = j.get<Config>();
+
+    clampRecentlyOpened(this->config.recentlyOpened);
 }
 
 void ConfigManager::SaveConfig() const {
@@ -43,7 +54,7 @@ void ConfigManager::LoadDefaults() {
 void ConfigManager::addRecentlyOpened(const std::string& path) {
     auto& recentlyOpened = this->config.recentlyOpened;
 
-    // Remove duplicates
+    // Remove already existing instances of path
     recentlyOpened.erase(
         std::remove(recentlyOpened.begin(), recentlyOpened.end(), path),
         recentlyOpened.end()
@@ -51,10 +62,5 @@ void ConfigManager::addRecentlyOpened(const std::string& path) {
 
     recentlyOpened.push_back(path);
 
-    if (recentlyOpened.size() > Config::MAX_RECENTLY_OPENED) {
-        recentlyOpened.erase(
-            recentlyOpened.begin(),
-            recentlyOpened.begin() + (recentlyOpened.size() - Config::MAX_RECENTLY_OPENED)
-        );
-    }
+    clampRecentlyOpened(recentlyOpened);
 }

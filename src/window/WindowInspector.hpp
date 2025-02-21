@@ -5,7 +5,7 @@
 
 #include <imgui.h>
 
-#include "../anim/Animatable.hpp"
+#include "../anim/CellanimRenderer.hpp"
 
 class WindowInspector : public BaseWindow {
 public:
@@ -19,11 +19,13 @@ public:
     } inspectorLevel { InspectorLevel_Animation };
 
 private:
-    void DrawPreview(Animatable* animatable);
+    void DrawPreview();
 
     void Level_Animation();
     void Level_Key();
     void Level_Arrangement();
+
+    CellanimRenderer previewRenderer;
 
     ImVec2 windowSize;
 };

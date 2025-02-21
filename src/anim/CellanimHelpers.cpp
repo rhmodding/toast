@@ -11,7 +11,7 @@ unsigned CellanimHelpers::DuplicateArrangement(unsigned arrangementIndex) {
 
     sessionManager.getCurrentSession()->addCommand(
     std::make_shared<CommandInsertArrangement>(
-        sessionManager.getCurrentSession()->currentCellanim,
+        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
         object->arrangements.size(),
         object->arrangements.at(arrangementIndex)
     ));

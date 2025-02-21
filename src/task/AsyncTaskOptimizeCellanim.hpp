@@ -29,7 +29,7 @@ struct OptimizeCellanimOptions {
 class AsyncTaskOptimizeCellanim : public AsyncTask {
 public:
     AsyncTaskOptimizeCellanim(
-        uint32_t id,
+        AsyncTaskId id,
         Session* session, OptimizeCellanimOptions options
     );
 

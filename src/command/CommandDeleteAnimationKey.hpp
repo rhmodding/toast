@@ -26,11 +26,7 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.erase(it);
 
-        AppState& appState = AppState::getInstance();
-
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -41,19 +37,15 @@ public:
         auto it = animation.keys.begin() + this->keyIndex;
         animation.keys.insert(it, this->key);
 
-        AppState& appState = AppState::getInstance();
-
-        if (!appState.getArrangementMode())
-            PlayerManager::getInstance().clampCurrentKeyIndex();
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint16_t animationIndex;
-    uint32_t keyIndex;
+    unsigned cellanimIndex;
+    unsigned animationIndex;
+    unsigned keyIndex;
 
     RvlCellAnim::AnimationKey key;
 

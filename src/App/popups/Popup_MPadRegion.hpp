@@ -5,7 +5,7 @@
 
 #include <imgui.h>
 
-#include "../../anim/Animatable.hpp"
+#include "../../anim/CellanimRenderer.hpp"
 
 #include "../../AppState.hpp"
 
@@ -19,44 +19,45 @@ static void Popup_MPadRegion() {
     const bool active = ImGui::BeginPopup("MPadRegion");
 
     AppState& appState = AppState::getInstance();
-    Animatable& globalAnimatable = AppState::getInstance().globalAnimatable;
+    SessionManager& sessionManager = SessionManager::getInstance();
+    PlayerManager& playerManager = PlayerManager::getInstance();
 
-    RvlCellAnim::ArrangementPart* part { nullptr };
+    const bool openConditions =
+        sessionManager.getCurrentSessionIndex() >= 0 &&
+        appState.singlePartSelected();
 
-    if (
-        globalAnimatable.cellanim &&
-        appState.singlePartSelected()
-    )
-        part = &globalAnimatable.getCurrentArrangement()->parts.at(appState.selectedParts[0].index);
+    static unsigned origOffset[2] { 8, 8 };
+    static unsigned origSize[2] { 32, 32 };
 
-    static uint16_t origOffset[2] { 8, 8 };
-    static uint16_t origSize[2] { 32, 32 };
+    static unsigned origPosition[2] { 0, 0 };
 
-    static int16_t origPosition[2] { 0, 0 };
+    if (!active && lateOpen && openConditions) {
+        auto& part = playerManager.getArrangement().parts.at(appState.selectedParts[0].index);
 
-    if (!active && lateOpen && part) {
-        part->regionX = origOffset[0];
-        part->regionY = origOffset[1];
+        part.regionX = origOffset[0];
+        part.regionY = origOffset[1];
 
-        part->regionW = origSize[0];
-        part->regionH = origSize[0];
+        part.regionW = origSize[0];
+        part.regionH = origSize[0];
 
-        part->transform.positionX = origPosition[0];
-        part->transform.positionY = origPosition[1];
+        part.transform.positionX = origPosition[0];
+        part.transform.positionY = origPosition[1];
 
         lateOpen = false;
     }
 
-    if (active && part) {
+    if (active && openConditions) {
+        auto& part = playerManager.getArrangement().parts.at(appState.selectedParts[0].index);
+
         if (!lateOpen) {
-            origOffset[0] = part->regionX;
-            origOffset[1] = part->regionY;
+            origOffset[0] = part.regionX;
+            origOffset[1] = part.regionY;
 
-            origSize[0] = part->regionW;
-            origSize[1] = part->regionH;
+            origSize[0] = part.regionW;
+            origSize[1] = part.regionH;
 
-            origPosition[0] = part->transform.positionX;
-            origPosition[1] = part->transform.positionY;
+            origPosition[0] = part.transform.positionX;
+            origPosition[1] = part.transform.positionY;
         }
 
         lateOpen = true;
@@ -73,7 +74,7 @@ static void Popup_MPadRegion() {
         ImGui::Separator();
 
         if (ImGui::Button("Apply")) {
-            auto newPart = *part;
+            auto newPart = part; // Copy
 
             newPart.regionW = origSize[0] + padBy[0];
             newPart.regionH = origSize[1] + padBy[1];
@@ -86,21 +87,21 @@ static void Popup_MPadRegion() {
                 newPart.transform.positionY = origPosition[1] - (padBy[1] / 2);
             }
 
-            part->regionX = origOffset[0];
-            part->regionY = origOffset[1];
+            part.regionX = origOffset[0];
+            part.regionY = origOffset[1];
 
-            part->regionW = origSize[0];
-            part->regionH = origSize[1];
+            part.regionW = origSize[0];
+            part.regionH = origSize[1];
 
-            part->transform.positionX = origPosition[0];
-            part->transform.positionY = origPosition[1];
+            part.transform.positionX = origPosition[0];
+            part.transform.positionY = origPosition[1];
 
             SessionManager& sessionManager = SessionManager::getInstance();
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
-                sessionManager.getCurrentSession()->currentCellanim,
-                globalAnimatable.getCurrentKey()->arrangementIndex,
+                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                playerManager.getArrangementIndex(),
                 appState.selectedParts[0].index,
                 newPart
             ));
@@ -121,19 +122,19 @@ static void Popup_MPadRegion() {
             lateOpen = false;
         }
 
-        part->regionW = origSize[0] + padBy[0];
-        part->regionH = origSize[1] + padBy[1];
+        part.regionW = origSize[0] + padBy[0];
+        part.regionH = origSize[1] + padBy[1];
 
-        part->regionX = origOffset[0] - (padBy[0] / 2);
-        part->regionY = origOffset[1] - (padBy[1] / 2);
+        part.regionX = origOffset[0] - (padBy[0] / 2);
+        part.regionY = origOffset[1] - (padBy[1] / 2);
 
         if (centerPart) {
-            part->transform.positionX = origPosition[0] - (padBy[0] / 2);
-            part->transform.positionY = origPosition[1] - (padBy[1] / 2);
+            part.transform.positionX = origPosition[0] - (padBy[0] / 2);
+            part.transform.positionY = origPosition[1] - (padBy[1] / 2);
         }
         else {
-            part->transform.positionX = origPosition[0];
-            part->transform.positionY = origPosition[1];
+            part.transform.positionX = origPosition[0];
+            part.transform.positionY = origPosition[1];
         }
     }
 

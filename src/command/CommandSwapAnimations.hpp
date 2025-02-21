@@ -14,8 +14,8 @@ class CommandSwapAnimations : public BaseCommand {
 public:
     // Constructor: Swap animations by cellanimIndex, animationIndexA and animationIndexB.
     CommandSwapAnimations(
-        uint16_t cellanimIndex,
-        uint16_t animationIndexA, uint16_t animationIndexB,
+        unsigned cellanimIndex,
+        unsigned animationIndexA, unsigned animationIndexB,
         bool swapNames
     ) :
         cellanimIndex(cellanimIndex),
@@ -48,37 +48,37 @@ public:
     }
 
 private:
-    uint16_t cellanimIndex;
-    uint16_t animationIndexA;
-    uint16_t animationIndexB;
+    unsigned cellanimIndex;
+    unsigned animationIndexA;
+    unsigned animationIndexB;
 
     bool swapNames;
 
     void updateAnimationState() {
         AppState& appState = AppState::getInstance();
+        PlayerManager& playerManager = PlayerManager::getInstance();
 
         unsigned newSelectedAnimation { 0 };
         bool selectedDifferentAnimation { false };
 
+        unsigned currentAnimation = playerManager.getAnimationIndex();
+
         if (
-            appState.selectedAnimation == animationIndexA ||
-            appState.selectedAnimation == animationIndexB
+            currentAnimation == animationIndexA ||
+            currentAnimation == animationIndexB
         ) {
             newSelectedAnimation =
-                appState.selectedAnimation == animationIndexA ? animationIndexB :
-                appState.selectedAnimation == animationIndexB ? animationIndexA :
-                appState.selectedAnimation;
+                currentAnimation == animationIndexA ? animationIndexB :
+                currentAnimation == animationIndexB ? animationIndexA :
+                currentAnimation;
 
-            selectedDifferentAnimation = newSelectedAnimation != appState.selectedAnimation;
+            selectedDifferentAnimation = newSelectedAnimation != currentAnimation;
 
-            appState.selectedAnimation = newSelectedAnimation;
-
-            appState.globalAnimatable.setAnimationFromIndex(appState.selectedAnimation);
-
+            playerManager.setAnimationIndex(newSelectedAnimation);
             if (selectedDifferentAnimation)
-                PlayerManager::getInstance().setCurrentKeyIndex(0);
+                playerManager.setKeyIndex(0);
 
-            appState.correctSelectedParts();
+            PlayerManager::getInstance().correctState();
         }
     }
 

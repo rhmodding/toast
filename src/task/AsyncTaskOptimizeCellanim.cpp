@@ -1,7 +1,7 @@
 #include "AsyncTaskOptimizeCellanim.hpp"
 
 AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
-    uint32_t id,
+    AsyncTaskId id,
     Session* session, OptimizeCellanimOptions options
 ) :
     AsyncTask(id, "Optimizing cellanim .."),
@@ -163,5 +163,5 @@ void AsyncTaskOptimizeCellanim::Run() {
 void AsyncTaskOptimizeCellanim::Effect() {
     // TODO: make this whole thing undo-able
     SessionManager::getInstance().getCurrentSession()->clearUndoRedo();
-    SessionManager::getInstance().SessionChanged();
+    //SessionManager::getInstance().SessionChanged();
 }

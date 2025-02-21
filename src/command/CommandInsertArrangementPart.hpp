@@ -27,7 +27,7 @@ public:
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.insert(it, this->part);
 
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -38,7 +38,7 @@ public:
         auto it = arrangement.parts.begin() + this->partIndex;
         arrangement.parts.erase(it);
 
-        AppState::getInstance().correctSelectedParts();
+        PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
