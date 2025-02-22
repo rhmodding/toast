@@ -165,7 +165,7 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSiz
     return;
 }
 
-std::vector<unsigned char> U8ArchiveObject::Reserialize() {
+std::vector<unsigned char> U8ArchiveObject::Serialize() {
     std::vector<unsigned char> result(sizeof(U8ArchiveHeader));
     U8ArchiveHeader* header = reinterpret_cast<U8ArchiveHeader*>(result.data());
 

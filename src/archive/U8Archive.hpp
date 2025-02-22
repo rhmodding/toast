@@ -50,7 +50,7 @@ class U8ArchiveObject {
 public:
     Directory structure { "" };
 
-    std::vector<unsigned char> Reserialize();
+    std::vector<unsigned char> Serialize();
 
     U8ArchiveObject(const unsigned char* data, const size_t dataSize);
     U8ArchiveObject() = default;

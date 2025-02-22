@@ -229,7 +229,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
     this->ok = true;
 }
 
-std::vector<unsigned char> TPLObject::Reserialize() {
+std::vector<unsigned char> TPLObject::Serialize() {
     std::vector<unsigned char> result;
 
     const unsigned textureCount = this->textures.size();
@@ -363,7 +363,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
         if (texture.width > 1024 || texture.height > 1024) {
             std::cerr <<
-                "[TPLObject::Reserialize] The dimensions of the texture exceed 1024x1024 "
+                "[TPLObject::Serialize] The dimensions of the texture exceed 1024x1024 "
                 "(" << texture.width << 'x' << texture.height << "),\n"
                 "                         the game will most likely be unable to read it properly.\n";
         }
@@ -379,7 +379,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             texture.wrapS != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.width)
         ) {
-            std::cerr << "[TPLObject::Reserialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP\n";
+            std::cerr << "[TPLObject::Serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP\n";
             header->wrapS = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
@@ -389,7 +389,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
             texture.wrapT != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.height)
         ) {
-            std::cerr << "[TPLObject::Reserialize] Image width is not a power of two, so vertical wrap will be set to CLAMP\n";
+            std::cerr << "[TPLObject::Serialize] Image width is not a power of two, so vertical wrap will be set to CLAMP\n";
             header->wrapT = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
@@ -440,28 +440,6 @@ std::vector<unsigned char> TPLObject::Reserialize() {
     }
 
     return result;
-}
-
-std::optional<TPLObject> readTPLFile(const std::string& filePath) {
-    std::ifstream file(filePath, std::ios::binary);
-    if (!file.is_open()) {
-        std::cerr << "[TPL::readTPLFile] Error opening file at path: " << filePath << '\n';
-        return std::nullopt;
-    }
-
-    file.seekg(0, std::ios::end);
-    std::streampos fileSize = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::vector<char> fileContent(fileSize);
-    file.read(fileContent.data(), fileSize);
-
-    file.close();
-
-    return TPL::TPLObject(
-        reinterpret_cast<unsigned char*>(fileContent.data()),
-        fileSize
-    );
 }
 
 } // namespace TPL

@@ -311,7 +311,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
         // BRCAD files
         for (unsigned i = 0; i < session.cellanims.size(); i++) {
             U8Archive::File file(session.cellanims[i].name);
-            file.data = session.cellanims[i].object->Reserialize();
+            file.data = session.cellanims[i].object->Serialize();
 
             directory.AddFile(std::move(file));
         }
@@ -364,7 +364,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
                 return -1;
             }
 
-            file.data = tplObject.Reserialize();
+            file.data = tplObject.Serialize();
 
             directory.AddFile(std::move(file));
         }
@@ -386,7 +386,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
         archive.structure.AddDirectory(std::move(directory));
     }
 
-    auto archiveRaw = archive.Reserialize();
+    auto archiveRaw = archive.Serialize();
 
     const ConfigManager& configManager = ConfigManager::getInstance();
 

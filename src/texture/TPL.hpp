@@ -100,8 +100,8 @@ struct TPLTexture {
 
     TPLImageFormat format;
 
-    std::vector<unsigned char> data;
-    std::vector<uint32_t> palette;
+    std::vector<unsigned char> data; // In RGBA32 format.
+    std::vector<uint32_t> palette; // In RGBA32 format.
 
     GLuint createGPUTexture() const;
 };
@@ -112,14 +112,11 @@ public:
 
     std::vector<TPLTexture> textures;
 
-    std::vector<unsigned char> Reserialize();
+    std::vector<unsigned char> Serialize();
 
     TPLObject(const unsigned char* tplData, const size_t dataSize);
-
-    TPLObject() {};
+    TPLObject() = default;
 };
-
-std::optional<TPLObject> readTPLFile(const std::string& filePath);
 
 } // namespace TPL
 
