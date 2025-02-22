@@ -7,11 +7,12 @@
 
 #include "../common.hpp"
 
-// Pre-byteswapped.
-constexpr uint32_t RCAD_REVISION_DATE = 0xD8B43201;
+// 12 Mar 2010
+constexpr uint32_t RCAD_REVISION_DATE = __builtin_bswap32(20100312);
+// 7 Oct 2013
+constexpr uint32_t CCAD_REVISION_DATE = 20131007;
 
 struct RvlCellAnimHeader {
-    // Format revision date (should equal 20100312 in BE (2010/03/12) if valid)
     // Compare to RCAD_REVISION_DATE
     uint32_t revisionDate { RCAD_REVISION_DATE };
 
@@ -28,22 +29,32 @@ struct RvlCellAnimHeader {
 
     uint16_t sheetW; // Sheet width in relation to UV regions.
     uint16_t sheetH; // Sheet height in relation to UV regions.
-} __attribute__((packed));
 
-struct ArrangementsHeader {
+    // Amount of arrangements (commonly referred to as sprites)
+    uint16_t arrangementCount;
+
+    uint16_t _pad16 { 0x0000 };
+} __attribute__((packed));
+struct CtrCellAnimHeader {
+    // Compare to CCAD_REVISION_DATE
+    uint32_t revisionDate { CCAD_REVISION_DATE };
+
+    uint16_t sheetW; // Sheet width in relation to UV regions.
+    uint16_t sheetH; // Sheet height in relation to UV regions.
+
     // Amount of arrangements (commonly referred to as sprites)
     uint16_t arrangementCount;
 
     uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 
-struct TransformValuesRaw {
+struct RvlTransformValues {
     int16_t positionX { 0 }, positionY { 0 }; // In pixels.
     float scaleX { 1.f }, scaleY { 1.f };
     float angle { 0.f }; // In degrees.
 
-    TransformValuesRaw() = default;
-    TransformValuesRaw(const CellAnim::TransformValues& transformValues, bool isArrangementPart) {
+    RvlTransformValues() = default;
+    RvlTransformValues(const CellAnim::TransformValues& transformValues, bool isArrangementPart) {
         const int additive = (isArrangementPart ? 512 : 0);
 
         this->positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.positionX + additive));
@@ -68,7 +79,7 @@ struct TransformValuesRaw {
     }
 } __attribute__((packed));
 
-struct ArrangementPartRaw {
+struct RvlArrangementPart {
     uint16_t regionX; // X position of UV region in spritesheet
     uint16_t regionY; // Y position of UV region in spritesheet
     uint16_t regionW; // Width of UV region in spritesheet
@@ -78,7 +89,7 @@ struct ArrangementPartRaw {
 
     uint16_t _pad16 { 0x0000 };
 
-    TransformValuesRaw transform;
+    RvlTransformValues transform;
 
     uint8_t flipX; // Horizontally flipped (boolean)
     uint8_t flipY; // Vertically flipped (boolean)
@@ -87,8 +98,8 @@ struct ArrangementPartRaw {
 
     uint8_t _pad8 { 0x00 };
 
-    ArrangementPartRaw() = default;
-    ArrangementPartRaw(const CellAnim::ArrangementPart& arrangementPart) {
+    RvlArrangementPart() = default;
+    RvlArrangementPart(const CellAnim::ArrangementPart& arrangementPart) {
         this->regionX = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionX));
         this->regionY = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionY));
         this->regionW = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionW));
@@ -96,7 +107,7 @@ struct ArrangementPartRaw {
 
         this->textureVarying = BYTESWAP_16(arrangementPart.textureVarying);
 
-        this->transform = TransformValuesRaw(arrangementPart.transform, true);
+        this->transform = RvlTransformValues(arrangementPart.transform, true);
 
         this->flipX = arrangementPart.flipX ? 0x01 : 0x00;
         this->flipY = arrangementPart.flipY ? 0x01 : 0x00;
@@ -104,12 +115,81 @@ struct ArrangementPartRaw {
         this->opacity = arrangementPart.opacity;
     }
 } __attribute__((packed));
+struct CtrArrangementPart {
+    uint16_t regionX; // X position of UV region in spritesheet
+    uint16_t regionY; // Y position of UV region in spritesheet
+    uint16_t regionW; // Width of UV region in spritesheet
+    uint16_t regionH; // Height of UV region in spritesheet
 
-struct ArrangementRaw {
-    // Amout of parts in the arrangement
+    int16_t positionX { 0 }, positionY { 0 }; // In pixels.
+    float scaleX { 1.f }, scaleY { 1.f };
+    float angle { 0.f }; // In degrees.
+
+    uint8_t flipX; // Horizontally flipped (boolean)
+    uint8_t flipY; // Vertically flipped (boolean)
+
+    uint8_t foreColor[3]; // RGB
+    uint8_t backColor[3]; // RGB
+
+    uint8_t opacity;
+
+    uint8_t _unknown0[12];
+
+    uint8_t id;
+
+    uint8_t _unknown1; // Something to do with EFTs?
+    uint8_t _pad8;
+
+    float depthTL { 0.f }, depthBL { 0.f };
+    float depthTR { 0.f }, depthBR { 0.f };
+
+    CtrArrangementPart() = default;
+    CtrArrangementPart(const CellAnim::ArrangementPart& arrangementPart) {
+        this->regionX = static_cast<uint16_t>(arrangementPart.regionX);
+        this->regionY = static_cast<uint16_t>(arrangementPart.regionY);
+        this->regionW = static_cast<uint16_t>(arrangementPart.regionW);
+        this->regionH = static_cast<uint16_t>(arrangementPart.regionH);
+
+        this->positionX = static_cast<int16_t>(arrangementPart.transform.positionX + 512);
+        this->positionY = static_cast<int16_t>(arrangementPart.transform.positionY + 512);
+        this->scaleX = arrangementPart.transform.scaleX;
+        this->scaleY = arrangementPart.transform.scaleY;
+        this->angle = arrangementPart.transform.angle;
+
+        this->flipX = arrangementPart.flipX ? 0x01 : 0x00;
+        this->flipY = arrangementPart.flipY ? 0x01 : 0x00;
+
+        this->foreColor[0] = arrangementPart.foreColor.r;
+        this->foreColor[1] = arrangementPart.foreColor.g;
+        this->foreColor[2] = arrangementPart.foreColor.b;
+        this->backColor[0] = arrangementPart.backColor.r;
+        this->backColor[1] = arrangementPart.backColor.g;
+        this->backColor[2] = arrangementPart.backColor.b;
+
+        this->opacity = arrangementPart.opacity;
+
+        this->id = static_cast<uint8_t>(arrangementPart.id);
+
+        this->depthTL = arrangementPart.depth3D.topLeft;
+        this->depthBL = arrangementPart.depth3D.bottomLeft;
+        this->depthTR = arrangementPart.depth3D.topRight;
+        this->depthBR = arrangementPart.depth3D.bottomRight;
+    }
+} __attribute__((packed));
+
+struct RvlArrangement {
+    // Amount of parts in the arrangement
     uint16_t partsCount;
-
     uint16_t _pad16 { 0x0000 };
+
+    RvlArrangementPart parts[0];
+} __attribute__((packed));
+struct CtrArrangement {
+    // Amount of parts in the arrangement
+    uint16_t partsCount;
+    uint16_t _pad16 { 0x0000 };
+
+    CtrArrangementPart parts[0];
 } __attribute__((packed));
 
 struct AnimationsHeader {
@@ -119,97 +199,140 @@ struct AnimationsHeader {
     uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 
-struct AnimationRaw {
-    // Amount of keys the animation has
-    uint16_t keyCount;
-
-    uint16_t _pad16 { 0x0000 };
-} __attribute__((packed));
-
-struct AnimationKeyRaw {
+struct RvlAnimationKey {
     // Index of arrangement (commonly referred to as sprites)
     uint16_t arrangementIndex;
 
     // Amount of frames the key is held for
     uint16_t holdFrames;
 
-    TransformValuesRaw transform;
+    RvlTransformValues transform;
 
     uint8_t opacity;
 
     uint8_t _pad24[3] { 0x00, 0x00, 0x00 };
 
-    AnimationKeyRaw() = default;
-    AnimationKeyRaw(const CellAnim::AnimationKey& animationKey) {
+    RvlAnimationKey() = default;
+    RvlAnimationKey(const CellAnim::AnimationKey& animationKey) {
         this->arrangementIndex = BYTESWAP_16(animationKey.arrangementIndex);
         this->holdFrames = BYTESWAP_16(animationKey.holdFrames);
 
-        this->transform = TransformValuesRaw(animationKey.transform, false);
+        this->transform = RvlTransformValues(animationKey.transform, false);
+
+        this->opacity = animationKey.opacity;
+    }
+} __attribute__((packed));
+struct CtrAnimationKey {
+    // Index of arrangement (commonly referred to as sprites)
+    uint16_t arrangementIndex;
+
+    // Amount of frames the key is held for
+    uint16_t holdFrames;
+
+    int16_t positionX { 0 }, positionY { 0 }; // In pixels.
+    float positionZ;
+
+    float scaleX { 1.f }, scaleY { 1.f };
+    float angle { 0.f }; // In degrees.
+
+    uint8_t foreColor[3]; // RGB
+    uint8_t backColor[3]; // RGB
+
+    uint8_t opacity;
+
+    uint8_t _pad8 { 0x00 };
+
+    CtrAnimationKey() = default;
+    CtrAnimationKey(const CellAnim::AnimationKey& animationKey) {
+        this->arrangementIndex = BYTESWAP_16(animationKey.arrangementIndex);
+        this->holdFrames = BYTESWAP_16(animationKey.holdFrames);
+
+        this->positionX = static_cast<int16_t>(animationKey.transform.positionX);
+        this->positionY = static_cast<int16_t>(animationKey.transform.positionY);
+
+        this->positionZ = animationKey.translateZ;
+
+        this->scaleX = animationKey.transform.scaleX;
+        this->scaleY = animationKey.transform.scaleY;
+        this->angle = animationKey.transform.angle;
 
         this->opacity = animationKey.opacity;
     }
 } __attribute__((packed));
 
-namespace CellAnim {
+struct RvlAnimation {
+    uint16_t keyCount;
+    uint16_t _pad16 { 0x0000 };
 
-CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize) {
+    RvlAnimationKey keys[0];
+} __attribute__((packed));
+
+struct CtrAnimationName {
+    uint8_t stringLength;
+    char string[0];
+} __attribute__((packed));
+
+struct CtrAnimation {
+    uint32_t isInterpolated; // Boolean value.
+
+    uint16_t keyCount;
+    uint16_t _pad16 { 0x0000 };
+
+    CtrAnimationKey keys[0];
+} __attribute__((packed));
+
+static bool InitRvlCellAnim(
+    CellAnim::CellAnimObject& object,
+    const unsigned char* data, const size_t dataSize
+) {
     if (dataSize < sizeof(RvlCellAnimHeader)) {
-        std::cerr << "[CellAnimObject::CellAnimObject] Invalid CellAnim binary: data size smaller than header size!\n";
-        return;
+        std::cerr << "[CellAnimObject::CellAnimObject] Invalid RCAD binary: data size smaller than header size!\n";
+        return false;
     }
 
     const RvlCellAnimHeader* header = reinterpret_cast<const RvlCellAnimHeader*>(data);
-    if (header->revisionDate != RCAD_REVISION_DATE) {
-        std::cerr << "[CellAnimObject::CellAnimObject] Invalid CellAnim binary: revision date failed check!\n";
-        return;
-    }
 
-    this->sheetIndex = BYTESWAP_16(header->sheetIndex);
+    object.sheetIndex = BYTESWAP_16(header->sheetIndex);
 
-    this->sheetW = BYTESWAP_16(header->sheetW);
-    this->sheetH = BYTESWAP_16(header->sheetH);
+    object.sheetW = BYTESWAP_16(header->sheetW);
+    object.sheetH = BYTESWAP_16(header->sheetH);
 
-    this->usePalette = header->usePalette != 0x00;
+    object.usePalette = header->usePalette != 0x00;
 
     const unsigned char* currentData = data + sizeof(RvlCellAnimHeader);
 
     // Arrangements
-    const uint16_t arrangementCount = BYTESWAP_16(
-        reinterpret_cast<const ArrangementsHeader*>(currentData)->arrangementCount
-    );
-    currentData += sizeof(ArrangementsHeader);
+    const uint16_t arrangementCount = BYTESWAP_16(header->arrangementCount);
 
-    this->arrangements.resize(arrangementCount);
+    object.arrangements.resize(arrangementCount);
 
     for (unsigned i = 0; i < arrangementCount; i++) {
-        const ArrangementRaw* arrangementRaw =
-            reinterpret_cast<const ArrangementRaw*>(currentData);
-        currentData += sizeof(ArrangementRaw);
+        const RvlArrangement* arrangementIn = reinterpret_cast<const RvlArrangement*>(currentData);
+        currentData += sizeof(RvlArrangement);
 
-        Arrangement& arrangement = this->arrangements[i];
+        CellAnim::Arrangement& arrangementOut = object.arrangements[i];
 
-        const uint16_t arrangementPartCount = BYTESWAP_16(arrangementRaw->partsCount);
-        arrangement.parts.resize(arrangementPartCount);
+        const uint16_t arrangementPartCount = BYTESWAP_16(arrangementIn->partsCount);
+        arrangementOut.parts.resize(arrangementPartCount);
 
         for (unsigned j = 0; j < arrangementPartCount; j++) {
-            const ArrangementPartRaw* arrangementPartRaw =
-                reinterpret_cast<const ArrangementPartRaw*>(currentData);
-            currentData += sizeof(ArrangementPartRaw);
+            const RvlArrangementPart* arrangementPartIn = reinterpret_cast<const RvlArrangementPart*>(currentData);
+            currentData += sizeof(RvlArrangementPart);
 
-            arrangement.parts[j] = ArrangementPart {
-                .regionX = BYTESWAP_16(arrangementPartRaw->regionX),
-                .regionY = BYTESWAP_16(arrangementPartRaw->regionY),
-                .regionW = BYTESWAP_16(arrangementPartRaw->regionW),
-                .regionH = BYTESWAP_16(arrangementPartRaw->regionH),
+            arrangementOut.parts[j] = CellAnim::ArrangementPart {
+                .regionX = BYTESWAP_16(arrangementPartIn->regionX),
+                .regionY = BYTESWAP_16(arrangementPartIn->regionY),
+                .regionW = BYTESWAP_16(arrangementPartIn->regionW),
+                .regionH = BYTESWAP_16(arrangementPartIn->regionH),
 
-                .textureVarying = BYTESWAP_16(arrangementPartRaw->textureVarying),
+                .textureVarying = BYTESWAP_16(arrangementPartIn->textureVarying),
 
-                .transform = arrangementPartRaw->transform.toTransformValues(true),
+                .transform = arrangementPartIn->transform.toTransformValues(true),
 
-                .flipX = arrangementPartRaw->flipX != 0x00,
-                .flipY = arrangementPartRaw->flipY != 0x00,
+                .flipX = arrangementPartIn->flipX != 0x00,
+                .flipY = arrangementPartIn->flipY != 0x00,
 
-                .opacity = arrangementPartRaw->opacity
+                .opacity = arrangementPartIn->opacity
             };
         }
     }
@@ -219,103 +342,310 @@ CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize)
     );
     currentData += sizeof(AnimationsHeader);
 
-    this->animations.resize(animationCount);
+    object.animations.resize(animationCount);
 
     for (unsigned i = 0; i < animationCount; i++) {
-        const AnimationRaw* animationRaw = reinterpret_cast<const AnimationRaw*>(currentData);
-        currentData += sizeof(AnimationRaw);
+        const RvlAnimation* animationIn = reinterpret_cast<const RvlAnimation*>(currentData);
+        currentData += sizeof(RvlAnimation);
 
-        Animation& animation = this->animations[i];
+        CellAnim::Animation& animationOut = object.animations[i];
 
-        const uint16_t keyCount = BYTESWAP_16(animationRaw->keyCount);
-        animation.keys.resize(keyCount);
+        const uint16_t keyCount = BYTESWAP_16(animationIn->keyCount);
+        animationOut.keys.resize(keyCount);
 
         for (unsigned j = 0; j < keyCount; j++) {
-            const AnimationKeyRaw* keyRaw = reinterpret_cast<const AnimationKeyRaw*>(currentData);
-            currentData += sizeof(AnimationKeyRaw);
+            const RvlAnimationKey* keyIn = reinterpret_cast<const RvlAnimationKey*>(currentData);
+            currentData += sizeof(RvlAnimationKey);
 
-            animation.keys[j] = AnimationKey {
-                .arrangementIndex = BYTESWAP_16(keyRaw->arrangementIndex),
+            animationOut.keys[j] = CellAnim::AnimationKey {
+                .arrangementIndex = BYTESWAP_16(keyIn->arrangementIndex),
 
-                .holdFrames = BYTESWAP_16(keyRaw->holdFrames),
+                .holdFrames = BYTESWAP_16(keyIn->holdFrames),
 
-                .transform = keyRaw->transform.toTransformValues(false),
+                .transform = keyIn->transform.toTransformValues(false),
 
-                .opacity = keyRaw->opacity
+                .opacity = keyIn->opacity
             };
         }
     }
 
-    this->initialized = true;
+    return true;
 }
 
-std::vector<unsigned char> CellAnimObject::Reserialize() {
-    unsigned fullSize =
-        sizeof(RvlCellAnimHeader) +
-        sizeof(ArrangementsHeader) +
-        sizeof(AnimationsHeader);
-    
-    for (const Arrangement& arrangement : this->arrangements)
-        fullSize += sizeof(ArrangementRaw) + (sizeof(ArrangementPartRaw) * arrangement.parts.size());
-    for (const Animation& animation : this->animations)
-        fullSize += sizeof(AnimationRaw) + (sizeof(AnimationKeyRaw) * animation.keys.size());
+static bool InitCtrCellAnim(
+    CellAnim::CellAnimObject& object,
+    const unsigned char* data, const size_t dataSize
+) {
+    if (dataSize < sizeof(CtrCellAnimHeader)) {
+        std::cerr << "[CellAnimObject::CellAnimObject] Invalid CCAD binary: data size smaller than header size!\n";
+        return false;
+    }
 
+    const CtrCellAnimHeader* header = reinterpret_cast<const CtrCellAnimHeader*>(data);
+
+    object.sheetW = header->sheetW;
+    object.sheetH = header->sheetH;
+
+    const unsigned char* currentData = data + sizeof(CtrCellAnimHeader);
+
+    // Arrangements
+    object.arrangements.resize(header->arrangementCount);
+
+    for (unsigned i = 0; i < header->arrangementCount; i++) {
+        const CtrArrangement* arrangementIn = reinterpret_cast<const CtrArrangement*>(currentData);
+        currentData += sizeof(CtrArrangement);
+
+        CellAnim::Arrangement& arrangementOut = object.arrangements[i];
+
+        arrangementOut.parts.resize(arrangementIn->partsCount);
+
+        for (unsigned j = 0; j < arrangementIn->partsCount; j++) {
+            const CtrArrangementPart* arrangementPartIn = reinterpret_cast<const CtrArrangementPart*>(currentData);
+            currentData += sizeof(CtrArrangementPart);
+
+            arrangementOut.parts[j] = CellAnim::ArrangementPart {
+                .regionX = arrangementPartIn->regionX,
+                .regionY = arrangementPartIn->regionY,
+                .regionW = arrangementPartIn->regionW,
+                .regionH = arrangementPartIn->regionH,
+
+                .transform.positionX = static_cast<int>(int16_t(arrangementPartIn->positionX - 512)),
+                .transform.positionY = static_cast<int>(int16_t(arrangementPartIn->positionY - 512)),
+                .transform.scaleX = arrangementPartIn->scaleX,
+                .transform.scaleY = arrangementPartIn->scaleY,
+                .transform.angle = arrangementPartIn->angle,
+
+                .flipX = arrangementPartIn->flipX != 0x00,
+                .flipY = arrangementPartIn->flipY != 0x00,
+
+                .foreColor.r = arrangementPartIn->foreColor[0],
+                .foreColor.g = arrangementPartIn->foreColor[1],
+                .foreColor.b = arrangementPartIn->foreColor[2],
+                .backColor.r = arrangementPartIn->backColor[0],
+                .backColor.g = arrangementPartIn->backColor[1],
+                .backColor.b = arrangementPartIn->backColor[2],
+
+                .opacity = arrangementPartIn->opacity,
+
+                .id = arrangementPartIn->id,
+
+                .depth3D.topLeft = arrangementPartIn->depthTL,
+                .depth3D.bottomLeft = arrangementPartIn->depthBL,
+                .depth3D.topRight = arrangementPartIn->depthTR,
+                .depth3D.bottomRight = arrangementPartIn->depthBR,
+            };
+        }
+    }
+
+    const uint16_t animationCount = reinterpret_cast<const AnimationsHeader*>(currentData)->animationCount;
+    currentData += sizeof(AnimationsHeader);
+
+    object.animations.resize(animationCount);
+
+    for (unsigned i = 0; i < animationCount; i++) {
+        const CtrAnimationName* animationName = reinterpret_cast<const CtrAnimationName*>(currentData);
+        currentData += ALIGN_UP_4(sizeof(CtrAnimationName) + animationName->stringLength + 1);
+
+        const CtrAnimation* animationIn = reinterpret_cast<const CtrAnimation*>(currentData);
+        currentData += sizeof(CtrAnimation);
+
+        CellAnim::Animation& animationOut = object.animations[i];
+
+        animationOut.name.assign(animationName->string, animationName->stringLength);
+
+        animationOut.keys.resize(animationIn->keyCount);
+
+        for (unsigned j = 0; j < animationIn->keyCount; j++) {
+            const CtrAnimationKey* keyIn = reinterpret_cast<const CtrAnimationKey*>(currentData);
+            currentData += sizeof(CtrAnimationKey);
+
+            animationOut.keys[j] = CellAnim::AnimationKey {
+                .arrangementIndex = keyIn->arrangementIndex,
+
+                .holdFrames = keyIn->holdFrames,
+
+                .transform.positionX = keyIn->positionX,
+                .transform.positionY = keyIn->positionY,
+
+                .translateZ = keyIn->positionZ,
+
+                .transform.scaleX = keyIn->scaleX,
+                .transform.scaleY = keyIn->scaleY,
+                .transform.angle = keyIn->angle,
+
+                .foreColor.r = keyIn->foreColor[0],
+                .foreColor.g = keyIn->foreColor[1],
+                .foreColor.b = keyIn->foreColor[2],
+                .backColor.r = keyIn->backColor[0],
+                .backColor.g = keyIn->backColor[1],
+                .backColor.b = keyIn->backColor[2],
+
+                .opacity = keyIn->opacity
+            };
+        }
+    }
+
+    return true;
+}
+
+static std::vector<unsigned char> SerializeRvlCellAnim(
+    const CellAnim::CellAnimObject& object
+) {
+    unsigned fullSize = sizeof(RvlCellAnimHeader) + sizeof(AnimationsHeader);
+    for (const CellAnim::Arrangement& arrangement : object.arrangements)
+        fullSize += sizeof(RvlArrangement) + (sizeof(RvlArrangementPart) * arrangement.parts.size());
+    for (const CellAnim::Animation& animation : object.animations)
+        fullSize += sizeof(RvlAnimation) + (sizeof(RvlAnimationKey) * animation.keys.size());
+    
     std::vector<unsigned char> result(fullSize);
 
     RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
     *header = RvlCellAnimHeader {
-        .usePalette = static_cast<uint8_t>(this->usePalette ? 0x01 : 0x00),
+        .usePalette = static_cast<uint8_t>(object.usePalette ? 0x01 : 0x00),
 
-        .sheetIndex = BYTESWAP_16(static_cast<uint16_t>(this->sheetIndex)),
+        .sheetIndex = BYTESWAP_16(static_cast<uint16_t>(object.sheetIndex)),
 
-        .sheetW = BYTESWAP_16(static_cast<uint16_t>(this->sheetW)),
-        .sheetH = BYTESWAP_16(static_cast<uint16_t>(this->sheetH))
+        .sheetW = BYTESWAP_16(static_cast<uint16_t>(object.sheetW)),
+        .sheetH = BYTESWAP_16(static_cast<uint16_t>(object.sheetH)),
+
+        .arrangementCount = BYTESWAP_16(static_cast<uint16_t>(object.arrangements.size()))
     };
 
-    unsigned char* currentData = result.data() + sizeof(RvlCellAnimHeader);
+    unsigned char* currentOutput = result.data() + sizeof(RvlCellAnimHeader);
 
-    *reinterpret_cast<ArrangementsHeader*>(currentData) = ArrangementsHeader {
-        .arrangementCount = BYTESWAP_16(static_cast<uint16_t>(this->arrangements.size()))
-    };
-    currentData += sizeof(ArrangementsHeader);
+    for (const CellAnim::Arrangement& arrangement : object.arrangements) {
+        RvlArrangement* arrangementOut = reinterpret_cast<RvlArrangement*>(currentOutput);
+        currentOutput += sizeof(RvlArrangement);
 
-    for (const Arrangement& arrangement : this->arrangements) {
-        ArrangementRaw* arrangementRaw = reinterpret_cast<ArrangementRaw*>(currentData);
-        currentData += sizeof(ArrangementRaw);
+        arrangementOut->partsCount = BYTESWAP_16(static_cast<uint16_t>(arrangement.parts.size()));
 
-        arrangementRaw->partsCount = BYTESWAP_16(static_cast<uint16_t>(arrangement.parts.size()));
+        for (const CellAnim::ArrangementPart& part : arrangement.parts) {
+            RvlArrangementPart* arrangementPartOut = reinterpret_cast<RvlArrangementPart*>(currentOutput);
+            currentOutput += sizeof(RvlArrangementPart);
 
-        for (const ArrangementPart& part : arrangement.parts) {
-            ArrangementPartRaw* arrangementPartRaw = reinterpret_cast<ArrangementPartRaw*>(currentData);
-            currentData += sizeof(ArrangementPartRaw);
-
-            *arrangementPartRaw = ArrangementPartRaw(part);
+            *arrangementPartOut = RvlArrangementPart(part);
 
             if (!part.editorVisible)
-                arrangementPartRaw->opacity = 0x00;
+                arrangementPartOut->opacity = 0x00;
         }
     }
 
-    *reinterpret_cast<AnimationsHeader*>(currentData) = AnimationsHeader {
-        .animationCount = BYTESWAP_16(static_cast<uint16_t>(this->animations.size()))
+    *reinterpret_cast<AnimationsHeader*>(currentOutput) = AnimationsHeader {
+        .animationCount = BYTESWAP_16(static_cast<uint16_t>(object.animations.size()))
     };
-    currentData += sizeof(AnimationsHeader);
+    currentOutput += sizeof(AnimationsHeader);
 
-    for (const Animation& animation : this->animations) {
-        AnimationRaw* animationRaw = reinterpret_cast<AnimationRaw*>(currentData);
-        currentData += sizeof(AnimationRaw);
+    for (const CellAnim::Animation& animation : object.animations) {
+        RvlAnimation* animationRaw = reinterpret_cast<RvlAnimation*>(currentOutput);
+        currentOutput += sizeof(RvlAnimation);
 
         animationRaw->keyCount = BYTESWAP_16(static_cast<uint16_t>(animation.keys.size()));
 
-        for (const AnimationKey& key : animation.keys) {
-            AnimationKeyRaw* animationKeyRaw = reinterpret_cast<AnimationKeyRaw*>(currentData);
-            currentData += sizeof(AnimationKeyRaw);
+        for (const CellAnim::AnimationKey& key : animation.keys) {
+            RvlAnimationKey* animationKeyOut = reinterpret_cast<RvlAnimationKey*>(currentOutput);
+            currentOutput += sizeof(RvlAnimationKey);
 
-            *animationKeyRaw = AnimationKeyRaw(key);
+            *animationKeyOut = RvlAnimationKey(key);
         }
     }
 
     return result;
+}
+
+static std::vector<unsigned char> SerializeCtrCellAnim(
+    const CellAnim::CellAnimObject& object
+) {
+    // TODO: serialize animation names
+
+    unsigned fullSize = sizeof(CtrCellAnimHeader) + sizeof(AnimationsHeader);
+    for (const CellAnim::Arrangement& arrangement : object.arrangements)
+        fullSize += sizeof(CtrArrangement) + (sizeof(CtrArrangementPart) * arrangement.parts.size());
+    for (const CellAnim::Animation& animation : object.animations)
+        fullSize += sizeof(CtrAnimation) + (sizeof(CtrAnimationKey) * animation.keys.size());
+    
+    std::vector<unsigned char> result(fullSize);
+
+    CtrCellAnimHeader* header = reinterpret_cast<CtrCellAnimHeader*>(result.data());
+    *header = CtrCellAnimHeader {
+        .sheetW = static_cast<uint16_t>(object.sheetW),
+        .sheetH = static_cast<uint16_t>(object.sheetH),
+
+        .arrangementCount = static_cast<uint16_t>(object.arrangements.size())
+    };
+
+    unsigned char* currentOutput = result.data() + sizeof(CtrCellAnimHeader);
+
+    for (const CellAnim::Arrangement& arrangement : object.arrangements) {
+        CtrArrangement* arrangementOut = reinterpret_cast<CtrArrangement*>(currentOutput);
+        currentOutput += sizeof(CtrArrangement);
+
+        arrangementOut->partsCount = BYTESWAP_16(static_cast<uint16_t>(arrangement.parts.size()));
+
+        for (const CellAnim::ArrangementPart& part : arrangement.parts) {
+            CtrArrangementPart* arrangementPartOut = reinterpret_cast<CtrArrangementPart*>(currentOutput);
+            currentOutput += sizeof(CtrArrangementPart);
+
+            *arrangementPartOut = CtrArrangementPart(part);
+
+            if (!part.editorVisible)
+                arrangementPartOut->opacity = 0x00;
+        }
+    }
+
+    *reinterpret_cast<AnimationsHeader*>(currentOutput) = AnimationsHeader {
+        .animationCount = static_cast<uint16_t>(object.animations.size())
+    };
+    currentOutput += sizeof(AnimationsHeader);
+
+    for (const CellAnim::Animation& animation : object.animations) {
+        CtrAnimation* animationRaw = reinterpret_cast<CtrAnimation*>(currentOutput);
+        currentOutput += sizeof(CtrAnimation);
+
+        animationRaw->keyCount = static_cast<uint16_t>(animation.keys.size());
+
+        for (const CellAnim::AnimationKey& key : animation.keys) {
+            CtrAnimationKey* animationKeyOut = reinterpret_cast<CtrAnimationKey*>(currentOutput);
+            currentOutput += sizeof(CtrAnimationKey);
+
+            *animationKeyOut = CtrAnimationKey(key);
+        }
+    }
+
+    return result;
+}
+
+namespace CellAnim {
+
+CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize) {
+    const uint32_t revisionDate = *(uint32_t*)data;
+
+    switch (revisionDate) {
+    case RCAD_REVISION_DATE:
+        this->type = CELLANIM_TYPE_RVL;
+        this->initialized = InitRvlCellAnim(*this, data, dataSize);
+        return;
+    case CCAD_REVISION_DATE:
+        this->type = CELLANIM_TYPE_CTR;
+        this->initialized = InitCtrCellAnim(*this, data, dataSize);
+        return;
+    
+    default:
+        std::cerr << "[CellAnimObject::CellAnimObject] Invalid cellanim binary: revision date doesn't match RVL or CTR!\n";
+        return;
+    }
+}
+
+std::vector<unsigned char> CellAnimObject::Serialize() {
+    switch (this->type) {
+    case CELLANIM_TYPE_RVL:
+        return SerializeRvlCellAnim(*this);
+    case CELLANIM_TYPE_CTR:
+        return SerializeCtrCellAnim(*this);
+    
+    default:
+        std::cerr << "[CellAnimObject::Serialize] this->type is invalid!\n";
+        return std::vector<unsigned char>();
+    }
 }
 
 std::shared_ptr<CellAnimObject> readCellAnimFile(const char* filePath) {

@@ -12,6 +12,12 @@
 
 namespace CellAnim {
 
+enum CellAnimType {
+    CELLANIM_TYPE_INVALID,
+    CELLANIM_TYPE_RVL,
+    CELLANIM_TYPE_CTR
+};
+
 struct TransformValues {
     // On all axes.
     static constexpr int MIN_POSITION = -32768;
@@ -73,7 +79,7 @@ struct CTRColor {
     uint8_t r, g, b;
 };
 
-struct CTRDepth {
+struct CTRQuadDepth {
     float topLeft { 0.f }, bottomLeft { 0.f };
     float topRight { 0.f }, bottomRight { 0.f };
 };
@@ -103,7 +109,7 @@ struct ArrangementPart {
     CTRColor backColor { 0x00, 0x00, 0x00 };
 
     // On CTR only.
-    CTRDepth depth3D;
+    CTRQuadDepth depth3D;
 
     // On CTR only.
     unsigned id { 0 };
@@ -158,15 +164,15 @@ struct AnimationKey {
 
     TransformValues transform;
 
+    // On CTR only.
+    float translateZ { 0.f };
+
     uint8_t opacity { 0xFFu };
 
     // On CTR only.
     CTRColor foreColor { 0xFF, 0xFF, 0xFF };
     // On CTR only.
     CTRColor backColor { 0x00, 0x00, 0x00 };
-
-    // On CTR only.
-    CTRDepth depth3D;
 
     bool operator==(const AnimationKey& other) const {
         return
@@ -200,19 +206,23 @@ public:
 
     bool isInitialized() const { return this->initialized; };
 
-    std::vector<unsigned char> Reserialize();
+    CellAnimType getType() const { return this->type; };
+
+    std::vector<unsigned char> Serialize();
 
 public:
-    unsigned sheetIndex;
-    unsigned sheetW, sheetH;
+    int sheetIndex { -1 };
+    unsigned sheetW { 0 }, sheetH { 0 };
     
-    bool usePalette;
+    bool usePalette { false };
 
     std::vector<Arrangement> arrangements;
     std::vector<Animation> animations;
 
 private:
     bool initialized { false };
+
+    CellAnimType type { CELLANIM_TYPE_INVALID };
 };
 
 std::shared_ptr<CellAnimObject> readCellAnimFile(const char *filePath);
