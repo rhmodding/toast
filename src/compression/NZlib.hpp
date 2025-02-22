@@ -11,6 +11,8 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
 std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, const size_t dataSize);
 
+bool checkDataValid(const unsigned char* data, const size_t dataSize);
+
 } // namespace NZlib
 
 #endif // NZLIB_HPP

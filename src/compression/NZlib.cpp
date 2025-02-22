@@ -14,22 +14,33 @@ struct NZLibHeader {
 namespace NZlib {
 
 std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
-    std::vector<unsigned char> deflated(zng_compressBound(dataSize));
+    std::vector<unsigned char> deflated(
+        sizeof(NZLibHeader) + zng_compressBound(dataSize)
+    );
+
+    *reinterpret_cast<NZLibHeader*>(deflated.data()) = NZLibHeader {
+        .inflateSize = BYTESWAP_32(dataSize)
+    };
     
-    zng_stream strm = {0};
+    zng_stream strm {};
     strm.next_in = data;
     strm.avail_in = dataSize;
-    strm.next_out = deflated.data();
-    strm.avail_out = deflated.size();
+    strm.next_out = deflated.data() + sizeof(NZLibHeader);
+    strm.avail_out = deflated.size() - sizeof(NZLibHeader);
 
-    if (zng_deflateInit(&strm, compressionLevel) != Z_OK) {
+    // Hack!!! Blame zeldamods, not me!!!
+    const int init = zng_deflateInit2(
+        &strm, std::clamp<int>(compressionLevel, Z_BEST_SPEED, Z_BEST_COMPRESSION),
+        8, 15, 8, 0
+    );
+    if (init != Z_OK) {
         std::cerr << "[NZlib::compress] zng_deflateInit failed!\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
-    int ret = zng_deflate(&strm, Z_FINISH);
+    const int ret = zng_deflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
-        std::cerr << "[NZlib::decompress] zng_deflate failed: " << ret << '\n';
+        std::cerr << "[NZlib::compress] zng_deflate failed: " << ret << '\n';
 
         zng_deflateEnd(&strm);
         return std::nullopt; // return nothing (std::optional)
@@ -37,7 +48,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     zng_deflateEnd(&strm);
 
-    deflated.resize(strm.total_out);
+    deflated.resize(sizeof(NZLibHeader) + strm.total_out);
 
     return deflated;
 }
@@ -53,20 +64,26 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
     const uint32_t deflateSize = dataSize - sizeof(NZLibHeader);
     const uint32_t inflateSize = BYTESWAP_32(header->inflateSize);
 
+    if (inflateSize == 0) {
+        std::cerr << "[NZlib::decompress] Invalid inflate size!\n";
+        return std::nullopt; // return nothing (std::optional)
+    }
+
     std::vector<unsigned char> inflated(inflateSize);
 
-    zng_stream strm = {0};
+    zng_stream strm {};
     strm.next_in = header->deflatedData;
     strm.avail_in = deflateSize;
     strm.next_out = inflated.data();
     strm.avail_out = inflateSize;
 
-    if (zng_inflateInit(&strm) != Z_OK) {
+    const int init = zng_inflateInit2(&strm, 15);
+    if (init != Z_OK) {
         std::cerr << "[NZlib::decompress] zng_inflateInit failed!\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
-    int ret = zng_inflate(&strm, Z_FINISH);
+    const int ret = zng_inflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
         std::cerr << "[NZlib::decompress] zng_inflate failed: " << ret << '\n';
 
@@ -76,6 +93,23 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
     zng_inflateEnd(&strm);
     return inflated;
+}
+
+bool checkDataValid(const unsigned char* data, const size_t dataSize) {
+    if (dataSize < sizeof(NZLibHeader))
+        return false;
+    
+    const NZLibHeader* header = reinterpret_cast<const NZLibHeader*>(data);
+
+    // Endianness doesn't matter here
+    if (header->inflateSize == 0)
+        return false;
+    
+    // Kinda hacky: check ZLIB header byte for deflate compression method
+    if ((header->deflatedData[0] & 0xF) != 0x08)
+        return false;
+    
+    return true;
 }
 
 } // namespace NZlib
