@@ -1,4 +1,4 @@
-#include "ImageConvert.hpp"
+#include "RvlImageConvert.hpp"
 
 #include <unordered_map>
 #include <set>
@@ -653,7 +653,7 @@ static void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut,
 
 
 
-bool ImageConvert::toRGBA32(
+bool RvlImageConvert::toRGBA32(
     unsigned char* buffer,
     const TPL::TPLImageFormat format,
     const unsigned srcWidth,
@@ -693,7 +693,7 @@ bool ImageConvert::toRGBA32(
 
     case ImageFormat::TPL_IMAGE_FORMAT_C8:
         if (!palette) {
-            std::cerr << "[ImageConvert::toRGBA32] Cannot convert C8 texture: palette is nullptr\n";
+            std::cerr << "[RvlImageConvert::toRGBA32] Cannot convert C8 texture: palette is nullptr\n";
             return false;
         }
 
@@ -701,7 +701,7 @@ bool ImageConvert::toRGBA32(
         break;
     case ImageFormat::TPL_IMAGE_FORMAT_C14X2:
         if (!palette) {
-            std::cerr << "[ImageConvert::toRGBA32] Cannot convert C14X2 texture: palette is nullptr\n";
+            std::cerr << "[RvlImageConvert::toRGBA32] Cannot convert C14X2 texture: palette is nullptr\n";
             return false;
         }
 
@@ -713,7 +713,7 @@ bool ImageConvert::toRGBA32(
         break;
 
     default:
-        std::cerr << "[ImageConvert::toRGBA32] Cannot convert texture: invalid format (" << format << ")\n";
+        std::cerr << "[RvlImageConvert::toRGBA32] Cannot convert texture: invalid format (" << format << ")\n";
         return false;
     }
 
@@ -722,11 +722,11 @@ bool ImageConvert::toRGBA32(
     return true;
 }
 
-bool ImageConvert::toRGBA32(
+bool RvlImageConvert::toRGBA32(
     TPL::TPLTexture& texture,
     const unsigned char* data
 ) {
-    return ImageConvert::toRGBA32(
+    return RvlImageConvert::toRGBA32(
         texture.data.data(),
         texture.format,
         texture.width, texture.height,
@@ -735,7 +735,7 @@ bool ImageConvert::toRGBA32(
     );
 }
 
-bool ImageConvert::fromRGBA32(
+bool RvlImageConvert::fromRGBA32(
     unsigned char* buffer,
     uint32_t* paletteOut,
     unsigned* paletteSizeOut,
@@ -760,7 +760,7 @@ bool ImageConvert::fromRGBA32(
 
     case ImageFormat::TPL_IMAGE_FORMAT_C8:
         if (!paletteOut) {
-            std::cerr << "[ImageConvert::fromRGBA32] Couldn't convert to C8 format: no color palette passed.\n";
+            std::cerr << "[RvlImageConvert::fromRGBA32] Couldn't convert to C8 format: no color palette passed.\n";
             return false;
         }
 
@@ -769,7 +769,7 @@ bool ImageConvert::fromRGBA32(
         break;
     case ImageFormat::TPL_IMAGE_FORMAT_C14X2:
         if (!paletteOut) {
-            std::cerr << "[ImageConvert::fromRGBA32] Couldn't convert to C14X2 format: no color palette passed.\n";
+            std::cerr << "[RvlImageConvert::fromRGBA32] Couldn't convert to C14X2 format: no color palette passed.\n";
             return false;
         }
 
@@ -784,7 +784,7 @@ bool ImageConvert::fromRGBA32(
 
     return true;
 }
-bool ImageConvert::fromRGBA32(
+bool RvlImageConvert::fromRGBA32(
     TPL::TPLTexture& texture,
     unsigned char* buffer
 ) {
@@ -842,7 +842,7 @@ static unsigned ImageByteSize_CMPR(unsigned width, unsigned height) {
 	return tilesX * tilesY * 32;
 }
 
-unsigned ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, const unsigned height) {
+unsigned RvlImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, const unsigned height) {
     switch (type) {
     case ImageFormat::TPL_IMAGE_FORMAT_I4:
         return ImageByteSize_4(width, height);
@@ -878,13 +878,13 @@ unsigned ImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const un
         return ImageByteSize_CMPR(width, height);
 
     default:
-        std::cerr << "[ImageConvert::getImageByteSize] Invalid format passed (" << (int)type << ")\n";
+        std::cerr << "[RvlImageConvert::getImageByteSize] Invalid format passed (" << (int)type << ")\n";
         return 0;
     }
 
     // NOT REACHED
 }
 
-unsigned ImageConvert::getImageByteSize(const TPL::TPLTexture& texture) {
+unsigned RvlImageConvert::getImageByteSize(const TPL::TPLTexture& texture) {
     return getImageByteSize(texture.format, texture.width, texture.height);
 }

@@ -7,7 +7,7 @@
 
 #include "../MainThreadTaskManager.hpp"
 
-#include "ImageConvert.hpp"
+#include "RvlImageConvert.hpp"
 
 #include "PaletteUtils.hpp"
 
@@ -169,7 +169,6 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
     }
 
     const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
-
     if (palette->versionNumber != TPL_VERSION_NUMBER) {
         std::cerr << "[TPLObject::TPLObject] Invalid TPL binary: invalid version number!\n";
         return;
@@ -224,7 +223,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         const unsigned char* imageData = tplData + BYTESWAP_32(header->dataOffset);
 
         textureData.data.resize(textureData.width * textureData.height * 4);
-        ImageConvert::toRGBA32(textureData, imageData);
+        RvlImageConvert::toRGBA32(textureData, imageData);
     }
 
     this->ok = true;
@@ -280,7 +279,7 @@ std::vector<unsigned char> TPLObject::Reserialize() {
 
     // Precompute size of data section
     for (unsigned i = 0; i < textureCount; i++) {
-        const unsigned imageSize = ImageConvert::getImageByteSize(this->textures[i]);
+        const unsigned imageSize = RvlImageConvert::getImageByteSize(this->textures[i]);
 
         fullSize = ALIGN_UP_32(fullSize);
         fullSize += imageSize;
@@ -416,10 +415,10 @@ std::vector<unsigned char> TPLObject::Reserialize() {
         writeOffset = ALIGN_UP_32(writeOffset);
         headers[i].dataOffset = BYTESWAP_32(writeOffset);
 
-        const unsigned imageSize = ImageConvert::getImageByteSize(texture);
+        const unsigned imageSize = RvlImageConvert::getImageByteSize(texture);
 
         unsigned char* imageData = result.data() + writeOffset;
-        ImageConvert::fromRGBA32(texture, imageData);
+        RvlImageConvert::fromRGBA32(texture, imageData);
 
         auto it = std::find_if(
             paletteTextures.begin(), paletteTextures.end(),

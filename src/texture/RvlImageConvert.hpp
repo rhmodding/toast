@@ -1,11 +1,11 @@
-#ifndef IMAGECONVERT_HPP
-#define IMAGECONVERT_HPP
+#ifndef RVL_IMAGECONVERT_HPP
+#define RVL_IMAGECONVERT_HPP
+
+#include <cstdint>
 
 #include "TPL.hpp"
 
-#include <vector>
-
-namespace ImageConvert {
+namespace RvlImageConvert {
 
 bool toRGBA32(
     unsigned char* buffer,
@@ -39,6 +39,6 @@ unsigned getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, 
 // Note: for paletted image types this does not include the lookup table.
 unsigned getImageByteSize(const TPL::TPLTexture& texture);
 
-} // namespace ImageConvert
+} // namespace RvlImageConvert
 
-#endif // IMAGECONVERT_HPP
+#endif // RVL_IMAGECONVERT_HPP

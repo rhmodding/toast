@@ -41,7 +41,9 @@ set(SOURCES
     src/texture/Texture.cpp
     src/texture/TextureGroup.cpp
 
-    src/texture/ImageConvert.cpp
+    src/texture/CtrImageConvert.cpp
+    src/texture/RvlImageConvert.cpp
+
     src/texture/CTPK.cpp
     src/texture/TPL.cpp
 

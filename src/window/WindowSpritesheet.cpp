@@ -25,7 +25,7 @@
 #include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"
 
-#include "../texture/ImageConvert.hpp"
+#include "../texture/RvlImageConvert.hpp"
 
 #include "../command/CommandModifySpritesheet.hpp"
 #include "../command/CommandModifyArrangements.hpp"
@@ -144,19 +144,19 @@ void WindowSpritesheet::FormatPopup() {
             if (!imageData)
                 return;
 
-            unsigned bufferSize = ImageConvert::getImageByteSize(
+            unsigned bufferSize = RvlImageConvert::getImageByteSize(
                 tplFormat, cellanimSheet->getWidth(), cellanimSheet->getHeight()
             );
             unsigned char* imageBuffer = new unsigned char[bufferSize];
 
-            ImageConvert::fromRGBA32(
+            RvlImageConvert::fromRGBA32(
                 imageBuffer, nullptr, nullptr, tplFormat,
                 cellanimSheet->getWidth(), cellanimSheet->getHeight(),
                 imageData
             );
 
             // Swap buffers.
-            ImageConvert::toRGBA32(
+            RvlImageConvert::toRGBA32(
                 imageData, tplFormat,
                 cellanimSheet->getWidth(), cellanimSheet->getHeight(),
                 imageBuffer, nullptr
@@ -236,7 +236,7 @@ void WindowSpritesheet::FormatPopup() {
 
                     ImGui::BulletText("Size: %ux%u", imageWidth, imageHeight);
 
-                    uint32_t dataSize = ImageConvert::getImageByteSize(tplFormat, imageWidth, imageHeight);
+                    uint32_t dataSize = RvlImageConvert::getImageByteSize(tplFormat, imageWidth, imageHeight);
 
                     char formattedStr[32];
                     {
