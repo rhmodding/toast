@@ -1,14 +1,15 @@
 #ifndef U8_HPP
 #define U8_HPP
 
-#include <vector>
-#include <list>
-
 #include <string>
+
+#include <vector>
+
+#include <list>
 
 #include <optional>
 
-namespace U8 {
+namespace U8Archive {
 
 class Directory;
 
@@ -52,7 +53,7 @@ public:
     std::vector<unsigned char> Reserialize();
 
     U8ArchiveObject(const unsigned char* data, const size_t dataSize);
-    U8ArchiveObject() {};
+    U8ArchiveObject() = default;
 };
 
 std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath);

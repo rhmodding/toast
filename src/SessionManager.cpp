@@ -11,7 +11,7 @@
 
 #include "anim/CellAnim.hpp"
 
-#include "archive/U8.hpp"
+#include "archive/U8Archive.hpp"
 #include "compression/Yaz0.hpp"
 
 #include "texture/TPL.hpp"
@@ -101,7 +101,7 @@ int SessionManager::CreateSession(const char* filePath) {
 
     Session newSession;
 
-    auto __archiveResult = U8::readYaz0U8Archive(filePath);
+    auto __archiveResult = U8Archive::readYaz0U8Archive(filePath);
     if (!__archiveResult.has_value()) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_FailOpenArchive;
@@ -109,12 +109,12 @@ int SessionManager::CreateSession(const char* filePath) {
         return -1;
     }
 
-    U8::U8ArchiveObject archiveObject = std::move(*__archiveResult);
+    U8Archive::U8ArchiveObject archiveObject = std::move(*__archiveResult);
 
     auto rootDirIt = std::find_if(
         archiveObject.structure.subdirectories.begin(),
         archiveObject.structure.subdirectories.end(),
-        [](const U8::Directory& dir) { return dir.name == "."; }
+        [](const U8Archive::Directory& dir) { return dir.name == "."; }
     );
 
     if (rootDirIt == archiveObject.structure.subdirectories.end()) {
@@ -129,7 +129,7 @@ int SessionManager::CreateSession(const char* filePath) {
     auto blytDirIt = std::find_if(
         rootDirIt->subdirectories.begin(),
         rootDirIt->subdirectories.end(),
-        [](const U8::Directory& dir) { return dir.name == "blyt"; }
+        [](const U8Archive::Directory& dir) { return dir.name == "blyt"; }
     );
 
     if (blytDirIt != rootDirIt->subdirectories.end()) {
@@ -139,7 +139,7 @@ int SessionManager::CreateSession(const char* filePath) {
         return -1;
     }
 
-    U8::File* __tplSearch = U8::findFile("cellanim.tpl", *rootDirIt);
+    U8Archive::File* __tplSearch = U8Archive::findFile("cellanim.tpl", *rootDirIt);
     if (!__tplSearch) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_FailFindTPL;
@@ -157,7 +157,7 @@ int SessionManager::CreateSession(const char* filePath) {
         return -1;
     }
 
-    std::vector<const U8::File*> brcadFiles;
+    std::vector<const U8Archive::File*> brcadFiles;
     for (const auto& file : rootDirIt->files) {
         if (
             file.name.size() >= 6 &&
@@ -174,7 +174,7 @@ int SessionManager::CreateSession(const char* filePath) {
     }
 
     // Sort cellanim files alphabetically for consistency when exporting.
-    std::sort(brcadFiles.begin(), brcadFiles.end(), [](const U8::File*& a, const U8::File*& b) {
+    std::sort(brcadFiles.begin(), brcadFiles.end(), [](const U8Archive::File*& a, const U8Archive::File*& b) {
         return a->name < b->name;
     });
 
@@ -204,9 +204,9 @@ int SessionManager::CreateSession(const char* filePath) {
     // Headers (animation names)
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
         // Find header file
-        const U8::File* headerFile { nullptr };
+        const U8Archive::File* headerFile { nullptr };
 
-        const U8::File* brcadFile = brcadFiles[i];
+        const U8Archive::File* brcadFile = brcadFiles[i];
 
         char targetHeaderName[128];
         snprintf(
@@ -270,11 +270,11 @@ int SessionManager::CreateSession(const char* filePath) {
 
     // Editor data
     {
-        U8::File* tedSearch = U8::findFile(TED_ARC_FILENAME, *rootDirIt);
+        U8Archive::File* tedSearch = U8Archive::findFile(TED_ARC_FILENAME, *rootDirIt);
         if (tedSearch)
             TedApply(tedSearch->data.data(), newSession);
         else {
-            U8::File* datSearch = U8::findFile(TED_ARC_FILENAME_OLD, *rootDirIt);
+            U8Archive::File* datSearch = U8Archive::findFile(TED_ARC_FILENAME_OLD, *rootDirIt);
             if (datSearch)
                 TedApply(datSearch->data.data(), newSession);
         }
@@ -303,14 +303,14 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
     if (dstFilePath == nullptr)
         dstFilePath = session.resourcePath.c_str();
 
-    U8::U8ArchiveObject archive;
+    U8Archive::U8ArchiveObject archive;
 
     { // Serialize all sub-data
-        U8::Directory directory(".");
+        U8Archive::Directory directory(".");
 
         // BRCAD files
         for (unsigned i = 0; i < session.cellanims.size(); i++) {
-            U8::File file(session.cellanims[i].name);
+            U8Archive::File file(session.cellanims[i].name);
             file.data = session.cellanims[i].object->Reserialize();
 
             directory.AddFile(std::move(file));
@@ -328,7 +328,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
             }
 
             const std::string& cellanimName = session.cellanims[i].name;
-            U8::File file(
+            U8Archive::File file(
                 "rcad_" +
                 cellanimName.substr(0, cellanimName.size() - STR_LIT_LEN(".brcad")) +
                 "_labels.h"
@@ -342,7 +342,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
 
         // TPL file
         {
-            U8::File file("cellanim.tpl");
+            U8Archive::File file("cellanim.tpl");
 
             TPL::TPLObject tplObject;
 
@@ -371,7 +371,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
 
         // TED file
         {
-            U8::File file(TED_ARC_FILENAME);
+            U8Archive::File file(TED_ARC_FILENAME);
 
             TedWriteState* state = TedCreateWriteState(session);
                 file.data.resize(TedPrepareWrite(state));

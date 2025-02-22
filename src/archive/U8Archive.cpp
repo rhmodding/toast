@@ -1,4 +1,4 @@
-#include "U8.hpp"
+#include "U8Archive.hpp"
 
 #include <cstdint>
 #include <cstring>
@@ -66,7 +66,7 @@ public:
     uint32_t sizeOrNextEntry;
 } __attribute__((packed));
 
-namespace U8 {
+namespace U8Archive {
 
 File::File(const std::string& n) : name(n) {}
 
@@ -336,7 +336,7 @@ std::vector<unsigned char> U8ArchiveObject::Reserialize() {
 std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        std::cerr << "[U8::readYaz0U8Archive] Error opening file at path: " << filePath << '\n';
+        std::cerr << "[U8Archive::readYaz0U8Archive] Error opening file at path: " << filePath << '\n';
         return std::nullopt;
     }
 
@@ -357,11 +357,11 @@ std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
     delete[] buffer;
 
     if (!decompressedData.has_value()) {
-        std::cerr << "[U8::readYaz0U8Archive] Error decompressing file at path: " << filePath << '\n';
+        std::cerr << "[U8Archive::readYaz0U8Archive] Error decompressing file at path: " << filePath << '\n';
         return std::nullopt;
     }
 
-    U8::U8ArchiveObject archive(
+    U8ArchiveObject archive(
         decompressedData->data(),
         decompressedData->size()
     );
