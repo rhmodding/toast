@@ -20,6 +20,8 @@ set(SOURCES
 
     ext/tinyfiledialogs/tinyfiledialogs.c
 
+    src/rg_etc1/rg_etc1.cpp
+
     src/main.cpp
     src/App.cpp
 
