@@ -30,6 +30,7 @@ set(SOURCES
 
     src/anim/CellanimHelpers.cpp
 
+    src/archive/SARC.cpp
     src/archive/U8Archive.cpp
 
     src/compression/Yaz0.cpp
