@@ -33,6 +33,7 @@ set(SOURCES
     src/archive/SARC.cpp
     src/archive/U8Archive.cpp
 
+    src/compression/NZlib.cpp
     src/compression/Yaz0.cpp
 
     src/texture/Texture.cpp
