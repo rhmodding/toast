@@ -1,0 +1,94 @@
+#ifndef CTPK_HPP
+#define CTPK_HPP
+
+#include <cstdint>
+
+#include <vector>
+
+#include <string>
+
+#include <optional>
+
+#include "../glInclude.hpp"
+
+namespace CTPK {
+
+enum CTPKImageFormat : uint32_t {
+    // Color + Alpha (24-bit truecolor + 8-bit alpha)
+    CTPK_IMAGE_FORMAT_RGBA8888,
+
+    // Color (24-bit truecolor)
+    CTPK_IMAGE_FORMAT_RGB888,
+
+    // Color + Alpha (5 bits per channel + 1-bit alpha)
+    CTPK_IMAGE_FORMAT_RGBA5551,
+
+    // Color (5 bits for red, 6 bits for green, 5 bits for blue)
+    CTPK_IMAGE_FORMAT_RGB565,
+
+    // Color + Alpha (4 bits per channel)
+    CTPK_IMAGE_FORMAT_RGBA4444,
+
+    // Grayscale + Alpha (8 bits for each)
+    CTPK_IMAGE_FORMAT_LA88,
+
+    // Two specialized channels (8 bits per channel)
+    CTPK_IMAGE_FORMAT_HL8,
+
+    // Grayscale (8 bits)
+    CTPK_IMAGE_FORMAT_L8,
+
+    // Alpha (8 bits)
+    CTPK_IMAGE_FORMAT_A8,
+
+    // Grayscale + Alpha (4 bits for each)
+    CTPK_IMAGE_FORMAT_LA44,
+
+    // Grayscale (4 bits)
+    CTPK_IMAGE_FORMAT_L4,
+
+    // Alpha (4 bits)
+    CTPK_IMAGE_FORMAT_A4,
+
+    // Color (ETC1)
+    CTPK_IMAGE_FORMAT_ETC1,
+
+    // Color + Alpha (ETC1)
+    CTPK_IMAGE_FORMAT_ETC1A4,
+
+    CTPK_IMAGE_FORMAT_COUNT
+};
+
+const char* getImageFormatName(CTPKImageFormat format);
+
+struct CTPKTexture {
+    unsigned width;
+    unsigned height;
+
+    unsigned mipCount;
+
+    CTPKImageFormat format;
+
+    uint32_t sourceTimestamp; // Unix last modified timestamp of source TGA.
+    std::string sourcePath; // Path of source TGA.
+
+    std::vector<unsigned char> data; // In RGBA32 format.
+
+    GLuint createGPUTexture() const;
+};
+
+class CTPKObject {
+public:
+    bool ok { false };
+
+    std::vector<CTPKTexture> textures;
+
+    std::vector<unsigned char> Serialize();
+
+    CTPKObject(const unsigned char* ctpkData, const size_t dataSize);
+    CTPKObject() = default;
+};
+
+} // namespace CTPK
+
+#endif // CTPK_HPP

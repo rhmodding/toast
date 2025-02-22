@@ -40,6 +40,7 @@ set(SOURCES
     src/texture/TextureGroup.cpp
 
     src/texture/ImageConvert.cpp
+    src/texture/CTPK.cpp
     src/texture/TPL.cpp
 
     src/task/AsyncTaskManager.cpp
