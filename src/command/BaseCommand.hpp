@@ -3,9 +3,8 @@
 
 class BaseCommand {
 public:
-    virtual void Execute() {};
-
-    virtual void Rollback() {};
+    virtual void Execute() {}
+    virtual void Rollback() {}
 
     virtual ~BaseCommand() {}
 };

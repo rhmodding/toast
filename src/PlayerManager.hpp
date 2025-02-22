@@ -101,7 +101,7 @@ private:
             ->getCurrentCellanim().object;
     }
 
-    PlayerManager() {} // Private constructor to prevent instantiation
+    PlayerManager() = default; // Private constructor to prevent instantiation
 };
 
 #endif // PLAYERMANAGER_HPP

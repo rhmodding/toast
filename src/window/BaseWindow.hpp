@@ -3,7 +3,7 @@
 
 class BaseWindow {
 public:
-    virtual void Update() {};
+    virtual void Update() {}
 
     virtual ~BaseWindow() {}
 };
