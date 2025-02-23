@@ -138,10 +138,10 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
     }
 
     TPL::TPLTexture tplTexture {
-        .mipCount = 1,
+        .width = this->width,
+        .height = this->height,
 
-        .width = static_cast<uint16_t>(this->width),
-        .height = static_cast<uint16_t>(this->height),
+        .mipCount = 1, // TODO use true mip count
 
         .minFilter = TPL::TPL_TEX_FILTER_LINEAR,
         .magFilter = TPL::TPL_TEX_FILTER_LINEAR,
@@ -172,6 +172,36 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
         TPL::TPL_WRAP_MODE_CLAMP;
 
     return tplTexture;
+}
+
+std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
+    if (this->textureId == 0) {
+        std::cerr << "[Texture::CTPKTexture] Failed to construct CTPKTexture: textureId is 0\n";
+        return std::nullopt; // return nothing (std::optional)
+    }
+
+    CTPK::CTPKTexture ctpkTexture {
+        .width = this->width,
+        .height = this->height,
+
+        .mipCount = this->outputMipCount,
+
+        .format = this->ctpkOutputFormat,
+
+        .sourceTimestamp = 0,
+
+        .data = std::vector<unsigned char>(this->width * this->height * 4)
+    };
+
+    MainThreadTaskManager::getInstance().QueueTask([this, &ctpkTexture]() {
+        glBindTexture(GL_TEXTURE_2D, this->textureId);
+
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, ctpkTexture.data.data());
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }).get();
+
+    return ctpkTexture;
 }
 
 void Texture::DestroyTexture() {

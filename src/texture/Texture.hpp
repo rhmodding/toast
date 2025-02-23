@@ -13,6 +13,8 @@ private:
 
     GLuint textureId { 0 };
 
+    unsigned outputMipCount { 1 };
+
     TPL::TPLImageFormat tplOutputFormat { TPL::TPL_IMAGE_FORMAT_RGBA32 };
     CTPK::CTPKImageFormat ctpkOutputFormat { CTPK::CTPK_IMAGE_FORMAT_ETC1A4 };
 public:
@@ -32,10 +34,13 @@ public:
     GLuint getTextureId() const { return this->textureId; }
 
     TPL::TPLImageFormat getTPLOutputFormat() const { return this->tplOutputFormat; }
-    void setTPLOutputFormat(TPL::TPLImageFormat format) { this->tplOutputFormat = format; };
+    void setTPLOutputFormat(TPL::TPLImageFormat format) { this->tplOutputFormat = format; }
 
     CTPK::CTPKImageFormat getCTPKOutputFormat() const { return this->ctpkOutputFormat; }
-    void setCTPKOutputFormat(CTPK::CTPKImageFormat format) { this->ctpkOutputFormat = format; };
+    void setCTPKOutputFormat(CTPK::CTPKImageFormat format) { this->ctpkOutputFormat = format; }
+
+    unsigned getOutputMipCount() const { return this->outputMipCount; }
+    void setOutputMipCount(unsigned mipCount) { this->outputMipCount = mipCount; }
 
     // Generate a texture & upload the RGBA32 data to it.
     // Note: if a GPU texture already exists, this will overwrite it's data.
@@ -75,6 +80,11 @@ public:
     //
     // Returns: TPL::TPLTexture wrapped in std::optional
     std::optional<TPL::TPLTexture> TPLTexture();
+
+    // Construct a CTPKTexture from this texture.
+    //
+    // Returns: CTPK::CTPKTexture wrapped in std::optional
+    std::optional<CTPK::CTPKTexture> CTPKTexture();
 
     // Destroy GPU texture.
     void DestroyTexture();
