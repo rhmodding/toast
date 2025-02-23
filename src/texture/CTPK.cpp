@@ -91,6 +91,54 @@ const char* getImageFormatName(CTPKImageFormat format) {
     return strings[format];
 }
 
+void CTPKTexture::rotateCCW() {
+    // Copy
+    std::vector<unsigned char> temp = this->data;
+
+    for (unsigned y = 0; y < this->height; ++y) {
+        for (unsigned x = 0; x < this->width; ++x) {
+            unsigned newX = y;
+            unsigned newY = (this->width - 1) - x;
+
+            unsigned oldIndex = (y * this->width + x) * 4;
+            unsigned newIndex = (newY * this->height + newX) * 4;
+
+            this->data[newIndex]     = temp[oldIndex];
+            this->data[newIndex + 1] = temp[oldIndex + 1];
+            this->data[newIndex + 2] = temp[oldIndex + 2];
+            this->data[newIndex + 3] = temp[oldIndex + 3];
+        }
+    }
+
+    unsigned width = this->width;
+    this->width = this->height;
+    this->height = width;
+}
+
+void CTPKTexture::rotateCW() {
+    // Copy
+    std::vector<unsigned char> temp = this->data;
+
+    for (unsigned y = 0; y < this->height; ++y) {
+        for (unsigned x = 0; x < this->width; ++x) {
+            unsigned newX = (this->height - 1) - y;
+            unsigned newY = x;
+
+            unsigned oldIndex = (y * this->width + x) * 4;
+            unsigned newIndex = (newY * this->height + newX) * 4;
+
+            this->data[newIndex]     = temp[oldIndex];
+            this->data[newIndex + 1] = temp[oldIndex + 1];
+            this->data[newIndex + 2] = temp[oldIndex + 2];
+            this->data[newIndex + 3] = temp[oldIndex + 3];
+        }
+    }
+
+    unsigned width = this->width;
+    this->width = this->height;
+    this->height = width;
+}
+
 GLuint CTPKTexture::createGPUTexture() const {
     GLuint textureId { 0 };
 

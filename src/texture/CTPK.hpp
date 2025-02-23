@@ -74,6 +74,9 @@ struct CTPKTexture {
 
     std::vector<unsigned char> data; // In RGBA32 format.
 
+    void rotateCCW();
+    void rotateCW();
+
     GLuint createGPUTexture() const;
 };
 
