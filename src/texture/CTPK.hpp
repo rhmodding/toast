@@ -32,7 +32,7 @@ enum CTPKImageFormat : uint32_t {
     // Grayscale + Alpha (8 bits for each)
     CTPK_IMAGE_FORMAT_LA88,
 
-    // Two specialized channels (8 bits per channel)
+    // 2-channel (4 bits for red and green)
     CTPK_IMAGE_FORMAT_HL8,
 
     // Grayscale (8 bits)
