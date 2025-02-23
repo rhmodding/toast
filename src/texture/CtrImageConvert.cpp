@@ -26,42 +26,40 @@ static void IMPLEMENTATION_FROM_RGBA4444(unsigned char* result, unsigned srcWidt
 static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     unsigned readOffset { 0 };
 
-	uint32_t* result32 = reinterpret_cast<uint32_t*>(result);
+	uint32_t* resultWhole = reinterpret_cast<uint32_t*>(result);
 	
-	for (unsigned xx = 0; xx < srcWidth; xx += 8) {
-		for (unsigned yy = 0; yy < srcHeight; yy += 8) {
-			uint64_t blockData;
-			uint32_t pixels[4 * 4];
-
+    // O_O
+	for (unsigned xx = 0; xx < srcHeight; xx += 8) {
+		for (unsigned yy = 0; yy < srcWidth; yy += 8) {
 			for (unsigned z = 0; z < 4; z++) {
-				unsigned xStart = (z == 0 || z == 2 ? 0 : 4);
-				unsigned yStart = (z == 0 || z == 1 ? 0 : 4);
+				unsigned xStart = (z & 2) ? 4 : 0;
+                unsigned yStart = (z & 1) ? 4 : 0;
 
-				memcpy(&blockData, data + readOffset, 8);
+                uint64_t alphaData = *(uint64_t*)(data + readOffset);
 				readOffset += 8;
 
-				for (unsigned y = yy + xStart; y < yy + xStart + 4; y++)
-					for (unsigned x = xx + yStart; x < xx + yStart + 4; x++) {
-						unsigned pixelIdx = deswizzlePixelIdx((x * srcHeight) + y, srcWidth, srcHeight);
+				for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
+					for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
+						unsigned pixelIdx = (x * srcWidth) + y;
 
-						result32[pixelIdx] = ((blockData & 0xF) << 24) | ((blockData & 0xF) << 28);
-						blockData >>= 4;
+						resultWhole[pixelIdx] = ((alphaData & 0xF) << 24) | ((alphaData & 0xF) << 28);
+						alphaData >>= 4;
 					}
+                }
 
-				xStart = (z == 0 || z == 1 ? 0 : 4);
-				yStart = (z == 0 || z == 2 ? 0 : 4);
-
-
-				blockData = BYTESWAP_64(*(uint64_t*)(data + readOffset));
+				uint64_t blockData = BYTESWAP_64(*(uint64_t*)(data + readOffset));
 				readOffset += 8;
 
-				rg_etc1::unpack_etc1_block(&blockData, pixels, 0);
+                uint32_t pixels[4 * 4];
 
-				const uint32_t* lPixel = pixels;
+				rg_etc1::unpack_etc1_block(&blockData, pixels);
+
+				const uint32_t* currentPixel = pixels;
 				for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
 					for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
-						unsigned pixelIdx = deswizzlePixelIdx((x * srcHeight) + y, srcWidth, srcHeight);
-						result32[pixelIdx] |= (*(lPixel++) & 0xFFFFFF);
+						unsigned pixelIdx = (x * srcWidth) + y;
+                        
+						resultWhole[pixelIdx] |= (*(currentPixel++) & 0xFFFFFF);
 					}
 				}
 			}
