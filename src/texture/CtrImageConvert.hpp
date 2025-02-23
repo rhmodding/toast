@@ -19,7 +19,19 @@ bool toRGBA32(
     const unsigned char* data
 );
 
-unsigned getImageByteSize(const CTPK::CTPKImageFormat type, const unsigned width, const unsigned height);
+bool fromRGBA32(
+    unsigned char* buffer,
+    const CTPK::CTPKImageFormat format,
+    const unsigned srcWidth,
+    const unsigned srcHeight,
+    const unsigned char* data
+);
+bool fromRGBA32(
+    const CTPK::CTPKTexture& texture,
+    unsigned char* buffer
+);
+
+unsigned getImageByteSize(const CTPK::CTPKImageFormat type, unsigned width, unsigned height, unsigned mipCount);
 unsigned getImageByteSize(const CTPK::CTPKTexture& texture);
 
 } // namespace CtrImageConvert
