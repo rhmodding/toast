@@ -40,7 +40,7 @@ public:
     ) __attribute__((nonnull));
 
     std::array<ImVec2, 4> getPartWorldQuad(const CellAnim::AnimationKey& key, unsigned partIndex) const;
-    std::array<ImVec2, 4> getPartWorldQuad(const CellAnim::TransformValues keyTransform, const CellAnim::Arrangement& arrangement, unsigned partIndex) const;
+    std::array<ImVec2, 4> getPartWorldQuad(const CellAnim::TransformValues& keyTransform, const CellAnim::Arrangement& arrangement, unsigned partIndex) const;
     ImRect getKeyWorldRect(const CellAnim::AnimationKey& key) const;
 
 private:

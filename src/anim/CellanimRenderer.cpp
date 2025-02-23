@@ -147,7 +147,7 @@ std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const CellAnim::Animati
     return transformedQuad;
 }
 
-std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const CellAnim::TransformValues keyTransform, const CellAnim::Arrangement& arrangement, unsigned partIndex) const {
+std::array<ImVec2, 4> CellanimRenderer::getPartWorldQuad(const CellAnim::TransformValues& keyTransform, const CellAnim::Arrangement& arrangement, unsigned partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
     NONFATAL_ASSERT_RETVAL(this->cellanim, transformedQuad);
