@@ -196,7 +196,7 @@ struct Animation {
 
     // On CTR only.
     // Note: arrangement parts are matched by id.
-    bool interpolated { false };
+    bool isInterpolated { false };
 };
 
 class CellAnimObject {

@@ -145,10 +145,10 @@ struct CtrArrangementPart {
 
     CtrArrangementPart() = default;
     CtrArrangementPart(const CellAnim::ArrangementPart& arrangementPart) {
-        this->regionX = static_cast<uint16_t>(arrangementPart.regionX);
-        this->regionY = static_cast<uint16_t>(arrangementPart.regionY);
-        this->regionW = static_cast<uint16_t>(arrangementPart.regionW);
-        this->regionH = static_cast<uint16_t>(arrangementPart.regionH);
+        this->regionX = arrangementPart.regionX;
+        this->regionY = arrangementPart.regionY;
+        this->regionW = arrangementPart.regionW;
+        this->regionH = arrangementPart.regionH;
 
         this->positionX = static_cast<int16_t>(arrangementPart.transform.positionX + 512);
         this->positionY = static_cast<int16_t>(arrangementPart.transform.positionY + 512);
@@ -168,7 +168,7 @@ struct CtrArrangementPart {
 
         this->opacity = arrangementPart.opacity;
 
-        this->id = static_cast<uint8_t>(arrangementPart.id);
+        this->id = arrangementPart.id;
 
         this->depthTL = arrangementPart.depth3D.topLeft;
         this->depthBL = arrangementPart.depth3D.bottomLeft;
@@ -244,17 +244,24 @@ struct CtrAnimationKey {
 
     CtrAnimationKey() = default;
     CtrAnimationKey(const CellAnim::AnimationKey& animationKey) {
-        this->arrangementIndex = BYTESWAP_16(animationKey.arrangementIndex);
-        this->holdFrames = BYTESWAP_16(animationKey.holdFrames);
+        this->arrangementIndex = animationKey.arrangementIndex;
+        this->holdFrames = animationKey.holdFrames;
 
-        this->positionX = static_cast<int16_t>(animationKey.transform.positionX);
-        this->positionY = static_cast<int16_t>(animationKey.transform.positionY);
+        this->positionX = animationKey.transform.positionX;
+        this->positionY = animationKey.transform.positionY;
 
         this->positionZ = animationKey.translateZ;
 
         this->scaleX = animationKey.transform.scaleX;
         this->scaleY = animationKey.transform.scaleY;
         this->angle = animationKey.transform.angle;
+
+        this->foreColor[0] = animationKey.foreColor.r;
+        this->foreColor[1] = animationKey.foreColor.g;
+        this->foreColor[2] = animationKey.foreColor.b;
+        this->backColor[0] = animationKey.backColor.r;
+        this->backColor[1] = animationKey.backColor.g;
+        this->backColor[2] = animationKey.backColor.b;
 
         this->opacity = animationKey.opacity;
     }
@@ -453,6 +460,8 @@ static bool InitCtrCellAnim(
 
         animationOut.name.assign(animationName->string, animationName->stringLength);
 
+        animationOut.isInterpolated = animationIn->isInterpolated != 0;
+
         animationOut.keys.resize(animationIn->keyCount);
 
         for (unsigned j = 0; j < animationIn->keyCount; j++) {
@@ -555,13 +564,15 @@ static std::vector<unsigned char> SerializeRvlCellAnim(
 static std::vector<unsigned char> SerializeCtrCellAnim(
     const CellAnim::CellAnimObject& object
 ) {
-    // TODO: serialize animation names
-
     unsigned fullSize = sizeof(CtrCellAnimHeader) + sizeof(AnimationsHeader);
     for (const CellAnim::Arrangement& arrangement : object.arrangements)
         fullSize += sizeof(CtrArrangement) + (sizeof(CtrArrangementPart) * arrangement.parts.size());
-    for (const CellAnim::Animation& animation : object.animations)
+    for (const CellAnim::Animation& animation : object.animations) {
+        fullSize += ALIGN_UP_4(
+            sizeof(CtrAnimationName) + static_cast<uint8_t>(animation.name.size()) + 1
+        );
         fullSize += sizeof(CtrAnimation) + (sizeof(CtrAnimationKey) * animation.keys.size());
+    }
     
     std::vector<unsigned char> result(fullSize);
 
@@ -598,10 +609,18 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
     currentOutput += sizeof(AnimationsHeader);
 
     for (const CellAnim::Animation& animation : object.animations) {
-        CtrAnimation* animationRaw = reinterpret_cast<CtrAnimation*>(currentOutput);
+        CtrAnimationName* animationNameOut = reinterpret_cast<CtrAnimationName*>(currentOutput);
+
+        animationNameOut->stringLength = static_cast<uint8_t>(animation.name.size());
+        strncpy(animationNameOut->string, animation.name.c_str(), animationNameOut->stringLength + 1);
+
+        currentOutput += ALIGN_UP_4(sizeof(CtrAnimationName) + animationNameOut->stringLength + 1);
+
+        CtrAnimation* animationOut = reinterpret_cast<CtrAnimation*>(currentOutput);
         currentOutput += sizeof(CtrAnimation);
 
-        animationRaw->keyCount = static_cast<uint16_t>(animation.keys.size());
+        animationOut->isInterpolated = animation.isInterpolated ? 1 : 0;
+        animationOut->keyCount = static_cast<uint16_t>(animation.keys.size());
 
         for (const CellAnim::AnimationKey& key : animation.keys) {
             CtrAnimationKey* animationKeyOut = reinterpret_cast<CtrAnimationKey*>(currentOutput);
