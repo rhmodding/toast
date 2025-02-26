@@ -44,48 +44,50 @@ static void IMPLEMENTATION_FROM_RGBA4444(unsigned char* result, unsigned srcWidt
     }
 }
 
-static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+    uint32_t* result = reinterpret_cast<uint32_t*>(_result);
+    
     unsigned readOffset { 0 };
-
-	uint32_t* resultWhole = reinterpret_cast<uint32_t*>(result);
 	
-    // O_O
-	for (unsigned xx = 0; xx < srcHeight; xx += 8) {
-		for (unsigned yy = 0; yy < srcWidth; yy += 8) {
-			for (unsigned z = 0; z < 4; z++) {
-				unsigned xStart = (z & 2) ? 4 : 0;
-                unsigned yStart = (z & 1) ? 4 : 0;
-
-                uint64_t alphaData = *(uint64_t*)(data + readOffset);
-				readOffset += 8;
-
-				for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
-					for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
-						unsigned pixelIdx = (x * srcWidth) + y;
-
-						resultWhole[pixelIdx] = ((alphaData & 0xF) << 24) | ((alphaData & 0xF) << 28);
-						alphaData >>= 4;
-					}
-                }
-
-				uint64_t blockData = BYTESWAP_64(*(uint64_t*)(data + readOffset));
-				readOffset += 8;
+    for (unsigned yy = 0; yy < srcHeight; yy += 8) {
+        for (unsigned xx = 0; xx < srcWidth; xx += 8) {
+            
+            for (unsigned z = 0; z < 4; z++) {
+                unsigned xStart = (z == 1 || z == 3) ? 4 : 0;
+                unsigned yStart = (z == 2 || z == 3) ? 4 : 0;
 
                 uint32_t pixels[4 * 4];
 
-				rg_etc1::unpack_etc1_block(&blockData, pixels);
+                uint64_t alphaData = *(uint64_t*)(data + readOffset);
+                readOffset += 8;
 
-				const uint32_t* currentPixel = pixels;
-				for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
-					for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
-						unsigned pixelIdx = (x * srcWidth) + y;
-                        
-						resultWhole[pixelIdx] |= (*(currentPixel++) & 0xFFFFFF);
-					}
-				}
-			}
-		}
-	}
+                // Nintendo stores their ETC1 blocks in little-endian.
+                uint64_t blockData = BYTESWAP_64(*(uint64_t*)(data + readOffset));
+                readOffset += 8;
+
+                rg_etc1::unpack_etc1_block(&blockData, pixels);
+
+                // Alpha pass
+                for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
+                    for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
+                        // 4bit -> 8bit
+                        result[(y * srcWidth) + x] = ((alphaData & 0xF) << 24) | ((alphaData & 0xF) << 28);
+
+                        alphaData >>= 4;
+                    }
+                }
+
+                // Color pass (ETC1 block)
+                uint32_t* currentPixel = pixels;
+                for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
+                    for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
+                        result[(y * srcWidth) + x] |= (*(currentPixel++) & 0x00FFFFFF);
+                    }
+                }
+            }
+
+        }
+    }
 }
 
 /*
