@@ -275,7 +275,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
 
         fullSize += sizeof(uint32_t) * texture.mipCount;
 
-        fullSize += ALIGN_UP_4(texture.sourcePath.size());
+        fullSize += ALIGN_UP_4(texture.sourcePath.size() + 1);
         fullSize += ALIGN_UP_32(CtrImageConvert::getImageByteSize(texture));
     }
 
@@ -328,8 +328,8 @@ std::vector<unsigned char> CTPKObject::Serialize() {
 
         unsigned currentWidth = texture.width;
         unsigned currentHeight = texture.height;
-        for (currentMipSize; currentMipSize < currentMipSize + texture.mipCount; currentMipSize++) {
-            *currentMipSize = CtrImageConvert::getImageByteSize(
+        for (unsigned i = 0; i < texture.mipCount; i++) {
+            *(currentMipSize++) = CtrImageConvert::getImageByteSize(
                 texture.format, currentWidth, currentHeight, 1
             );
 
@@ -415,7 +415,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     for (unsigned i = 0; i < this->textures.size(); i++) {
         CtpkTextureEntry* texEntry = header->textureEntries + i;
 
-        texEntry->dataOffset = static_cast<uint32_t>(currentData - result.data());
+        texEntry->dataOffset = static_cast<uint32_t>(currentData - dataSectionStart);
 
         const auto& srcTexture = this->textures[i];
         auto dstTexture = this->textures[i]; // Copy
