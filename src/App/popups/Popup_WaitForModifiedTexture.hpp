@@ -65,6 +65,8 @@ static void Popup_WaitForModifiedTexture() {
                 Popups::_oldTextureSizeX = cellanimSheet->getWidth();
                 Popups::_oldTextureSizeY = cellanimSheet->getHeight();
 
+                newTexture->setName(cellanimSheet->getName());
+
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifySpritesheet>(
                     sessionManager.getCurrentSession()
