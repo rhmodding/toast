@@ -37,6 +37,8 @@ void PlayerManager::setKeyIndex(unsigned index) {
             arrangements.at(keys.at(this->keyIndex).arrangementIndex),
             arrangements.at(keys.at(index).arrangementIndex)
         );
+
+        AppState::getInstance().correctSelectedParts();
     }
 
     this->keyIndex = index;
