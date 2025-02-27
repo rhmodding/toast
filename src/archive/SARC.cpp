@@ -21,23 +21,20 @@ constexpr uint16_t SARC_VERSION = 0x0100;
 constexpr uint16_t SARC_BYTEORDER_BIG    = 0xFFFE;
 constexpr uint16_t SARC_BYTEORDER_LITTLE = 0xFEFF;
 
-constexpr uint16_t SARC_DEFAULT_HASH_KEY = 0x65;
-
-constexpr uint16_t SARC_DATA_ALIGN = 0x20;
-constexpr uint16_t SARC_NAME_ALIGN = 4;
+constexpr uint32_t SARC_DEFAULT_HASH_KEY = 0x65;
 
 struct SarcFileHeader {
-    uint32_t magic; // Compare to SARC_MAGIC
-    uint16_t sectionSize;
+    uint32_t magic { SARC_MAGIC }; // Compare to SARC_MAGIC
+    uint16_t headerSize { sizeof(SarcFileHeader) };
 
-    uint16_t byteOrder; // Compare to SARC_BYTEORDER_BIG and SARC_BYTEORDER_LITTLE
+    uint16_t byteOrder { SARC_BYTEORDER_LITTLE }; // Compare to SARC_BYTEORDER_BIG and SARC_BYTEORDER_LITTLE
 
     uint32_t fileSize; // Size of this file.
     uint32_t dataStart; // File offset to the archive data.
 
-    uint16_t formatVersion; // Compare to SARC_VERSION
+    uint16_t formatVersion { SARC_VERSION }; // Compare to SARC_VERSION
 
-    uint16_t _reserved;
+    uint16_t _reserved { 0x0000 };
 } __attribute((packed));
 
 struct SfatNode {
@@ -56,8 +53,8 @@ struct SfatNode {
 } __attribute((packed));
 
 struct SfatSection {
-    uint32_t magic; // Compare to SFAT_MAGIC
-    uint16_t sectionSize;
+    uint32_t magic { SFAT_MAGIC }; // Compare to SFAT_MAGIC
+    uint16_t sectionSize { sizeof(SfatSection) };
 
     uint16_t nodeCount;
 
@@ -69,13 +66,21 @@ struct SfatSection {
 } __attribute((packed));
 
 struct SfntSection {
-    uint32_t magic; // Compare to SFNT_MAGIC
-    uint16_t sectionSize;
+    uint32_t magic { SFNT_MAGIC }; // Compare to SFNT_MAGIC
+    uint16_t sectionSize { sizeof(SfntSection) };
 
-    uint16_t _pad16;
+    uint16_t _pad16 { 0x0000 };
 
     char data[0];
 } __attribute((packed));
+
+static uint32_t sarcComputeHash(std::string_view string, uint32_t key) {
+    uint32_t result = 0;
+	for (char character : string)
+		result = character + result * key;
+
+	return result;
+}
 
 namespace SARC {
 
@@ -130,7 +135,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         return;
     }
 
-    const SfatSection* sfatSection = reinterpret_cast<const SfatSection*>(data + header->sectionSize);
+    const SfatSection* sfatSection = reinterpret_cast<const SfatSection*>(data + header->headerSize);
     if (sfatSection->magic != SFAT_MAGIC) {
         std::cerr << "[SARCObject::SARCObject] Invalid SARC binary: SFAT section magic is nonmatching!\n";
         return;
@@ -193,6 +198,112 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
             }
         }
     }
+}
+
+std::vector<unsigned char> SARCObject::Serialize() {
+    struct FileEntry {
+        const File* file;
+        std::string path;
+        uint32_t pathHash;
+    };
+    std::vector<FileEntry> files;
+
+    std::stack<const Directory*> dirStack;
+    dirStack.push(&this->structure);
+
+    while (!dirStack.empty()) {
+        const Directory* currentDir = dirStack.top();
+        dirStack.pop();
+
+        for (const auto& file : currentDir->files) {
+            // Build file path.
+            std::string path = file.name;
+
+            const Directory* dir = file.parent;
+            while (dir && dir->parent) {
+                path = dir->name + "/" + path;
+                dir = dir->parent;
+            }
+
+            files.push_back({
+                .file = &file,
+                .path = path,
+                .pathHash = sarcComputeHash(path, SARC_DEFAULT_HASH_KEY)
+            });
+        }
+        for (const auto& subdir : currentDir->subdirectories)
+            dirStack.push(&subdir);
+    }
+    
+    std::sort(files.begin(), files.end(),
+    [](const FileEntry& a, const FileEntry& b) {
+        return a.pathHash < b.pathHash;
+    });
+
+    unsigned fullSize = sizeof(SarcFileHeader) + sizeof(SfatSection) +
+        sizeof(SfntSection) + (sizeof(SfatNode) * files.size());
+    for (unsigned i = 0; i < files.size(); i++) {
+        fullSize += ALIGN_UP_4(files[i].path.size() + 1);
+        fullSize = ALIGN_UP_32(fullSize) + ALIGN_UP_32(files[i].file->data.size());
+    }
+    std::vector<unsigned char> result(fullSize);
+
+    SarcFileHeader* header = reinterpret_cast<SarcFileHeader*>(result.data());
+    *header = SarcFileHeader {
+        .fileSize = static_cast<uint32_t>(fullSize)
+    };
+
+    SfatSection* sfatSection = reinterpret_cast<SfatSection*>(result.data() + header->headerSize);
+    *sfatSection = SfatSection {
+        .nodeCount = static_cast<uint16_t>(files.size()),
+
+        .hashKey = SARC_DEFAULT_HASH_KEY
+    };
+
+    SfntSection* sfntSection = reinterpret_cast<SfntSection*>(
+        sfatSection->nodes + sfatSection->nodeCount
+    );
+    *sfntSection = SfntSection {};
+
+    // Write the strings & nodes at the same time.
+
+    char* currentName = sfntSection->data;
+    for (unsigned i = 0; i < files.size(); i++) {
+        const FileEntry& file = files[i];
+
+        SfatNode* node = sfatSection->nodes + i;
+
+        node->nameHash = file.pathHash;
+
+        node->collisionCount = 1;
+        node->nameOffset = static_cast<uint32_t>(currentName - sfntSection->data) / 4;
+
+        strcpy(currentName, file.path.c_str());
+        currentName += ALIGN_UP_4(file.path.size() + 1);
+    }
+
+    // Write the data.
+
+    unsigned char* dataStart = reinterpret_cast<unsigned char*>(currentName);
+    
+    header->dataStart = static_cast<uint32_t>(dataStart - result.data());
+
+    unsigned char* currentData = dataStart;
+    for (unsigned i = 0; i < files.size(); i++) {
+        const FileEntry& file = files[i];
+
+        SfatNode* node = sfatSection->nodes + i;
+
+        node->dataOffsetStart = static_cast<uint32_t>(currentData - dataStart);
+        node->dataOffsetEnd = node->dataOffsetStart + file.file->data.size();
+
+        std::cout << "size for " << file.file->name << ": " << file.file->data.size() / 1000 << "KiB" << std::endl;
+
+        memcpy(currentData, file.file->data.data(), file.file->data.size());
+        currentData += ALIGN_UP_32(file.file->data.size());
+    }
+
+    return result;
 }
 
 std::optional<SARCObject> readNZlibSARC(const char* filePath) {
