@@ -218,28 +218,44 @@ bool CtrImageConvert::fromRGBA32(
 }
 
 static unsigned ImageByteSize_ETC1A4(unsigned width, unsigned height) {
-	unsigned tilesX = (width + 7) / 8;
-   	unsigned tilesY = (height + 7) / 8;
+	unsigned tilesX = (width + 3) / 4;
+   	unsigned tilesY = (height + 3) / 4;
 
-   	return tilesX * tilesY * 64;
+    // ETC1 block + alpha block
+   	return tilesX * tilesY * (8 + 8);
+}
+
+static unsigned ImageByteSize_ETC1(unsigned width, unsigned height) {
+	unsigned tilesX = (width + 3) / 4;
+   	unsigned tilesY = (height + 3) / 4;
+
+   	return tilesX * tilesY * 8;
 }
 
 unsigned CtrImageConvert::getImageByteSize(const CTPK::CTPKImageFormat type, unsigned width, unsigned height, unsigned mipCount) {
-    unsigned sum;
-    
+    unsigned sum = 0;
+
     switch (type) {
     case ImageFormat::CTPK_IMAGE_FORMAT_ETC1A4: {
         for (unsigned i = 0; i < mipCount; i++) {
             sum += ImageByteSize_ETC1A4(width, height);
-        
+
             width = (width > 1) ? width / 2 : 1;
             height = (height > 1) ? height / 2 : 1;
         }
-    }
+    } break;
+    case ImageFormat::CTPK_IMAGE_FORMAT_ETC1: {
+        for (unsigned i = 0; i < mipCount; i++) {
+            sum += ImageByteSize_ETC1(width, height);
+
+            width = (width > 1) ? width / 2 : 1;
+            height = (height > 1) ? height / 2 : 1;
+        }
+    } break;
 
     default:
         std::cerr << "[CtrImageConvert::getImageByteSize] Invalid format passed (" << (int)type << ")\n";
-        sum = 0;
+        break;
     }
 
     return sum;

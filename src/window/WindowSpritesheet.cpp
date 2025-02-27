@@ -326,6 +326,8 @@ void WindowSpritesheet::FormatPopup() {
             ImGui::SameLine();
 
             if (ImGui::Button("Apply")) {
+                this->formatPreviewTexture->setName(cellanimSheet->getName());
+
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifySpritesheet>(
                     sessionManager.getCurrentSession()
@@ -496,6 +498,8 @@ bool RepackSheet() {
         }
     }
 
+    newTexture->setName(cellanimSheet->getName());
+
     session.addCommand(std::make_shared<CommandModifySpritesheet>(
         cellanimObject->sheetIndex, newTexture
     ));
@@ -664,6 +668,8 @@ void WindowSpritesheet::Update() {
 
                         Popups::_oldTextureSizeX = cellanimSheet->getWidth();
                         Popups::_oldTextureSizeY = cellanimSheet->getHeight();
+
+                        newTexture->setName(cellanimSheet->getName());
 
                         sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifySpritesheet>(
