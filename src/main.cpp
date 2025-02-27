@@ -2,16 +2,16 @@
 // conhlee
 // 2025
 
-#include "App.hpp"
+#include "Toast.hpp"
 
 #include "ConsoleSplash.hpp"
 
 int main(int argc, const char** argv) {
     std::cout << consoleSplash << "\n\n";
 
-    App app (argc, argv);
-    while (LIKELY(app.isRunning())) {
-        app.Update();
-        app.Draw();
+    Toast toast (argc, argv);
+    while (LIKELY(toast.isRunning())) {
+        toast.Update();
+        toast.Draw();
     }
 }

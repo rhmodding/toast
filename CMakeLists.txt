@@ -5,9 +5,9 @@ project(toast)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (MSVC)
+IF (MSVC)
     message(FATAL_ERROR "Compiling with MSVC is not supported. Please use GCC or Clang instead")
-endif()
+ENDIF()
 
 set(SOURCES
     ext/imgui/imgui.cpp
@@ -23,7 +23,8 @@ set(SOURCES
     src/rg_etc1/rg_etc1.cpp
 
     src/main.cpp
-    src/App.cpp
+    
+    src/Toast.cpp
 
     src/App/Popups.cpp
 
@@ -184,6 +185,6 @@ IF (APPLE)
     )
 ENDIF()
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
+IF (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET toast PROPERTY CXX_STANDARD 20)
-endif()
+ENDIF()

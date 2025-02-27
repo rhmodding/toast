@@ -1,4 +1,4 @@
-#include "App.hpp"
+#include "Toast.hpp"
 
 #include <algorithm>
 #include <array>
@@ -59,7 +59,7 @@
 
 #define WINDOW_TITLE "toast"
 
-App* globlApp { nullptr };
+Toast* globlToast { nullptr };
 
 static void setupFonts() {
     AppState::Fonts& fonts = AppState::getInstance().fonts;
@@ -121,8 +121,8 @@ static void cycleSleep() {
     b = std::chrono::system_clock::now();
 }
 
-App::App(int argc, const char** argv) {
-    globlApp = this;
+Toast::Toast(int argc, const char** argv) {
+    globlToast = this;
 
     this->mainThreadId = std::this_thread::get_id();
 
@@ -175,14 +175,14 @@ App::App(int argc, const char** argv) {
     );
 
     if (!this->glfwWindowHndl) {
-        std::cerr << "[App::App] glfwCreateWindow failed!" << std::endl;
+        std::cerr << "[Toast::Toast] glfwCreateWindow failed!" << std::endl;
         glfwTerminate();
         __builtin_trap();
     }
 
     glfwSetWindowCloseCallback(this->glfwWindowHndl, [](GLFWwindow*) {
-        extern App* globlApp;
-        globlApp->AttemptExit();
+        extern Toast* globlToast;
+        globlToast->AttemptExit();
     });
 
     glfwMakeContextCurrent(this->glfwWindowHndl);
@@ -254,7 +254,7 @@ App::App(int argc, const char** argv) {
     }
 }
 
-App::~App() {
+Toast::~Toast() {
     glfwMakeContextCurrent(this->glfwWindowHndl);
 
     windowCanvas.Destroy();
@@ -283,7 +283,7 @@ App::~App() {
     glfwTerminate();
 }
 
-void App::AttemptExit(bool force) {
+void Toast::AttemptExit(bool force) {
     if (!force) {
         for (const auto& session : SessionManager::getInstance().sessions) {
             if (session.modified) {
@@ -305,7 +305,7 @@ void App::AttemptExit(bool force) {
     this->running = false;
 }
 
-void App::Menubar() {
+void Toast::Menubar() {
     const AppState& appState = AppState::getInstance();
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
@@ -795,7 +795,7 @@ void App::Menubar() {
     }
 }
 
-void App::Update() {
+void Toast::Update() {
     cycleSleep();
 
     glfwMakeContextCurrent(this->glfwWindowHndl);
@@ -868,7 +868,7 @@ void App::Update() {
     MainThreadTaskManager::getInstance().Update();
 }
 
-void App::Draw() {
+void Toast::Draw() {
     ImGui::Render();
 
     int framebufferWidth, framebufferHeight;

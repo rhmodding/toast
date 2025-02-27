@@ -1,5 +1,5 @@
-#ifndef APP_HPP
-#define APP_HPP
+#ifndef TOAST_HPP
+#define TOAST_HPP
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -22,14 +22,14 @@
 
 #include "common.hpp"
 
-class App;
+class Toast;
 
-extern App* globlApp;
+extern Toast* globlToast;
 
-class App {
+class Toast {
 public:
-    App(int argc, const char** argv);
-    ~App();
+    Toast(int argc, const char** argv);
+    ~Toast();
 
 public:
     void Update();
@@ -101,4 +101,4 @@ private:
     std::thread::id mainThreadId;
 };
 
-#endif // APP_HPP
+#endif // TOAST_HPP

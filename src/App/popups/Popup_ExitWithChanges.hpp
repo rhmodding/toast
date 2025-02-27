@@ -3,7 +3,7 @@
 
 #include <imgui.h>
 
-#include "../../App.hpp"
+#include "../../Toast.hpp"
 
 #include "../../common.hpp"
 
@@ -27,7 +27,7 @@ static void Popup_ExitWithChanges() {
         if (ImGui::Button("Exit without saving")) {
             ImGui::CloseCurrentPopup();
 
-            globlApp->AttemptExit(true);
+            globlToast->AttemptExit(true);
         }
 
         ImGui::EndPopup();
