@@ -14,6 +14,7 @@ static void Popup_SessionErr() {
 
     char errorMessage[256];
     unsigned errorType { 2 }; // 0 = open, 1 = export, 2 = unknown
+
     switch (error) {
     case SessionManager::OpenError_FileDoesNotExist:
         strcpy(errorMessage, "The file (.szs) could not be opened because it does not exist.");
@@ -32,12 +33,10 @@ static void Popup_SessionErr() {
         errorType = 0;
         break;
     case SessionManager::OpenError_NoBXCADsFound:
-        // TODOLT: replace brcad with brcad/bccad when Megamix support is implemented
-        strcpy(errorMessage, "The archive does not contain any cellanim files (.brcad).");
+        strcpy(errorMessage, "The archive does not contain any cellanim files (.brcad / .bccad).");
         errorType = 0;
         break;
     case SessionManager::OpenError_FailOpenBXCAD:
-        // TODOLT: replace brcad with brcad/bccad when Megamix support is implemented
         strcpy(errorMessage, "The cellanim file (.brcad / .bccad) could not be opened. It might be corrupted.");
         errorType = 0;
         break;
@@ -46,7 +45,7 @@ static void Popup_SessionErr() {
         errorType = 0;
         break;
     case SessionManager::OpenError_MissingCTPK:
-        strcpy(errorMessage, "A CTPK file is missing (more cellanim files than texture files).");
+        strcpy(errorMessage, "A CTPK file is missing (not all cellanim files could be matched with a CTPK file).");
         errorType = 0;
         break; 
     case SessionManager::OpenError_FailOpenCTPK:
@@ -81,7 +80,8 @@ static void Popup_SessionErr() {
     default:
         snprintf(
             errorMessage, sizeof(errorMessage),
-            "An unknown error has occurred (code %d).", (int)error
+            "An unknown error has occurred (code %d).",
+            static_cast<int>(error)
         );
         errorType = 2;
         break;
@@ -93,14 +93,14 @@ static void Popup_SessionErr() {
         snprintf(
             popupTitle, sizeof(popupTitle),
             "There was an error opening the session (code %d).###SessionErr",
-            (int)error
+            static_cast<int>(error)
         );
         break;
     case 1:
         snprintf(
             popupTitle, sizeof(popupTitle),
             "There was an error exporting the session (code %d).###SessionErr",
-            (int)error
+            static_cast<int>(error)
         );
         break;
 
@@ -108,7 +108,7 @@ static void Popup_SessionErr() {
         snprintf(
             popupTitle, sizeof(popupTitle),
             "There was an unknown session-related error (code %d).###SessionErr",
-            (int)error
+            static_cast<int>(error)
         );
         break;
     }
