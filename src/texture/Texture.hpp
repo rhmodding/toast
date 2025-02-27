@@ -17,6 +17,8 @@ private:
 
     TPL::TPLImageFormat tplOutputFormat { TPL::TPL_IMAGE_FORMAT_RGBA32 };
     CTPK::CTPKImageFormat ctpkOutputFormat { CTPK::CTPK_IMAGE_FORMAT_ETC1A4 };
+
+    std::string name;
 public:
     Texture() = default;
     Texture(unsigned width, unsigned height, GLuint textureId) :
@@ -24,6 +26,9 @@ public:
     {}
 
     ~Texture();
+
+    const std::string& getName() const { return this->name; }
+    void setName(std::string name) { this->name = name; }
 
     unsigned getWidth() const { return this->width; }
     unsigned getHeight() const { return this->height; }
