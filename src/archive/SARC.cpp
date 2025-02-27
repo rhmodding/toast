@@ -297,8 +297,6 @@ std::vector<unsigned char> SARCObject::Serialize() {
         node->dataOffsetStart = static_cast<uint32_t>(currentData - dataStart);
         node->dataOffsetEnd = node->dataOffsetStart + file.file->data.size();
 
-        std::cout << "size for " << file.file->name << ": " << file.file->data.size() / 1000 << "KiB" << std::endl;
-
         memcpy(currentData, file.file->data.data(), file.file->data.size());
         currentData += ALIGN_UP_32(file.file->data.size());
     }
