@@ -1,5 +1,9 @@
 #include "CtrImageConvert.hpp"
 
+#include <vector>
+
+#include <thread>
+
 #include "../rg_etc1/rg_etc1.h"
 
 #include "../common.hpp"
@@ -46,12 +50,11 @@ static void IMPLEMENTATION_FROM_RGBA4444(unsigned char* result, unsigned srcWidt
 
 static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
     uint32_t* result = reinterpret_cast<uint32_t*>(_result);
-    
+
     unsigned readOffset { 0 };
 	
     for (unsigned yy = 0; yy < srcHeight; yy += 8) {
         for (unsigned xx = 0; xx < srcWidth; xx += 8) {
-            
             for (unsigned z = 0; z < 4; z++) {
                 unsigned xStart = (z == 1 || z == 3) ? 4 : 0;
                 unsigned yStart = (z == 2 || z == 3) ? 4 : 0;
@@ -61,13 +64,13 @@ static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth
                 uint64_t alphaData = *(uint64_t*)(data + readOffset);
                 readOffset += 8;
 
-                // Nintendo stores their ETC1 blocks in little-endian.
+                // Nintendo stores their ETC1 blocks in little- instead of big-endian.
                 uint64_t blockData = BYTESWAP_64(*(uint64_t*)(data + readOffset));
                 readOffset += 8;
 
-                rg_etc1::unpack_etc1_block(&blockData, pixels);
+                rg_etc1::unpack_etc1_block(&blockData, pixels, true);
 
-                // Alpha pass
+                // Alpha pass.
                 for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
                     for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
                         // 4bit -> 8bit
@@ -77,7 +80,7 @@ static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth
                     }
                 }
 
-                // Color pass (ETC1 block)
+                // Color pass (ETC1 block).
                 uint32_t* currentPixel = pixels;
                 for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
                     for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
@@ -85,7 +88,6 @@ static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth
                     }
                 }
             }
-
         }
     }
 }
@@ -94,54 +96,79 @@ static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth
     TO implementations (RGBA32 to x)
 */
 
-static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
+static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* _data) {
     rg_etc1::pack_etc1_block_init();
-
-    rg_etc1::etc1_pack_params packerParams;
-    packerParams.m_quality = rg_etc1::cHighQuality;
-    packerParams.m_dithering = false;
     
-    unsigned writeOffset { 0 };
+    rg_etc1::etc1_pack_params packerParams;
+    packerParams.m_quality = rg_etc1::cMediumQuality;
+    packerParams.m_dithering = false;
 
-	uint32_t* resultWhole = reinterpret_cast<uint32_t*>(result);
-	
-    // O_O
-	for (unsigned xx = 0; xx < srcHeight; xx += 8) {
-		for (unsigned yy = 0; yy < srcWidth; yy += 8) {
-			for (unsigned z = 0; z < 4; z++) {
-				unsigned xStart = (z & 2) ? 4 : 0;
-                unsigned yStart = (z & 1) ? 4 : 0;
+    const uint32_t* data = reinterpret_cast<const uint32_t*>(_data);
 
-                uint32_t pixels[4 * 4];
+    std::vector<std::thread> threads;
 
-                uint64_t* alphaData = (uint64_t*)(data + writeOffset);
-				writeOffset += 8;
+    unsigned numThreads = std::thread::hardware_concurrency();
+    if (numThreads == 0)
+        numThreads = 4;
+    
+    unsigned chunkHeight = (srcHeight + numThreads - 1) / numThreads;
 
-                unsigned currentAlphaShift = 0;
-                unsigned currentPixel = 0;
+    auto worker = [result, data, srcWidth, srcHeight, &packerParams](unsigned yStart, unsigned yEnd) {
+        unsigned writeOffset = srcWidth * yStart;
 
-                // Fill alpha data and fill pixels at the same time.
-                for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
-                    for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
-                        unsigned pixelIdx = (x * srcWidth) + y;
-                        unsigned alphaValue = result[(pixelIdx * 4) + 3] / 17;
+        for (unsigned yy = yStart; yy < yEnd; yy += 8) {
+            for (unsigned xx = 0; xx < srcWidth; xx += 8) {
+                for (unsigned z = 0; z < 4; z++) {
+                    unsigned xStart = (z == 1 || z == 3) ? 4 : 0;
+                    unsigned yStart = (z == 2 || z == 3) ? 4 : 0;
 
-                        *alphaData |= (alphaValue << currentAlphaShift);
-                        currentAlphaShift += 4;
+                    uint32_t pixels[4 * 4];
 
-                        pixels[currentPixel] = resultWhole[pixelIdx];
-                        currentPixel++;
+                    uint64_t* alphaData = (uint64_t*)(result + writeOffset);
+                    writeOffset += 8;
+
+                    uint64_t* blockData = (uint64_t*)(result + writeOffset);
+                    writeOffset += 8;
+
+                    // Fill pixels for packing.
+                    uint32_t* currentPixel = pixels;
+                    for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
+                        for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
+                            *currentPixel = data[(y * srcWidth) + x];
+                            *currentPixel |= 0xFF000000;
+                            currentPixel++;
+                        }
                     }
+
+                    // Write alpha block.
+                    *alphaData = 0;
+                    for (unsigned x = xx + xStart; x < xx + xStart + 4; x++) {
+                        for (unsigned y = yy + yStart; y < yy + yStart + 4; y++) {
+                            uint64_t alpha4 = (data[(y * srcWidth) + x] >> 24) / 17;
+                            *alphaData = (*alphaData >> 4) | (alpha4 << 60);
+                        }
+                    }
+
+                    rg_etc1::pack_etc1_block(blockData, pixels, packerParams);
+
+                    // Nintendo stores their ETC1 blocks in little- instead of big-endian.
+                    *blockData = BYTESWAP_64(*blockData);
                 }
+            }
+        }
+    };
 
-                uint64_t* blockData = (uint64_t*)(data + writeOffset);
-				writeOffset += 8;
+    for (unsigned i = 0; i < numThreads; i++) {
+        unsigned yStart = i * chunkHeight;
+        unsigned yEnd = std::min(yStart + chunkHeight, srcHeight);
+        if (yStart >= srcHeight)
+            break;
 
-				rg_etc1::pack_etc1_block(blockData, pixels, packerParams);
-                *blockData = BYTESWAP_64(*blockData);
-			}
-		}
-	}
+        threads.emplace_back(worker, yStart, yEnd);
+    }
+
+    for (auto& thread : threads)
+        thread.join();
 }
 
 bool CtrImageConvert::toRGBA32(
