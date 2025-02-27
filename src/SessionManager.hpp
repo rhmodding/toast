@@ -29,26 +29,29 @@ public:
     Session() = default;
     ~Session() = default;
 
-    Session(Session&& other) noexcept
-        : cellanims(std::move(other.cellanims)),
-          sheets(std::move(other.sheets)),
-          currentCellanim(other.currentCellanim),
-          resourcePath(std::move(other.resourcePath)),
-          arrangementMode(other.arrangementMode),
-          modified(other.modified),
-          undoQueue(std::move(other.undoQueue)),
-          redoQueue(std::move(other.redoQueue)) {}
+    Session(Session&& other) noexcept :
+        cellanims(std::move(other.cellanims)),
+        sheets(std::move(other.sheets)),
+        currentCellanim(other.currentCellanim),
+        resourcePath(std::move(other.resourcePath)),
+        arrangementMode(other.arrangementMode),
+        modified(other.modified),
+        undoQueue(std::move(other.undoQueue)),
+        redoQueue(std::move(other.redoQueue)),
+        type(other.type)
+    {}
 
     Session& operator=(Session&& other) noexcept {
         if (this != &other) {
-            cellanims = std::move(other.cellanims);
-            sheets = std::move(other.sheets);
-            currentCellanim = other.currentCellanim;
-            resourcePath = std::move(other.resourcePath);
-            arrangementMode = other.arrangementMode;
-            modified = other.modified;
-            undoQueue = std::move(other.undoQueue);
-            redoQueue = std::move(other.redoQueue);
+            this->cellanims = std::move(other.cellanims);
+            this->sheets = std::move(other.sheets);
+            this->currentCellanim = other.currentCellanim;
+            this->resourcePath = std::move(other.resourcePath);
+            this->arrangementMode = other.arrangementMode;
+            this->modified = other.modified;
+            this->undoQueue = std::move(other.undoQueue);
+            this->redoQueue = std::move(other.redoQueue);
+            this->type = other.type;
         }
         return *this;
     }
@@ -77,7 +80,6 @@ public:
         return this->cellanims.at(this->currentCellanim);
     }
 
-
     std::shared_ptr<Texture>& getCurrentCellanimSheet() {
         return this->sheets->getTextureByIndex(
             this->cellanims.at(this->currentCellanim).object->sheetIndex
@@ -95,6 +97,8 @@ public:
     bool arrangementMode { false };
 
     bool modified { false };
+
+    CellAnim::CellAnimType type;
 
 private:
     std::deque<std::shared_ptr<BaseCommand>> undoQueue;
@@ -167,12 +171,18 @@ public:
         OpenError_RootDirNotFound,
         OpenError_NoBXCADsFound,
         OpenError_FailOpenBXCAD,
+        OpenError_InvalidBXCAD,
         OpenError_FailOpenTPL,
+        OpenError_MissingCTPK,
+        OpenError_FailOpenCTPK,
+        OpenError_NoCTPKTextures,
         OpenError_LayoutArchive, // The user selected a layout archive instead of a cellanim archive.
 
         OutError_FailOpenFile,
         OutError_ZlibError,
-        OutError_FailTPLTextureExport,
+        OutError_FailTextureExport,
+
+        Error_Unknown = -1
     };
 
     Error currentError { Error_None };

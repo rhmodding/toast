@@ -9,12 +9,18 @@
 
 #include <filesystem>
 
+#include <algorithm>
+
 #include "anim/CellAnim.hpp"
 
 #include "archive/U8Archive.hpp"
+#include "archive/SARC.hpp"
+
 #include "compression/Yaz0.hpp"
+#include "compression/NZlib.hpp"
 
 #include "texture/TPL.hpp"
+#include "texture/CTPK.hpp"
 
 #include "EditorDataPackage.hpp"
 
@@ -91,37 +97,17 @@ void SessionManager::setCurrentSessionIndex(int sessionIndex) {
     PlayerManager::getInstance().correctState();
 }
 
-int SessionManager::CreateSession(const char* filePath) {
-    if (!Files::doesFileExist(filePath)) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_FileDoesNotExist;
-
-        return -1;
-    }
-
-    Session newSession;
-
-    auto __archiveResult = U8Archive::readYaz0U8Archive(filePath);
-    if (!__archiveResult.has_value()) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_FailOpenArchive;
-
-        return -1;
-    }
-
-    U8Archive::U8ArchiveObject archiveObject = std::move(*__archiveResult);
-
+static SessionManager::Error InitRvlSession(
+    Session& session, U8Archive::U8ArchiveObject& archive
+) {
     auto rootDirIt = std::find_if(
-        archiveObject.structure.subdirectories.begin(),
-        archiveObject.structure.subdirectories.end(),
+        archive.structure.subdirectories.begin(),
+        archive.structure.subdirectories.end(),
         [](const U8Archive::Directory& dir) { return dir.name == "."; }
     );
 
-    if (rootDirIt == archiveObject.structure.subdirectories.end()) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_RootDirNotFound;
-
-        return -1;
+    if (rootDirIt == archive.structure.subdirectories.end()) {
+        return SessionManager::OpenError_RootDirNotFound;
     }
 
     // Every layout archive has the directory "./blyt". If this directory exists
@@ -133,28 +119,19 @@ int SessionManager::CreateSession(const char* filePath) {
     );
 
     if (blytDirIt != rootDirIt->subdirectories.end()) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_LayoutArchive;
-
-        return -1;
+        return SessionManager::OpenError_LayoutArchive;
     }
 
     U8Archive::File* __tplSearch = U8Archive::findFile("cellanim.tpl", *rootDirIt);
     if (!__tplSearch) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_FailFindTPL;
-
-        return -1;
+        return SessionManager::OpenError_FailFindTPL;
     }
 
     TPL::TPLObject tplObject =
         TPL::TPLObject(__tplSearch->data.data(), __tplSearch->data.size());
 
     if (!tplObject.ok) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_FailOpenTPL;
-
-        return -1;
+        return SessionManager::OpenError_FailOpenTPL;
     }
 
     std::vector<const U8Archive::File*> brcadFiles;
@@ -167,10 +144,7 @@ int SessionManager::CreateSession(const char* filePath) {
     }
 
     if (brcadFiles.empty()) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_NoBXCADsFound;
-
-        return -1;
+        return SessionManager::OpenError_NoBXCADsFound;
     }
 
     // Sort cellanim files alphabetically for consistency when exporting.
@@ -178,13 +152,13 @@ int SessionManager::CreateSession(const char* filePath) {
         return a->name < b->name;
     });
 
-    newSession.cellanims.resize(brcadFiles.size());
+    session.cellanims.resize(brcadFiles.size());
 
-    newSession.sheets->getVector().reserve(tplObject.textures.size());
+    session.sheets->getVector().reserve(tplObject.textures.size());
 
     // Cellanims
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
-        auto& cellanim = newSession.cellanims[i];
+        auto& cellanim = session.cellanims[i];
         const auto* file = brcadFiles[i];
 
         cellanim.name = file->name;
@@ -193,20 +167,16 @@ int SessionManager::CreateSession(const char* filePath) {
                 file->data.data(), file->data.size()
             );
 
-        if (!cellanim.object->isInitialized()) {
-            std::lock_guard<std::mutex> lock(this->mtx);
-            this->currentError = OpenError_FailOpenBXCAD;
-
-            return -1;
-        }
+        if (!cellanim.object->isInitialized())
+            return SessionManager::OpenError_FailOpenBXCAD;
+        if (cellanim.object->getType() != CellAnim::CELLANIM_TYPE_RVL)
+            return SessionManager::OpenError_InvalidBXCAD;
     }
 
     // Headers (animation names)
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
-        // Find header file
-        const U8Archive::File* headerFile { nullptr };
-
         const U8Archive::File* brcadFile = brcadFiles[i];
+        const U8Archive::File* headerFile { nullptr };
 
         char targetHeaderName[128];
         snprintf(
@@ -220,7 +190,7 @@ int SessionManager::CreateSession(const char* filePath) {
         for (const auto& file : rootDirIt->files) {
             if (strcmp(file.name.c_str(), targetHeaderName) == 0) {
                 headerFile = &file;
-                continue;
+                break;
             }
         }
 
@@ -243,9 +213,9 @@ int SessionManager::CreateSession(const char* filePath) {
                 if (commentPos != std::string::npos)
                     key = key.substr(0, commentPos);
 
-                auto& animations = newSession.cellanims[i].object->animations;
+                auto& animations = session.cellanims[i].object->animations;
                 if (value < animations.size())
-                    newSession.cellanims[i].object->animations.at(value).name = key;
+                    session.cellanims[i].object->animations.at(value).name = key;
             }
         }
     }
@@ -254,7 +224,7 @@ int SessionManager::CreateSession(const char* filePath) {
     // Note: this is wrapped in a MainThreadTask since we need to get access to the
     //       GL context to create GPU textures. This can be outside of a MainThreadTask
     //       but then it would use multiple MainThreadTasks instead of just one.
-    MainThreadTaskManager::getInstance().QueueTask([&tplObject, &newSession]() {
+    MainThreadTaskManager::getInstance().QueueTask([&tplObject, &session]() {
         for (unsigned i = 0; i < tplObject.textures.size(); i++) {
             auto& texture = tplObject.textures[i];
 
@@ -264,7 +234,7 @@ int SessionManager::CreateSession(const char* filePath) {
             );
             sheet->setTPLOutputFormat(texture.format);
 
-            newSession.sheets->addTexture(std::move(sheet));
+            session.sheets->addTexture(std::move(sheet));
         }
     }).get();
 
@@ -272,13 +242,239 @@ int SessionManager::CreateSession(const char* filePath) {
     {
         U8Archive::File* tedSearch = U8Archive::findFile(TED_ARC_FILENAME, *rootDirIt);
         if (tedSearch)
-            TedApply(tedSearch->data.data(), newSession);
+            TedApply(tedSearch->data.data(), session);
         else {
             U8Archive::File* datSearch = U8Archive::findFile(TED_ARC_FILENAME_OLD, *rootDirIt);
             if (datSearch)
-                TedApply(datSearch->data.data(), newSession);
+                TedApply(datSearch->data.data(), session);
         }
     }
+
+    return SessionManager::Error_None;
+}
+
+static SessionManager::Error InitCtrSession(
+    Session& session, SARC::SARCObject& archive
+) {
+    auto rootDirIt = std::find_if(
+        archive.structure.subdirectories.begin(),
+        archive.structure.subdirectories.end(),
+        [](const SARC::Directory& dir) { return dir.name == "arc"; }
+    );
+
+    if (rootDirIt == archive.structure.subdirectories.end())
+        return SessionManager::OpenError_RootDirNotFound;
+
+    std::vector<const SARC::File*> bccadFiles;
+    for (const auto& file : rootDirIt->files) {
+        if (file.name.size() >= STR_LIT_LEN(".bccad") &&
+            file.name.substr(file.name.size() - STR_LIT_LEN(".bccad")) == ".bccad") {
+            bccadFiles.push_back(&file);
+        }
+    }
+    
+    if (bccadFiles.empty())
+        return SessionManager::OpenError_NoBXCADsFound;
+    
+    std::vector<const SARC::File*> ctpkFiles;
+    
+    for (const auto* bccadFile : bccadFiles) {
+        std::string baseName = bccadFile->name.substr(0, bccadFile->name.find_last_of('.'));
+    
+        bool foundMatch = false;
+        const SARC::File* bestMatch = nullptr;
+        size_t bestMatchLength = 0;
+    
+        for (const auto& file : rootDirIt->files) {
+            if (file.name.size() >= STR_LIT_LEN(".ctpk") &&
+                file.name.substr(file.name.size() - STR_LIT_LEN(".ctpk")) == ".ctpk") {
+                
+                std::string ctpkBaseName = file.name.substr(0, file.name.find_last_of('.'));
+    
+                // HACK: because of some edge-cases where the developers didn't exactly mirror the
+                // filenames, we have to do a substring search -_-
+
+                if (baseName.find(ctpkBaseName) != std::string::npos) {
+                    // Prioritize longest match.
+                    if (ctpkBaseName.size() > bestMatchLength) {
+                        bestMatch = &file;
+                        bestMatchLength = ctpkBaseName.size();
+                    }
+                }
+            }
+        }
+    
+        if (bestMatch) {
+            ctpkFiles.push_back(bestMatch);
+            foundMatch = true;
+        }
+    
+        if (!foundMatch)
+            return SessionManager::OpenError_MissingCTPK;
+    }        
+
+    session.cellanims.resize(bccadFiles.size());
+    session.sheets->getVector().reserve(ctpkFiles.size());
+
+    // Cellanims
+    for (unsigned i = 0; i < bccadFiles.size(); i++) {
+        auto& cellanim = session.cellanims[i];
+        const auto* file = bccadFiles[i];
+
+        cellanim.name = file->name;
+        cellanim.object = std::make_shared<CellAnim::CellAnimObject>(
+            file->data.data(), file->data.size()
+        );
+
+        if (!cellanim.object->isInitialized())
+            return SessionManager::OpenError_FailOpenBXCAD;
+        if (cellanim.object->getType() != CellAnim::CELLANIM_TYPE_CTR)
+            return SessionManager::OpenError_InvalidBXCAD;
+        
+        cellanim.object->sheetIndex = i;
+    }
+
+    // Sheets
+    // Note: this is wrapped in a MainThreadTask since we need to get access to the
+    //       GL context to create GPU textures. This can be outside of a MainThreadTask
+    //       but then it would use multiple MainThreadTasks instead of just one.
+    SessionManager::Error sheetsError { SessionManager::Error_None };
+
+    MainThreadTaskManager::getInstance().QueueTask([&sheetsError, &ctpkFiles, &session]() {
+        for (unsigned i = 0; i < ctpkFiles.size(); i++) {
+            const auto* file = ctpkFiles[i];
+
+            CTPK::CTPKObject ctpkObject = CTPK::CTPKObject(
+                file->data.data(), file->data.size()
+            );
+            if (!ctpkObject.ok) {
+                sheetsError = SessionManager::OpenError_FailOpenCTPK;
+                return;
+            }
+
+            if (ctpkObject.textures.empty()) {
+                sheetsError = SessionManager::OpenError_NoCTPKTextures;
+                return;
+            }
+
+            auto& texture = ctpkObject.textures[0];
+            texture.rotateCCW();
+
+            std::shared_ptr<Texture> sheet = std::make_shared<Texture>(
+                texture.width, texture.height,
+                texture.createGPUTexture()
+            );
+            sheet->setCTPKOutputFormat(texture.format);
+            sheet->setName(file->name.substr(0, file->name.size() - STR_LIT_LEN(".ctpk")));
+
+            session.sheets->addTexture(std::move(sheet));
+        }
+    }).get();
+
+    if (sheetsError != SessionManager::Error_None)
+        return sheetsError;
+
+    // Editor data
+    SARC::File* tedSearch = SARC::findFile(TED_ARC_FILENAME, *rootDirIt);
+    if (tedSearch)
+        TedApply(tedSearch->data.data(), session);
+
+    return SessionManager::Error_None;
+}
+
+int SessionManager::CreateSession(const char* filePath) {
+    if (!Files::doesFileExist(filePath)) {
+        std::lock_guard<std::mutex> lock(this->mtx);
+        this->currentError = OpenError_FileDoesNotExist;
+
+        return -1;
+    }
+
+    std::vector<unsigned char> data;
+    {
+        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+        if (!file.is_open()) {
+            std::cerr << "[SessionManager::CreateSession] Error opening file at path: " << filePath << '\n';
+            
+            std::lock_guard<std::mutex> lock(this->mtx);
+            this->currentError = OpenError_FailOpenArchive;
+
+            return -1;
+        }
+
+        data.resize(file.tellg());
+        file.seekg(0, std::ios::beg);
+
+        file.read(reinterpret_cast<char*>(data.data()), data.size());
+
+        file.close();
+    }
+
+    CellAnim::CellAnimType type { CellAnim::CELLANIM_TYPE_INVALID };
+
+    // We check for Yaz0 first since it has a magic value.
+    if (Yaz0::checkDataValid(data.data(), data.size())) {
+        type = CellAnim::CELLANIM_TYPE_RVL;
+
+        const auto decompressedData = Yaz0::decompress(data.data(), data.size());
+        if (!decompressedData.has_value()) {
+            std::cerr << "[SessionManager::CreateSession] Error decompressing file at path: " << filePath << '\n';
+
+            std::lock_guard<std::mutex> lock(this->mtx);
+            this->currentError = OpenError_FailOpenArchive;
+
+            return -1;
+        }
+
+        data = std::move(*decompressedData);
+    }
+    else if (NZlib::checkDataValid(data.data(), data.size())) {
+        type = CellAnim::CELLANIM_TYPE_CTR;
+
+        const auto decompressedData = NZlib::decompress(data.data(), data.size());
+        if (!decompressedData.has_value()) {
+            std::cerr << "[SessionManager::CreateSession] Error decompressing file at path: " << filePath << '\n';
+
+            std::lock_guard<std::mutex> lock(this->mtx);
+            this->currentError = OpenError_FailOpenArchive;
+
+            return -1;
+        }
+
+        data = std::move(*decompressedData);
+    }
+
+    Error initError { Error_None };
+
+    Session newSession;
+
+    switch (type) {
+    case CellAnim::CELLANIM_TYPE_RVL: {
+        U8Archive::U8ArchiveObject archive = U8Archive::U8ArchiveObject(
+            data.data(), data.size()
+        );
+
+        initError = InitRvlSession(newSession, archive);
+    } break;
+    case CellAnim::CELLANIM_TYPE_CTR: {
+        SARC::SARCObject archive = SARC::SARCObject(data.data(), data.size());
+
+        initError = InitCtrSession(newSession, archive);
+    } break;
+    
+    default:
+        initError = OpenError_FailOpenArchive;
+        break;
+    }
+
+    if (initError != Error_None) {
+        std::lock_guard<std::mutex> lock(this->mtx);
+        this->currentError = initError;
+
+        return -1;
+    }
+
+    newSession.type = type;
 
     newSession.resourcePath = filePath;
     newSession.setCurrentCellanimIndex(0);
@@ -292,6 +488,170 @@ int SessionManager::CreateSession(const char* filePath) {
     return static_cast<int>(this->sessions.size() - 1);
 }
 
+static SessionManager::Error SerializeRvlSession(
+    const Session& session, std::vector<unsigned char>& output
+) {
+    U8Archive::U8ArchiveObject archive;
+
+    archive.structure.AddDirectory(U8Archive::Directory("."));
+    auto& directory = archive.structure.subdirectories.back();
+
+    // BRCAD files
+    for (unsigned i = 0; i < session.cellanims.size(); i++) {
+        U8Archive::File file(session.cellanims[i].name);
+        file.data = session.cellanims[i].object->Serialize();
+
+        directory.AddFile(std::move(file));
+    }
+
+    // Header files
+    for (unsigned i = 0; i < session.cellanims.size(); i++) {
+        std::ostringstream stream;
+        for (unsigned j = 0; j < session.cellanims[i].object->animations.size(); j++) {
+            const auto& animation = session.cellanims[i].object->animations[j];
+            if (animation.name.empty())
+                continue;
+
+            stream << "#define " << animation.name << '\t' << std::to_string(j) << "\t// (null)\n";
+        }
+
+        const std::string& cellanimName = session.cellanims[i].name;
+        U8Archive::File file(
+            "rcad_" +
+            cellanimName.substr(0, cellanimName.size() - STR_LIT_LEN(".brcad")) +
+            "_labels.h"
+        );
+
+        const std::string str = stream.str();
+        file.data.insert(file.data.end(), str.begin(), str.end());
+
+        directory.AddFile(std::move(file));
+    }
+
+    // TPL file
+    {
+        U8Archive::File file("cellanim.tpl");
+
+        TPL::TPLObject tplObject;
+
+        SessionManager::Error error { SessionManager::Error_None };
+        MainThreadTaskManager::getInstance().QueueTask([&session, &tplObject, &error]() {
+            for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
+                auto tplTexture = session.sheets->getTextureByIndex(i)->TPLTexture();
+                if (!tplTexture.has_value()) {
+                    error = SessionManager::OutError_FailTextureExport;
+                    return;
+                }
+
+                tplObject.textures.push_back(std::move(*tplTexture));
+            }
+        }).get();
+
+        if (error != SessionManager::Error_None)
+            return error;
+
+        file.data = tplObject.Serialize();
+
+        directory.AddFile(std::move(file));
+    }
+
+    // TED file
+    {
+        U8Archive::File file(TED_ARC_FILENAME);
+
+        TedWriteState* state = TedCreateWriteState(session);
+            file.data.resize(TedPrepareWrite(state));
+            TedWrite(state, file.data.data());
+        TedDestroyWriteState(state);
+
+        directory.AddFile(std::move(file));
+    }
+
+    directory.SortAlphabetically();
+
+    auto archiveBinary = archive.Serialize();
+
+    auto compressedArchive = Yaz0::compress(
+        archiveBinary.data(), archiveBinary.size(),
+        ConfigManager::getInstance().getConfig().compressionLevel
+    );
+
+    if (!compressedArchive.has_value())
+        return SessionManager::OutError_ZlibError;
+    
+    output = std::move(*compressedArchive);
+    compressedArchive.reset();
+
+    return SessionManager::Error_None;
+}
+
+static SessionManager::Error SerializeCtrSession(
+    const Session& session, std::vector<unsigned char>& output
+) {
+    SARC::SARCObject archive;
+
+    archive.structure.AddDirectory(SARC::Directory("arc"));
+    auto& directory = archive.structure.subdirectories.back();
+
+    // BCCAD files
+    for (unsigned i = 0; i < session.cellanims.size(); i++) {
+        SARC::File file(session.cellanims[i].name);
+        file.data = session.cellanims[i].object->Serialize();
+
+        directory.AddFile(std::move(file));
+    }
+
+    // CTPK files
+    for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
+        const auto& texture = session.sheets->getTextureByIndex(i);
+
+        SARC::File file(texture->getName() + ".ctpk");
+
+        auto ctpkTex = texture->CTPKTexture();
+        if (!ctpkTex.has_value())
+            return SessionManager::OutError_FailTextureExport;
+        
+        ctpkTex->rotateCW();
+
+        CTPK::CTPKObject ctpkObject;
+        ctpkObject.ok = true;
+
+        ctpkObject.textures.push_back(std::move(*ctpkTex));
+        ctpkTex.reset();
+
+        file.data = ctpkObject.Serialize();
+
+        directory.AddFile(std::move(file));
+    }
+
+    // TED file
+    {
+        SARC::File file(TED_ARC_FILENAME);
+
+        TedWriteState* state = TedCreateWriteState(session);
+            file.data.resize(TedPrepareWrite(state));
+            TedWrite(state, file.data.data());
+        TedDestroyWriteState(state);
+
+        directory.AddFile(std::move(file));
+    }
+
+    auto archiveBinary = archive.Serialize();
+
+    auto compressedArchive = NZlib::compress(
+        archiveBinary.data(), archiveBinary.size(),
+        ConfigManager::getInstance().getConfig().compressionLevel
+    );
+
+    if (!compressedArchive.has_value())
+        return SessionManager::OutError_ZlibError;
+    
+    output = std::move(*compressedArchive);
+    compressedArchive.reset();
+
+    return SessionManager::Error_None;
+}
+
 bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePath) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
@@ -302,103 +662,30 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
 
     if (dstFilePath == nullptr)
         dstFilePath = session.resourcePath.c_str();
+    
+    Error error;
+    std::vector<unsigned char> result;
 
-    U8Archive::U8ArchiveObject archive;
-
-    { // Serialize all sub-data
-        U8Archive::Directory directory(".");
-
-        // BRCAD files
-        for (unsigned i = 0; i < session.cellanims.size(); i++) {
-            U8Archive::File file(session.cellanims[i].name);
-            file.data = session.cellanims[i].object->Serialize();
-
-            directory.AddFile(std::move(file));
-        }
-
-        // Header files
-        for (unsigned i = 0; i < session.cellanims.size(); i++) {
-            std::ostringstream stream;
-            for (unsigned j = 0; j < session.cellanims[i].object->animations.size(); j++) {
-                const auto& animation = session.cellanims[i].object->animations[j];
-                if (animation.name.empty())
-                    continue;
-
-                stream << "#define " << animation.name << '\t' << std::to_string(j) << "\t// (null)\n";
-            }
-
-            const std::string& cellanimName = session.cellanims[i].name;
-            U8Archive::File file(
-                "rcad_" +
-                cellanimName.substr(0, cellanimName.size() - STR_LIT_LEN(".brcad")) +
-                "_labels.h"
-            );
-
-            const std::string str = stream.str();
-            file.data.insert(file.data.end(), str.begin(), str.end());
-
-            directory.AddFile(std::move(file));
-        }
-
-        // TPL file
-        {
-            U8Archive::File file("cellanim.tpl");
-
-            TPL::TPLObject tplObject;
-
-            SessionManager::Error error { Error_None };
-            MainThreadTaskManager::getInstance().QueueTask([&session, &tplObject, &error]() {
-                for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
-                    auto tplTexture = session.sheets->getTextureByIndex(i)->TPLTexture();
-                    if (!tplTexture.has_value()) {
-                        error = OutError_FailTPLTextureExport;
-                        return;
-                    }
-
-                    tplObject.textures.push_back(std::move(*tplTexture));
-                }
-            }).get();
-
-            if (error != Error_None) {
-                this->currentError = OutError_FailTPLTextureExport;
-                return -1;
-            }
-
-            file.data = tplObject.Serialize();
-
-            directory.AddFile(std::move(file));
-        }
-
-        // TED file
-        {
-            U8Archive::File file(TED_ARC_FILENAME);
-
-            TedWriteState* state = TedCreateWriteState(session);
-                file.data.resize(TedPrepareWrite(state));
-                TedWrite(state, file.data.data());
-            TedDestroyWriteState(state);
-
-            directory.AddFile(std::move(file));
-        }
-
-        directory.SortAlphabetically();
-
-        archive.structure.AddDirectory(std::move(directory));
+    switch (session.type) {
+    case CellAnim::CELLANIM_TYPE_RVL:
+        error = SerializeRvlSession(session, result);
+        break;
+    case CellAnim::CELLANIM_TYPE_CTR:
+        error = SerializeCtrSession(session, result);
+        break;
+    
+    default:
+        this->currentError = Error_Unknown;
+        return false;
+        break;
     }
 
-    auto archiveRaw = archive.Serialize();
+    if (error != Error_None) {
+        this->currentError = error;
+        return false;
+    }
 
     const ConfigManager& configManager = ConfigManager::getInstance();
-
-    auto compressedArchive = Yaz0::compress(
-        archiveRaw.data(), archiveRaw.size(),
-        configManager.getConfig().compressionLevel
-    );
-
-    if (!compressedArchive.has_value()) {
-        this->currentError = OutError_ZlibError;
-        return -1;
-    }
 
     if (configManager.getConfig().backupBehaviour != BackupBehaviour_None) {
         bool backedUp = Files::BackupFile(
@@ -413,20 +700,20 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
     std::ofstream file(dstFilePath, std::ios::binary);
     if (file.is_open()) {
         file.write(
-            reinterpret_cast<const char*>(compressedArchive->data()),
-            compressedArchive->size()
+            reinterpret_cast<const char*>(result.data()),
+            result.size()
         );
 
         file.close();
     }
     else {
         this->currentError = OutError_FailOpenFile;
-        return -1;
+        return false;
     }
 
     session.modified = false;
 
-    return 0;
+    return true;
 }
 
 void SessionManager::RemoveSession(unsigned sessionIndex) {

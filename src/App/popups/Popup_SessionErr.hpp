@@ -61,7 +61,7 @@ static void Popup_SessionErr() {
         strcpy(errorMessage, "Zlib raised an error while compressing the file.\nPlease check the log for more details.");
         errorType = 1;
         break;
-    case SessionManager::OutError_FailTPLTextureExport:
+    case SessionManager::OutError_FailTextureExport:
         strcpy(errorMessage, "There was an error exporting a texture.");
         errorType = 1;
         break;
