@@ -590,7 +590,7 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
         CtrArrangement* arrangementOut = reinterpret_cast<CtrArrangement*>(currentOutput);
         currentOutput += sizeof(CtrArrangement);
 
-        arrangementOut->partsCount = BYTESWAP_16(static_cast<uint16_t>(arrangement.parts.size()));
+        arrangementOut->partsCount = static_cast<uint16_t>(arrangement.parts.size());
 
         for (const CellAnim::ArrangementPart& part : arrangement.parts) {
             CtrArrangementPart* arrangementPartOut = reinterpret_cast<CtrArrangementPart*>(currentOutput);
