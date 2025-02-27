@@ -38,13 +38,25 @@ static void Popup_SessionErr() {
         break;
     case SessionManager::OpenError_FailOpenBXCAD:
         // TODOLT: replace brcad with brcad/bccad when Megamix support is implemented
-        strcpy(errorMessage, "The cellanim file (.brcad) could not be opened. It might be corrupted.");
+        strcpy(errorMessage, "The cellanim file (.brcad / .bccad) could not be opened. It might be corrupted.");
         errorType = 0;
         break;
     case SessionManager::OpenError_FailOpenTPL:
         strcpy(errorMessage, "The TPL file could not be opened. It might be corrupted.");
         errorType = 0;
+        break;
+    case SessionManager::OpenError_MissingCTPK:
+        strcpy(errorMessage, "A CTPK file is missing (more cellanim files than texture files).");
+        errorType = 0;
         break; 
+    case SessionManager::OpenError_FailOpenCTPK:
+        strcpy(errorMessage, "A CTPK file could not be opened. It might be corrupted.");
+        errorType = 0;
+        break;
+    case SessionManager::OpenError_NoCTPKTextures:
+        strcpy(errorMessage, "A CTPK file has no valid textures. It might be corrupted.");
+        errorType = 0;
+        break;
     case SessionManager::OpenError_LayoutArchive:
         strcpy(errorMessage,
             "The selected archive is a layout archive. Please choose a\n"

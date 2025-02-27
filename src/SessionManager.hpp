@@ -171,7 +171,6 @@ public:
         OpenError_RootDirNotFound,
         OpenError_NoBXCADsFound,
         OpenError_FailOpenBXCAD,
-        OpenError_InvalidBXCAD,
         OpenError_FailOpenTPL,
         OpenError_MissingCTPK,
         OpenError_FailOpenCTPK,

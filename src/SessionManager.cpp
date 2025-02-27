@@ -167,10 +167,11 @@ static SessionManager::Error InitRvlSession(
                 file->data.data(), file->data.size()
             );
 
-        if (!cellanim.object->isInitialized())
+        if (
+            !cellanim.object->isInitialized() ||
+            cellanim.object->getType() != CellAnim::CELLANIM_TYPE_RVL
+        )
             return SessionManager::OpenError_FailOpenBXCAD;
-        if (cellanim.object->getType() != CellAnim::CELLANIM_TYPE_RVL)
-            return SessionManager::OpenError_InvalidBXCAD;
     }
 
     // Headers (animation names)
@@ -326,10 +327,11 @@ static SessionManager::Error InitCtrSession(
             file->data.data(), file->data.size()
         );
 
-        if (!cellanim.object->isInitialized())
+        if (
+            !cellanim.object->isInitialized() ||
+            cellanim.object->getType() != CellAnim::CELLANIM_TYPE_CTR
+        )
             return SessionManager::OpenError_FailOpenBXCAD;
-        if (cellanim.object->getType() != CellAnim::CELLANIM_TYPE_CTR)
-            return SessionManager::OpenError_InvalidBXCAD;
         
         cellanim.object->sheetIndex = i;
     }
