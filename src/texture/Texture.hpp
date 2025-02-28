@@ -7,6 +7,9 @@
 #include "CTPK.hpp"
 
 class Texture {
+public:
+    static constexpr GLuint INVALID_TEXTURE_ID = 0;
+
 private:
     unsigned width { 0 };
     unsigned height { 0 };

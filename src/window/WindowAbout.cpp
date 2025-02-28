@@ -83,7 +83,7 @@ void WindowAbout::Update() {
     if (!this->open)
         return;
 
-    if (this->image.getTextureId() == 0)
+    if (this->image.getTextureId() == Texture::INVALID_TEXTURE_ID)
         image.LoadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
 
     CENTER_NEXT_WINDOW();

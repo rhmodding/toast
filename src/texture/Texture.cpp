@@ -20,7 +20,7 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
     this->height = height;
 
     MainThreadTaskManager::getInstance().QueueTask([this, data]() {
-        if (this->textureId == 0)
+        if (this->textureId == INVALID_TEXTURE_ID)
             glGenTextures(1, &this->textureId);
 
         glBindTexture(GL_TEXTURE_2D, this->textureId);
@@ -67,8 +67,8 @@ bool Texture::LoadSTBFile(const char* filename) {
 }
 
 unsigned char* Texture::GetRGBA32() {
-    if (this->textureId == 0) {
-        std::cerr << "[Texture::GetRGBA32] Failed to download image data: textureId is 0\n";
+    if (this->textureId == INVALID_TEXTURE_ID) {
+        std::cerr << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid\n";
         return nullptr;
     }
 
@@ -90,8 +90,8 @@ unsigned char* Texture::GetRGBA32() {
 }
 
 bool Texture::GetRGBA32(unsigned char* buffer) {
-    if (this->textureId == 0) {
-        std::cerr << "[Texture::GetRGBA32] Failed to download image data: textureId is 0\n";
+    if (this->textureId = INVALID_TEXTURE_ID) {
+        std::cerr << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid\n";
         return false;
     }
 
@@ -132,8 +132,8 @@ bool Texture::ExportToFile(const char* filename) {
 }
 
 std::optional<TPL::TPLTexture> Texture::TPLTexture() {
-    if (this->textureId == 0) {
-        std::cerr << "[Texture::TPLTexture] Failed to construct TPLTexture: textureId is 0\n";
+    if (this->textureId = INVALID_TEXTURE_ID) {
+        std::cerr << "[Texture::TPLTexture] Failed to construct TPLTexture: textureId is invalid\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -175,8 +175,8 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
 }
 
 std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
-    if (this->textureId == 0) {
-        std::cerr << "[Texture::CTPKTexture] Failed to construct CTPKTexture: textureId is 0\n";
+    if (this->textureId = INVALID_TEXTURE_ID) {
+        std::cerr << "[Texture::CTPKTexture] Failed to construct CTPKTexture: textureId is invalid\n";
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -205,7 +205,7 @@ std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
 }
 
 void Texture::DestroyTexture() {
-    if (this->textureId == 0)
+    if (this->textureId = INVALID_TEXTURE_ID)
         return;
 
     MainThreadTaskManager::getInstance().QueueTask([textureId = this->textureId]() {
