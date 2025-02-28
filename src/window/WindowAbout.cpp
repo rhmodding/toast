@@ -64,10 +64,11 @@ static const CreditsLine creditStrings[] = {
     { ClcEmptyLine },
 
     { ClcStringLine, "Dear ImGui (ocornut/imgui) [MIT]" },
-    { ClcStringLine, "GLFW [Zlib]" },
-    { ClcStringLine, "tinyfiledialogs [Zlib]" },
+    { ClcStringLine, "GLFW [Zlib/libpng]" },
+    { ClcStringLine, "tinyfiledialogs (by Guillaume Vareille) [Zlib]" },
     { ClcStringLine, "json (nlohmann/json) [MIT]" },
     { ClcStringLine, "zlib-ng [Zlib]" },
+    { ClcStringLine, "rg_etc1 (by Richard Geldreich) [Zlib]" },
     { ClcStringLine, "syaz0 (zeldamods/syaz0) [GPL-2.0]" },
 
     { ClcNextColumn },
