@@ -57,6 +57,8 @@ private:
 
     GLFWwindow* glfwWindowHndl { nullptr };
 
+    bool isWindowMaximized { false };
+
     template <typename T>
     struct AppWindow {
     public:

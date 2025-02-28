@@ -63,6 +63,8 @@ public:
     int lastWindowWidth { 1500 };
     int lastWindowHeight { 780 };
 
+    bool lastWindowMaximized { false };
+
     bool canvasLMBPanEnabled { true };
 
     unsigned updateRate { 120 };
@@ -96,6 +98,7 @@ public:
             { "recentlyOpened", _config.recentlyOpened },
             { "lastWindowWidth", _config.lastWindowWidth },
             { "lastWindowHeight", _config.lastWindowHeight },
+            { "lastWindowMaximized", _config.lastWindowMaximized },
             { "canvasLMBPanEnabled", _config.canvasLMBPanEnabled },
             { "updateRate", _config.updateRate },
             { "backupBehaviour", _config.backupBehaviour },
@@ -110,6 +113,7 @@ public:
         _config.recentlyOpened =      j.value("recentlyOpened", _config.recentlyOpened);
         _config.lastWindowWidth =     j.value("lastWindowWidth", _config.lastWindowWidth);
         _config.lastWindowHeight =    j.value("lastWindowHeight", _config.lastWindowHeight);
+        _config.lastWindowMaximized = j.value("lastWindowMaximized", _config.lastWindowMaximized);
         _config.canvasLMBPanEnabled = j.value("canvasLMBPanEnabled", _config.canvasLMBPanEnabled);
         _config.updateRate =          j.value("updateRate", _config.updateRate);
         _config.backupBehaviour =     j.value("backupBehaviour", _config.backupBehaviour);

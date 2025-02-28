@@ -185,6 +185,14 @@ Toast::Toast(int argc, const char** argv) {
         globlToast->AttemptExit();
     });
 
+    if (configManager.getConfig().lastWindowMaximized)
+        glfwMaximizeWindow(this->glfwWindowHndl);
+    
+    glfwSetWindowMaximizeCallback(this->glfwWindowHndl, [](GLFWwindow*, int maximized) {
+        extern Toast* globlToast;
+        globlToast->isWindowMaximized = maximized;
+    });
+
     glfwMakeContextCurrent(this->glfwWindowHndl);
     //glfwSwapInterval(1); // Enable VSync
 
@@ -298,6 +306,7 @@ void Toast::AttemptExit(bool force) {
     Config config = configManager.getConfig();
 
     glfwGetWindowSize(this->glfwWindowHndl, &config.lastWindowWidth, &config.lastWindowHeight);
+    config.lastWindowMaximized = this->isWindowMaximized;
 
     configManager.setConfig(config);
     configManager.SaveConfig();
