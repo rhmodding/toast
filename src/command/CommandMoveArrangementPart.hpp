@@ -29,7 +29,7 @@ public:
         CellAnim::Arrangement& arrangement = this->getArrangement();
 
         int nSwap = this->partIndex + (moveDown ? -1 : 1);
-        if (nSwap >= 0 && nSwap < (int)arrangement.parts.size())
+        if (nSwap >= 0 && nSwap < static_cast<int>(arrangement.parts.size()))
             std::swap(
                 arrangement.parts.at(this->partIndex),
                 arrangement.parts.at(nSwap)

@@ -12,7 +12,7 @@ static void Popup_CloseModifiedSession() {
 
     if (
         sessionManager.sessionClosingIndex < 0 || 
-        sessionManager.sessionClosingIndex >= (int)sessionManager.sessions.size()
+        sessionManager.sessionClosingIndex >= static_cast<int>(sessionManager.sessions.size())
     )
         return;
 
@@ -32,7 +32,7 @@ static void Popup_CloseModifiedSession() {
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Dummy({ ImGui::CalcTextSize(sessionPath.c_str()).x - 40.f, 0.f });
 
-        ImGui::Text("Are you sure you want to close this session?\nYour changes will be lost.");
+        ImGui::TextUnformatted("Are you sure you want to close this session?\nYour changes will be lost.");
 
         ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();

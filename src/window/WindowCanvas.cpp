@@ -833,8 +833,8 @@ void WindowCanvas::Update() {
                 newPivotY = pivotBeforeMoveLocal[1];
             }
             else {
-                newPivotX = (float)(int)(pivotPoint.x - partsAnmSpaceCenter.x);
-                newPivotY = (float)(int)(pivotPoint.y - partsAnmSpaceCenter.y);
+                newPivotX = FLOOR_FLOAT(pivotPoint.x - partsAnmSpaceCenter.x);
+                newPivotY = FLOOR_FLOAT(pivotPoint.y - partsAnmSpaceCenter.y);
             }
 
             partsTransformation = PartsTransformation {

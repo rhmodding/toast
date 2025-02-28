@@ -148,9 +148,9 @@ void WindowTimeline::Update() {
 
             unsigned keyNo = playerManager.getKeyIndex() + 1;
 
-            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
+            ImGui::SetNextItemWidth(52.f);
             if (ImGui::InputScalar("Key No.", ImGuiDataType_U32, &keyNo, nullptr, nullptr, "%u")) {
-                playerManager.setKeyIndex(std::max<unsigned>(keyNo - 1, 1));
+                playerManager.setKeyIndex(std::clamp<unsigned>(keyNo - 1, 0, playerManager.getKeyCount() - 1));
             }
 
             ImGui::SameLine();
@@ -159,14 +159,14 @@ void WindowTimeline::Update() {
 
             ImGui::BeginDisabled(true);
 
-            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
+            ImGui::SetNextItemWidth(52.f);
             ImGui::InputInt("Hold Frames Left", &holdFramesLeft, 0, 0, ImGuiInputTextFlags_ReadOnly);
 
             ImGui::EndDisabled();
 
             ImGui::SameLine();
 
-            ImGui::SetNextItemWidth(ImGui::CalcTextSize("65536").x + 15.f);
+            ImGui::SetNextItemWidth(52.f);
             ImGui::InputScalar("FPS", ImGuiDataType_U16, &playerManager.frameRate, nullptr, nullptr, "%u");
             
             // Onion skin options
@@ -219,10 +219,10 @@ void WindowTimeline::Update() {
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 15.f, 0.f });
 
-        if (ImGui::BeginTable("TimelineFrameTable", 2,
-                                                        ImGuiTableFlags_RowBg |
-                                                        ImGuiTableFlags_BordersInnerV |
-                                                        ImGuiTableFlags_ScrollX
+        if (ImGui::BeginTable(
+            "TimelineFrameTable", 2,
+            ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV |
+            ImGuiTableFlags_ScrollX
         )) {
             // Keys
             ImGui::TableNextRow();
@@ -271,7 +271,7 @@ void WindowTimeline::Update() {
 
                     if (ImGui::BeginPopupContextItem()) {
                         ImGui::Text((const char*)ICON_FA_KEY "  Options for key no. %u", i+1);
-                        ImGui::Text(
+                        ImGui::TextUnformatted(
                             "Hold "
                         #if defined(__APPLE__)
                             "[Option]"
@@ -611,12 +611,12 @@ void WindowTimeline::Update() {
                         // Check regular bounds
                         else {
                             isOnionSkinFrame =
-                                (i >= (unsigned)std::max(0, backStart) &&
-                                i <= (unsigned)std::min(frontEnd, keyCount - 1));
+                                (i >= std::max<unsigned>(0, backStart) &&
+                                i <= std::min<unsigned>(frontEnd, keyCount - 1));
                         }
 
                         ImGui::BeginDisabled();
-                        if (isOnionSkinFrame && i != (unsigned)currentKeyIndex)
+                        if (isOnionSkinFrame && i != static_cast<unsigned>(currentKeyIndex))
                             ImGui::Button(buffer, buttonDimensions);
                         else
                             ImGui::Dummy(buttonDimensions);

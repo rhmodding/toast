@@ -43,8 +43,8 @@
 #define STR_LIT_LEN(stringLiteral) (sizeof((stringLiteral)) - 1)
 
 #define AVERAGE_FLOATS(a, b) (((float)((a) + (b))) / 2.f)
-#define AVERAGE_INTS(a, b) (((int32_t)((a) + (b))) / 2)
-#define AVERAGE_UINTS(a, b) (((uint32_t)((a) + (b))) / 2)
+#define AVERAGE_INTS(a, b) (((int)((a) + (b))) / 2)
+#define AVERAGE_UINTS(a, b) (((unsigned int)((a) + (b))) / 2)
 
 #define AVERAGE_UCHARS(a, b) ( \
     ((uint8_t)(a) / 2) + ((uint8_t)(b) / 2) + \
@@ -59,9 +59,11 @@
     (float)(int)(((vecA).y + (vecB).y) / 2.f + .5f) \
 ))
 
+#define ROUND_FLOAT(value) ( (float)(int)((value) + .5f) )
+#define FLOOR_FLOAT(value) ( (float)(int)((value)) )
+
 #define ROUND_IMVEC2(vec) (ImVec2( \
-    (float)(int)((vec).x + .5f), \
-    (float)(int)((vec).y + .5f) \
+    ROUND_FLOAT((vec).x), ROUND_FLOAT((vec).y) \
 ))
 
 #define CENTER_NEXT_WINDOW() \

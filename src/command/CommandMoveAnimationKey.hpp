@@ -28,7 +28,7 @@ public:
 
         // An signed int is used since nSwap can be negative.
         int nSwap = this->keyIndex + (moveDown ? -1 : 1);
-        if (nSwap >= 0 && nSwap < (int)animation.keys.size()) {
+        if (nSwap >= 0 && nSwap < static_cast<int>(animation.keys.size())) {
             std::swap(
                 animation.keys.at(this->keyIndex),
                 animation.keys.at(nSwap)
@@ -48,7 +48,7 @@ public:
         CellAnim::Animation& animation = this->getAnimation();
 
         int nSwap = this->keyIndex + (moveDown ? -1 : 1);
-        if (nSwap >= 0 && nSwap < (int)animation.keys.size()) {
+        if (nSwap >= 0 && nSwap < static_cast<int>(animation.keys.size())) {
             std::swap(
                 animation.keys.at(this->keyIndex),
                 animation.keys.at(nSwap)

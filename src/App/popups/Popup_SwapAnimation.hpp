@@ -102,7 +102,7 @@ static void Popup_SwapAnimation(int animationIndex) {
             const auto& animations = sessionManager.getCurrentSession()
                 ->getCurrentCellanim().object->animations;
 
-            for (int n = 0; n < (int)animations.size(); n++) {
+            for (int n = 0; n < static_cast<int>(animations.size()); n++) {
                 std::ostringstream fmtStream;
 
                 int nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;

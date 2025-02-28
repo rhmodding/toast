@@ -727,7 +727,7 @@ void Toast::Menubar() {
         SessionManager& sessionManager = SessionManager::getInstance();
 
         if (ImGui::BeginTabBar("FileTabBar", tabBarFlags)) {
-            for (unsigned n = 0; n < sessionManager.sessions.size(); n++) {
+            for (int n = 0; n < sessionManager.sessions.size(); n++) {
                 ImGui::PushID(n);
 
                 auto& session = sessionManager.sessions[n];
@@ -745,12 +745,12 @@ void Toast::Menubar() {
                 if (tabVisible)
                     ImGui::EndTabItem();
 
-                if (ImGui::IsItemClicked() && sessionManager.getCurrentSessionIndex() != (int)n) {
+                if (ImGui::IsItemClicked() && sessionManager.getCurrentSessionIndex() != n) {
                     sessionManager.setCurrentSessionIndex(n);
                 }
 
                 if (tabVisible && ImGui::BeginPopupContextItem()) {
-                    ImGui::Text("Select a Cellanim:");
+                    ImGui::TextUnformatted("Select a Cellanim:");
                     ImGui::Separator();
                     for (unsigned i = 0; i < session.cellanims.size(); i++) {
                         const std::string& str = session.cellanims[i].name;

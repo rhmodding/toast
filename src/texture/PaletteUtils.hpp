@@ -118,7 +118,7 @@ bool WriteRGBA32Palette(
             const uint8_t* readPixel = reinterpret_cast<const uint8_t*>(data + i);
 
             // A pixel is 16-bit but we write it in two 8-bit segments.
-            uint8_t* pixel = ((uint8_t*)dest) + (i * 2);
+            uint8_t* pixel = reinterpret_cast<uint8_t*>(dest) + (i * 2);
 
             if (readPixel[3] == 255) { // Opaque, write RGB555 pixel
                 // Bits:

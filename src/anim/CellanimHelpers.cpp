@@ -24,17 +24,15 @@ bool CellanimHelpers::getArrangementUnique(unsigned arrangementIndex) {
 
     const auto& animations =
         SessionManager::getInstance().getCurrentSession()
-            ->getCurrentCellanim().object
-            ->animations;
+            ->getCurrentCellanim().object->animations;
 
     for (const auto& animation : animations) {
         for (const auto& key : animation.keys) {
             if (key.arrangementIndex == arrangementIndex)
                 timesUsed++;
 
-            if (timesUsed > 1) {
+            if (timesUsed > 1)
                 return false;
-            }
         }
     }
 

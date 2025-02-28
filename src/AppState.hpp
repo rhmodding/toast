@@ -160,7 +160,9 @@ public:
 
         auto it = std::lower_bound(
             selectedParts.begin(), selectedParts.end(),
-            partIndex, [](const SelectedPart& sp, int partIndex) { return (int)sp.index < partIndex; }
+            partIndex, [](const SelectedPart& sp, int partIndex) {
+                return static_cast<int>(sp.index) < partIndex; 
+            }
         );
 
         bool isContained = (it != selectedParts.end() && it->index == partIndex);
@@ -179,7 +181,7 @@ public:
                 clearSelectedParts();
                 if (req.Selected) {
                     selectedParts.reserve(msIo->ItemsCount);
-                    for (unsigned i = 0; i < (unsigned)msIo->ItemsCount; i++, spSelectionOrder++)
+                    for (unsigned i = 0; i < static_cast<unsigned>(msIo->ItemsCount); i++, spSelectionOrder++)
                         this->setBatchPartSelection(i, req.Selected);
                 }
             }
@@ -208,7 +210,7 @@ public:
         for (unsigned index = 0; index < parts.size(); index++) {
             if (!isPartSelected(index))
                 newParts.push_back(parts[index]);
-            if (itemCurrentIndexToSelect == (int)index)
+            if (itemCurrentIndexToSelect == static_cast<int>(index))
                 itemNextIndexToSelect = newParts.size() - 1;
         }
         parts.swap(newParts);
@@ -223,7 +225,7 @@ public:
         if (selectedParts.empty())
             return -1;
 
-        int focusedIndex = (int)msIo->NavIdItem;
+        int focusedIndex = static_cast<int>(msIo->NavIdItem);
 
         if (!msIo->NavIdSelected) {
             msIo->RangeSrcReset = true;
@@ -235,7 +237,7 @@ public:
                 return index;
         }
 
-        for (int index = std::min(focusedIndex, (int)partCount) - 1; index >= 0; index--) {
+        for (int index = std::min(focusedIndex, static_cast<int>(partCount)) - 1; index >= 0; index--) {
             if (!this->isPartSelected(index))
                 return index;
         }

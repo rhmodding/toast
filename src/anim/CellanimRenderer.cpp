@@ -38,12 +38,12 @@ void CellanimRenderer::DrawOnionSkin(ImDrawList* drawList, const CellAnim::Anima
                 if (wrappedIndex < 0)
                     wrappedIndex = (keyCount + (wrappedIndex % keyCount)) % keyCount;
                 // Roll forwards
-                else if (wrappedIndex >= (int)keyCount)
+                else if (wrappedIndex >= static_cast<int>(keyCount))
                     wrappedIndex = wrappedIndex % keyCount;
             }
 
             // Break out if rollover is disabled
-            if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= (int)keyCount))
+            if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= static_cast<int>(keyCount)))
                 break;
 
             this->InternDraw(drawList, animation.keys.at(wrappedIndex), -1, color, true);
@@ -261,7 +261,7 @@ void CellanimRenderer::InternDraw(
     const float texHeight = this->cellanim->sheetH;
 
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
-        if (partIndex != -1 && partIndex != (int)i)
+        if (partIndex != -1 && partIndex != static_cast<int>(i))
             continue;
 
         const CellAnim::ArrangementPart& part = arrangement.parts.at(i);

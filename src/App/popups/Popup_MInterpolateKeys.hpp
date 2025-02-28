@@ -287,9 +287,11 @@ static void _ApplyInterpolation(
 
         newKey.transform = newKey.transform.lerp(frontKey->transform, t);
         newKey.opacity = std::clamp<int>(
-            std::lerp((int)backKey->opacity, (int)frontKey->opacity, t),
-            0,
-            255
+            std::lerp(
+                static_cast<int>(backKey->opacity),
+                static_cast<int>(frontKey->opacity),
+                t
+            ), 0x00, 0xFF
         );
         newKey.holdFrames = interval;
 
@@ -329,9 +331,11 @@ static void _ApplyInterpolation(
                 }
 
                 part.opacity = std::clamp<int>(
-                    std::lerp((int)part.opacity, (int)endPart->opacity, t),
-                    0,
-                    255
+                    std::lerp(
+                        static_cast<int>(part.opacity),
+                        static_cast<int>(endPart->opacity),
+                        t
+                    ), 0x00, 0xFF
                 );
             }
 
@@ -386,7 +390,7 @@ static void Popup_MInterpolateKeys() {
         currentKey = &playerManager.getKey();
         currentKeyIndex = static_cast<int>(playerManager.getKeyIndex());
 
-        bool nextKeyExists = currentKeyIndex + 1 < (int)currentAnimation->keys.size();
+        bool nextKeyExists = currentKeyIndex + 1 < static_cast<int>(currentAnimation->keys.size());
 
         if (nextKeyExists)
             nextKey = &playerManager.getAnimation().keys.at(currentKeyIndex + 1);

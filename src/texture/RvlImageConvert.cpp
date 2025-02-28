@@ -878,7 +878,7 @@ unsigned RvlImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const
         return ImageByteSize_CMPR(width, height);
 
     default:
-        std::cerr << "[RvlImageConvert::getImageByteSize] Invalid format passed (" << (int)type << ")\n";
+        std::cerr << "[RvlImageConvert::getImageByteSize] Invalid format passed (" << static_cast<int>(type) << ")\n";
         return 0;
     }
 

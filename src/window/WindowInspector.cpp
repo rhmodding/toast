@@ -139,7 +139,7 @@ void WindowInspector::Update() {
         break;
 
     default:
-        ImGui::Text("Inspector level not implemented.");
+        ImGui::TextUnformatted("Inspector level not implemented.");
         break;
     }
 

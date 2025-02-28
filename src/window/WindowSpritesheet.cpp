@@ -422,10 +422,10 @@ bool RepackSheet() {
     for (const auto& arrangement : arrangements) {
         for (const auto& part : arrangement.parts) {
             stbrp_rect rect = {
-                .w = (int)part.regionW + PADDING,
-                .h = (int)part.regionH + PADDING,
-                .x = (int)part.regionX - PADDING_HALF,
-                .y = (int)part.regionY - PADDING_HALF,
+                .w = static_cast<int>(part.regionW) + PADDING,
+                .h = static_cast<int>(part.regionH) + PADDING,
+                .x = static_cast<int>(part.regionX) - PADDING_HALF,
+                .y = static_cast<int>(part.regionY) - PADDING_HALF,
             };
             uniqueRects.insert(rect);
         }
@@ -481,10 +481,10 @@ bool RepackSheet() {
     for (auto& arrangement : arrangements) {
         for (auto& part : arrangement.parts) {
             stbrp_rect rect = {
-                .w = (int)part.regionW + PADDING,
-                .h = (int)part.regionH + PADDING,
-                .x = (int)part.regionX - PADDING_HALF,
-                .y = (int)part.regionY - PADDING_HALF,
+                .w = static_cast<int>(part.regionW) + PADDING,
+                .h = static_cast<int>(part.regionH) + PADDING,
+                .x = static_cast<int>(part.regionX) - PADDING_HALF,
+                .y = static_cast<int>(part.regionY) - PADDING_HALF,
             };
 
             auto it = std::find(originalRects.begin(), originalRects.end(), rect);
