@@ -12,10 +12,10 @@ enum Categories {
     Category_Theming,
     Category_Paths,
 
-    Categories_End
+    Categories_Count
 };
 
-const char* categoryNames[] {
+static const char* categoryNames[Categories_Count] {
     "General",
     "Export",
     "Theming",
@@ -71,7 +71,7 @@ void WindowConfig::Update() {
         static unsigned selected { 0 };
         {
             ImGui::BeginChild("Categories", { 150.f, 0.f }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
-            for (unsigned i = 0; i < Categories_End; i++) {
+            for (unsigned i = 0; i < Categories_Count; i++) {
                 if (ImGui::Selectable(categoryNames[i], selected == i))
                     selected = i;
             }
@@ -124,43 +124,54 @@ void WindowConfig::Update() {
 
             case Category_Export: {
                 enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_None, CL_Count };
-                static const char* levelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low", "None" };
 
-                static const int levelMap[CL_Count] = { 9, 8, 7, 4, 2 };
+                static const char* compressionLevelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low", "None" };
+                static const int compressionLevelMap[CL_Count] = { 9, 8, 7, 4, 2 };
+                static const int compressionLevels[] = {
+                    CL_None, // 0
+                    CL_Count, // 1
+                    CL_VeryLow, // 2
+                    CL_Count, // 3
+                    CL_Low, // 4
+                    CL_Count, // 5
+                    CL_Count, // 6
+                    CL_Medium, // 7
+                    CL_High, // 8
+                    CL_Highest // 9
+                };
 
-                int selectedLevel;
-                {
-                    static const int compressionLevels[] = {
-                        CL_None, // 0
-                        CL_Count, // 1
-                        CL_VeryLow, // 2
-                        CL_Count, // 3
-                        CL_Low, // 4
-                        CL_Count, // 5
-                        CL_Count, // 6
-                        CL_Medium, // 7
-                        CL_High, // 8
-                        CL_Highest // 9
-                    };
+                int selectedCompressionLevel = compressionLevels[this->selfConfig.compressionLevel];
 
-                    selectedLevel = compressionLevels[this->selfConfig.compressionLevel];
+                char buffer[64];
+
+                if (selectedCompressionLevel >= 0 && selectedCompressionLevel < CL_Count)
+                    strncpy(buffer, compressionLevelNames[selectedCompressionLevel], sizeof(buffer));
+                else
+                    snprintf(buffer, sizeof(buffer), "Other (%d)", this->selfConfig.compressionLevel);
+
+                if (ImGui::SliderInt(
+                    "Compression level",
+                    &selectedCompressionLevel,
+                    CL_Count - 1, 0,
+                    buffer,
+                    ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp
+                )) {
+                    this->selfConfig.compressionLevel = compressionLevelMap[selectedCompressionLevel];
                 }
 
-                const char* clName = (selectedLevel >= 0 && selectedLevel < CL_Count) ?
-                    levelNames[selectedLevel] : "Other ";
+                static const char* etc1QualityNames[ETC1Quality_Count] = { "Low", "Medium", "High" };
+                if (this->selfConfig.etc1Quality < ETC1Quality_Count)
+                    strncpy(buffer, etc1QualityNames[this->selfConfig.etc1Quality], sizeof(buffer));
+                else
+                    strncpy(buffer, "Invalid", sizeof(buffer));
 
-                if (selectedLevel >= 0 && selectedLevel < CL_Count)
-                    clName = levelNames[selectedLevel];
-                else {
-                    static char buf[64];
-                    snprintf(buf, sizeof(buf), "Other (%d)", this->selfConfig.compressionLevel);
-
-                    clName = buf;
-                }
-
-                if (ImGui::SliderInt("Compression Level", &selectedLevel, CL_Count - 1, 0, clName, ImGuiSliderFlags_NoInput)) {
-                    this->selfConfig.compressionLevel = levelMap[selectedLevel];
-                }
+                ImGui::SliderInt(
+                    "ETC1 compression quality",
+                    reinterpret_cast<int*>(&this->selfConfig.etc1Quality),
+                    0, ETC1Quality_Count - 1,
+                    buffer,
+                    ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp
+                );
             } break;
 
             case Category_Theming: {

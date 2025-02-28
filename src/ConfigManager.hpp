@@ -33,6 +33,20 @@ NLOHMANN_JSON_SERIALIZE_ENUM(ThemeChoice, {
     {ThemeChoice_Dark, "Dark"},
 });
 
+enum ETC1Quality : int {
+    ETC1Quality_Low,
+    ETC1Quality_Medium,
+    ETC1Quality_High,
+
+    ETC1Quality_Count
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ETC1Quality, {
+    {ETC1Quality_Low, "Low"},
+    {ETC1Quality_Medium, "Medium"},
+    {ETC1Quality_High, "High"},
+});
+
 struct Config {
 public:
     static constexpr unsigned int MAX_RECENTLY_OPENED = 12;
@@ -57,6 +71,8 @@ public:
 
     unsigned compressionLevel { 9 };
 
+    ETC1Quality etc1Quality { ETC1Quality_Medium };
+
     bool operator==(const Config& other) const {
         return
             this->theme == other.theme &&
@@ -67,7 +83,8 @@ public:
             this->canvasLMBPanEnabled == other.canvasLMBPanEnabled &&
             this->updateRate == other.updateRate &&
             this->backupBehaviour == other.backupBehaviour &&
-            this->compressionLevel == other.compressionLevel;
+            this->compressionLevel == other.compressionLevel &&
+            this->etc1Quality == other.etc1Quality;
     }
 
     // Friend functions for JSON (de-)serialization
@@ -82,7 +99,8 @@ public:
             { "canvasLMBPanEnabled", _config.canvasLMBPanEnabled },
             { "updateRate", _config.updateRate },
             { "backupBehaviour", _config.backupBehaviour },
-            { "compressionLevel", _config.compressionLevel }
+            { "compressionLevel", _config.compressionLevel },
+            { "etc1Quality", _config.etc1Quality }
         };
     }
     friend void from_json(const nlohmann::ordered_json& j, Config& _config) {
@@ -96,6 +114,7 @@ public:
         _config.updateRate =          j.value("updateRate", _config.updateRate);
         _config.backupBehaviour =     j.value("backupBehaviour", _config.backupBehaviour);
         _config.compressionLevel =    j.value("compressionLevel", _config.compressionLevel);
+        _config.etc1Quality =         j.value("etc1Quality", _config.etc1Quality);
     }
 };
 

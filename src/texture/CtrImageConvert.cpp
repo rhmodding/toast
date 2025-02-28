@@ -6,6 +6,8 @@
 
 #include "../rg_etc1/rg_etc1.h"
 
+#include "../ConfigManager.hpp"
+
 #include "../common.hpp"
 
 typedef CTPK::CTPKImageFormat ImageFormat;
@@ -100,7 +102,9 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
     rg_etc1::pack_etc1_block_init();
     
     rg_etc1::etc1_pack_params packerParams;
-    packerParams.m_quality = rg_etc1::cMediumQuality;
+    packerParams.m_quality = static_cast<rg_etc1::etc1_quality>(
+        std::min(ConfigManager::getInstance().getConfig().etc1Quality, ETC1Quality_High)
+    );
     packerParams.m_dithering = false;
 
     const uint32_t* data = reinterpret_cast<const uint32_t*>(_data);
