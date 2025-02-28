@@ -175,13 +175,16 @@ static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
     return { x + origin.x, y + origin.y };
 }
 
-// Screen safe area for Fever (RVL)
-constexpr float RVL_SAFE_X = 832;
-constexpr float RVL_SAFE_Y = 456;
-
-// Screen safe area for Megamix (CTR)
-constexpr float CTR_SAFE_X = 440;
-constexpr float CTR_SAFE_Y = 240;
+static ImVec2 getSafeAreaSize() {
+    switch (SessionManager::getInstance().getCurrentSession()->type) {
+    case CellAnim::CELLANIM_TYPE_RVL:
+        return { 832.f, 456.f };
+    case CellAnim::CELLANIM_TYPE_CTR:
+        return { 440.f, 240.f };
+    default:
+        return { 0.f, 0.f };
+    }
+}
 
 void WindowCanvas::Menubar() {
     if (ImGui::BeginMenuBar()) {
@@ -232,18 +235,7 @@ void WindowCanvas::Menubar() {
             if (ImGui::MenuItem("Reset to Safe Area", nullptr, false)) {
                 this->canvasOffset = { 0.f, 0.f };
 
-                ImVec2 rect;
-
-                switch (SessionManager::getInstance().getCurrentSession()->type) {
-                case CellAnim::CELLANIM_TYPE_RVL:
-                    rect = { RVL_SAFE_X, RVL_SAFE_Y };
-                    break;
-                case CellAnim::CELLANIM_TYPE_CTR:
-                    rect = { CTR_SAFE_X, CTR_SAFE_Y };
-                    break;
-                default:
-                    break;
-                }
+                ImVec2 rect = getSafeAreaSize();
 
                 float scale;
                 fitRect(rect, this->canvasSize, scale);
@@ -972,13 +964,15 @@ void WindowCanvas::Update() {
 
             // Draw safe area if enabled
             if (this->showSafeArea) {
+                ImVec2 safeArea = getSafeAreaSize();
+
                 ImVec2 boxTopLeft (
-                    origin.x - ((RVL_SAFE_X * this->canvasZoom) / 2.f),
-                    origin.y - ((RVL_SAFE_Y * this->canvasZoom) / 2.f)
+                    origin.x - ((safeArea.x * this->canvasZoom) / 2.f),
+                    origin.y - ((safeArea.y * this->canvasZoom) / 2.f)
                 );
                 ImVec2 boxBottomRight (
-                    boxTopLeft.x + (RVL_SAFE_X * this->canvasZoom),
-                    boxTopLeft.y + (RVL_SAFE_Y * this->canvasZoom)
+                    boxTopLeft.x + (safeArea.x * this->canvasZoom),
+                    boxTopLeft.y + (safeArea.y * this->canvasZoom)
                 );
 
                 uint32_t color = IM_COL32(0, 0, 0, this->safeAreaAlpha);
