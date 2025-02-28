@@ -109,6 +109,9 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
 
     const uint32_t* data = reinterpret_cast<const uint32_t*>(_data);
 
+    // ETC1 packing is extremely slow, so to speed things up we opt to parallelize
+    // the packing process.
+
     std::vector<std::thread> threads;
 
     unsigned numThreads = std::thread::hardware_concurrency();
@@ -285,7 +288,7 @@ unsigned CtrImageConvert::getImageByteSize(const CTPK::CTPKImageFormat type, uns
     } break;
 
     default:
-        std::cerr << "[CtrImageConvert::getImageByteSize] Invalid format passed (" << (int)type << ")\n";
+        std::cerr << "[CtrImageConvert::getImageByteSize] Invalid format passed (" << static_cast<int>(type) << ")\n";
         break;
     }
 
