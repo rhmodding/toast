@@ -14,7 +14,7 @@ private:
     unsigned width { 0 };
     unsigned height { 0 };
 
-    GLuint textureId { 0 };
+    GLuint textureId { INVALID_TEXTURE_ID };
 
     unsigned outputMipCount { 1 };
 
