@@ -8,7 +8,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../stb/stb_image_write.h"
 
-#include <future>
 #include "../MainThreadTaskManager.hpp"
 
 Texture::~Texture() {
@@ -90,7 +89,7 @@ unsigned char* Texture::GetRGBA32() {
 }
 
 bool Texture::GetRGBA32(unsigned char* buffer) {
-    if (this->textureId = INVALID_TEXTURE_ID) {
+    if (this->textureId == INVALID_TEXTURE_ID) {
         std::cerr << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid\n";
         return false;
     }
@@ -132,7 +131,7 @@ bool Texture::ExportToFile(const char* filename) {
 }
 
 std::optional<TPL::TPLTexture> Texture::TPLTexture() {
-    if (this->textureId = INVALID_TEXTURE_ID) {
+    if (this->textureId == INVALID_TEXTURE_ID) {
         std::cerr << "[Texture::TPLTexture] Failed to construct TPLTexture: textureId is invalid\n";
         return std::nullopt; // return nothing (std::optional)
     }
@@ -175,7 +174,7 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
 }
 
 std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
-    if (this->textureId = INVALID_TEXTURE_ID) {
+    if (this->textureId == INVALID_TEXTURE_ID) {
         std::cerr << "[Texture::CTPKTexture] Failed to construct CTPKTexture: textureId is invalid\n";
         return std::nullopt; // return nothing (std::optional)
     }
@@ -205,7 +204,7 @@ std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
 }
 
 void Texture::DestroyTexture() {
-    if (this->textureId = INVALID_TEXTURE_ID)
+    if (this->textureId == INVALID_TEXTURE_ID)
         return;
 
     MainThreadTaskManager::getInstance().QueueTask([textureId = this->textureId]() {

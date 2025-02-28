@@ -22,6 +22,7 @@ private:
     CTPK::CTPKImageFormat ctpkOutputFormat { CTPK::CTPK_IMAGE_FORMAT_ETC1A4 };
 
     std::string name;
+
 public:
     Texture() = default;
     Texture(unsigned width, unsigned height, GLuint textureId) :
@@ -36,7 +37,6 @@ public:
     unsigned getWidth() const { return this->width; }
     unsigned getHeight() const { return this->height; }
 
-    // width * height
     unsigned getPixelCount() const { return this->width * this->height; }
 
     GLuint getTextureId() const { return this->textureId; }
