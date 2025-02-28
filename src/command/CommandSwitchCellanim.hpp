@@ -12,8 +12,8 @@ public:
         unsigned sessionIndex,
         unsigned cellanimIndex
     ) :
-        cellanimIndex(cellanimIndex),
-        sessionIndex(sessionIndex)
+        sessionIndex(sessionIndex),
+        cellanimIndex(cellanimIndex)
     {
         this->previousCellanim =
             SessionManager::getInstance().sessions.at(this->sessionIndex).getCurrentCellanimIndex();

@@ -517,8 +517,6 @@ bool FixSheetEdgePixels() {
     auto& session = *sessionManager.getCurrentSession();
 
     std::shared_ptr cellanimObject = session.getCurrentCellanim().object;
-    const auto& arrangements = cellanimObject->arrangements;
-
     std::shared_ptr cellanimSheet = session.getCurrentCellanimSheet();
 
     const unsigned width = cellanimSheet->getWidth();
@@ -634,7 +632,6 @@ void WindowSpritesheet::Update() {
             bool imageEditorDefined = !ConfigManager::getInstance().getConfig().imageEditorPath.empty();
 
             if (ImGui::MenuItem("Edit in editing tool...", nullptr, false, imageEditorDefined)) {
-                SessionManager& sessionManager = SessionManager::getInstance();
                 const ConfigManager& configManager = ConfigManager::getInstance();
 
                 if (cellanimSheet->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {

@@ -32,26 +32,26 @@ public:
     Session(Session&& other) noexcept :
         cellanims(std::move(other.cellanims)),
         sheets(std::move(other.sheets)),
-        currentCellanim(other.currentCellanim),
         resourcePath(std::move(other.resourcePath)),
         arrangementMode(other.arrangementMode),
         modified(other.modified),
+        type(other.type),
         undoQueue(std::move(other.undoQueue)),
         redoQueue(std::move(other.redoQueue)),
-        type(other.type)
+        currentCellanim(other.currentCellanim)
     {}
 
     Session& operator=(Session&& other) noexcept {
         if (this != &other) {
             this->cellanims = std::move(other.cellanims);
             this->sheets = std::move(other.sheets);
-            this->currentCellanim = other.currentCellanim;
             this->resourcePath = std::move(other.resourcePath);
             this->arrangementMode = other.arrangementMode;
             this->modified = other.modified;
+            this->type = other.type;
             this->undoQueue = std::move(other.undoQueue);
             this->redoQueue = std::move(other.redoQueue);
-            this->type = other.type;
+            this->currentCellanim = other.currentCellanim;
         }
         return *this;
     }

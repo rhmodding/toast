@@ -84,8 +84,6 @@ unsigned PlayerManager::getElapsedFrames() const {
 }
 
 void PlayerManager::Update() {
-    AppState& appState = AppState::getInstance();
-
     if (!this->playing)
         return;
 
@@ -138,6 +136,8 @@ void PlayerManager::Update() {
             arrangements.at(arrangementIdxBefore),
             arrangements.at(keys.at(this->keyIndex).arrangementIndex)
         );
+
+        AppState::getInstance().correctSelectedParts();
     }
 
     this->timeLeft -= delta;

@@ -17,7 +17,6 @@
 
 void WindowInspector::Level_Animation() {
     AppState& appState = AppState::getInstance();
-    SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
     this->DrawPreview();

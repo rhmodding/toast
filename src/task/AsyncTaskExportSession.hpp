@@ -28,9 +28,9 @@ protected:
 
 private:
     unsigned sessionIndex;
+    std::string filePath;
 
     bool useSessionPath;
-    std::string filePath;
 
     std::atomic<int> result { 0 };
 };

@@ -232,7 +232,18 @@ void WindowCanvas::Menubar() {
             if (ImGui::MenuItem("Reset to Safe Area", nullptr, false)) {
                 this->canvasOffset = { 0.f, 0.f };
 
-                ImVec2 rect = { RVL_SAFE_X, RVL_SAFE_Y };
+                ImVec2 rect;
+
+                switch (SessionManager::getInstance().getCurrentSession()->type) {
+                case CellAnim::CELLANIM_TYPE_RVL:
+                    rect = { RVL_SAFE_X, RVL_SAFE_Y };
+                    break;
+                case CellAnim::CELLANIM_TYPE_CTR:
+                    rect = { CTR_SAFE_X, CTR_SAFE_Y };
+                    break;
+                default:
+                    break;
+                }
 
                 float scale;
                 fitRect(rect, this->canvasSize, scale);
@@ -1067,8 +1078,6 @@ void WindowCanvas::Update() {
 
             // Draw the pivot
             const bool pivotDrawActive = hoveringOverPivot || movingPivot;
-
-            const uint32_t pivotColor = IM_COL32(72, 82, 163, pivotDrawActive ? 255 : .8f * 255);
         
             float pivotDrawRadius = pivotDrawActive ? pivotRadius + 1.f : pivotRadius;
             constexpr float pivotLineThickness = 2.25f;

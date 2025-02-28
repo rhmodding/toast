@@ -399,7 +399,8 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         infoEntry->mipCount = static_cast<uint8_t>(texture.mipCount);
 
         const bool isCompressed =
-            texture.format == CTPK_IMAGE_FORMAT_ETC1 || CTPK_IMAGE_FORMAT_ETC1A4;
+            texture.format == CTPK_IMAGE_FORMAT_ETC1 ||
+            texture.format == CTPK_IMAGE_FORMAT_ETC1A4;
 
         infoEntry->compressed = isCompressed ? 1 : 0;
         infoEntry->compressionMethod = isCompressed ? 7 : 0;

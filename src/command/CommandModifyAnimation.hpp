@@ -27,8 +27,6 @@ public:
     void Execute() override {
         this->getAnimation() = this->newAnimation;
 
-        AppState& appState = AppState::getInstance();
-
         PlayerManager::getInstance().correctState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
@@ -36,8 +34,6 @@ public:
 
     void Rollback() override {
         this->getAnimation() = this->oldAnimation;
-
-        AppState& appState = AppState::getInstance();
 
         PlayerManager::getInstance().correctState();
 

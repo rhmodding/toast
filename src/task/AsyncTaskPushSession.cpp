@@ -17,15 +17,12 @@ void AsyncTaskPushSession::Run() {
 }
 
 void AsyncTaskPushSession::Effect() {
-    SessionManager& sessionManager = SessionManager::getInstance();
-    PlayerManager& playerManager = PlayerManager::getInstance();
-
     if (this->result < 0) {
         OPEN_GLOBAL_POPUP("###SessionErr");
         return;
     }
 
-    sessionManager.setCurrentSessionIndex(this->result);
+    SessionManager::getInstance().setCurrentSessionIndex(this->result);
 
     ConfigManager::getInstance().addRecentlyOpened(filePath);
 }

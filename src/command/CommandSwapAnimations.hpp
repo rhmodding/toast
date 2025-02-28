@@ -55,7 +55,6 @@ private:
     bool swapNames;
 
     void updateAnimationState() {
-        AppState& appState = AppState::getInstance();
         PlayerManager& playerManager = PlayerManager::getInstance();
 
         unsigned newSelectedAnimation { 0 };
