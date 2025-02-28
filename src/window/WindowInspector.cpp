@@ -3,9 +3,11 @@
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"
 
+#include "../anim/CellanimHelpers.hpp"
+
 #include "../command/CommandSetArrangementMode.hpp"
 
-void WindowInspector::DrawPreview() {
+void WindowInspector::drawPreview() {
     PlayerManager& playerManager = PlayerManager::getInstance();
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -50,6 +52,41 @@ void WindowInspector::DrawPreview() {
     //drawList->PopClipRect();
 
     ImGui::Dummy(canvasSize);
+}
+
+void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey, const CellAnim::AnimationKey& originalKey) {
+    const PlayerManager& playerManager = PlayerManager::getInstance();
+
+    bool arrangementUnique = CellanimHelpers::getArrangementUnique(playerManager.getArrangementIndex());
+    ImGui::BeginDisabled(arrangementUnique);
+
+    if (ImGui::Button("Make arrangement unique (duplicate)"))
+        newKey.arrangementIndex =
+            CellanimHelpers::DuplicateArrangement(originalKey.arrangementIndex);
+
+    ImGui::EndDisabled();
+
+    if (
+        arrangementUnique &&
+        ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
+        ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)
+    )
+        ImGui::OpenPopup("DuplicateAnywayPopup");
+
+    if (ImGui::BeginPopup("DuplicateAnywayPopup")) {
+        ImGui::TextUnformatted("Would you like to duplicate this\narrangement anyway?");
+        ImGui::Separator();
+
+        if (ImGui::Selectable("Ok"))
+            newKey.arrangementIndex =
+                CellanimHelpers::DuplicateArrangement(originalKey.arrangementIndex);
+        ImGui::Selectable("Nevermind");
+
+        ImGui::EndPopup();
+    }
+
+    if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
 }
 
 void WindowInspector::Update() {

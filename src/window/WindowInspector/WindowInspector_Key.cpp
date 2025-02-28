@@ -17,7 +17,7 @@ void WindowInspector::Level_Key() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    DrawPreview();
+    this->drawPreview();
 
     ImGui::SameLine();
 
@@ -61,8 +61,9 @@ void WindowInspector::Level_Key() {
         );
 
         if (ImGui::InputInt("##Arrangement No.", &newArrangement)) {
-            playerManager.getKey().arrangementIndex =
-                std::min<unsigned>(newArrangement - 1, arrangements.size() - 1);
+            playerManager.getKey().arrangementIndex = std::min<unsigned>(
+                newArrangement - 1, arrangements.size() - 1
+            );
             PlayerManager::getInstance().correctState();
         }
 
@@ -71,79 +72,16 @@ void WindowInspector::Level_Key() {
 
         if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
             originalKey.arrangementIndex = oldArrangement;
-            newKey.arrangementIndex =
-                std::min<uint16_t>(newArrangement - 1, arrangements.size() - 1);
+            newKey.arrangementIndex = std::min<unsigned>(
+                newArrangement - 1, arrangements.size() - 1
+            );
         }
 
-        // Start +- Buttons
-
-        const ImVec2 buttonSize(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-
-        ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat, true);
-
         ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
-        if (
-            ImGui::Button("-##Arrangement No._dec", buttonSize) &&
-            playerManager.getArrangementIndex() > 0
-        ) {
-            if (!appState.getArrangementMode())
-                newKey.arrangementIndex--;
-            else
-                playerManager.getKey().arrangementIndex--;
-
-            PlayerManager::getInstance().correctState();
-        }
-        ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
-        if (
-            ImGui::Button("+##Arrangement No._inc", buttonSize) &&
-            (playerManager.getArrangementIndex() + 1) < arrangements.size()
-        ) {
-            if (!appState.getArrangementMode())
-                newKey.arrangementIndex++;
-            else
-                playerManager.getKey().arrangementIndex++;
-
-            PlayerManager::getInstance().correctState();
-        }
-
-        ImGui::PopItemFlag();
-
-        ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
-        ImGui::Text("Arrangement No.");
+        ImGui::TextUnformatted("Arrangement No.");
     }
 
-    {
-        bool arrangementUnique = CellanimHelpers::getArrangementUnique(playerManager.getArrangementIndex());
-        ImGui::BeginDisabled(arrangementUnique);
-
-        if (ImGui::Button("Make arrangement unique (duplicate)"))
-            newKey.arrangementIndex =
-                CellanimHelpers::DuplicateArrangement(playerManager.getArrangementIndex());
-
-        ImGui::EndDisabled();
-
-        if (
-            arrangementUnique &&
-            ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
-            ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)
-        )
-            ImGui::OpenPopup("DuplicateAnywayPopup");
-
-        if (ImGui::BeginPopup("DuplicateAnywayPopup")) {
-            ImGui::Text("Would you like to duplicate this\narrangement anyway?");
-            ImGui::Separator();
-
-            if (ImGui::Selectable("Ok"))
-                newKey.arrangementIndex =
-                    CellanimHelpers::DuplicateArrangement(playerManager.getArrangementIndex());
-            ImGui::Selectable("Nevermind");
-
-            ImGui::EndPopup();
-        }
-
-        if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
-    }
+    this->duplicateArrangementButton(newKey, originalKey);
 
     ImGui::SeparatorText((const char*)ICON_FA_PAUSE " Hold");
 

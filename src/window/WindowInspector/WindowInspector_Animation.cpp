@@ -19,7 +19,7 @@ void WindowInspector::Level_Animation() {
     AppState& appState = AppState::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    this->DrawPreview();
+    this->drawPreview();
 
     ImGui::SameLine();
 

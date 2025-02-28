@@ -19,7 +19,8 @@ public:
     } inspectorLevel { InspectorLevel_Animation };
 
 private:
-    void DrawPreview();
+    void drawPreview();
+    void duplicateArrangementButton(CellAnim::AnimationKey& newKey, const CellAnim::AnimationKey& originalKey);
 
     void Level_Animation();
     void Level_Key();
