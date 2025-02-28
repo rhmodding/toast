@@ -166,7 +166,7 @@ IF (APPLE)
     )
 ENDIF()
 
-# zeldamods zlib for Yaz0
+# zeldamods zlib for Yaz0 & NZlib
 option(ZLIB_ENABLE_TESTS "" OFF)
 
 add_subdirectory(ext/zeldamods.zlib-ng)
