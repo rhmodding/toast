@@ -147,6 +147,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                 *(uint64_t*)currentDst = *(uint64_t*)currentSrc;
                 currentSrc += 8; currentDst += 8;
             }
+            // Copy less than 8 bytes.
             else {
                 unsigned nBytes = srcEnd - currentSrc;
                 memcpy(currentDst, currentSrc, nBytes);
