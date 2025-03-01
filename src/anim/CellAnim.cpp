@@ -159,12 +159,12 @@ struct CtrArrangementPart {
         this->flipX = arrangementPart.flipX ? 0x01 : 0x00;
         this->flipY = arrangementPart.flipY ? 0x01 : 0x00;
 
-        this->foreColor[0] = arrangementPart.foreColor.r;
-        this->foreColor[1] = arrangementPart.foreColor.g;
-        this->foreColor[2] = arrangementPart.foreColor.b;
-        this->backColor[0] = arrangementPart.backColor.r;
-        this->backColor[1] = arrangementPart.backColor.g;
-        this->backColor[2] = arrangementPart.backColor.b;
+        this->foreColor[0] = ROUND_FLOAT(arrangementPart.foreColor.r * 255.f);
+        this->foreColor[1] = ROUND_FLOAT(arrangementPart.foreColor.g * 255.f);
+        this->foreColor[2] = ROUND_FLOAT(arrangementPart.foreColor.b * 255.f);
+        this->backColor[0] = ROUND_FLOAT(arrangementPart.backColor.r * 255.f);
+        this->backColor[1] = ROUND_FLOAT(arrangementPart.backColor.g * 255.f);
+        this->backColor[2] = ROUND_FLOAT(arrangementPart.backColor.b * 255.f);
 
         this->opacity = arrangementPart.opacity;
 
@@ -256,12 +256,12 @@ struct CtrAnimationKey {
         this->scaleY = animationKey.transform.scaleY;
         this->angle = animationKey.transform.angle;
 
-        this->foreColor[0] = animationKey.foreColor.r;
-        this->foreColor[1] = animationKey.foreColor.g;
-        this->foreColor[2] = animationKey.foreColor.b;
-        this->backColor[0] = animationKey.backColor.r;
-        this->backColor[1] = animationKey.backColor.g;
-        this->backColor[2] = animationKey.backColor.b;
+        this->foreColor[0] = ROUND_FLOAT(animationKey.foreColor.r * 255.f);
+        this->foreColor[1] = ROUND_FLOAT(animationKey.foreColor.g * 255.f);
+        this->foreColor[2] = ROUND_FLOAT(animationKey.foreColor.b * 255.f);
+        this->backColor[0] = ROUND_FLOAT(animationKey.backColor.r * 255.f);
+        this->backColor[1] = ROUND_FLOAT(animationKey.backColor.g * 255.f);
+        this->backColor[2] = ROUND_FLOAT(animationKey.backColor.b * 255.f);
 
         this->opacity = animationKey.opacity;
     }
@@ -425,12 +425,12 @@ static bool InitCtrCellAnim(
                 .flipX = arrangementPartIn->flipX != 0x00,
                 .flipY = arrangementPartIn->flipY != 0x00,
 
-                .foreColor.r = arrangementPartIn->foreColor[0],
-                .foreColor.g = arrangementPartIn->foreColor[1],
-                .foreColor.b = arrangementPartIn->foreColor[2],
-                .backColor.r = arrangementPartIn->backColor[0],
-                .backColor.g = arrangementPartIn->backColor[1],
-                .backColor.b = arrangementPartIn->backColor[2],
+                .foreColor.r = arrangementPartIn->foreColor[0] / 255.f,
+                .foreColor.g = arrangementPartIn->foreColor[1] / 255.f,
+                .foreColor.b = arrangementPartIn->foreColor[2] / 255.f,
+                .backColor.r = arrangementPartIn->backColor[0] / 255.f,
+                .backColor.g = arrangementPartIn->backColor[1] / 255.f,
+                .backColor.b = arrangementPartIn->backColor[2] / 255.f,
 
                 .opacity = arrangementPartIn->opacity,
 
@@ -482,12 +482,12 @@ static bool InitCtrCellAnim(
                 .transform.scaleY = keyIn->scaleY,
                 .transform.angle = keyIn->angle,
 
-                .foreColor.r = keyIn->foreColor[0],
-                .foreColor.g = keyIn->foreColor[1],
-                .foreColor.b = keyIn->foreColor[2],
-                .backColor.r = keyIn->backColor[0],
-                .backColor.g = keyIn->backColor[1],
-                .backColor.b = keyIn->backColor[2],
+                .foreColor.r = keyIn->foreColor[0] / 255.f,
+                .foreColor.g = keyIn->foreColor[1] / 255.f,
+                .foreColor.b = keyIn->foreColor[2] / 255.f,
+                .backColor.r = keyIn->backColor[0] / 255.f,
+                .backColor.g = keyIn->backColor[1] / 255.f,
+                .backColor.b = keyIn->backColor[2] / 255.f,
 
                 .opacity = keyIn->opacity
             };

@@ -253,6 +253,42 @@ void WindowInspector::Level_Arrangement() {
                 }
             }
 
+            // Fore Color
+            {
+                static CellAnim::CTRColor oldForeColor { 0.f, 0.f, 0.f };
+
+                CellAnim::CTRColor newForeColor = part.foreColor;
+
+                if (ImGui::ColorEdit3("Fore Color", &newForeColor.r))
+                    part.foreColor = newForeColor;
+
+                if (ImGui::IsItemActivated())
+                    oldForeColor = originalPart.foreColor;
+
+                if (ImGui::IsItemDeactivated()) {
+                    originalPart.foreColor = oldForeColor;
+                    newPart.foreColor = newForeColor;
+                }
+            }
+
+            // Back Color
+            {
+                static CellAnim::CTRColor oldBackColor { 0.f, 0.f, 0.f };
+
+                CellAnim::CTRColor newBackColor = part.backColor;
+
+                if (ImGui::ColorEdit3("Back Color", &newBackColor.r))
+                    part.backColor = newBackColor;
+
+                if (ImGui::IsItemActivated())
+                    oldBackColor = originalPart.backColor;
+
+                if (ImGui::IsItemDeactivated()) {
+                    originalPart.backColor = oldBackColor;
+                    newPart.backColor = newBackColor;
+                }
+            }
+
             ImGui::SeparatorText((const char*)ICON_FA_BORDER_TOP_LEFT " Region");
             {
                 // Position XY

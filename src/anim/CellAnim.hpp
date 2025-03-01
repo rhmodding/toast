@@ -76,12 +76,27 @@ struct TransformValues {
 };
 
 struct CTRColor {
-    uint8_t r, g, b;
+    float r, g, b;
+
+    bool operator==(const CTRColor& other) const {
+        return
+            this->r == other.r &&
+            this->g == other.g &&
+            this->b == other.b;
+    }
 };
 
 struct CTRQuadDepth {
     float topLeft { 0.f }, bottomLeft { 0.f };
     float topRight { 0.f }, bottomRight { 0.f };
+
+    bool operator==(const CTRQuadDepth& other) const {
+        return
+            this->topLeft == other.topLeft &&
+            this->bottomLeft == other.bottomLeft &&
+            this->topRight == other.topRight &&
+            this->bottomRight == other.bottomRight;
+    }
 };
 
 struct ArrangementPart {
@@ -104,9 +119,9 @@ struct ArrangementPart {
     uint8_t opacity { 0xFFu };
 
     // On CTR only.
-    CTRColor foreColor { 0xFF, 0xFF, 0xFF };
+    CTRColor foreColor { 1.f, 1.f, 1.f };
     // On CTR only.
-    CTRColor backColor { 0x00, 0x00, 0x00 };
+    CTRColor backColor { 0.f, 0.f, 0.f };
 
     // On CTR only.
     CTRQuadDepth depth3D;
@@ -133,7 +148,14 @@ struct ArrangementPart {
             this->flipX == other.flipX &&
             this->flipY == other.flipY &&
 
-            this->opacity == other.opacity;
+            this->opacity == other.opacity &&
+            
+            this->foreColor == other.foreColor &&
+            this->backColor == other.backColor &&
+            
+            this->depth3D == other.depth3D &&
+            
+            this->id == other.id;
     }
 
     bool operator!=(const ArrangementPart& other) const {
@@ -182,7 +204,12 @@ struct AnimationKey {
 
             this->transform == other.transform &&
 
-            this->opacity == other.opacity;
+            this->translateZ == other.translateZ &&
+
+            this->opacity == other.opacity &&
+            
+            this->foreColor == other.foreColor &&
+            this->backColor == other.backColor;
     }
 
     bool operator!=(const AnimationKey& other) const {

@@ -15,6 +15,12 @@
 
 class CellanimRenderer {
 public:
+    static void Initialize(); // TODO: implement shader destroy
+private:
+    static void renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd);
+    static GLuint shaderProgram;
+
+public:
     CellanimRenderer() = default;
     ~CellanimRenderer() = default;
 

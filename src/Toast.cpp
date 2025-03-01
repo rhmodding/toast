@@ -254,6 +254,8 @@ Toast::Toast(int argc, const char** argv) {
 
     setupFonts();
 
+    CellanimRenderer::Initialize();
+
     // Open cellanim archive (.szs) from argument
     if (argc >= 2) {
         AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(

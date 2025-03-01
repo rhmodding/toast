@@ -247,6 +247,132 @@ ImRect CellanimRenderer::getKeyWorldRect(const CellAnim::AnimationKey& key) cons
     return ImRect({ minX, minY }, { maxX, maxY });
 }
 
+const char* vertexShaderSource =
+    "#version 150\n" // TODO: select version
+    "uniform mat4 ProjMtx;\n"
+    "in vec2 Position;\n"
+    "in vec2 UV;\n"
+    "in vec4 Color;\n"
+    "out vec2 Frag_UV;\n"
+    "out vec4 Frag_Color;\n"
+    "void main()\n"
+    "{\n"
+    "    Frag_UV = UV;\n"
+    "    Frag_Color = Color;\n"
+    "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+    "}\n";
+
+const char* fragmentShaderSource =
+    "#version 150\n" // TODO: select version
+    "uniform sampler2D Texture;\n"
+    "uniform vec3 Multiply_Color;\n"
+    "uniform vec3 Screen_Color;\n"
+    "in vec2 Frag_UV;\n"
+    "in vec4 Frag_Color;\n"
+    "out vec4 Out_Color;\n"
+    "void main()\n"
+    "{\n"
+    "    vec4 texColor = texture(Texture, Frag_UV.st);\n"
+    "\n"
+    "    vec3 multipliedColor = vec3(texColor) * Multiply_Color;\n"
+    "    vec3 finalColor = vec3(1.0) - (vec3(1.0) - multipliedColor) * (vec3(1.0) - Screen_Color);\n"
+    "\n"
+    "    Out_Color = vec4(finalColor, texColor.a);\n"
+    "}\n";
+
+
+void CheckShaderError(GLuint shader, GLenum flag, bool isProgram, const std::string& errorMessage) {
+    GLint success = 0;
+    GLchar error[1024] = {0};
+
+    if (isProgram) {
+        glGetProgramiv(shader, flag, &success);
+        if (success == GL_FALSE) {
+            glGetProgramInfoLog(shader, sizeof(error), NULL, error);
+            std::cerr << errorMessage << ": " << error << std::endl;
+        }
+    } else {
+        glGetShaderiv(shader, flag, &success);
+        if (success == GL_FALSE) {
+            glGetShaderInfoLog(shader, sizeof(error), NULL, error);
+            std::cerr << errorMessage << ": " << error << std::endl;
+        }
+    }
+}
+
+void CellanimRenderer::Initialize() {
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    // Check if the vertex shader compiled successfully
+    CheckShaderError(vertexShader, GL_COMPILE_STATUS, false, "Vertex Shader Compilation Failed");
+
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    // Check if the fragment shader compiled successfully
+    CheckShaderError(fragmentShader, GL_COMPILE_STATUS, false, "Fragment Shader Compilation Failed");
+
+    CellanimRenderer::shaderProgram = glCreateProgram();
+    glAttachShader(CellanimRenderer::shaderProgram, vertexShader);
+    glAttachShader(CellanimRenderer::shaderProgram, fragmentShader);
+    glLinkProgram(CellanimRenderer::shaderProgram);
+
+    // Check if the shader program linked successfully
+    CheckShaderError(CellanimRenderer::shaderProgram, GL_LINK_STATUS, true, "Shader Program Linking Failed");
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+}
+
+struct PartRenderCallbackData {
+    CellAnim::CTRColor backColor;
+    CellAnim::CTRColor foreColor;
+};
+
+GLuint CellanimRenderer::shaderProgram;
+
+void CellanimRenderer::renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd) {
+    const PartRenderCallbackData* renderData =
+        reinterpret_cast<const PartRenderCallbackData*>(cmd->UserCallbackData);
+
+    const auto& foreColor = renderData->foreColor;
+    const auto& backColor = renderData->backColor;
+
+    glUseProgram(CellanimRenderer::shaderProgram);
+
+    GLint multiplyColorLocation = glGetUniformLocation(shaderProgram, "Multiply_Color");
+    glUniform3f(
+        multiplyColorLocation,
+        foreColor.r, foreColor.g, foreColor.b
+    );
+
+    GLint screenColorLocation = glGetUniformLocation(shaderProgram, "Screen_Color");
+    glUniform3f(
+        screenColorLocation,
+        backColor.r, backColor.g, backColor.b
+    );
+
+    const ImDrawData* drawData = ImGui::GetDrawData();
+
+    float L = drawData->DisplayPos.x;
+    float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
+    float T = drawData->DisplayPos.y;
+    float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
+
+    const float orthoProjection[4][4] = {
+        { 2.f / (R-L),   0.f,           0.f,  0.f },
+        { 0.f,           2.f / (T-B),   0.f,  0.f },
+        { 0.f,           0.f,          -1.f,  0.f },
+        { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
+    };
+
+    GLint projMtxLocation = glGetUniformLocation(shaderProgram, "ProjMtx");
+    glUniformMatrix4fv(projMtxLocation, 1, GL_FALSE, orthoProjection[0]);
+}
+
 void CellanimRenderer::InternDraw(
     ImDrawList* drawList,
     const CellAnim::AnimationKey& key, int partIndex,
@@ -263,14 +389,14 @@ void CellanimRenderer::InternDraw(
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex != -1 && partIndex != static_cast<int>(i))
             continue;
-
+        
         const CellAnim::ArrangementPart& part = arrangement.parts.at(i);
 
         // Skip invisible parts
         if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)
             continue;
 
-        auto transformedQuad = this->getPartWorldQuad(key, i);
+        std::array<ImVec2, 4> quad = this->getPartWorldQuad(key, i);
 
         ImVec2 uvTopLeft = {
             part.regionX / texWidth,
@@ -281,12 +407,12 @@ void CellanimRenderer::InternDraw(
             uvTopLeft.y + (part.regionH / texHeight)
         };
 
-        ImVec2 uvs[4] = {
+        std::array<ImVec2, 4> uvs = std::array<ImVec2, 4>({
             uvTopLeft,
             { uvBottomRight.x, uvTopLeft.y },
             uvBottomRight,
             { uvTopLeft.x, uvBottomRight.y }
-        };
+        });
 
         if (part.flipX) {
             std::swap(uvs[0], uvs[1]);
@@ -297,23 +423,26 @@ void CellanimRenderer::InternDraw(
             std::swap(uvs[1], uvs[2]);
         }
 
-        uint8_t modAlpha = (colorMod >> 24) & 0xFF;
-        uint8_t baseAlpha = allowOpacity ?
+        const auto& texture = this->textureGroup->getTextureByVarying(part.textureVarying);
+
+        unsigned alpha = allowOpacity ?
             uint8_t((unsigned(part.opacity) * unsigned(key.opacity)) / 0xFFu) :
             0xFFu;
 
-        const auto& texture = this->textureGroup->getTextureByVarying(part.textureVarying);
+        PartRenderCallbackData callbackData;
+
+        callbackData.backColor = part.backColor;
+        callbackData.foreColor = part.foreColor;
+        
+        drawList->AddCallback(CellanimRenderer::renderPartCallback, &callbackData, sizeof(callbackData));
 
         drawList->AddImageQuad(
             (ImTextureID)texture->getTextureId(),
-            transformedQuad[0], transformedQuad[1], transformedQuad[2], transformedQuad[3],
+            quad[0], quad[1], quad[2], quad[3],
             uvs[0], uvs[1], uvs[2], uvs[3],
-            IM_COL32(
-                (colorMod >>  0) & 0xFF,
-                (colorMod >>  8) & 0xFF,
-                (colorMod >> 16) & 0xFF,
-                uint8_t((unsigned(baseAlpha) * unsigned(modAlpha)) / 0xFFu)
-            )
+            IM_COL32(255, 255, 255, alpha)
         );
     }
+
+    drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr, 0);
 }
