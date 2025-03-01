@@ -10,8 +10,10 @@
 #include "../common.hpp"
 
 GLuint CellanimRenderer::shaderProgram { 0 };
+
 GLint CellanimRenderer::foreColorUniform { 0 };
 GLint CellanimRenderer::backColorUniform { 0 };
+GLint CellanimRenderer::projMtxUniform { 0 };
 
 void CellanimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
@@ -343,6 +345,10 @@ void CellanimRenderer::Initialize() {
     CellanimRenderer::backColorUniform = glGetUniformLocation(
         CellanimRenderer::shaderProgram, "Back_Color"
     );
+
+    CellanimRenderer::projMtxUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "ProjMtx"
+    );
 }
 
 struct PartRenderCallbackData {
@@ -381,9 +387,7 @@ void CellanimRenderer::renderPartCallback(const ImDrawList* parentList, const Im
         { 0.f,           0.f,          -1.f,  0.f },
         { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
     };
-
-    GLint projMtxLocation = glGetUniformLocation(shaderProgram, "ProjMtx");
-    glUniformMatrix4fv(projMtxLocation, 1, GL_FALSE, orthoProjection[0]);
+    glUniformMatrix4fv(CellanimRenderer::projMtxUniform, 1, GL_FALSE, orthoProjection[0]);
 }
 
 void CellanimRenderer::InternDraw(

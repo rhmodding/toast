@@ -18,9 +18,12 @@ public:
     static void Initialize(); // TODO: implement shader destroy
 private:
     static void renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd);
+    
     static GLuint shaderProgram;
+
     static GLint foreColorUniform;
     static GLint backColorUniform;
+    static GLint projMtxUniform;
 
 public:
     CellanimRenderer() = default;
