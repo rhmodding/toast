@@ -880,6 +880,8 @@ void Toast::Update() {
 void Toast::Draw() {
     ImGui::Render();
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     int framebufferWidth, framebufferHeight;
     glfwGetFramebufferSize(this->glfwWindowHndl, &framebufferWidth, &framebufferHeight);
 
