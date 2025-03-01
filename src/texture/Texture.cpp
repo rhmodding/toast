@@ -29,6 +29,8 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
+        glGenerateMipmap(GL_TEXTURE_2D);
+
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
 }
