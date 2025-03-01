@@ -19,6 +19,8 @@ public:
 private:
     static void renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd);
     static GLuint shaderProgram;
+    static GLint foreColorUniform;
+    static GLint backColorUniform;
 
 public:
     CellanimRenderer() = default;

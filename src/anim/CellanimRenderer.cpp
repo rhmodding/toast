@@ -9,6 +9,10 @@
 
 #include "../common.hpp"
 
+GLuint CellanimRenderer::shaderProgram { 0 };
+GLint CellanimRenderer::foreColorUniform { 0 };
+GLint CellanimRenderer::backColorUniform { 0 };
+
 void CellanimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
     NONFATAL_ASSERT_RET(this->textureGroup, true);
@@ -325,14 +329,19 @@ void CellanimRenderer::Initialize() {
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+
+    CellanimRenderer::foreColorUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Fore_Color"
+    );
+    CellanimRenderer::backColorUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Back_Color"
+    );
 }
 
 struct PartRenderCallbackData {
     CellAnim::CTRColor backColor;
     CellAnim::CTRColor foreColor;
 };
-
-GLuint CellanimRenderer::shaderProgram;
 
 void CellanimRenderer::renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd) {
     const PartRenderCallbackData* renderData =
@@ -343,15 +352,12 @@ void CellanimRenderer::renderPartCallback(const ImDrawList* parentList, const Im
 
     glUseProgram(CellanimRenderer::shaderProgram);
 
-    GLint multiplyColorLocation = glGetUniformLocation(shaderProgram, "Multiply_Color");
     glUniform3f(
-        multiplyColorLocation,
+        CellanimRenderer::foreColorUniform,
         foreColor.r, foreColor.g, foreColor.b
     );
-
-    GLint screenColorLocation = glGetUniformLocation(shaderProgram, "Screen_Color");
     glUniform3f(
-        screenColorLocation,
+        CellanimRenderer::backColorUniform,
         backColor.r, backColor.g, backColor.b
     );
 
