@@ -251,7 +251,7 @@ ImRect CellanimRenderer::getKeyWorldRect(const CellAnim::AnimationKey& key) cons
     return ImRect({ minX, minY }, { maxX, maxY });
 }
 
-const char* vertexShaderSource =
+static const char* vertexShaderSource =
     "#version 150\n" // TODO: select version
     "uniform mat4 ProjMtx;\n"
     "in vec2 Position;\n"
@@ -266,11 +266,11 @@ const char* vertexShaderSource =
     "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
     "}\n";
 
-const char* fragmentShaderSource =
+static const char* fragmentShaderSource =
     "#version 150\n" // TODO: select version
     "uniform sampler2D Texture;\n"
-    "uniform vec3 Multiply_Color;\n"
-    "uniform vec3 Screen_Color;\n"
+    "uniform vec3 Fore_Color;\n"
+    "uniform vec3 Back_Color;\n"
     "in vec2 Frag_UV;\n"
     "in vec4 Frag_Color;\n"
     "out vec4 Out_Color;\n"
@@ -278,28 +278,29 @@ const char* fragmentShaderSource =
     "{\n"
     "    vec4 texColor = texture(Texture, Frag_UV.st);\n"
     "\n"
-    "    vec3 multipliedColor = vec3(texColor) * Multiply_Color;\n"
-    "    vec3 finalColor = vec3(1.0) - (vec3(1.0) - multipliedColor) * (vec3(1.0) - Screen_Color);\n"
+    "    vec3 multipliedColor = vec3(texColor) * Fore_Color;\n"
+    "    vec3 finalColor = vec3(1.0) - (vec3(1.0) - multipliedColor) * (vec3(1.0) - Back_Color);\n"
     "\n"
-    "    Out_Color = vec4(finalColor, texColor.a);\n"
+    "    Out_Color = vec4(finalColor, texColor.a) * Frag_Color;\n"
     "}\n";
 
 
-void CheckShaderError(GLuint shader, GLenum flag, bool isProgram, const std::string& errorMessage) {
-    GLint success = 0;
-    GLchar error[1024] = {0};
+static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, const std::string& errorMessage) {
+    GLint success { 0 };
+    GLchar error[1024] { '\0' };
 
     if (isProgram) {
         glGetProgramiv(shader, flag, &success);
         if (success == GL_FALSE) {
             glGetProgramInfoLog(shader, sizeof(error), NULL, error);
-            std::cerr << errorMessage << ": " << error << std::endl;
+            std::cerr << errorMessage << ":\n" << error << '\n';
         }
-    } else {
+    }
+    else {
         glGetShaderiv(shader, flag, &success);
         if (success == GL_FALSE) {
             glGetShaderInfoLog(shader, sizeof(error), NULL, error);
-            std::cerr << errorMessage << ": " << error << std::endl;
+            std::cerr << errorMessage << ": " << error << '\n';
         }
     }
 }
@@ -309,23 +310,29 @@ void CellanimRenderer::Initialize() {
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
 
-    // Check if the vertex shader compiled successfully
-    CheckShaderError(vertexShader, GL_COMPILE_STATUS, false, "Vertex Shader Compilation Failed");
+    checkShaderError(
+        vertexShader, GL_COMPILE_STATUS, false,
+        "[CellanimRenderer::Initialize] Vertex shader compilation failed"
+    );
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
 
-    // Check if the fragment shader compiled successfully
-    CheckShaderError(fragmentShader, GL_COMPILE_STATUS, false, "Fragment Shader Compilation Failed");
+    checkShaderError(
+        fragmentShader, GL_COMPILE_STATUS, false,
+        "[CellanimRenderer::Initialize] Fragment shader compilation failed"
+    );
 
     CellanimRenderer::shaderProgram = glCreateProgram();
     glAttachShader(CellanimRenderer::shaderProgram, vertexShader);
     glAttachShader(CellanimRenderer::shaderProgram, fragmentShader);
     glLinkProgram(CellanimRenderer::shaderProgram);
 
-    // Check if the shader program linked successfully
-    CheckShaderError(CellanimRenderer::shaderProgram, GL_LINK_STATUS, true, "Shader Program Linking Failed");
+    checkShaderError(
+        CellanimRenderer::shaderProgram, GL_LINK_STATUS, true,
+        "[CellanimRenderer::Initialize] Shader program link failed"
+    );
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
@@ -431,9 +438,12 @@ void CellanimRenderer::InternDraw(
 
         const auto& texture = this->textureGroup->getTextureByVarying(part.textureVarying);
 
-        unsigned alpha = allowOpacity ?
+        unsigned baseAlpha = allowOpacity ?
             uint8_t((unsigned(part.opacity) * unsigned(key.opacity)) / 0xFFu) :
             0xFFu;
+        
+        unsigned vertexAlpha = (baseAlpha * ((colorMod >> 24) & 0xFF)) / 0xFF;
+        uint32_t vertexColor = (colorMod & 0x00FFFFFF) | (vertexAlpha << 24);
 
         PartRenderCallbackData callbackData;
 
@@ -446,7 +456,7 @@ void CellanimRenderer::InternDraw(
             (ImTextureID)texture->getTextureId(),
             quad[0], quad[1], quad[2], quad[3],
             uvs[0], uvs[1], uvs[2], uvs[3],
-            IM_COL32(255, 255, 255, alpha)
+            vertexColor
         );
     }
 
