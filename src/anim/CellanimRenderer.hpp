@@ -15,7 +15,9 @@
 
 class CellanimRenderer {
 public:
-    static void Initialize(); // TODO: implement shader destroy
+    static void InitShader();
+    static void DestroyShader();
+
 private:
     static void renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd);
     

@@ -254,7 +254,7 @@ Toast::Toast(int argc, const char** argv) {
 
     setupFonts();
 
-    CellanimRenderer::Initialize();
+    CellanimRenderer::InitShader();
 
     // Open cellanim archive (.szs) from argument
     if (argc >= 2) {
@@ -277,6 +277,8 @@ Toast::~Toast() {
     windowAbout.Destroy();
 
     windowDemo.Destroy();
+
+    CellanimRenderer::DestroyShader();
 
     AppState::destroySingleton();
     SessionManager::destroySingleton();

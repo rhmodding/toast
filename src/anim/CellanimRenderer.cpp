@@ -307,14 +307,14 @@ static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, const s
     }
 }
 
-void CellanimRenderer::Initialize() {
+void CellanimRenderer::InitShader() {
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
 
     checkShaderError(
         vertexShader, GL_COMPILE_STATUS, false,
-        "[CellanimRenderer::Initialize] Vertex shader compilation failed"
+        "[CellanimRenderer::InitShader] Vertex shader compilation failed"
     );
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -323,7 +323,7 @@ void CellanimRenderer::Initialize() {
 
     checkShaderError(
         fragmentShader, GL_COMPILE_STATUS, false,
-        "[CellanimRenderer::Initialize] Fragment shader compilation failed"
+        "[CellanimRenderer::InitShader] Fragment shader compilation failed"
     );
 
     CellanimRenderer::shaderProgram = glCreateProgram();
@@ -333,7 +333,7 @@ void CellanimRenderer::Initialize() {
 
     checkShaderError(
         CellanimRenderer::shaderProgram, GL_LINK_STATUS, true,
-        "[CellanimRenderer::Initialize] Shader program link failed"
+        "[CellanimRenderer::InitShader] Shader program link failed"
     );
 
     glDeleteShader(vertexShader);
@@ -349,6 +349,10 @@ void CellanimRenderer::Initialize() {
     CellanimRenderer::projMtxUniform = glGetUniformLocation(
         CellanimRenderer::shaderProgram, "ProjMtx"
     );
+}
+
+void CellanimRenderer::DestroyShader() {
+    glDeleteProgram(CellanimRenderer::shaderProgram);
 }
 
 struct PartRenderCallbackData {
