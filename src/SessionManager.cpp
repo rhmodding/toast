@@ -399,7 +399,7 @@ int SessionManager::CreateSession(const char* filePath) {
             std::cerr << "[SessionManager::CreateSession] Error opening file at path: " << filePath << '\n';
             
             std::lock_guard<std::mutex> lock(this->mtx);
-            this->currentError = OpenError_FailOpenArchive;
+            this->currentError = OpenError_FailOpenFile;
 
             return -1;
         }
@@ -456,10 +456,20 @@ int SessionManager::CreateSession(const char* filePath) {
             data.data(), data.size()
         );
 
+        if (!archive.isInitialized()) {
+            initError = OpenError_FailOpenArchive;
+            break;
+        }
+
         initError = InitRvlSession(newSession, archive);
     } break;
     case CellAnim::CELLANIM_TYPE_CTR: {
         SARC::SARCObject archive = SARC::SARCObject(data.data(), data.size());
+
+        if (!archive.isInitialized()) {
+            initError = OpenError_FailOpenArchive;
+            break;
+        }
 
         initError = InitCtrSession(newSession, archive);
     } break;

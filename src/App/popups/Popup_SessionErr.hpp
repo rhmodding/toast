@@ -17,7 +17,11 @@ static void Popup_SessionErr() {
 
     switch (error) {
     case SessionManager::OpenError_FileDoesNotExist:
-        strcpy(errorMessage, "The file (.szs) could not be opened because it does not exist.");
+        strcpy(errorMessage, "The specified file could not be opened because it does not exist.");
+        errorType = 0;
+        break;
+    case SessionManager::OpenError_FailOpenFile:
+        strcpy(errorMessage, "The specified file could not be opened.");
         errorType = 0;
         break;
     case SessionManager::OpenError_FailOpenArchive:

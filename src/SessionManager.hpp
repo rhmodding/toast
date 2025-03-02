@@ -166,6 +166,7 @@ public:
         Error_None = 0,
 
         OpenError_FileDoesNotExist = -0xFF,
+        OpenError_FailOpenFile,
         OpenError_FailOpenArchive,
         OpenError_FailFindTPL,
         OpenError_RootDirNotFound,
