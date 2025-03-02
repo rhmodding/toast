@@ -26,6 +26,7 @@
 #include "../ConfigManager.hpp"
 
 #include "../texture/RvlImageConvert.hpp"
+#include "../texture/CtrImageConvert.hpp"
 
 #include "../command/CommandModifySpritesheet.hpp"
 #include "../command/CommandModifyArrangements.hpp"
@@ -102,78 +103,115 @@ void WindowSpritesheet::FormatPopup() {
         std::shared_ptr cellanimSheet =
             sessionManager.getCurrentSession()->getCurrentCellanimSheet();
 
-        constexpr const char* formats = "RGBA32\0RGB5A3\0CMPR\0";
+        const bool isRVL = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL;
+
+        constexpr std::array<TPL::TPLImageFormat, 3> rvlFormats = {
+            TPL::TPL_IMAGE_FORMAT_RGBA32,
+            TPL::TPL_IMAGE_FORMAT_RGB5A3,
+            TPL::TPL_IMAGE_FORMAT_CMPR
+        };
+        constexpr unsigned defaultRvlFormatIdx = 1;
+
+        constexpr std::array<CTPK::CTPKImageFormat, 3> ctrFormats = {
+            CTPK::CTPK_IMAGE_FORMAT_RGBA8888,
+            CTPK::CTPK_IMAGE_FORMAT_RGBA4444,
+            CTPK::CTPK_IMAGE_FORMAT_ETC1A4
+        };
+        constexpr unsigned defaultCtrFormatIdx = 2;
+
+        constexpr std::array rvlFormatNames = [&rvlFormats] {
+            std::array<const char*, rvlFormats.size()> names {};
+            for (unsigned i = 0; i < rvlFormats.size(); i++)
+                names[i] = TPL::getImageFormatName(rvlFormats[i]);
+            return names;
+        }();
+        constexpr std::array ctrFormatNames = [&ctrFormats] {
+            std::array<const char*, ctrFormats.size()> names {};
+            for (unsigned i = 0; i < ctrFormats.size(); i++)
+                names[i] = CTPK::getImageFormatName(ctrFormats[i]);
+            return names;
+        }();
+        
         static int selectedFormatIndex { 0 };
-
-        TPL::TPLImageFormat tplFormat;
-        switch (selectedFormatIndex) {
-        case 0:
-            tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
-            break;
-        case 1:
-            tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
-            break;
-        case 2:
-            tplFormat = TPL::TPL_IMAGE_FORMAT_CMPR;
-            break;
-
-        default:
-            tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
-            break;
-        }
+        static int mipCount { 1 };
 
         auto updateTextureData = [&]() {
-            // Re-evaluate
-            switch (selectedFormatIndex) {
-            case 0:
-                tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
-                break;
-            case 1:
-                tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
-                break;
-            case 2:
-                tplFormat = TPL::TPL_IMAGE_FORMAT_CMPR;
-                break;
-
-            default:
-                tplFormat = TPL::TPL_IMAGE_FORMAT_RGBA32;
-                break;
-            }
+            unsigned selectedMax = isRVL ? rvlFormats.size() - 1 : ctrFormats.size() - 1;
+            if (selectedFormatIndex > selectedMax)
+                selectedFormatIndex = selectedMax;
+            
+            if (mipCount < 1)
+                mipCount = 1;
+            if (mipCount > 8)
+                mipCount = 8;
 
             unsigned char* imageData = cellanimSheet->GetRGBA32();
             if (!imageData)
                 return;
 
-            unsigned bufferSize = RvlImageConvert::getImageByteSize(
-                tplFormat, cellanimSheet->getWidth(), cellanimSheet->getHeight()
-            );
-            unsigned char* imageBuffer = new unsigned char[bufferSize];
+            if (isRVL) {
+                unsigned bufferSize = RvlImageConvert::getImageByteSize(
+                    rvlFormats[selectedFormatIndex],
+                    cellanimSheet->getWidth(), cellanimSheet->getHeight()
+                );
 
-            RvlImageConvert::fromRGBA32(
-                imageBuffer, nullptr, nullptr, tplFormat,
-                cellanimSheet->getWidth(), cellanimSheet->getHeight(),
-                imageData
-            );
+                unsigned char* imageBuffer = new unsigned char[bufferSize];
 
-            // Swap buffers.
-            RvlImageConvert::toRGBA32(
-                imageData, tplFormat,
-                cellanimSheet->getWidth(), cellanimSheet->getHeight(),
-                imageBuffer, nullptr
-            );
+                RvlImageConvert::fromRGBA32(
+                    imageBuffer, nullptr, nullptr, rvlFormats[selectedFormatIndex],
+                    cellanimSheet->getWidth(), cellanimSheet->getHeight(),
+                    imageData
+                );
+    
+                // Swap buffers.
+                RvlImageConvert::toRGBA32(
+                    imageData, rvlFormats[selectedFormatIndex],
+                    cellanimSheet->getWidth(), cellanimSheet->getHeight(),
+                    imageBuffer, nullptr
+                );
 
-            delete[] imageBuffer;
+                delete[] imageBuffer;
+            }
+            else {
+                unsigned bufferSize = CtrImageConvert::getImageByteSize(
+                    ctrFormats[selectedFormatIndex],
+                    cellanimSheet->getWidth(), cellanimSheet->getHeight(), 1
+                );
+
+                unsigned char* imageBuffer = new unsigned char[bufferSize];
+
+                CtrImageConvert::fromRGBA32(
+                    imageBuffer, ctrFormats[selectedFormatIndex],
+                    cellanimSheet->getWidth(), cellanimSheet->getHeight(),
+                    imageData
+                );
+    
+                // Swap buffers.
+                CtrImageConvert::toRGBA32(
+                    imageData, ctrFormats[selectedFormatIndex],
+                    cellanimSheet->getWidth(), cellanimSheet->getHeight(),
+                    imageBuffer
+                );
+
+                delete[] imageBuffer;
+            }
 
             this->formatPreviewTexture->LoadRGBA32(
                 imageData,
                 cellanimSheet->getWidth(), cellanimSheet->getHeight()
             );
-            this->formatPreviewTexture->setTPLOutputFormat(tplFormat);
+            
+            if (isRVL)
+                this->formatPreviewTexture->setTPLOutputFormat(rvlFormats[selectedFormatIndex]);
+            else
+                this->formatPreviewTexture->setCTPKOutputFormat(ctrFormats[selectedFormatIndex]);
 
             delete[] imageData;
         };
 
         if (!lateOpen) {
+            mipCount = 0;
+
             this->formatPreviewTexture = std::make_shared<Texture>();
 
             unsigned char* imageData = cellanimSheet->GetRGBA32();
@@ -184,19 +222,25 @@ void WindowSpritesheet::FormatPopup() {
                 );
                 delete[] imageData;
 
-                switch (cellanimSheet->getTPLOutputFormat()) {
-                case TPL::TPL_IMAGE_FORMAT_RGBA32:
-                    selectedFormatIndex = 0;
-                    break;
-                case TPL::TPL_IMAGE_FORMAT_RGB5A3:
-                    selectedFormatIndex = 1;
-                    break;
-                case TPL::TPL_IMAGE_FORMAT_CMPR:
-                    selectedFormatIndex = 2;
-                    break;
-                
-                default:
-                    break;
+                if (isRVL) {
+                    auto it = std::find(
+                        rvlFormats.begin(), rvlFormats.end(), cellanimSheet->getTPLOutputFormat()
+                    );
+
+                    if (it != rvlFormats.end())
+                        selectedFormatIndex = std::distance(rvlFormats.begin(), it);
+                    else
+                        selectedFormatIndex =defaultRvlFormatIdx;
+                }
+                else {
+                    auto it = std::find(
+                        ctrFormats.begin(), ctrFormats.end(), cellanimSheet->getCTPKOutputFormat()
+                    );
+
+                    if (it != ctrFormats.end())
+                        selectedFormatIndex = std::distance(ctrFormats.begin(), it);
+                    else
+                        selectedFormatIndex = defaultCtrFormatIdx;
                 }
 
                 updateTextureData();
@@ -236,7 +280,19 @@ void WindowSpritesheet::FormatPopup() {
 
                     ImGui::BulletText("Size: %ux%u", imageWidth, imageHeight);
 
-                    uint32_t dataSize = RvlImageConvert::getImageByteSize(tplFormat, imageWidth, imageHeight);
+                    uint32_t dataSize;
+
+                    if (isRVL) {
+                        dataSize = RvlImageConvert::getImageByteSize(
+                            rvlFormats[selectedFormatIndex], imageWidth, imageHeight
+                        );
+                    }
+                    else {
+                        dataSize = CtrImageConvert::getImageByteSize(
+                            ctrFormats[selectedFormatIndex], imageWidth, imageHeight, mipCount
+                        );
+                    }
+                        
 
                     char formattedStr[32];
                     {
@@ -278,31 +334,49 @@ void WindowSpritesheet::FormatPopup() {
                     { 0.f, 0.f },
                     ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY
                 )) {
-                    const char* colorDesc;
-                    const char* alphaDesc;
+                    const char* colorDesc = "";
+                    const char* alphaDesc = "";
 
-                    switch (tplFormat) {
-                    case TPL::TPL_IMAGE_FORMAT_RGBA32:
-                        colorDesc = "Colors: 24-bit, millions of colors";
-                        alphaDesc = "Alpha: 8-bit, ranged 0 to 255";
-                        break;
-                    case TPL::TPL_IMAGE_FORMAT_RGB5A3:
-                        colorDesc =
-                            "Color:\n"
-                            "   Opaque pixels:\n"
-                            "      15-bit, 32768 colors\n"
-                            "   Transparent pixels:\n"
-                            "      12-bit, 4096 colors";
-                        alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
-                        break;
-                    case TPL::TPL_IMAGE_FORMAT_CMPR:
-                        colorDesc = "Colors: 16-bit (interpolated), 65536 colors";
-                        alphaDesc = "Alpha: 1-bit, either opaque or transparent";
-                        break;
-                    default:
-                        colorDesc = "";
-                        alphaDesc = "";
-                        break;
+                    if (isRVL) {
+                        switch (rvlFormats[selectedFormatIndex]) {
+                        case TPL::TPL_IMAGE_FORMAT_RGBA32:
+                            colorDesc = "Colors: 24-bit, millions of colors";
+                            alphaDesc = "Alpha: 8-bit, ranged 0 to 255";
+                            break;
+                        case TPL::TPL_IMAGE_FORMAT_RGB5A3:
+                            colorDesc =
+                                "Color:\n"
+                                "   Opaque pixels:\n"
+                                "      15-bit, 32768 colors\n"
+                                "   Transparent pixels:\n"
+                                "      12-bit, 4096 colors";
+                            alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
+                            break;
+                        case TPL::TPL_IMAGE_FORMAT_CMPR:
+                            colorDesc = "Colors: 16-bit (interpolated), 65536 colors";
+                            alphaDesc = "Alpha: 1-bit, either opaque or transparent";
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                    else {
+                        switch (ctrFormats[selectedFormatIndex]) {
+                        case CTPK::CTPK_IMAGE_FORMAT_RGBA8888:
+                            colorDesc = "Colors: 24-bit, millions of colors";
+                            alphaDesc = "Alpha: 8-bit, ranged 0 to 255";
+                            break;
+                        case CTPK::CTPK_IMAGE_FORMAT_RGBA4444:
+                            colorDesc = "Colors: 12-bit, 4096 colors";
+                            alphaDesc = "Alpha: 4-bit, ranged 0 to 15";
+                            break;
+                        case CTPK::CTPK_IMAGE_FORMAT_ETC1A4:
+                            colorDesc = "Colors (per block): 24-bit, millions of colors";
+                            alphaDesc = "Alpha: 4-bit, ranged 0 to 15";
+                            break;
+                        default:
+                            break;
+                        }
                     }
 
                     ImGui::BulletText("%s", colorDesc);
@@ -315,7 +389,10 @@ void WindowSpritesheet::FormatPopup() {
             ImGui::Separator();
             ImGui::Dummy({ 0.f, 5.f });
 
-            if (ImGui::Combo("Format", &selectedFormatIndex, formats)) {
+            const char* const* comboNames = isRVL ? rvlFormatNames.data() : ctrFormatNames.data();
+            unsigned comboCount = isRVL ? rvlFormats.size() : ctrFormats.size();
+
+            if (ImGui::Combo("Format", &selectedFormatIndex, comboNames, comboCount)) {
                 updateTextureData();
             }
 
