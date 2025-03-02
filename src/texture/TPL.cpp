@@ -76,31 +76,6 @@ struct TPLHeader {
 
 namespace TPL {
 
-const char* getImageFormatName(TPLImageFormat format) {
-    const char* strings[TPL_IMAGE_FORMAT_COUNT] = {
-        "I4",      // TPL_IMAGE_FORMAT_I4
-        "I8",      // TPL_IMAGE_FORMAT_I8
-        "IA4",     // TPL_IMAGE_FORMAT_IA4
-        "IA8",     // TPL_IMAGE_FORMAT_IA8
-        "RGB565",  // TPL_IMAGE_FORMAT_RGB565
-        "RGB5A3",  // TPL_IMAGE_FORMAT_RGB5A3
-        "RGBA32",  // TPL_IMAGE_FORMAT_RGBA32
-        nullptr,   // Index 7 (unused)
-        "C4",      // TPL_IMAGE_FORMAT_C4
-        "C8",      // TPL_IMAGE_FORMAT_C8
-        "C14X2",   // TPL_IMAGE_FORMAT_C14X2
-        nullptr,   // Index 11 (unused)
-        nullptr,   // Index 12 (unused)
-        nullptr,   // Index 13 (unused)
-        "CMPR"     // TPL_IMAGE_FORMAT_CMPR
-    };
-
-    if (format >= TPL_IMAGE_FORMAT_COUNT)
-        return "Invalid format";
-
-    return strings[format];
-}
-
 GLuint TPLTexture::createGPUTexture() const {
     GLuint textureId { 0 };
 

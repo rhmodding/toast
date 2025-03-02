@@ -84,7 +84,30 @@ enum TPLClutFormat : uint32_t {
     TPL_CLUT_FORMAT_COUNT
 };
 
-const char* getImageFormatName(TPLImageFormat format);
+constexpr const char* getImageFormatName(TPLImageFormat format) {
+    constexpr const char* strings[TPL_IMAGE_FORMAT_COUNT] = {
+        "I4",      // TPL_IMAGE_FORMAT_I4
+        "I8",      // TPL_IMAGE_FORMAT_I8
+        "IA4",     // TPL_IMAGE_FORMAT_IA4
+        "IA8",     // TPL_IMAGE_FORMAT_IA8
+        "RGB565",  // TPL_IMAGE_FORMAT_RGB565
+        "RGB5A3",  // TPL_IMAGE_FORMAT_RGB5A3
+        "RGBA32",  // TPL_IMAGE_FORMAT_RGBA32
+        "Invalid format", // Index 7 (unused)
+        "C4",      // TPL_IMAGE_FORMAT_C4
+        "C8",      // TPL_IMAGE_FORMAT_C8
+        "C14X2",   // TPL_IMAGE_FORMAT_C14X2
+        "Invalid format", // Index 11 (unused)
+        "Invalid format", // Index 12 (unused)
+        "Invalid format", // Index 13 (unused)
+        "CMPR"     // TPL_IMAGE_FORMAT_CMPR
+    };
+
+    if (format >= TPL_IMAGE_FORMAT_COUNT)
+        return "Invalid format";
+
+    return strings[format];
+}
 
 struct TPLTexture {
     unsigned width;
