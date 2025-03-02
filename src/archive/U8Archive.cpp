@@ -15,12 +15,11 @@
 
 #include "../common.hpp"
 
-#define HEADER_MAGIC IDENTIFIER_TO_U32('U', 0xAA, '8', '-')
+#define U8_MAGIC IDENTIFIER_TO_U32('U', 0xAA, '8', '-')
 
 struct U8ArchiveHeader {
-    // Magic value (should always equal to 0x55AA382D [1437218861] if valid)
-    // Compare to HEADER_MAGIC
-    uint32_t magic { HEADER_MAGIC };
+    // Compare to U8_MAGIC
+    uint32_t magic { U8_MAGIC };
 
     // Offset to the node section
     int32_t nodeSectionStart;
@@ -111,7 +110,7 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSiz
     }
 
     const U8ArchiveHeader* header = reinterpret_cast<const U8ArchiveHeader*>(data);
-    if (header->magic != HEADER_MAGIC) {
+    if (header->magic != U8_MAGIC) {
         std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: header magic failed check!\n";
         return;
     }
@@ -162,7 +161,7 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSiz
         }
     }
 
-    return;
+    this->initialized = true;
 }
 
 std::vector<unsigned char> U8ArchiveObject::Serialize() {
