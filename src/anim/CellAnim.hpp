@@ -231,9 +231,9 @@ public:
     CellAnimObject(const unsigned char* data, const size_t dataSize);
     CellAnimObject() = default;
 
-    bool isInitialized() const { return this->initialized; };
+    bool isInitialized() const { return this->initialized; }
 
-    CellAnimType getType() const { return this->type; };
+    CellAnimType getType() const { return this->type; }
 
     std::vector<unsigned char> Serialize();
 
@@ -251,8 +251,6 @@ private:
 
     CellAnimType type { CELLANIM_TYPE_INVALID };
 };
-
-std::shared_ptr<CellAnimObject> readCellAnimFile(const char *filePath);
 
 } // namespace CellAnim
 

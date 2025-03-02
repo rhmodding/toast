@@ -636,7 +636,7 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
 namespace CellAnim {
 
 CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize) {
-    const uint32_t revisionDate = *(uint32_t*)data;
+    const uint32_t revisionDate = *reinterpret_cast<const uint32_t*>(data);
 
     switch (revisionDate) {
     case RCAD_REVISION_DATE:
@@ -665,29 +665,6 @@ std::vector<unsigned char> CellAnimObject::Serialize() {
         std::cerr << "[CellAnimObject::Serialize] this->type is invalid!\n";
         return std::vector<unsigned char>();
     }
-}
-
-std::shared_ptr<CellAnimObject> readCellAnimFile(const char* filePath) {
-    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-    if (!file.is_open()) {
-        std::cerr << "[CellAnim::readCellAnimFile] Could not open file at path: " << filePath << '\n';
-        return nullptr;
-    }
-
-    const std::streampos fileSize = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    unsigned char* buffer = new unsigned char[fileSize];
-    file.read(reinterpret_cast<char*>(buffer), fileSize);
-
-    file.close();
-
-    std::shared_ptr<CellAnimObject> object =
-        std::make_shared<CellAnimObject>(buffer, fileSize);
-
-    delete[] buffer;
-
-    return object;
 }
 
 } // namespace CellAnim
