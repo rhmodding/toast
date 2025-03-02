@@ -118,30 +118,6 @@ static void bilinearScale(
 
 namespace CTPK {
 
-const char* getImageFormatName(CTPKImageFormat format) {
-    const char* strings[CTPK_IMAGE_FORMAT_COUNT] = {
-        "RGBA8888", // CTPK_IMAGE_FORMAT_RGBA8888
-        "RGB888",   // CTPK_IMAGE_FORMAT_RGB888
-        "RGB5551",  // CTPK_IMAGE_FORMAT_RGBA5551
-        "RGB565",   // CTPK_IMAGE_FORMAT_RGB565
-        "RGBA4444", // CTPK_IMAGE_FORMAT_RGBA4444
-        "LA88",     // CTPK_IMAGE_FORMAT_LA88
-        "HL8",      // CTPK_IMAGE_FORMAT_HL8
-        "L8",       // CTPK_IMAGE_FORMAT_L8
-        "A8",       // CTPK_IMAGE_FORMAT_A8
-        "LA44",     // CTPK_IMAGE_FORMAT_LA44
-        "L4",       // CTPK_IMAGE_FORMAT_L4
-        "A4",       // CTPK_IMAGE_FORMAT_A4
-        "ETC1",     // CTPK_IMAGE_FORMAT_ETC1
-        "ETC1A4"   // CTPK_IMAGE_FORMAT_ETC1A4
-    };
-
-    if (format >= CTPK_IMAGE_FORMAT_COUNT)
-        return "Invalid format";
-
-    return strings[format];
-}
-
 void CTPKTexture::rotateCCW() {
     // Copy
     std::vector<unsigned char> temp = this->data;
