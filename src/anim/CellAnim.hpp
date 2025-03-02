@@ -78,6 +78,16 @@ struct TransformValues {
 struct CTRColor {
     float r, g, b;
 
+    CTRColor lerp(const CTRColor& other, float t) const {
+        CTRColor color {
+            .r = std::lerp(this->r, other.r, t),
+            .g = std::lerp(this->g, other.g, t),
+            .b = std::lerp(this->b, other.b, t)
+        };
+
+        return color;
+    }
+
     bool operator==(const CTRColor& other) const {
         return
             this->r == other.r &&
@@ -89,6 +99,17 @@ struct CTRColor {
 struct CTRQuadDepth {
     float topLeft { 0.f }, bottomLeft { 0.f };
     float topRight { 0.f }, bottomRight { 0.f };
+
+    CTRQuadDepth lerp(const CTRQuadDepth& other, float t) const {
+        CTRQuadDepth depth {
+            .topLeft = std::lerp(this->topLeft, other.topLeft, t),
+            .bottomLeft = std::lerp(this->bottomLeft, other.bottomLeft, t),
+            .topRight = std::lerp(this->topRight, other.topRight, t),
+            .bottomRight = std::lerp(this->bottomRight, other.bottomRight, t)
+        };
+
+        return depth;
+    }
 
     bool operator==(const CTRQuadDepth& other) const {
         return
