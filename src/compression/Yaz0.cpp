@@ -28,8 +28,7 @@ constexpr unsigned int MAX_MATCH_LENGTH = 0xFFu + 0x12u;
 constexpr unsigned int ZLIB_MIN_MATCH = 3;
 
 struct Yaz0Header {
-    // Magic value (should always equal to "Yaz0" if valid).
-    // Compare to HEADER_MAGIC
+    // Compare to YAZ0_MAGIC
     uint32_t magic { YAZ0_MAGIC };
 
     // Size of the file after decompression (in bytes).
