@@ -9,11 +9,165 @@
 
 #include "../common.hpp"
 
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+    #define GLSL_VERSION_STR "#version 100"
+#elif defined(__APPLE__)
+    #define GLSL_VERSION_STR "#version 150"
+#else
+    #define GLSL_VERSION_STR "#version 130"
+#endif // defined(__APPLE__), defined(IMGUI_IMPL_OPENGL_ES2)
+
+static const char* vertexShaderSource =
+    GLSL_VERSION_STR "\n\n"
+    "uniform mat4 ProjMtx;\n"
+    "\n"
+    "in vec2 Position;\n"
+    "in vec2 UV;\n"
+    "in vec4 Color;\n"
+    "\n"
+    "out vec2 Frag_UV;\n"
+    "out vec4 Frag_Color;\n"
+    "\n"
+    "void main() {\n"
+    "    Frag_UV = UV;\n"
+    "    Frag_Color = Color;\n"
+    "    gl_Position = ProjMtx * vec4(Position.xy, 0, 1);\n"
+    "}\n";
+
+static const char* fragmentShaderSource =
+    GLSL_VERSION_STR "\n\n"
+    "uniform sampler2D Texture;\n"
+    "uniform vec3 Fore_Color;\n"
+    "uniform vec3 Back_Color;\n"
+    "\n"
+    "in vec2 Frag_UV;\n"
+    "in vec4 Frag_Color;\n"
+    "\n"
+    "out vec4 Out_Color;\n"
+    "\n"
+    "void main() {\n"
+    "    vec4 texColor = texture(Texture, Frag_UV.st);\n"
+    "\n"
+    "    vec3 multipliedColor = vec3(texColor) * Fore_Color;\n"
+    "    vec3 finalColor = vec3(1.0) - (vec3(1.0) - multipliedColor) * (vec3(1.0) - Back_Color);\n"
+    "\n"
+    "    Out_Color = vec4(finalColor, texColor.a) * Frag_Color;\n"
+    "}\n";
+
 GLuint CellanimRenderer::shaderProgram { 0 };
 
 GLint CellanimRenderer::foreColorUniform { 0 };
 GLint CellanimRenderer::backColorUniform { 0 };
 GLint CellanimRenderer::projMtxUniform { 0 };
+
+static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, const std::string& errorMessage) {
+    GLint success { 0 };
+    GLchar error[1024] { '\0' };
+
+    if (isProgram) {
+        glGetProgramiv(shader, flag, &success);
+        if (success == GL_FALSE) {
+            glGetProgramInfoLog(shader, sizeof(error), NULL, error);
+            std::cerr << errorMessage << ":\n" << error << '\n';
+        }
+    }
+    else {
+        glGetShaderiv(shader, flag, &success);
+        if (success == GL_FALSE) {
+            glGetShaderInfoLog(shader, sizeof(error), NULL, error);
+            std::cerr << errorMessage << ": " << error << '\n';
+        }
+    }
+}
+
+void CellanimRenderer::InitShader() {
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    checkShaderError(
+        vertexShader, GL_COMPILE_STATUS, false,
+        "[CellanimRenderer::InitShader] Vertex shader compilation failed"
+    );
+
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    checkShaderError(
+        fragmentShader, GL_COMPILE_STATUS, false,
+        "[CellanimRenderer::InitShader] Fragment shader compilation failed"
+    );
+
+    CellanimRenderer::shaderProgram = glCreateProgram();
+    glAttachShader(CellanimRenderer::shaderProgram, vertexShader);
+    glAttachShader(CellanimRenderer::shaderProgram, fragmentShader);
+    glLinkProgram(CellanimRenderer::shaderProgram);
+
+    checkShaderError(
+        CellanimRenderer::shaderProgram, GL_LINK_STATUS, true,
+        "[CellanimRenderer::InitShader] Shader program link failed"
+    );
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    // Looking up the uniform locations in advance avoids stuttering issues.
+
+    CellanimRenderer::foreColorUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Fore_Color"
+    );
+    CellanimRenderer::backColorUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Back_Color"
+    );
+
+    CellanimRenderer::projMtxUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "ProjMtx"
+    );
+}
+
+void CellanimRenderer::DestroyShader() {
+    glDeleteProgram(CellanimRenderer::shaderProgram);
+}
+
+struct PartRenderCallbackData {
+    CellAnim::CTRColor backColor;
+    CellAnim::CTRColor foreColor;
+};
+
+void CellanimRenderer::renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd) {
+    const PartRenderCallbackData* renderData =
+        reinterpret_cast<const PartRenderCallbackData*>(cmd->UserCallbackData);
+
+    const auto& foreColor = renderData->foreColor;
+    const auto& backColor = renderData->backColor;
+
+    glUseProgram(CellanimRenderer::shaderProgram);
+
+    glUniform3f(
+        CellanimRenderer::foreColorUniform,
+        foreColor.r, foreColor.g, foreColor.b
+    );
+    glUniform3f(
+        CellanimRenderer::backColorUniform,
+        backColor.r, backColor.g, backColor.b
+    );
+
+    const ImDrawData* drawData = ImGui::GetDrawData();
+
+    float L = drawData->DisplayPos.x;
+    float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
+    float T = drawData->DisplayPos.y;
+    float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
+
+    const float orthoProjection[4][4] = {
+        { 2.f / (R-L),   0.f,           0.f,  0.f },
+        { 0.f,           2.f / (T-B),   0.f,  0.f },
+        { 0.f,           0.f,          -1.f,  0.f },
+        { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
+    };
+    glUniformMatrix4fv(CellanimRenderer::projMtxUniform, 1, GL_FALSE, orthoProjection[0]);
+}
 
 void CellanimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
@@ -251,147 +405,6 @@ ImRect CellanimRenderer::getKeyWorldRect(const CellAnim::AnimationKey& key) cons
     }
 
     return ImRect({ minX, minY }, { maxX, maxY });
-}
-
-static const char* vertexShaderSource =
-    "#version 150\n" // TODO: select version
-    "uniform mat4 ProjMtx;\n"
-    "in vec2 Position;\n"
-    "in vec2 UV;\n"
-    "in vec4 Color;\n"
-    "out vec2 Frag_UV;\n"
-    "out vec4 Frag_Color;\n"
-    "void main()\n"
-    "{\n"
-    "    Frag_UV = UV;\n"
-    "    Frag_Color = Color;\n"
-    "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-    "}\n";
-
-static const char* fragmentShaderSource =
-    "#version 150\n" // TODO: select version
-    "uniform sampler2D Texture;\n"
-    "uniform vec3 Fore_Color;\n"
-    "uniform vec3 Back_Color;\n"
-    "in vec2 Frag_UV;\n"
-    "in vec4 Frag_Color;\n"
-    "out vec4 Out_Color;\n"
-    "void main()\n"
-    "{\n"
-    "    vec4 texColor = texture(Texture, Frag_UV.st);\n"
-    "\n"
-    "    vec3 multipliedColor = vec3(texColor) * Fore_Color;\n"
-    "    vec3 finalColor = vec3(1.0) - (vec3(1.0) - multipliedColor) * (vec3(1.0) - Back_Color);\n"
-    "\n"
-    "    Out_Color = vec4(finalColor, texColor.a) * Frag_Color;\n"
-    "}\n";
-
-
-static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, const std::string& errorMessage) {
-    GLint success { 0 };
-    GLchar error[1024] { '\0' };
-
-    if (isProgram) {
-        glGetProgramiv(shader, flag, &success);
-        if (success == GL_FALSE) {
-            glGetProgramInfoLog(shader, sizeof(error), NULL, error);
-            std::cerr << errorMessage << ":\n" << error << '\n';
-        }
-    }
-    else {
-        glGetShaderiv(shader, flag, &success);
-        if (success == GL_FALSE) {
-            glGetShaderInfoLog(shader, sizeof(error), NULL, error);
-            std::cerr << errorMessage << ": " << error << '\n';
-        }
-    }
-}
-
-void CellanimRenderer::InitShader() {
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    checkShaderError(
-        vertexShader, GL_COMPILE_STATUS, false,
-        "[CellanimRenderer::InitShader] Vertex shader compilation failed"
-    );
-
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    checkShaderError(
-        fragmentShader, GL_COMPILE_STATUS, false,
-        "[CellanimRenderer::InitShader] Fragment shader compilation failed"
-    );
-
-    CellanimRenderer::shaderProgram = glCreateProgram();
-    glAttachShader(CellanimRenderer::shaderProgram, vertexShader);
-    glAttachShader(CellanimRenderer::shaderProgram, fragmentShader);
-    glLinkProgram(CellanimRenderer::shaderProgram);
-
-    checkShaderError(
-        CellanimRenderer::shaderProgram, GL_LINK_STATUS, true,
-        "[CellanimRenderer::InitShader] Shader program link failed"
-    );
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    CellanimRenderer::foreColorUniform = glGetUniformLocation(
-        CellanimRenderer::shaderProgram, "Fore_Color"
-    );
-    CellanimRenderer::backColorUniform = glGetUniformLocation(
-        CellanimRenderer::shaderProgram, "Back_Color"
-    );
-
-    CellanimRenderer::projMtxUniform = glGetUniformLocation(
-        CellanimRenderer::shaderProgram, "ProjMtx"
-    );
-}
-
-void CellanimRenderer::DestroyShader() {
-    glDeleteProgram(CellanimRenderer::shaderProgram);
-}
-
-struct PartRenderCallbackData {
-    CellAnim::CTRColor backColor;
-    CellAnim::CTRColor foreColor;
-};
-
-void CellanimRenderer::renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd) {
-    const PartRenderCallbackData* renderData =
-        reinterpret_cast<const PartRenderCallbackData*>(cmd->UserCallbackData);
-
-    const auto& foreColor = renderData->foreColor;
-    const auto& backColor = renderData->backColor;
-
-    glUseProgram(CellanimRenderer::shaderProgram);
-
-    glUniform3f(
-        CellanimRenderer::foreColorUniform,
-        foreColor.r, foreColor.g, foreColor.b
-    );
-    glUniform3f(
-        CellanimRenderer::backColorUniform,
-        backColor.r, backColor.g, backColor.b
-    );
-
-    const ImDrawData* drawData = ImGui::GetDrawData();
-
-    float L = drawData->DisplayPos.x;
-    float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
-    float T = drawData->DisplayPos.y;
-    float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
-
-    const float orthoProjection[4][4] = {
-        { 2.f / (R-L),   0.f,           0.f,  0.f },
-        { 0.f,           2.f / (T-B),   0.f,  0.f },
-        { 0.f,           0.f,          -1.f,  0.f },
-        { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
-    };
-    glUniformMatrix4fv(CellanimRenderer::projMtxUniform, 1, GL_FALSE, orthoProjection[0]);
 }
 
 void CellanimRenderer::InternDraw(
