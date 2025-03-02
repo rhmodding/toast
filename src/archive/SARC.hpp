@@ -46,12 +46,18 @@ public:
 
 class SARCObject {
 public:
-    Directory structure { "" };
+    SARCObject(const unsigned char* data, const size_t dataSize);
+    SARCObject() = default;
+
+    bool isInitialized() const { return this->initialized; }
 
     std::vector<unsigned char> Serialize();
 
-    SARCObject(const unsigned char* data, const size_t dataSize);
-    SARCObject() = default;
+public:
+    Directory structure { "" };
+
+private:
+    bool initialized { false };
 };
 
 std::optional<SARCObject> readNZlibSARC(const char* filePath);

@@ -152,52 +152,55 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
     for (unsigned i = 0; i < sfatSection->nodeCount; i++) {
         const SfatNode* node = sfatSection->nodes + i;
 
+        // Path to the file, in the format "dir1/dir2/file.ext".
         const char* name = sfntSection->data + (node->nameOffset * 4);
 
         const unsigned char* nodeDataStart = data + header->dataStart + node->dataOffsetStart;
         const unsigned char* nodeDataEnd = data + header->dataStart + node->dataOffsetEnd;
 
         // Create file at path.
-        {
-            std::stringstream stream(name);
-            std::string currentSegment;
-            
-            Directory* currentDir = &this->structure;
 
-            // Traverse.
-            while (std::getline(stream, currentSegment, '/')) {
-                // Last segment is the file name; add it!
-                if (stream.peek() == EOF) {
-                    File newFile(currentSegment);
-                    newFile.parent = currentDir;
-                    newFile.data = std::vector<unsigned char>(nodeDataStart, nodeDataEnd);
+        std::stringstream stream(name);
+        std::string currentSegment;
+        
+        Directory* currentDir = &this->structure;
 
-                    currentDir->AddFile(std::move(newFile));
+        // Traverse.
+        while (std::getline(stream, currentSegment, '/')) {
+            // Last segment is the file name; add it!
+            if (stream.peek() == EOF) {
+                File newFile(currentSegment);
+                
+                newFile.parent = currentDir;
+                newFile.data = std::vector<unsigned char>(nodeDataStart, nodeDataEnd);
 
-                    break;
-                }
+                currentDir->AddFile(std::move(newFile));
 
-                // Find or create the subdirectory.
-                auto it = std::find_if(
-                    currentDir->subdirectories.begin(), currentDir->subdirectories.end(),
-                    [&currentSegment](const Directory& dir) {
-                        return dir.name == currentSegment;
-                    }
-                );
-
-                // Directory doesn't exist; create and add it.
-                if (it == currentDir->subdirectories.end()) {
-                    Directory newDir(currentSegment, currentDir);
-                    currentDir->AddDirectory(std::move(newDir));
-
-                    currentDir = &currentDir->subdirectories.back();
-                }
-                // Move into the existing directory.
-                else
-                    currentDir = &(*it);
+                break;
             }
+
+            // Find or create the subdirectory.
+            auto it = std::find_if(
+                currentDir->subdirectories.begin(), currentDir->subdirectories.end(),
+                [&currentSegment](const Directory& dir) {
+                    return dir.name == currentSegment;
+                }
+            );
+
+            // Directory doesn't exist; create and add it.
+            if (it == currentDir->subdirectories.end()) {
+                Directory newDir(currentSegment, currentDir);
+                currentDir->AddDirectory(std::move(newDir));
+
+                currentDir = &currentDir->subdirectories.back();
+            }
+            // Move into the existing directory.
+            else
+                currentDir = &(*it);
         }
     }
+
+    this->initialized = true;
 }
 
 std::vector<unsigned char> SARCObject::Serialize() {
