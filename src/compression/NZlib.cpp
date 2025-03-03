@@ -104,9 +104,18 @@ bool checkDataValid(const unsigned char* data, const size_t dataSize) {
     // Endianness doesn't matter here
     if (header->inflateSize == 0)
         return false;
-    
-    // Kinda hacky: check ZLIB header byte for deflate compression method
-    if ((header->deflatedData[0] & 0xF) != 0x08)
+ 
+    // Compression method & flags. Should always be equal to 0x78
+    // for gzip-compressed data.
+    const uint8_t cmf = header->deflatedData[0];
+
+    // The CMF & FLG bytes in MSB order. Should always be a multiple
+    // of 31.
+    const uint16_t checkv = BYTESWAP_16(
+        *reinterpret_cast<const uint16_t*>(header->deflatedData)
+    );
+
+    if (cmf != 0x78 || (checkv % 31) != 0)
         return false;
     
     return true;
