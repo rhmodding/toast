@@ -11,6 +11,8 @@
 #include "../../task/AsyncTaskOptimizeCellanim.hpp"
 
 static void Popup_MOptimizeGlobal() {
+    static OptimizeCellanimOptions options {};
+    
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Optimize Cellanim###MOptimizeGlobal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         SessionManager& sessionManager = SessionManager::getInstance();
@@ -25,8 +27,6 @@ static void Popup_MOptimizeGlobal() {
         ImGui::Separator();
         ImGui::Dummy({ 0.f, 10.f });
 
-        static OptimizeCellanimOptions options;
-
         static const char* downscaleComboItems[] {
             "Don't downscale (1x)",
             "Downscale Low (0.875x)",
@@ -34,7 +34,14 @@ static void Popup_MOptimizeGlobal() {
             "Downscale High (0.5x)",
         };
 
-        ImGui::Checkbox("Remove all animation name macros", &options.removeAnimationNames);
+        // Animation names are required on CTR, doesn't make sense to remove them as
+        // they are not supplemental.
+        if (sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL)
+            ImGui::Checkbox("Remove all animation name macros", &options.removeAnimationNames);
+        // Make sure it's off..
+        else
+            options.removeAnimationNames = false;
+
         ImGui::Checkbox("Remove all unused arrangements", &options.removeUnusedArrangements);
 
         ImGui::Dummy({ 0.f, 5.f });
