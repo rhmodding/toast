@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#define STB_DXT_IMPLEMENTATION
-#define STB_DXT_STATIC
 #include "../stb/stb_dxt.h"
 
 #include "../common.hpp"

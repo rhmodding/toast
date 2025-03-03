@@ -35,7 +35,6 @@
 
 #include "../Easings.hpp"
 
-#define STB_RECT_PACK_IMPLEMENTATION
 #include "../stb/stb_rect_pack.h"
 
 bool operator==(const stbrp_rect& lhs, const stbrp_rect& rhs) {

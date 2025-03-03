@@ -50,8 +50,6 @@
 
 // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
-#define STB_IMAGE_STATIC
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
 #include "_binary/images/toastIcon.png.h"
