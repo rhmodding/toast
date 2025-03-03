@@ -43,7 +43,7 @@ public:
     GLFWwindow* getGLFWWindowHandle() {
         if (UNLIKELY(!this->glfwWindowHndl)) {
             std::cerr << "[App::getGLFWWindowHandle] GLFW window handle does not exist (anymore)!" << std::endl;
-            __builtin_trap();
+            FATAL();
         }
 
         return this->glfwWindowHndl;

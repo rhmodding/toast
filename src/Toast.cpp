@@ -130,7 +130,7 @@ Toast::Toast(int argc, const char** argv) {
 
     if (!glfwInit()) {
         std::cerr << "[App:App] Failed to init GLFW!" << std::endl;
-        __builtin_trap();
+        FATAL();
     }
 
     MainThreadTaskManager::createSingleton();
@@ -175,7 +175,7 @@ Toast::Toast(int argc, const char** argv) {
     if (!this->glfwWindowHndl) {
         std::cerr << "[Toast::Toast] glfwCreateWindow failed!" << std::endl;
         glfwTerminate();
-        __builtin_trap();
+        FATAL();
     }
 
     glfwSetWindowCloseCallback(this->glfwWindowHndl, [](GLFWwindow*) {
@@ -897,7 +897,7 @@ void Toast::Draw() {
     ImDrawData* drawData = ImGui::GetDrawData();
     if (drawData == nullptr) {
         std::cerr << "[App:Draw] ImGui::GetDrawData returned NULL!" << std::endl;
-        __builtin_trap();
+        FATAL();
     }
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

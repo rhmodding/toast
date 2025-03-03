@@ -15,7 +15,7 @@
 
 #define BYTESWAP_FLOAT(x) ( \
     std::bit_cast<float, uint32_t>( \
-        BYTESWAP_32(std::bit_cast<uint32_t, float>(x)) \
+        BYTESWAP_32(std::bit_cast<uint32_t, float>((x))) \
     ) \
 )
 
@@ -24,27 +24,27 @@
     ((uint32_t)(char2) <<  8) | ((uint32_t)(char1) <<  0) \
 )
 
-#define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
+#define ARRAY_LENGTH(x) ( sizeof((x)) / sizeof(((x))[0]) )
 
-#define IS_POWER_OF_TWO(x) (((x) > 0) && !((x) & ((x) - 1)))
+#define IS_POWER_OF_TWO(x) ( ((x) > 0) && !((x) & ((x) - 1)) )
 
 #define ALIGN_DOWN_4(value) ( (value) & ~(4 - 1) )
-#define ALIGN_UP_4(value) ( ((value) + 4 - 1) & ~(4 - 1) )
+#define ALIGN_UP_4(value)   ( ((value) + 4 - 1) & ~(4 - 1) )
 
 #define ALIGN_DOWN_16(value) ( (value) & ~(16 - 1) )
-#define ALIGN_UP_16(value) ( ((value) + 16 - 1) & ~(16 - 1) )
+#define ALIGN_UP_16(value)   ( ((value) + 16 - 1) & ~(16 - 1) )
 
 #define ALIGN_DOWN_32(value) ( (value) & ~(32 - 1) )
-#define ALIGN_UP_32(value) ( ((value) + 32 - 1) & ~(32 - 1) )
+#define ALIGN_UP_32(value)   ( ((value) + 32 - 1) & ~(32 - 1) )
 
 #define ALIGN_DOWN_64(value) ( (value) & ~(64 - 1) )
-#define ALIGN_UP_64(value) ( ((value) + 64 - 1) & ~(64 - 1) )
+#define ALIGN_UP_64(value)   ( ((value) + 64 - 1) & ~(64 - 1) )
 
-#define STR_LIT_LEN(stringLiteral) (sizeof((stringLiteral)) - 1)
+#define STR_LIT_LEN(stringLiteral) ( sizeof((stringLiteral)) - 1 )
 
-#define AVERAGE_FLOATS(a, b) (((float)((a) + (b))) / 2.f)
-#define AVERAGE_INTS(a, b) (((int)((a) + (b))) / 2)
-#define AVERAGE_UINTS(a, b) (((unsigned int)((a) + (b))) / 2)
+#define AVERAGE_FLOATS(a, b) ( ((float)((a) + (b))) / 2.f )
+#define AVERAGE_INTS(a, b)   ( ((int)((a) + (b))) / 2 )
+#define AVERAGE_UINTS(a, b)  ( ((unsigned int)((a) + (b))) / 2 )
 
 #define AVERAGE_UCHARS(a, b) ( \
     ((uint8_t)(a) / 2) + ((uint8_t)(b) / 2) + \
@@ -101,6 +101,13 @@
 #define NONFATAL_ASSERT_RETVAL(condition, shouldReturn) ((void)0)
 
 #endif // NDEBUG
+
+#define FATAL() \
+    do { \
+        fprintf(stderr, "FATAL at %s:%d\n", __FILE__, __LINE__); \
+        __builtin_trap(); \
+        __builtin_unreachable(); \
+    } while (0)
 
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
