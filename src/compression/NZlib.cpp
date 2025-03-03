@@ -30,7 +30,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     // Hack!!! Blame zeldamods, not me!!!
     const int init = zng_deflateInit2(
-        &strm, std::clamp<int>(compressionLevel, Z_BEST_SPEED, Z_BEST_COMPRESSION),
+        &strm, std::clamp<int>(compressionLevel, Z_NO_COMPRESSION, Z_BEST_COMPRESSION),
         8, 15, 8, 0
     );
     if (init != Z_OK) {
