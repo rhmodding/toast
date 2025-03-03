@@ -91,6 +91,8 @@ void WindowInspector::Level_Arrangement() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
+    const bool isCtr = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_CTR;
+
     static std::vector<CellAnim::ArrangementPart> copyParts;
 
     const auto& arrangements = sessionManager.getCurrentSession()
@@ -274,7 +276,7 @@ void WindowInspector::Level_Arrangement() {
             }
 
             // Fore Color
-            {
+            if (isCtr) {
                 static CellAnim::CTRColor oldForeColor { 0.f, 0.f, 0.f };
 
                 CellAnim::CTRColor newForeColor = part.foreColor;
@@ -292,7 +294,7 @@ void WindowInspector::Level_Arrangement() {
             }
 
             // Back Color
-            {
+            if (isCtr) {
                 static CellAnim::CTRColor oldBackColor { 0.f, 0.f, 0.f };
 
                 CellAnim::CTRColor newBackColor = part.backColor;

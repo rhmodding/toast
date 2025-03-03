@@ -17,8 +17,11 @@
 void WindowInspector::Level_Animation() {
     AppState& appState = AppState::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     this->drawPreview();
+
+    const bool isCtr = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_CTR;
 
     ImGui::SameLine();
 
@@ -43,20 +46,22 @@ void WindowInspector::Level_Animation() {
 
     ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Properties");
 
-    bool isInterpolated = playerManager.getAnimation().isInterpolated;
+    if (isCtr) {
+        bool isInterpolated = playerManager.getAnimation().isInterpolated;
 
-    if (ImGui::Checkbox("Interpolated", &isInterpolated)) {
-        const auto& currentSession = SessionManager::getInstance().getCurrentSession();
+        if (ImGui::Checkbox("Interpolated", &isInterpolated)) {
+            const auto& currentSession = sessionManager.getCurrentSession();
 
-        currentSession->addCommand(
-        std::make_shared<CommandSetAnimationInterpolated>(
-            currentSession->getCurrentCellanimIndex(),
-            animationIndex,
-            isInterpolated
-        ));
+            currentSession->addCommand(
+            std::make_shared<CommandSetAnimationInterpolated>(
+                currentSession->getCurrentCellanimIndex(),
+                animationIndex,
+                isInterpolated
+            ));
+        }
+
+        ImGui::Dummy({ 0.f, 5.f });
     }
-
-    ImGui::Dummy({ 0.f, 5.f });
 
     if (ImGui::Button("Edit macro name..")) {
         Popups::_editAnimationNameIdx = animationIndex;
