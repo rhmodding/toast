@@ -39,6 +39,19 @@ struct Yaz0Header {
     uint32_t reserved[2] { 0x00000000, 0x00000000 };
 } __attribute__((packed));
 
+struct Yaz0CompressionState {
+    std::vector<unsigned char>& buffer;
+
+    unsigned pendingChunks { 0 };
+
+    unsigned operationsOffset { sizeof(Yaz0Header) };
+    std::bitset<8> operations;
+
+    Yaz0CompressionState(std::vector<unsigned char>& buffer) :
+        buffer(buffer)
+    {}
+};
+
 namespace Yaz0 {
 
 std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
@@ -50,18 +63,9 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         .decompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize)),
     };
 
-    // Compression using zlib-ng to find matches.
+    // Compression using a modified version of zlib-ng to find RLE matches.
     if (compressionLevel != 0) {
-        struct CompressionState {
-            std::vector<unsigned char>& buffer;
-
-            unsigned pendingChunks { 0 };
-
-            unsigned operationsOffset { sizeof(Yaz0Header) };
-            std::bitset<8> operations;
-
-            CompressionState(std::vector<unsigned char>& buffer) : buffer(buffer) {}
-        } compressionState(result);
+        Yaz0CompressionState state(result);
 
         result.push_back(0xFFu);
 
@@ -72,11 +76,11 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
             const int zlibRun = zng_compress2(
                 dummy, &dummySize, data, dataSize, std::clamp<int>(compressionLevel, 2, 9),
                 [](void* usrData, unsigned dist, unsigned lc) {
-                    CompressionState* compressionState = reinterpret_cast<CompressionState*>(usrData);
+                    Yaz0CompressionState* state = reinterpret_cast<Yaz0CompressionState*>(usrData);
 
                     if (dist == 0) {
-                        compressionState->operations.set(7 - compressionState->pendingChunks);
-                        compressionState->buffer.push_back(static_cast<unsigned char>(lc));
+                        state->operations.set(7 - state->pendingChunks);
+                        state->buffer.push_back(static_cast<unsigned char>(lc));
                     }
                     else {
                         const unsigned newDistance = dist - 1;
@@ -87,30 +91,31 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                                 ((matchLength - 2) << 4) | (newDistance >> 8)
                             );
 
-                            compressionState->buffer.push_back(firstByte);
-                            compressionState->buffer.push_back(static_cast<unsigned char>(newDistance));
+                            state->buffer.push_back(firstByte);
+                            state->buffer.push_back(static_cast<unsigned char>(newDistance));
                         }
                         else {
                             // If the match is longer than 18 bytes, 3 bytes are needed to write the match
                             const unsigned actualLength = std::min<unsigned>(MAX_MATCH_LENGTH, matchLength);
 
-                            compressionState->buffer.push_back(static_cast<unsigned char>(newDistance >> 8));
-                            compressionState->buffer.push_back(static_cast<unsigned char>(newDistance));
-                            compressionState->buffer.push_back(static_cast<unsigned char>(actualLength - 0x12));
+                            state->buffer.push_back(static_cast<unsigned char>(newDistance >> 8));
+                            state->buffer.push_back(static_cast<unsigned char>(newDistance));
+                            state->buffer.push_back(static_cast<unsigned char>(actualLength - 0x12));
                         }
                     }
 
-                    if (++compressionState->pendingChunks == CHUNKS_PER_GROUP) {
-                        compressionState->buffer[compressionState->operationsOffset] =
-                            static_cast<unsigned char>(compressionState->operations.to_ulong());
+                    if (++state->pendingChunks == CHUNKS_PER_GROUP) {
+                        state->buffer[state->operationsOffset] = static_cast<unsigned char>(
+                            state->operations.to_ulong()
+                        );
 
-                        compressionState->pendingChunks = 0;
-                        compressionState->operations.reset();
-                        compressionState->operationsOffset = static_cast<unsigned>(compressionState->buffer.size());
+                        state->pendingChunks = 0;
+                        state->operations.reset();
+                        state->operationsOffset = static_cast<unsigned>(state->buffer.size());
 
-                        compressionState->buffer.push_back(0xFFu);
+                        state->buffer.push_back(0xFFu);
                     }
-                }, &compressionState
+                }, &state
             );
 
             if (zlibRun != Z_OK) {
@@ -118,9 +123,11 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
                 return std::nullopt; // return nothing (std::optional)
             }
 
-            if (compressionState.pendingChunks != 0)
-                compressionState.buffer[compressionState.operationsOffset] =
-                    static_cast<unsigned char>(compressionState.operations.to_ulong());
+            if (state.pendingChunks != 0) {
+                state.buffer[state.operationsOffset] = static_cast<unsigned char>(
+                    state.operations.to_ulong()
+                );
+            }
         }
     }
     // Direct store. Result will be 12.5% bigger than the original data since one
