@@ -249,14 +249,14 @@ public:
         const CellAnim::ArrangementPart& part,
         const CellAnim::Arrangement& arrangement
     ) {
-        if (part.editorName[0] == '\0')
+        if (part.editorName.empty())
             return -1;
 
         for (unsigned i = 0; i < arrangement.parts.size(); i++) {
             const auto& lPart = arrangement.parts[i];
             if (
-                lPart.editorName[0] != '\0' &&
-                (strncmp(lPart.editorName, part.editorName, 32) == 0)
+                !lPart.editorName.empty() &&
+                lPart.editorName == part.editorName
             )
                 return i;
         }

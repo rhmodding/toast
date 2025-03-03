@@ -177,12 +177,11 @@ static void _TedApply(const unsigned char* data, const Session& session) {
                     currentEntry->partIndex
                 );
 
-                if (part)
-                    strncpy(
-                        part->editorName,
-                        (char*)data + fileHeader->stringPoolOffset + currentEntry->nameOffset,
-                        sizeof(part->editorName)
+                if (part) {
+                    part->editorName.assign(
+                        (char*)data + fileHeader->stringPoolOffset + currentEntry->nameOffset
                     );
+                }
                 else
                     return;
 
@@ -273,7 +272,7 @@ static void _TedApplyOld(const unsigned char* data, const Session& session) {
                 );
 
                 if (part)
-                    strncpy(part->editorName, currentEntry->name, sizeof(part->editorName));
+                    part->editorName.assign(currentEntry->name);
                 else
                     return;
 
@@ -365,26 +364,24 @@ unsigned TedPrepareWrite(TedWriteState* state) {
                 if (!part.editorVisible)
                     state->invisibleParts.push_back({ i, j, n, part.opacity });
 
-                if (part.editorName[0] != '\0') {
+                if (!part.editorName.empty()) {
                     TedNamedPartEntry entry {
                         .cellanimIndex = i,
                         .arrangementIndex = j,
                         .partIndex = n
                     };
 
-                    std::string name(part.editorName);
-
                     // Name is unique, add to map
-                    if (state->nameOffsets.count(name) == 0) {
+                    if (state->nameOffsets.count(part.editorName) == 0) {
                         entry.nameOffset = nextNameOffset;
-                        state->nameOffsets[name] = nextNameOffset;
+                        state->nameOffsets[part.editorName] = nextNameOffset;
 
-                        nextNameOffset += strlen(part.editorName) + 1;
+                        nextNameOffset += part.editorName.size() + 1;
                         nextNameOffset = ALIGN_UP_4(nextNameOffset);
                     }
                     // Name not unique, reuse offset
                     else {
-                        entry.nameOffset = state->nameOffsets[name];
+                        entry.nameOffset = state->nameOffsets[part.editorName];
                     }
 
                     state->namedParts.push_back(entry);

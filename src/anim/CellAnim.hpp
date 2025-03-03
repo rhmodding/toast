@@ -153,7 +153,7 @@ struct ArrangementPart {
     bool editorVisible { true };
     bool editorLocked { false };
 
-    char editorName[32] { '\0' };
+    std::string editorName;
 
     bool operator==(const ArrangementPart& other) const {
         return

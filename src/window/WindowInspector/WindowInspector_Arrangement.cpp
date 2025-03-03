@@ -66,6 +66,26 @@ static bool partToggleButton(const char* label, bool toggled) {
     return pressed;
 }
 
+static bool textInputStdString(const char* label, std::string& str) {
+    constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
+
+    return ImGui::InputText(label, const_cast<char*>(str.c_str()), str.capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
+        std::string* str = (std::string*)data->UserData;
+        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
+            // Resize string callback
+            //
+            // If for some reason we refuse the new length (BufTextLen) and/or
+            // capacity (BufSize) we need to set them back to what we want.
+            IM_ASSERT(data->Buf == str->c_str());
+
+            str->resize(data->BufTextLen);
+            data->Buf = (char*)str->c_str();
+        }
+
+        return 0;
+    }, &str);
+}
+
 void WindowInspector::Level_Arrangement() {
     AppState& appState = AppState::getInstance();
     SessionManager& sessionManager = SessionManager::getInstance();
@@ -150,7 +170,7 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Part Name (editor)");
             
-            ImGui::InputText("Name", part.editorName, 32);
+            textInputStdString("Name", part.editorName);
 
             ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
             {
@@ -414,7 +434,7 @@ void WindowInspector::Level_Arrangement() {
                 auto& part = arrangement.parts[n];
 
                 char selectableLabel[128];
-                if (part.editorName[0] == '\0')
+                if (part.editorName.empty())
                     snprintf(
                         selectableLabel, sizeof(selectableLabel),
                         "Part no. %u", n+1
@@ -422,7 +442,7 @@ void WindowInspector::Level_Arrangement() {
                 else
                     snprintf(
                         selectableLabel, sizeof(selectableLabel),
-                        "Part no. %u (%s)", n+1, part.editorName
+                        "Part no. %u (%s)", n+1, part.editorName.c_str()
                     );
 
                 const bool isPartSelected = appState.isPartSelected(n);

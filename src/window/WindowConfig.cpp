@@ -22,7 +22,7 @@ static const char* categoryNames[Categories_Count] {
     "Paths"
 };
 
-static bool TextInputStdString(const char* label, std::string& str) {
+static bool textInputStdString(const char* label, std::string& str) {
     constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
 
     return ImGui::InputText(label, const_cast<char*>(str.c_str()), str.capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
@@ -180,8 +180,8 @@ void WindowConfig::Update() {
             } break;
 
             case Category_Paths: {
-                TextInputStdString("Image editor path", this->selfConfig.imageEditorPath);
-                TextInputStdString("Texture edit path", this->selfConfig.textureEditPath);
+                textInputStdString("Image editor path", this->selfConfig.imageEditorPath);
+                textInputStdString("Texture edit path", this->selfConfig.textureEditPath);
             } break;
 
             default:
