@@ -102,9 +102,10 @@
 
 #endif // NDEBUG
 
-#define FATAL() \
+#define TRAP() \
     do { \
-        fprintf(stderr, "FATAL at %s:%d\n", __FILE__, __LINE__); \
+        fprintf(stderr, "TRAP at %s:%d\n", __FILE__, __LINE__); \
+        fflush(stderr); \
         __builtin_trap(); \
         __builtin_unreachable(); \
     } while (0)

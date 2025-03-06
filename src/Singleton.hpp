@@ -42,7 +42,7 @@ void Singleton<T>::createSingleton() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (instance_) {
         std::cout << "[Singleton<" << typeid(T).name() << ">::createSingleton] Singleton instance already exists!" << std::endl;
-        FATAL();
+        TRAP();
     }
     instance_ = std::unique_ptr<T>(new T());
 }
@@ -58,7 +58,7 @@ T& Singleton<T>::getInstance() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!instance_) {
         std::cout << "[Singleton<" << typeid(T).name() << ">::getInstance] Singleton instance does not exist (anymore)!" << std::endl;
-        FATAL();
+        TRAP();
     }
     return *instance_;
 }
