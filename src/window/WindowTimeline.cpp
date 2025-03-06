@@ -167,7 +167,7 @@ void WindowTimeline::Update() {
             ImGui::SameLine();
 
             ImGui::SetNextItemWidth(52.f);
-            ImGui::InputScalar("FPS", ImGuiDataType_U16, &playerManager.frameRate, nullptr, nullptr, "%u");
+            ImGui::InputScalar("FPS", ImGuiDataType_U32, &playerManager.frameRate, nullptr, nullptr, "%u");
             
             // Onion skin options
             ImGui::TableSetColumnIndex(2);
