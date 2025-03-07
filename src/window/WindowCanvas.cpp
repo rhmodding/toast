@@ -74,7 +74,12 @@ constexpr float BOUNDING_INVALID = std::numeric_limits<float>::max();
 
 // Calculate quad bounding of all selected parts
 static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& renderer, const CellAnim::Arrangement& arrangement, float& quadRotation) {
-    std::array<ImVec2, 4> partsBounding ({{ BOUNDING_INVALID, BOUNDING_INVALID }});
+    std::array<ImVec2, 4> partsBounding ({
+        ImVec2(BOUNDING_INVALID, BOUNDING_INVALID),
+        ImVec2(BOUNDING_INVALID, BOUNDING_INVALID),
+        ImVec2(BOUNDING_INVALID, BOUNDING_INVALID),
+        ImVec2(BOUNDING_INVALID, BOUNDING_INVALID)
+    });
     
     quadRotation = 0.f;
 

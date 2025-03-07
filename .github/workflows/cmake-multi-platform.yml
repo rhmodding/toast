@@ -35,6 +35,10 @@ jobs:
         with:
           submodules: true
 
+      - name: Install libglfw3-dev on Ubuntu
+        if: runnes.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libglfw3-dev
+
       - name: Install MinGW on Windows
         if: runner.os == 'Windows'
         run: choco install mingw --version 13.2.0 --x86_64 --no-progress
