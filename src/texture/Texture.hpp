@@ -71,7 +71,7 @@ public:
     // Note B: the size of the data is this->getPixelCount() * 4
     //
     // Returns: pointer to linear RGBA32 image data if succeeded, nullptr if failed
-    unsigned char* GetRGBA32();
+    [[nodiscard]] unsigned char* GetRGBA32();
 
     // Download the texture from the GPU into a RGBA32 image buffer.
     // Note: the size of the buffer must be this->getPixelCount() * 4
@@ -87,12 +87,12 @@ public:
     // Construct a TPLTexture from this texture.
     //
     // Returns: TPL::TPLTexture wrapped in std::optional
-    std::optional<TPL::TPLTexture> TPLTexture();
+    [[nodiscard]] std::optional<TPL::TPLTexture> TPLTexture();
 
     // Construct a CTPKTexture from this texture.
     //
     // Returns: CTPK::CTPKTexture wrapped in std::optional
-    std::optional<CTPK::CTPKTexture> CTPKTexture();
+    [[nodiscard]] std::optional<CTPK::CTPKTexture> CTPKTexture();
 
     // Destroy GPU texture.
     void DestroyTexture();
