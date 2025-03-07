@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <algorithm>
+
 #include <zlib-ng.h>
 
 #include "../common.hpp"

@@ -1,3 +1,7 @@
+#if defined(__WIN32__)
+#include <GL/glew.h>
+#endif
+
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #include <OpenGL/glext.h>

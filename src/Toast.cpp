@@ -129,7 +129,7 @@ Toast::Toast(int argc, const char** argv) {
     });
 
     if (!glfwInit()) {
-        std::cerr << "[App:App] Failed to init GLFW!" << std::endl;
+        std::cerr << "[Toast:Toast] Failed to init GLFW!" << std::endl;
         TRAP();
     }
 
@@ -174,6 +174,7 @@ Toast::Toast(int argc, const char** argv) {
 
     if (!this->glfwWindowHndl) {
         std::cerr << "[Toast::Toast] glfwCreateWindow failed!" << std::endl;
+        
         glfwTerminate();
         TRAP();
     }
@@ -194,15 +195,24 @@ Toast::Toast(int argc, const char** argv) {
     glfwMakeContextCurrent(this->glfwWindowHndl);
     //glfwSwapInterval(1); // Enable VSync
 
+#if defined(__WIN32__)
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "[Toast:Toast] Failed to init GLEW!" << std::endl;
+
+        glfwDestroyWindow(this->glfwWindowHndl);
+        glfwTerminate();
+        TRAP();
+    }
+#endif
+
     // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
     GLFWimage windowIcon;
     windowIcon.pixels = stbi_load_from_memory(toastIcon_png, toastIcon_png_size, &windowIcon.width, &windowIcon.height, nullptr, 4);
 
-    glfwSetWindowIcon(window, 1, &windowIcon);
+    // glfwSetWindowIcon copies the image data.
+    glfwSetWindowIcon(this->glfwWindowHndl, 1, &windowIcon);
 
-    // glfwSetWindowIcon copies the image data before it returns, so we can
-    // safely free.
     stbi_image_free(windowIcon.pixels);
 #endif // !defined(__APPLE__)
 
@@ -896,7 +906,7 @@ void Toast::Draw() {
 
     ImDrawData* drawData = ImGui::GetDrawData();
     if (drawData == nullptr) {
-        std::cerr << "[App:Draw] ImGui::GetDrawData returned NULL!" << std::endl;
+        std::cerr << "[Toast:Draw] ImGui::GetDrawData returned NULL!" << std::endl;
         TRAP();
     }
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -170,10 +170,10 @@ struct CtrArrangementPart {
 
         this->id = arrangementPart.id;
 
-        this->depthTL = arrangementPart.depth3D.topLeft;
-        this->depthBL = arrangementPart.depth3D.bottomLeft;
-        this->depthTR = arrangementPart.depth3D.topRight;
-        this->depthBR = arrangementPart.depth3D.bottomRight;
+        this->depthTL = arrangementPart.quadDepth.topLeft;
+        this->depthBL = arrangementPart.quadDepth.bottomLeft;
+        this->depthTR = arrangementPart.quadDepth.topRight;
+        this->depthBR = arrangementPart.quadDepth.bottomRight;
     }
 } __attribute__((packed));
 
@@ -416,30 +416,38 @@ static bool InitCtrCellAnim(
                 .regionW = arrangementPartIn->regionW,
                 .regionH = arrangementPartIn->regionH,
 
-                .transform.positionX = static_cast<int>(int16_t(arrangementPartIn->positionX - 512)),
-                .transform.positionY = static_cast<int>(int16_t(arrangementPartIn->positionY - 512)),
-                .transform.scaleX = arrangementPartIn->scaleX,
-                .transform.scaleY = arrangementPartIn->scaleY,
-                .transform.angle = arrangementPartIn->angle,
+                .transform = CellAnim::TransformValues {
+                    .positionX = static_cast<int>(int16_t(arrangementPartIn->positionX - 512)),
+                    .positionY = static_cast<int>(int16_t(arrangementPartIn->positionY - 512)),
+                    .scaleX = arrangementPartIn->scaleX,
+                    .scaleY = arrangementPartIn->scaleY,
+                    .angle = arrangementPartIn->angle,
+                },
 
                 .flipX = arrangementPartIn->flipX != 0x00,
                 .flipY = arrangementPartIn->flipY != 0x00,
 
-                .foreColor.r = arrangementPartIn->foreColor[0] / 255.f,
-                .foreColor.g = arrangementPartIn->foreColor[1] / 255.f,
-                .foreColor.b = arrangementPartIn->foreColor[2] / 255.f,
-                .backColor.r = arrangementPartIn->backColor[0] / 255.f,
-                .backColor.g = arrangementPartIn->backColor[1] / 255.f,
-                .backColor.b = arrangementPartIn->backColor[2] / 255.f,
-
                 .opacity = arrangementPartIn->opacity,
 
-                .id = arrangementPartIn->id,
+                .foreColor = CellAnim::CTRColor {
+                    .r = arrangementPartIn->foreColor[0] / 255.f,
+                    .g = arrangementPartIn->foreColor[1] / 255.f,
+                    .b = arrangementPartIn->foreColor[2] / 255.f,
+                },
+                .backColor = CellAnim::CTRColor {
+                    .r = arrangementPartIn->backColor[0] / 255.f,
+                    .g = arrangementPartIn->backColor[1] / 255.f,
+                    .b = arrangementPartIn->backColor[2] / 255.f,
+                },
 
-                .depth3D.topLeft = arrangementPartIn->depthTL,
-                .depth3D.bottomLeft = arrangementPartIn->depthBL,
-                .depth3D.topRight = arrangementPartIn->depthTR,
-                .depth3D.bottomRight = arrangementPartIn->depthBR,
+                .quadDepth = CellAnim::CTRQuadDepth {
+                    .topLeft = arrangementPartIn->depthTL,
+                    .bottomLeft = arrangementPartIn->depthBL,
+                    .topRight = arrangementPartIn->depthTR,
+                    .bottomRight = arrangementPartIn->depthBR,
+                },
+
+                .id = arrangementPartIn->id
             };
         }
     }
@@ -473,23 +481,29 @@ static bool InitCtrCellAnim(
 
                 .holdFrames = keyIn->holdFrames,
 
-                .transform.positionX = keyIn->positionX,
-                .transform.positionY = keyIn->positionY,
+                .transform = CellAnim::TransformValues {
+                    .positionX = keyIn->positionX,
+                    .positionY = keyIn->positionY,
+
+                    .scaleX = keyIn->scaleX,
+                    .scaleY = keyIn->scaleY,
+                    .angle = keyIn->angle,
+                },
 
                 .translateZ = keyIn->positionZ,
 
-                .transform.scaleX = keyIn->scaleX,
-                .transform.scaleY = keyIn->scaleY,
-                .transform.angle = keyIn->angle,
+                .opacity = keyIn->opacity,
 
-                .foreColor.r = keyIn->foreColor[0] / 255.f,
-                .foreColor.g = keyIn->foreColor[1] / 255.f,
-                .foreColor.b = keyIn->foreColor[2] / 255.f,
-                .backColor.r = keyIn->backColor[0] / 255.f,
-                .backColor.g = keyIn->backColor[1] / 255.f,
-                .backColor.b = keyIn->backColor[2] / 255.f,
-
-                .opacity = keyIn->opacity
+                .foreColor = CellAnim::CTRColor {
+                    .r = keyIn->foreColor[0] / 255.f,
+                    .g = keyIn->foreColor[1] / 255.f,
+                    .b = keyIn->foreColor[2] / 255.f,
+                },
+                .backColor = CellAnim::CTRColor {
+                    .r = keyIn->backColor[0] / 255.f,
+                    .g = keyIn->backColor[1] / 255.f,
+                    .b = keyIn->backColor[2] / 255.f,
+                }
             };
         }
     }

@@ -1,5 +1,7 @@
 #include "AsyncTaskManager.hpp"
 
+#include <algorithm>
+
 void AsyncTaskManager::UpdateTasks() {
     for (auto& task : this->tasks) {
         task->ShowPopup();

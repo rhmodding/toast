@@ -102,6 +102,10 @@ IF(CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_definitions(toast PRIVATE RG_ETC1_BUILD_DEBUG)
 ENDIF()
 
+IF (WIN32)
+target_compile_definitions(toast PRIVATE GLEW_STATIC)
+ENDIF()
+
 # Include directories
 target_include_directories(toast PRIVATE
     ext/imgui/
@@ -122,16 +126,12 @@ IF (APPLE) # macOS
 ELSEIF (WIN32) # Windows
     target_include_directories(toast PRIVATE
         libs/glfw3-win64/include
+        libs/glew-2.2.0-win/include
     )
-    IF (MSVC)
-        target_link_directories(toast PRIVATE
-            libs/glfw3-win64/lib-vc2022
-        )
-    ELSE()
-        target_link_directories(toast PRIVATE
-            libs/glfw3-win64/lib-mingw-w64
-        )
-    ENDIF()
+    target_link_directories(toast PRIVATE
+        libs/glfw3-win64/lib-mingw-w64
+        libs/glew-2.2.0-win/lib/Release/x64
+    )
 ENDIF()
 
 # Link directory for Linux
@@ -145,6 +145,7 @@ ENDIF()
 IF (WIN32) # Windows
     target_link_libraries(toast PRIVATE
         glfw3
+        glew32s
         opengl32
 
         comdlg32
@@ -195,6 +196,4 @@ IF (APPLE)
     )
 ENDIF()
 
-IF (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET toast PROPERTY CXX_STANDARD 20)
-ENDIF()
+set_property(TARGET toast PROPERTY CXX_STANDARD 20)

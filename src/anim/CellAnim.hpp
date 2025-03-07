@@ -145,7 +145,7 @@ struct ArrangementPart {
     CTRColor backColor { 0.f, 0.f, 0.f };
 
     // On CTR only.
-    CTRQuadDepth depth3D;
+    CTRQuadDepth quadDepth;
 
     // On CTR only.
     unsigned id { 0 };
@@ -174,7 +174,7 @@ struct ArrangementPart {
             this->foreColor == other.foreColor &&
             this->backColor == other.backColor &&
             
-            this->depth3D == other.depth3D &&
+            this->quadDepth == other.quadDepth &&
             
             this->id == other.id;
     }

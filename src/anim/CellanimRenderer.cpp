@@ -7,6 +7,8 @@
 
 #include <algorithm>
 
+#include "../glInclude.hpp"
+
 #include "../common.hpp"
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
