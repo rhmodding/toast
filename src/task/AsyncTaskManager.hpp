@@ -20,12 +20,12 @@ public:
 
 public:
     template <typename TaskType, typename... Args>
-    void StartTask(Args&&... args);
+    AsyncTaskId StartTask(Args&&... args);
 
     void UpdateTasks();
 
     template <typename TaskType>
-    bool HasTaskOfType() const;
+    bool hasTaskOfType() const;
 
 private:
     std::atomic<AsyncTaskId> nextId { 0 };
@@ -33,14 +33,19 @@ private:
 };
 
 template <typename TaskType, typename... Args>
-void AsyncTaskManager::StartTask(Args&&... args) {
-    auto task = std::make_unique<TaskType>(this->nextId++, std::forward<Args>(args)...);
+AsyncTaskId AsyncTaskManager::StartTask(Args&&... args) {
+    AsyncTaskId id = this->nextId++;
+
+    auto task = std::make_unique<TaskType>(id, std::forward<Args>(args)...);
     task->Start();
+
     this->tasks.emplace_back(std::move(task));
+
+    return id;
 }
 
 template <typename TaskType>
-bool AsyncTaskManager::HasTaskOfType() const {
+bool AsyncTaskManager::hasTaskOfType() const {
     for (const auto& task : this->tasks) {
         if (dynamic_cast<TaskType*>(task.get()) != nullptr)
             return true;

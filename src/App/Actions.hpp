@@ -41,7 +41,7 @@ void Dialog_SaveCurrentSessionAsSzs() {
 
     if (
         !sessionManager.getSessionAvaliable() ||
-        asyncTaskManager.HasTaskOfType<AsyncTaskExportSession>()
+        asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>()
     )
         return;
 
@@ -66,7 +66,7 @@ void SaveCurrentSessionSzs() {
 
     if (
         !sessionManager.getSessionAvaliable() ||
-        asyncTaskManager.HasTaskOfType<AsyncTaskExportSession>()
+        asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>()
     )
         return;
 
