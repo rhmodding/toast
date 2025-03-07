@@ -195,7 +195,7 @@ Toast::Toast(int argc, const char** argv) {
     glfwMakeContextCurrent(this->glfwWindowHndl);
     //glfwSwapInterval(1); // Enable VSync
 
-#if defined(__WIN32__)
+#if defined(USING_GLEW)
     if (glewInit() != GLEW_OK) {
         std::cerr << "[Toast:Toast] Failed to init GLEW!" << std::endl;
 

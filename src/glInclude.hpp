@@ -1,6 +1,7 @@
-#if defined(__WIN32__)
+#if defined(__WIN32__) || defined(__linux__)
+#define USING_GLEW
 #include <GL/glew.h>
-#endif
+#endif // defined(__WIN32__) || defined(__linux__)
 
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>

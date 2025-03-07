@@ -164,6 +164,7 @@ ELSEIF(APPLE) # macOS
 ELSE() # Generic
     target_link_libraries(toast PRIVATE
         GL
+        GLEW
         glfw
     )
 ENDIF()
