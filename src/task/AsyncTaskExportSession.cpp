@@ -6,7 +6,7 @@ AsyncTaskExportSession::AsyncTaskExportSession(
 ) :
     AsyncTask(id, "Exporting session.."),
 
-    sessionIndex(sessionIndex), filePath(filePath),
+    sessionIndex(sessionIndex), filePath(std::move(filePath)),
     useSessionPath(false)
 {}
 

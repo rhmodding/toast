@@ -8,7 +8,7 @@
 AsyncTaskPushSession::AsyncTaskPushSession(uint32_t id, std::string filePath) :
     AsyncTask(id, "Opening session.."),
 
-    filePath(filePath)
+    filePath(std::move(filePath))
 {}
 
 void AsyncTaskPushSession::Run() {
