@@ -15,7 +15,7 @@
 
 #include "../common.hpp"
 
-#define U8_MAGIC IDENTIFIER_TO_U32('U', 0xAA, '8', '-')
+constexpr uint32_t U8_MAGIC = IDENTIFIER_TO_U32('U', 0xAA, '8', '-');
 
 struct U8ArchiveHeader {
     // Compare to U8_MAGIC
