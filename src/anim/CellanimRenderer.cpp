@@ -17,6 +17,11 @@
     #define GLSL_VERSION_STR "#version 130"
 #endif // defined(__APPLE__), defined(IMGUI_IMPL_OPENGL_ES2)
 
+/*
+    We use a custom shader for drawing parts since we need to pass in
+    fore & back colors that need to get applied when rendering.
+*/
+
 static const char* vertexShaderSource =
     GLSL_VERSION_STR "\n\n"
     "uniform mat4 ProjMtx;\n"
@@ -130,14 +135,14 @@ void CellanimRenderer::DestroyShader() {
     glDeleteProgram(CellanimRenderer::shaderProgram);
 }
 
-struct PartRenderCallbackData {
+struct RenderPartCallbackData {
     CellAnim::CTRColor backColor;
     CellAnim::CTRColor foreColor;
 };
 
 void CellanimRenderer::renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd) {
-    const PartRenderCallbackData* renderData =
-        reinterpret_cast<const PartRenderCallbackData*>(cmd->UserCallbackData);
+    const RenderPartCallbackData* renderData =
+        reinterpret_cast<const RenderPartCallbackData*>(cmd->UserCallbackData);
 
     const auto& foreColor = renderData->foreColor;
     const auto& backColor = renderData->backColor;
@@ -466,11 +471,12 @@ void CellanimRenderer::InternDraw(
         unsigned vertexAlpha = (baseAlpha * ((colorMod >> 24) & 0xFF)) / 0xFF;
         uint32_t vertexColor = (colorMod & 0x00FFFFFF) | (vertexAlpha << 24);
 
-        PartRenderCallbackData callbackData;
-
-        callbackData.backColor = part.backColor;
-        callbackData.foreColor = part.foreColor;
+        RenderPartCallbackData callbackData {
+            .backColor = part.backColor,
+            .foreColor = part.foreColor
+        };
         
+        // ImGui will copy the userdata.
         drawList->AddCallback(CellanimRenderer::renderPartCallback, &callbackData, sizeof(callbackData));
 
         drawList->AddImageQuad(
