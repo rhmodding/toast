@@ -21,6 +21,8 @@ public:
 
     void ShowPopup() const;
 
+    AsyncTaskId getId() const { return this->id; }
+
     bool getComplete() const { return this->isComplete; }
     bool getEffectRun() const { return this->hasEffectRun; }
 
