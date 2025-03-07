@@ -8,6 +8,8 @@
 
 #include <sstream>
 
+#include <stack>
+
 #include "../compression/NZlib.hpp"
 
 #include "../common.hpp"
