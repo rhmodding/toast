@@ -34,10 +34,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+        
+      - name: Install latest version of GCC on Ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+
+          version=$(apt-cache pkgnames | sed -nr 's/^gcc-(([0-9]+\.?)+)$/\1/p' \
+                             | sort -n | tail -n1)
+          echo "The latest available GCC version: $version"
+
+          sudo apt-get install gcc-$version g++-$version
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$version 60 \
+                                   --slave   /usr/bin/g++ g++ /usr/bin/g++-$version
 
       - name: Install libglfw3-dev & libglew-dev on Ubuntu
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libglfw3-dev && sudo apt-get install -y libglew-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglfw3-dev
+          sudo apt-get install -y libglew-dev
 
       - name: Install MinGW on Windows
         if: runner.os == 'Windows'
