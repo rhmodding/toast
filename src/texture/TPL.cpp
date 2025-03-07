@@ -8,8 +8,7 @@
 #include "../MainThreadTaskManager.hpp"
 
 #include "RvlImageConvert.hpp"
-
-#include "PaletteUtils.hpp"
+#include "RvlPalette.hpp"
 
 #include "../common.hpp"
 
@@ -171,7 +170,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         if (descriptor->CLUTHeaderOffset != 0) {
             const TPLClutHeader* clutHeader = reinterpret_cast<const TPLClutHeader*>(tplData + BYTESWAP_32(descriptor->CLUTHeaderOffset));
 
-            PaletteUtils::CLUTtoRGBA32Palette(
+            RvlPalette::readCLUT(
                 textureData.palette,
 
                 tplData + BYTESWAP_32(clutHeader->dataOffset),
@@ -229,7 +228,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
         ) {
             paletteTextures.push_back(PaletteTexEntry {
                 .texIndex = i,
-                .palette = PaletteUtils::generatePalette(
+                .palette = RvlPalette::generate(
                     texture.data.data(), texture.width * texture.height
                 )
             });
@@ -404,10 +403,9 @@ std::vector<unsigned char> TPLObject::Serialize() {
         if (it != paletteTextures.end()) {
             TPLClutHeader* clutHeader = clutHeaders + std::distance(paletteTextures.begin(), it);
 
-            PaletteUtils::WriteRGBA32Palette(
-                texture.palette.data(), texture.palette.size(),
-                TPL_CLUT_FORMAT_RGB5A3,
-                result.data() + BYTESWAP_32(clutHeader->dataOffset)
+            RvlPalette::writeCLUT(
+                result.data() + BYTESWAP_32(clutHeader->dataOffset),
+                texture.palette, TPL_CLUT_FORMAT_RGB5A3
             );
         }
 

@@ -50,6 +50,8 @@ set(SOURCES
     src/texture/CtrImageConvert.cpp
     src/texture/RvlImageConvert.cpp
 
+    src/texture/RvlPalette.cpp
+
     src/texture/CTPK.cpp
     src/texture/TPL.cpp
 
