@@ -134,7 +134,10 @@ public:
 
 public:
     const Config& getConfig() const { return this->config; }
-    void setConfig(const Config& newConfig) { config = newConfig; }
+    void setConfig(const Config& newConfig) {
+        std::lock_guard<std::mutex> lock(this->mtx);
+        config = newConfig;
+    }
 
     void LoadConfig();
     void SaveConfig() const;
@@ -148,6 +151,8 @@ private:
 
     bool firstTime { false };
     std::string configPath { "toast.config.json" };
+
+    std::mutex mtx;
 };
 
 #endif // CONFIGMANAGER_HPP

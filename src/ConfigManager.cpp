@@ -13,6 +13,8 @@ inline void clampRecentlyOpened(std::vector<std::string>& recentlyOpened) {
 }
 
 void ConfigManager::LoadConfig() {
+    std::lock_guard<std::mutex> lock(this->mtx);
+
     std::ifstream file(this->configPath);
 
     // Config doesn't exist, create default config.
@@ -52,6 +54,8 @@ void ConfigManager::LoadDefaults() {
 }
 
 void ConfigManager::addRecentlyOpened(const std::string& path) {
+    std::lock_guard<std::mutex> lock(this->mtx);
+
     auto& recentlyOpened = this->config.recentlyOpened;
 
     // Remove already existing instances of path
