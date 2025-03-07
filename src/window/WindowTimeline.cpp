@@ -588,7 +588,7 @@ void WindowTimeline::Update() {
                     for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
                         ImGui::PushID(i);
 
-                        char buffer[24];
+                        char buffer[32];
                         snprintf(buffer, sizeof(buffer), "%u##OnionSkinButton", i + 1);
 
                         int keyCount = playerManager.getKeyCount();

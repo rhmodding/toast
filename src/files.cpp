@@ -18,8 +18,8 @@ bool Files::doesFileExist(const char* filePath) {
 }
 
 bool Files::BackupFile(const char* filePath, bool once) {
-    char newFileName[PATH_MAX];
-    snprintf(newFileName, PATH_MAX, "%s.bak", filePath);
+    char newFileName[1024];
+    snprintf(newFileName, sizeof(newFileName), "%s.bak", filePath);
 
     if (FILE* file = fopen(newFileName, "r")) {
         fclose(file);
