@@ -166,6 +166,8 @@ ELSE() # Generic
         GL
         GLEW
         glfw
+
+        dl
     )
 ENDIF()
 
