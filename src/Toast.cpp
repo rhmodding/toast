@@ -831,10 +831,9 @@ void Toast::Update() {
     // Begin main window
     {
         constexpr ImGuiDockNodeFlags dockspaceFlags =
-            ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode |
-            ImGuiWindowFlags_NoBackground;
+            ImGuiDockNodeFlags_PassthruCentralNode;
         constexpr ImGuiWindowFlags windowFlags =
-            ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
             ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
             ImGuiWindowFlags_NoBackground;
@@ -850,14 +849,14 @@ void Toast::Update() {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
         ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.f });
 
-        ImGui::Begin(WINDOW_TITLE "###AppWindow", nullptr, windowFlags);
+        ImGui::Begin(WINDOW_TITLE "###HeadWindow", nullptr, windowFlags);
 
         ImGui::PopStyleVar(3);
         ImGui::PopStyleColor();
 
         // Submit the Dockspace
         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
-            ImGui::DockSpace(ImGui::GetID("mainDockspace"), { 0.f, 0.f }, dockspaceFlags);
+            ImGui::DockSpace(ImGui::GetID("HeadDockspace"), { -1.f, -1.f }, dockspaceFlags);
     }
 
     Shortcuts::Handle();
