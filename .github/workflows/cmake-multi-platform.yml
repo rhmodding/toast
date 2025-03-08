@@ -82,7 +82,39 @@ jobs:
       - name: Build
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-      - uses: actions/upload-artifact@v4
+      - name: Zip build on macOS
+        if: runner.os == 'macOS'
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}
+          zip -r toast_macOS.zip toast.app
+      - name: Upload zipped build on macOS
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
-          path: ${{ steps.strings.outputs.build-output-dir }}
+          name: toast_macOS
+          path: ${{ steps.strings.outputs.build-output-dir }}/toast_macOS.zip
+      
+      - name: Zip build on Ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}
+          zip -r toast_Linux.zip toast
+      - name: Upload zipped build on Ubuntu
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: toast_Linux
+          path: ${{ steps.strings.outputs.build-output-dir }}/toast_Linux.zip
+      
+      - name: Zip build on Windows
+        if: runner.os == 'Windows'
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}
+          Compress-Archive -Path toast.exe -DestinationPath toast_Windows.zip
+      - name: Upload zipped build on Windows
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: toast_Windows
+          path: ${{ steps.strings.outputs.build-output-dir }}/toast_Windows.zip
+
