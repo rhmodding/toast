@@ -122,7 +122,7 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
     
     unsigned chunkHeight = (srcHeight + numThreads - 1) / numThreads;
 
-    auto worker = [result, data, srcWidth, srcHeight, &packerParams](unsigned yStart, unsigned yEnd) {
+    auto worker = [result, data, srcWidth, &packerParams](unsigned yStart, unsigned yEnd) {
         unsigned writeOffset = srcWidth * yStart;
 
         for (unsigned yy = yStart; yy < yEnd; yy += 8) {

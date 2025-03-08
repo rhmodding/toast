@@ -35,6 +35,7 @@ public:
 private:
     void UpdateState(bool lEnabled) {
         AppState& appState = AppState::getInstance();
+        (void)appState;
         PlayerManager& playerManager = PlayerManager::getInstance();
 
         playerManager.correctState();
