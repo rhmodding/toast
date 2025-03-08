@@ -38,8 +38,6 @@ struct CtpkTextureEntry {
     uint32_t mipSizesOffset;
 
     uint32_t sourceTimestamp; // Unix timestamp of source texture.
-
-    uint32_t mipSizes[0]; // Sizes for each mipmap level.
 } __attribute((packed));
 
 struct CtpkFileHeader {

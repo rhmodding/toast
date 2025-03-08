@@ -74,7 +74,7 @@ constexpr const char* getImageFormatName(CTPKImageFormat format) {
         "L4",       // CTPK_IMAGE_FORMAT_L4
         "A4",       // CTPK_IMAGE_FORMAT_A4
         "ETC1",     // CTPK_IMAGE_FORMAT_ETC1
-        "ETC1A4"   // CTPK_IMAGE_FORMAT_ETC1A4
+        "ETC1A4"    // CTPK_IMAGE_FORMAT_ETC1A4
     };
 
     if (format >= CTPK_IMAGE_FORMAT_COUNT)

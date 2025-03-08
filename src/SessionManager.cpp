@@ -627,6 +627,8 @@ static SessionManager::Error SerializeCtrSession(
         
         ctpkTex->rotateCW();
 
+        ctpkTex->sourcePath = "data/" + texture->getName() + "_rot.tga";
+
         CTPK::CTPKObject ctpkObject;
         ctpkObject.ok = true;
 
