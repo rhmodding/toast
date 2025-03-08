@@ -124,12 +124,14 @@ Toast::Toast(int argc, const char** argv) {
 
     this->mainThreadId = std::this_thread::get_id();
 
+    Logging::Open("toast.log");
+
     glfwSetErrorCallback([](int code, const char* message) {
-        std::cerr << "[glfwErrorCallback] GLFW error (code " << code << "): " << message << std::endl;
+        Logging::err << "GLFW threw an error (code " << code << "): " << message << std::endl;
     });
 
     if (!glfwInit()) {
-        std::cerr << "[Toast:Toast] Failed to init GLFW!" << std::endl;
+        Logging::err << "[Toast:Toast] Failed to init GLFW!" << std::endl;
         TRAP();
     }
 
@@ -173,7 +175,7 @@ Toast::Toast(int argc, const char** argv) {
     );
 
     if (!this->glfwWindowHndl) {
-        std::cerr << "[Toast::Toast] glfwCreateWindow failed!" << std::endl;
+        Logging::err << "[Toast::Toast] glfwCreateWindow failed!" << std::endl;
         
         glfwTerminate();
         TRAP();
@@ -197,7 +199,7 @@ Toast::Toast(int argc, const char** argv) {
 
 #if defined(USING_GLEW)
     if (glewInit() != GLEW_OK) {
-        std::cerr << "[Toast:Toast] Failed to init GLEW!" << std::endl;
+        Logging::err << "[Toast:Toast] Failed to init GLEW!" << std::endl;
 
         glfwDestroyWindow(this->glfwWindowHndl);
         glfwTerminate();
@@ -270,6 +272,8 @@ Toast::Toast(int argc, const char** argv) {
             std::string(argv[1])
         );
     }
+
+    Logging::info << "[Toast::Toast] Finished initializing." << std::endl;
 }
 
 Toast::~Toast() {
@@ -301,6 +305,10 @@ Toast::~Toast() {
 
     glfwDestroyWindow(this->glfwWindowHndl);
     glfwTerminate();
+
+    Logging::info << "[Toast::Toast] Finished deinitializing." << std::endl;
+
+    Logging::Close();
 }
 
 void Toast::AttemptExit(bool force) {
@@ -905,7 +913,7 @@ void Toast::Draw() {
 
     ImDrawData* drawData = ImGui::GetDrawData();
     if (drawData == nullptr) {
-        std::cerr << "[Toast:Draw] ImGui::GetDrawData returned NULL!" << std::endl;
+        Logging::err << "[Toast:Draw] ImGui::GetDrawData returned NULL!" << std::endl;
         TRAP();
     }
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

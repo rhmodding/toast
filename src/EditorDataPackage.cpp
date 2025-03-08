@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+#include "Logging.hpp"
+
 #include "anim/CellAnim.hpp"
 
 // Major version must be changed for any breaking changes.
@@ -83,28 +85,28 @@ static CellAnim::ArrangementPart* _TedGetPart(
     uint16_t cellIndex, uint16_t arrngIndex, uint16_t partIndex
 ) {
     if (cellIndex >= session.cellanims.size()) {
-            std::cerr <<
+            Logging::err <<
                 "[TedApply] Invalid editor data binary: oob cellanim index!:\n"
-                "   - Cellanim Index: " << cellIndex << '\n';
+                "   - Cellanim Index: " << cellIndex << std::endl;
             return nullptr;
         }
 
         auto& arrangements = session.cellanims.at(cellIndex).object->arrangements;
         if (arrngIndex >= arrangements.size()) {
-            std::cerr <<
+            Logging::err <<
                 "[TedApply] Invalid editor data binary: oob arrangement index!:"
                 "   - Cellanim Index: " << cellIndex << "\n"
-                "   - Arrangement Index: " << arrngIndex << '\n';
+                "   - Arrangement Index: " << arrngIndex << std::endl;
             return nullptr;
         }
 
         auto& arrangement = arrangements.at(arrngIndex);
         if (partIndex >= arrangement.parts.size()) {
-            std::cerr <<
+            Logging::err <<
                 "[TedApply] Invalid editor data binary: oob part index!:"
                 "   - Cellanim Index: " << cellIndex << "\n"
                 "   - Arrangement Index: " << arrngIndex << "\n"
-                "   - Part Index: " << partIndex << '\n';
+                "   - Part Index: " << partIndex << std::endl;
             return nullptr;
         }
 
@@ -190,12 +192,11 @@ static void _TedApply(const unsigned char* data, const Session& session) {
         } break;
 
         default:
-            std::cerr << "[TedApply] Unimplemented entry type: " <<
+            Logging::err << "[TedApply] Unimplemented entry type: " <<
                 ((char*)&currentHeader->identifier)[0] <<
                 ((char*)&currentHeader->identifier)[1] <<
                 ((char*)&currentHeader->identifier)[2] <<
-                ((char*)&currentHeader->identifier)[3] <<
-            '\n';
+                ((char*)&currentHeader->identifier)[3] << std::endl;
             break;
         }
 
@@ -281,12 +282,11 @@ static void _TedApplyOld(const unsigned char* data, const Session& session) {
         } break;
 
         default:
-            std::cerr << "[TedApply] Unimplemented entry type: " <<
+            Logging::err << "[TedApply] Unimplemented entry type: " <<
                 ((char*)&currentHeader->identifier)[0] <<
                 ((char*)&currentHeader->identifier)[1] <<
                 ((char*)&currentHeader->identifier)[2] <<
-                ((char*)&currentHeader->identifier)[3] <<
-            '\n';
+                ((char*)&currentHeader->identifier)[3] << std::endl;
             break;
         }
 
@@ -300,26 +300,26 @@ void TedApply(const unsigned char* data, const Session& session) {
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
 
     if (memcmp(fileHeader->magic, "TOAST", 5) != 0) {
-        std::cerr << "[TedApply] Invalid editor data binary: header magic failed check!\n";
+        Logging::err << "[TedApply] Invalid editor data binary: header magic failed check!" << std::endl;
         return;
     }
 
     // Old magic was 6 characters "TOASTD", so we check the last character for D
     // TODO: remove this on release
     if (fileHeader->magic[5] == 'D') {
-        std::cout <<
-            "[TedApply] An older TED version has been provided. Support for this will be dropped on final release.\n"
-            "           Please migrate your cellanim projects by opening them and resaving.\n";
+        Logging::warn <<
+            "[TedApply] An older TED version has been provided. Support for this will be dropped on final release." << std::endl <<
+            "           Please migrate your cellanim projects by opening them and resaving." << std::endl;
 
         _TedApplyOld(data, session);
         return;
     }
 
     if (fileHeader->majorVersion != TED_VERSION_MAJOR) {
-        std::cerr <<
+        Logging::err <<
             "[TedApply] Invalid editor data binary: version not supported (expected "
             << TED_VERSION_MAJOR << ".xx, got " << (unsigned)fileHeader->majorVersion << '.' <<
-            (unsigned)fileHeader->minorVersion << ")\n";
+            (unsigned)fileHeader->minorVersion << ')' << std::endl;
         return;
     }
 

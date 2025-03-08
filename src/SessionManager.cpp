@@ -7,6 +7,8 @@
 #include <sstream>
 #include <fstream>
 
+#include "Logging.hpp"
+
 #include <filesystem>
 
 #include <algorithm>
@@ -396,7 +398,7 @@ int SessionManager::CreateSession(const char* filePath) {
     {
         std::ifstream file(filePath, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
-            std::cerr << "[SessionManager::CreateSession] Error opening file at path: " << filePath << '\n';
+            Logging::err << "[SessionManager::CreateSession] Error opening file at path: " << filePath << std::endl;
             
             std::lock_guard<std::mutex> lock(this->mtx);
             this->currentError = OpenError_FailOpenFile;
@@ -420,7 +422,7 @@ int SessionManager::CreateSession(const char* filePath) {
 
         const auto decompressedData = Yaz0::decompress(data.data(), data.size());
         if (!decompressedData.has_value()) {
-            std::cerr << "[SessionManager::CreateSession] Error decompressing file at path: " << filePath << '\n';
+            Logging::err << "[SessionManager::CreateSession] Error decompressing file at path: " << filePath << std::endl;
 
             std::lock_guard<std::mutex> lock(this->mtx);
             this->currentError = OpenError_FailOpenArchive;
@@ -435,7 +437,7 @@ int SessionManager::CreateSession(const char* filePath) {
 
         const auto decompressedData = NZlib::decompress(data.data(), data.size());
         if (!decompressedData.has_value()) {
-            std::cerr << "[SessionManager::CreateSession] Error decompressing file at path: " << filePath << '\n';
+            Logging::err << "[SessionManager::CreateSession] Error decompressing file at path: " << filePath << std::endl;
 
             std::lock_guard<std::mutex> lock(this->mtx);
             this->currentError = OpenError_FailOpenArchive;
@@ -706,7 +708,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
         );
 
         if (!backedUp)
-            std::cerr << "[SessionManager::ExportSessionCompressedArc] Failed to save backup of file!\n";
+            Logging::err << "[SessionManager::ExportSession] Failed to save backup of file!" << std::endl;
     }
 
     std::ofstream file(dstFilePath, std::ios::binary);

@@ -31,6 +31,8 @@ set(SOURCES
     
     src/Toast.cpp
 
+    src/Logging.cpp
+
     src/App/Popups.cpp
 
     src/anim/CellanimRenderer.cpp

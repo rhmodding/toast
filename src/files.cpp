@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <fstream>
 
-#include <iostream>
+#include "Logging.hpp"
 
 bool Files::doesFileExist(const char* filePath) {
     if (filePath == nullptr)
@@ -29,13 +29,13 @@ bool Files::BackupFile(const char* filePath, bool once) {
 
     std::ifstream src(filePath, std::ios::binary);
     if (!src) {
-        std::cerr << "[Files::BackupFile] Error: Unable to open source file at path: " << filePath << '\n';
+        Logging::err << "[Files::BackupFile] Error: Unable to open source file at path: " << filePath << std::endl;
         return false;
     }
 
     std::ofstream dst(newFileName, std::ios::binary);
     if (!dst) {
-        std::cerr << "[Files::BackupFile] Error: Unable to create backup file at path: " << newFileName << '\n';
+        Logging::err << "[Files::BackupFile] Error: Unable to create backup file at path: " << newFileName << std::endl;
         return false;
     }
 

@@ -9,6 +9,8 @@
 
 #include <imgui.h>
 
+#include "Logging.hpp"
+
 #define BYTESWAP_64 __builtin_bswap64
 #define BYTESWAP_32 __builtin_bswap32
 #define BYTESWAP_16 __builtin_bswap16
@@ -73,14 +75,14 @@
         ); \
     } while (0)
 
-#ifndef NDEBUG
+#if !defined(NDEBUG)
 
 #define NONFATAL_ASSERT_RET(condition, shouldReturn) \
     do { \
         if (!(condition)) { \
-            std::cerr << "[NONFATAL_ASSERT_RET] Assertion failed: (" #condition "), " \
-                      << "function " << __FUNCTION__ << ", file " << __FILE__ \
-                      << ", line " << __LINE__ << "." << std::endl; \
+            Logging::err << "[NONFATAL_ASSERT_RET] Assertion failed: (" #condition "), " \
+                         << "function " << __FUNCTION__ << ", file " << __FILE__ \
+                         << ", line " << __LINE__ << "." << std::endl; \
             if (shouldReturn) return; \
         } \
     } while (0)
@@ -88,24 +90,23 @@
 #define NONFATAL_ASSERT_RETVAL(condition, ret) \
     do { \
         if (!(condition)) { \
-            std::cerr << "[NONFATAL_ASSERT_RETVAL] Assertion failed: (" #condition "), " \
-                      << "function " << __FUNCTION__ << ", file " << __FILE__ \
-                      << ", line " << __LINE__ << "." << std::endl; \
+            Logging::err << "[NONFATAL_ASSERT_RETVAL] Assertion failed: (" #condition "), " \
+                         << "function " << __FUNCTION__ << ", file " << __FILE__ \
+                         << ", line " << __LINE__ << "." << std::endl; \
             return (ret); \
         } \
     } while (0)
 
-#else // NDEBUG
+#else // !defined(NDEBUG)
 
 #define NONFATAL_ASSERT_RET(condition, shouldReturn) ((void)0)
 #define NONFATAL_ASSERT_RETVAL(condition, shouldReturn) ((void)0)
 
-#endif // NDEBUG
+#endif // !defined(NDEBUG)
 
 #define TRAP() \
     do { \
-        fprintf(stderr, "TRAP at %s:%d\n", __FILE__, __LINE__); \
-        fflush(stderr); \
+        Logging::err << "TRAP at " << __FILE__ << ':' <<__LINE__ << std::endl; \
         __builtin_trap(); \
         __builtin_unreachable(); \
     } while (0)

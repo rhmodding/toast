@@ -4,6 +4,8 @@
 
 #include <thread>
 
+#include "../Logging.hpp"
+
 #include "../rg_etc1/rg_etc1.h"
 
 #include "../ConfigManager.hpp"
@@ -196,7 +198,7 @@ bool CtrImageConvert::toRGBA32(
         break;
 
     default:
-        std::cerr << "[CtrImageConvert::toRGBA32] Cannot convert texture: invalid format (" << format << ")\n";
+        Logging::err << "[CtrImageConvert::toRGBA32] Cannot convert texture: invalid format (" << format << ')' << std::endl;
         return false;
     }
 
@@ -288,7 +290,7 @@ unsigned CtrImageConvert::getImageByteSize(const CTPK::CTPKImageFormat type, uns
     } break;
 
     default:
-        std::cerr << "[CtrImageConvert::getImageByteSize] Invalid format passed (" << static_cast<int>(type) << ")\n";
+        Logging::err << "[CtrImageConvert::getImageByteSize] Invalid format passed (" << static_cast<int>(type) << ')' << std::endl;
         break;
     }
 

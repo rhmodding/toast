@@ -3,7 +3,8 @@
 #include <cstdint>
 #include <cstring>
 
-#include <iostream>
+#include "../Logging.hpp"
+
 #include <fstream>
 
 #include <algorithm>
@@ -105,13 +106,13 @@ Directory* Directory::GetParent() const {
 
 U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(U8ArchiveHeader)) {
-        std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: data size smaller than header size!\n";
+        Logging::err << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: data size smaller than header size!" << std::endl;
         return;
     }
 
     const U8ArchiveHeader* header = reinterpret_cast<const U8ArchiveHeader*>(data);
     if (header->magic != U8_MAGIC) {
-        std::cerr << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: header magic failed check!\n";
+        Logging::err << "[U8ArchiveObject::U8ArchiveObject] Invalid U8 binary: header magic failed check!" << std::endl;
         return;
     }
 
@@ -335,7 +336,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
 std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        std::cerr << "[U8Archive::readYaz0U8Archive] Error opening file at path: " << filePath << '\n';
+        Logging::err << "[U8Archive::readYaz0U8Archive] Error opening file at path: " << filePath << std::endl;
         return std::nullopt;
     }
 
@@ -356,7 +357,7 @@ std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
     delete[] buffer;
 
     if (!decompressedData.has_value()) {
-        std::cerr << "[U8Archive::readYaz0U8Archive] Error decompressing file at path: " << filePath << '\n';
+        Logging::err << "[U8Archive::readYaz0U8Archive] Error decompressing file at path: " << filePath << std::endl;
         return std::nullopt;
     }
 

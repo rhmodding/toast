@@ -5,6 +5,8 @@
 
 #include "../MainThreadTaskManager.hpp"
 
+#include "../Logging.hpp"
+
 Texture::~Texture() {
     this->DestroyTexture();
 }
@@ -35,7 +37,7 @@ bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
     unsigned char* imageData = stbi_load_from_memory(data, dataSize, &w, &h, nullptr, 4);
 
     if (imageData == nullptr) {
-        std::cerr << "[Texture::LoadSTBMem] Failed to load image data from memory location " << data << '\n';
+        Logging::err << "[Texture::LoadSTBMem] Failed to load image data from memory location " << data << std::endl;
         return false;
     }
 
@@ -51,7 +53,7 @@ bool Texture::LoadSTBFile(const char* filename) {
     unsigned char* imageData = stbi_load(filename, &imageWidth, &imageHeight, nullptr, 4);
 
     if (imageData == nullptr) {
-        std::cerr << "[Texture::LoadSTBFile] Failed to load image data from file path \"" << filename << "\"\n";
+        Logging::err << "[Texture::LoadSTBFile] Failed to load image data from file path \"" << filename << "\"!" << std::endl;
         return false;
     }
 
@@ -64,13 +66,13 @@ bool Texture::LoadSTBFile(const char* filename) {
 
 unsigned char* Texture::GetRGBA32() {
     if (this->textureId == INVALID_TEXTURE_ID) {
-        std::cerr << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid\n";
+        Logging::err << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid" << std::endl;
         return nullptr;
     }
 
     unsigned char* imageData = new unsigned char[this->width * this->height * 4];
     if (imageData == nullptr) {
-        std::cerr << "[Texture::GetRGBA32] Failed to download image data: allocation failed\n";
+        Logging::err << "[Texture::GetRGBA32] Failed to download image data: allocation failed" << std::endl;
         return nullptr;
     }
 
@@ -87,7 +89,7 @@ unsigned char* Texture::GetRGBA32() {
 
 bool Texture::GetRGBA32(unsigned char* buffer) {
     if (this->textureId == INVALID_TEXTURE_ID) {
-        std::cerr << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid\n";
+        Logging::err << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid" << std::endl;
         return false;
     }
 
@@ -105,7 +107,7 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
 bool Texture::ExportToFile(const char* filename) {
     unsigned char* imageData = this->GetRGBA32();
     if (imageData == nullptr) {
-        std::cerr << "[Texture::ExportToFile] Failed to export to file (\"" << filename << "\"): GetRGBA32 failed\n";
+        Logging::err << "[Texture::ExportToFile] Failed to export to file (\"" << filename << "\"): GetRGBA32 failed" << std::endl;
         return false;
     }
 
@@ -120,7 +122,7 @@ bool Texture::ExportToFile(const char* filename) {
     delete[] imageData;
 
     if (!write) {
-        std::cerr << "[Texture::ExportToFile] Failed to export to file (" << filename << "): stbi_write_png failed\n";
+        Logging::err << "[Texture::ExportToFile] Failed to export to file (" << filename << "): stbi_write_png failed" << std::endl;
         return false;
     }
 
@@ -129,7 +131,7 @@ bool Texture::ExportToFile(const char* filename) {
 
 std::optional<TPL::TPLTexture> Texture::TPLTexture() {
     if (this->textureId == INVALID_TEXTURE_ID) {
-        std::cerr << "[Texture::TPLTexture] Failed to construct TPLTexture: textureId is invalid\n";
+        Logging::err << "[Texture::TPLTexture] Failed to construct TPLTexture: textureId is invalid" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -172,7 +174,7 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
 
 std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
     if (this->textureId == INVALID_TEXTURE_ID) {
-        std::cerr << "[Texture::CTPKTexture] Failed to construct CTPKTexture: textureId is invalid\n";
+        Logging::err << "[Texture::CTPKTexture] Failed to construct CTPKTexture: textureId is invalid" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 

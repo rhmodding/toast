@@ -9,6 +9,8 @@
 
 #include "../glInclude.hpp"
 
+#include "../Logging.hpp"
+
 #include "../common.hpp"
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -75,14 +77,14 @@ static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, const s
         glGetProgramiv(shader, flag, &success);
         if (success == GL_FALSE) {
             glGetProgramInfoLog(shader, sizeof(error), NULL, error);
-            std::cerr << errorMessage << ":\n" << error << '\n';
+            Logging::err << errorMessage << ":\n" << error << std::endl;
         }
     }
     else {
         glGetShaderiv(shader, flag, &success);
         if (success == GL_FALSE) {
             glGetShaderInfoLog(shader, sizeof(error), NULL, error);
-            std::cerr << errorMessage << ": " << error << '\n';
+            Logging::err << errorMessage << ":\n" << error << std::endl;
         }
     }
 }
@@ -131,9 +133,13 @@ void CellanimRenderer::InitShader() {
     CellanimRenderer::projMtxUniform = glGetUniformLocation(
         CellanimRenderer::shaderProgram, "ProjMtx"
     );
+
+    Logging::info << "[CellanimRenderer::InitShader] Successfully initialized shader." << std::endl;
 }
 
 void CellanimRenderer::DestroyShader() {
+    Logging::info << "[CellanimRenderer::DestroyShader] Destroying shader.." << std::endl;
+
     glDeleteProgram(CellanimRenderer::shaderProgram);
 }
 

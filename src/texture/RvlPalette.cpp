@@ -1,5 +1,7 @@
 #include "RvlPalette.hpp"
 
+#include "../Logging.hpp"
+
 std::set<uint32_t> RvlPalette::generate(const unsigned char* rgbaImage, unsigned pixelCount) {
     std::set<uint32_t> uniqueColors;
     for (unsigned i = 0; i < pixelCount; ++i)
@@ -72,9 +74,9 @@ void RvlPalette::readCLUT(
     } break;
 
     default:
-        std::cerr <<
+        Logging::err <<
             "[RvlPalette::readCLUT] Invalid color palette format! Expected 0 to " <<
-            TPL::TPL_CLUT_FORMAT_COUNT - 1 << ", got " << static_cast<int>(format) << '\n';
+            (TPL::TPL_CLUT_FORMAT_COUNT - 1) << ", got " << static_cast<int>(format) << '\n';
         return;
     }
 }
@@ -89,13 +91,13 @@ bool RvlPalette::writeCLUT(
 
     switch (format) {
     case TPL::TPL_CLUT_FORMAT_IA8: {
-        std::cerr <<
-            "[RvlPalette::writeCLUT] IA8 format not implemented!\n";
+        Logging::err <<
+            "[RvlPalette::writeCLUT] IA8 format not implemented!" << std::endl;
         return false;
     } break;
     case TPL::TPL_CLUT_FORMAT_RGB565: {
-        std::cerr <<
-            "[RvlPalette::writeCLUT] RGB565 format not implemented!\n";
+        Logging::err <<
+            "[RvlPalette::writeCLUT] RGB565 format not implemented!" << std::endl;
         return false;
     } break;
     case TPL::TPL_CLUT_FORMAT_RGB5A3: {
@@ -131,9 +133,9 @@ bool RvlPalette::writeCLUT(
     } break;
 
     default:
-        std::cerr <<
+        Logging::err <<
             "[RvlPalette::WriteRGBA32Palette] Invalid color palette format! Expected 0 to " <<
-            TPL::TPL_CLUT_FORMAT_COUNT - 1 << ", got " << static_cast<int>(format) << '\n';
+            (TPL::TPL_CLUT_FORMAT_COUNT - 1) << ", got " << static_cast<int>(format) << std::endl;
         return false;
     }
 

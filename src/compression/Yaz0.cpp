@@ -19,6 +19,8 @@
 
 #include <zlib-ng.h>
 
+#include "../Logging.hpp"
+
 #include "../common.hpp"
 
 constexpr uint32_t YAZ0_MAGIC = IDENTIFIER_TO_U32('Y', 'a', 'z', '0');
@@ -119,7 +121,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
             );
 
             if (zlibRun != Z_OK) {
-                std::cerr << "[Yaz0::compress] zng_compress failed with code " << zlibRun << ".\n";
+                Logging::err << "[Yaz0::compress] zng_compress failed with code " << zlibRun << '.' << std::endl;
                 return std::nullopt; // return nothing (std::optional)
             }
 
@@ -131,7 +133,8 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         }
     }
     // Direct store. Result will be 12.5% bigger than the original data since one
-    // op byte is needed for every 8 bytes.
+    // op byte is needed for every 8 bytes. This should be used only to bypass
+    // the usage of Zlib.
     else {
         // One op byte for every 8 bytes.
         unsigned compressedSize = dataSize + ((dataSize + 7) / 8);
@@ -163,24 +166,38 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         }
     }
 
+    size_t compressedSize = result.size() - sizeof(Yaz0Header);
+
+    if (compressedSize >= dataSize) {
+        Logging::info <<
+            "[Yaz0::compress] Successfully stored " << (dataSize / 1000) << "kb of data (final size: " <<
+            (compressedSize / 1000) << "kb)." << std::endl;
+    }
+    else {
+        float reductionRate = (compressedSize / static_cast<float>(dataSize)) * 100.f;
+        Logging::info <<
+            "[Yaz0::compress] Successfully compressed " << (dataSize / 1000) << "kb of data down to " <<
+            (compressedSize / 1000) << "kb (" << reductionRate << "% reduction)." << std::endl;
+    }
+
     return result;
 }
 
 std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(Yaz0Header)) {
-        std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: data size smaller than header size!\n";
+        Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: data size smaller than header size!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
     const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(data);
     if (header->magic != YAZ0_MAGIC) {
-        std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: header magic is nonmatching!\n";
+        Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: header magic is nonmatching!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
     const uint32_t decompressedSize = BYTESWAP_32(header->decompressedSize);
     if (decompressedSize == 0) {
-        std::cerr << "[Yaz0::decompress] Invalid Yaz0 binary: decompressed size is zero!\n";
+        Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: decompressed size is zero!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -217,7 +234,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
             for (; runLen > 0; runLen--, dstByte++, runSrcIdx++) {
                 if (UNLIKELY(dstByte >= dstEnd)) {
-                    std::cout << "[Yaz0::decompress] The Yaz0 data is malformed. The binary might be corrupted.\n";
+                    Logging::err << "[Yaz0::decompress] The Yaz0 data is malformed. The binary might be corrupted." << std::endl;
                     return std::nullopt;
                 }
 

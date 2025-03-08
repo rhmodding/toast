@@ -2,13 +2,16 @@
 
 #include <cstring>
 
-#include <iostream>
+#include "../Logging.hpp"
+
 #include <fstream>
 
 #include "../common.hpp"
 
 // 12 Mar 2010
+// Pre-byteswapped to BE.
 constexpr uint32_t RCAD_REVISION_DATE = __builtin_bswap32(20100312);
+
 // 7 Oct 2013
 constexpr uint32_t CCAD_REVISION_DATE = 20131007;
 
@@ -293,7 +296,7 @@ static bool InitRvlCellAnim(
     const unsigned char* data, const size_t dataSize
 ) {
     if (dataSize < sizeof(RvlCellAnimHeader)) {
-        std::cerr << "[CellAnimObject::CellAnimObject] Invalid RCAD binary: data size smaller than header size!\n";
+        Logging::err << "[CellAnimObject::CellAnimObject] Invalid RCAD binary: data size smaller than header size!" << std::endl;
         return false;
     }
 
@@ -384,7 +387,7 @@ static bool InitCtrCellAnim(
     const unsigned char* data, const size_t dataSize
 ) {
     if (dataSize < sizeof(CtrCellAnimHeader)) {
-        std::cerr << "[CellAnimObject::CellAnimObject] Invalid CCAD binary: data size smaller than header size!\n";
+        Logging::err << "[CellAnimObject::CellAnimObject] Invalid CCAD binary: data size smaller than header size!" << std::endl;
         return false;
     }
 
@@ -663,7 +666,7 @@ CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize)
         return;
     
     default:
-        std::cerr << "[CellAnimObject::CellAnimObject] Invalid cellanim binary: revision date doesn't match RVL or CTR!\n";
+        Logging::err << "[CellAnimObject::CellAnimObject] Invalid cellanim binary: revision date doesn't match RVL or CTR!" << std::endl;
         return;
     }
 }
@@ -676,7 +679,8 @@ std::vector<unsigned char> CellAnimObject::Serialize() {
         return SerializeCtrCellAnim(*this);
     
     default:
-        std::cerr << "[CellAnimObject::Serialize] this->type is invalid!\n";
+        Logging::err << "[CellAnimObject::Serialize] Invalid type (" <<
+            static_cast<int>(this->type) << ")!" << std::endl;
         return std::vector<unsigned char>();
     }
 }

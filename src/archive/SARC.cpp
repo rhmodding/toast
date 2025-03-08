@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include <iostream>
+#include "../Logging.hpp"
 
 #include <fstream>
 
@@ -113,35 +113,35 @@ void Directory::AddDirectory(Directory&& directory) {
 
 SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(SarcFileHeader)) {
-        std::cerr << "[SARCObject::SARCObject] Invalid SARC binary: data size smaller than header size!\n";
+        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: data size smaller than header size!" << std::endl;
         return;
     }
     
     const SarcFileHeader* header = reinterpret_cast<const SarcFileHeader*>(data);
     if (header->magic != SARC_MAGIC) {
-        std::cerr << "[SARCObject::SARCObject] Invalid SARC binary: header magic is nonmatching!\n";
+        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: header magic is nonmatching!" << std::endl;
         return;
     }
 
     if (header->byteOrder == SARC_BYTEORDER_BIG) {
-        std::cerr << "[SARCObject::SARCObject] Big-endian SARC is not supported!\n";
+        Logging::err << "[SARCObject::SARCObject] Big-endian SARC is not supported!" << std::endl;
         return;
     }
     if (header->byteOrder != SARC_BYTEORDER_LITTLE) {
-        std::cerr << "[SARCObject::SARCObject] Invalid SARC binary: byte order mark is invalid!\n";
+        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: byte order mark is invalid!" << std::endl;
         return;
     }
 
     if (header->formatVersion != SARC_VERSION) {
-        std::cerr << "[SARCObject::SARCObject] Expected SARC version 0x" <<
+        Logging::err << "[SARCObject::SARCObject] Expected SARC version 0x" <<
             std::hex << SARC_VERSION << ", got version 0x" <<
-            header->formatVersion  << " instead!";
+            header->formatVersion  << " instead!" << std::endl;
         return;
     }
 
     const SfatSection* sfatSection = reinterpret_cast<const SfatSection*>(data + header->headerSize);
     if (sfatSection->magic != SFAT_MAGIC) {
-        std::cerr << "[SARCObject::SARCObject] Invalid SARC binary: SFAT section magic is nonmatching!\n";
+        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: SFAT section magic is nonmatching!" << std::endl;
         return;
     }
 
@@ -149,7 +149,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         sfatSection->nodes + sfatSection->nodeCount
     );
     if (sfntSection->magic != SFNT_MAGIC) {
-        std::cerr << "[SARCObject::SARCObject] Invalid SARC binary: SFNT section magic is nonmatching!\n";
+        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: SFNT section magic is nonmatching!" << std::endl;
         return;
     }
 
@@ -314,7 +314,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
 std::optional<SARCObject> readNZlibSARC(const char* filePath) {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        std::cerr << "[SARC::readNZlibSARC] Error opening file at path: " << filePath << '\n';
+        Logging::err << "[SARC::readNZlibSARC] Error opening file at path: " << filePath << std::endl;
         return std::nullopt;
     }
 
@@ -335,7 +335,7 @@ std::optional<SARCObject> readNZlibSARC(const char* filePath) {
     delete[] buffer;
 
     if (!decompressedData.has_value()) {
-        std::cerr << "[SARC::readNZlibSARC] Error decompressing file at path: " << filePath << '\n';
+        Logging::err << "[SARC::readNZlibSARC] Error decompressing file at path: " << filePath << std::endl;
         return std::nullopt;
     }
 

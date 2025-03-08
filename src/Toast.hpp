@@ -23,6 +23,8 @@
 #include "window/WindowAbout.hpp"
 #include "window/WindowImguiDemo.hpp"
 
+#include "Logging.hpp"
+
 #include "common.hpp"
 
 class Toast;
@@ -45,7 +47,7 @@ public:
 
     GLFWwindow* getGLFWWindowHandle() {
         if (UNLIKELY(!this->glfwWindowHndl)) {
-            std::cerr << "[App::getGLFWWindowHandle] GLFW window handle does not exist (anymore)!" << std::endl;
+            Logging::err << "[App::getGLFWWindowHandle] GLFW window handle does not exist (anymore)!" << std::endl;
             TRAP();
         }
 
@@ -61,6 +63,8 @@ private:
     GLFWwindow* glfwWindowHndl { nullptr };
 
     bool isWindowMaximized { false };
+
+    std::array<float, 4> windowClearColor;
 
     template <typename T>
     struct AppWindow {
@@ -80,8 +84,8 @@ private:
                 return;
 
             if (UNLIKELY(!this->windowInstance)) {
-                std::cout << "[AppWindow<" << typeid(T).name() << ">::Update] Window instance does not exist (anymore)!\n";
-                return;
+                Logging::err << "[AppWindow<" << typeid(T).name() << ">::Update] Window instance does not exist (anymore)!" << std::endl;
+                TRAP();
             }
 
             this->windowInstance->Update();

@@ -4,8 +4,9 @@
 
 #include <cstdlib>
 
-#include <iostream>
 #include <sstream>
+
+#include "../Logging.hpp"
 
 #include <set>
 #include <vector>
@@ -79,7 +80,7 @@ void WindowSpritesheet::RunEditor() {
 #endif // __WIN32__
 
     std::string command = commandStream.str();
-    std::cout << "[WindowSpritesheet::RunEditor] Running command: " << command << std::endl;
+    Logging::info << "[WindowSpritesheet::RunEditor] Running command: " << command << std::endl;
 
     std::thread([command]() {
         std::system(command.c_str());

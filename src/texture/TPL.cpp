@@ -1,7 +1,8 @@
 #include "TPL.hpp"
 
-#include <iostream>
 #include <fstream>
+
+#include "../Logging.hpp"
 
 #include <unordered_set>
 
@@ -138,13 +139,13 @@ GLuint TPLTexture::createGPUTexture() const {
 
 TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
     if (dataSize < sizeof(TPLPalette)) {
-        std::cerr << "[TPLObject::TPLObject] Invalid TPL binary: data size smaller than palette size!\n";
+        Logging::err << "[TPLObject::TPLObject] Invalid TPL binary: data size smaller than palette size!" << std::endl;
         return;
     }
 
     const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
     if (palette->versionNumber != TPL_VERSION_NUMBER) {
-        std::cerr << "[TPLObject::TPLObject] Invalid TPL binary: invalid version number!\n";
+        Logging::err << "[TPLObject::TPLObject] Invalid TPL binary: invalid version number!" << std::endl;
         return;
     }
 
@@ -159,7 +160,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         const TPLDescriptor* descriptor = descriptors + i;
 
         if (descriptor->textureHeaderOffset == 0) {
-            std::cerr << "[TPLObject::TPLObject] Texture no. " << i+1 << " could not be read (texture header offset is zero)!\n";
+            Logging::err << "[TPLObject::TPLObject] Texture no. " << i+1 << " could not be read (texture header offset is zero)!" << std::endl;
             return;
         }
 
@@ -336,10 +337,10 @@ std::vector<unsigned char> TPLObject::Serialize() {
         TPLHeader* header = headers + i;
 
         if (texture.width > 1024 || texture.height > 1024) {
-            std::cerr <<
+            Logging::warn <<
                 "[TPLObject::Serialize] The dimensions of the texture exceed 1024x1024 "
-                "(" << texture.width << 'x' << texture.height << "),\n"
-                "                         the game will most likely be unable to read it properly.\n";
+                "(" << texture.width << 'x' << texture.height << ")," << std::endl <<
+                "                       the game will most likely be unable to read it properly." << std::endl;
         }
 
         header->width = BYTESWAP_16(static_cast<uint16_t>(texture.width));
@@ -353,7 +354,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.wrapS != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.width)
         ) {
-            std::cerr << "[TPLObject::Serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP\n";
+            Logging::err << "[TPLObject::Serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP" << std::endl;
             header->wrapS = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
@@ -363,7 +364,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.wrapT != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.height)
         ) {
-            std::cerr << "[TPLObject::Serialize] Image width is not a power of two, so vertical wrap will be set to CLAMP\n";
+            Logging::err << "[TPLObject::Serialize] Image width is not a power of two, so vertical wrap will be set to CLAMP" << std::endl;
             header->wrapT = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else

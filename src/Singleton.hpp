@@ -6,6 +6,8 @@
 #include <memory>
 #include <mutex>
 
+#include "Logging.hpp"
+
 #include "common.hpp"
 
 template<typename T>
@@ -41,7 +43,7 @@ template<typename T>
 void Singleton<T>::createSingleton() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (instance_) {
-        std::cout << "[Singleton<" << typeid(T).name() << ">::createSingleton] Singleton instance already exists!" << std::endl;
+        Logging::err << "[Singleton<" << typeid(T).name() << ">::createSingleton] Singleton instance already exists!" << std::endl;
         TRAP();
     }
     instance_ = std::unique_ptr<T>(new T());
@@ -57,7 +59,7 @@ template<typename T>
 T& Singleton<T>::getInstance() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!instance_) {
-        std::cout << "[Singleton<" << typeid(T).name() << ">::getInstance] Singleton instance does not exist (anymore)!" << std::endl;
+        Logging::err << "[Singleton<" << typeid(T).name() << ">::getInstance] Singleton instance does not exist (anymore)!" << std::endl;
         TRAP();
     }
     return *instance_;

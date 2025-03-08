@@ -1,6 +1,7 @@
 #include "ConfigManager.hpp"
 
-#include <iostream>
+#include "Logging.hpp"
+
 #include <fstream>
 
 inline void clampRecentlyOpened(std::vector<std::string>& recentlyOpened) {
@@ -39,7 +40,7 @@ void ConfigManager::LoadConfig() {
 void ConfigManager::SaveConfig() const {
     std::ofstream file(this->configPath);
     if (!file.is_open()) {
-        std::cerr << "[ConfigManager::Save] Unable to open file for saving.\n";
+        Logging::err << "[ConfigManager::Save] Unable to open file for saving." << std::endl;
         return;
     }
 

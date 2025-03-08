@@ -1,6 +1,6 @@
 #include "NZlib.hpp"
 
-#include <iostream>
+#include "../Logging.hpp"
 
 #include <algorithm>
 
@@ -36,13 +36,13 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         8, 15, 8, 0
     );
     if (init != Z_OK) {
-        std::cerr << "[NZlib::compress] zng_deflateInit failed!\n";
+        Logging::err << "[NZlib::compress] zng_deflateInit failed!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
     const int ret = zng_deflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
-        std::cerr << "[NZlib::compress] zng_deflate failed: " << ret << '\n';
+        Logging::err << "[NZlib::compress] zng_deflate failed: " << ret << std::endl;
 
         zng_deflateEnd(&strm);
         return std::nullopt; // return nothing (std::optional)
@@ -52,12 +52,18 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     deflated.resize(sizeof(NZLibHeader) + strm.total_out);
 
+    float reductionRate = (strm.total_out / static_cast<float>(dataSize)) * 100.f;
+
+    Logging::info <<
+        "[NZlib::compress] Successfully compressed " << (dataSize / 1000) << "kb of data down to " <<
+        (strm.total_out / 1000) << "kb (" << reductionRate << "% reduction)." << std::endl;
+
     return deflated;
 }
 
 std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(NZLibHeader)) {
-        std::cerr << "[NZlib::decompress] Invalid NZlib binary: data size smaller than header size!\n";
+        Logging::err << "[NZlib::decompress] Invalid NZlib binary: data size smaller than header size!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -67,7 +73,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
     const uint32_t inflateSize = BYTESWAP_32(header->inflateSize);
 
     if (inflateSize == 0) {
-        std::cerr << "[NZlib::decompress] Invalid inflate size!\n";
+        Logging::err << "[NZlib::decompress] Invalid inflate size!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -81,13 +87,13 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
     const int init = zng_inflateInit2(&strm, 15);
     if (init != Z_OK) {
-        std::cerr << "[NZlib::decompress] zng_inflateInit failed!\n";
+        Logging::err << "[NZlib::decompress] zng_inflateInit failed!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
     const int ret = zng_inflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
-        std::cerr << "[NZlib::decompress] zng_inflate failed: " << ret << '\n';
+        Logging::err << "[NZlib::decompress] zng_inflate failed: " << ret << std::endl;
 
         zng_inflateEnd(&strm);
         return std::nullopt; // return nothing (std::optional)

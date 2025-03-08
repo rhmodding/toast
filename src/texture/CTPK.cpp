@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+#include "../Logging.hpp"
+
 #include "../MainThreadTaskManager.hpp"
 
 #include "CtrImageConvert.hpp"
@@ -188,18 +190,18 @@ GLuint CTPKTexture::createGPUTexture() const {
 
 CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
     if (dataSize < sizeof(CtpkFileHeader)) {
-        std::cerr << "[CTPKObject::CTPKObject] Invalid CTPK binary: data size smaller than header size!\n";
+        Logging::err << "[CTPKObject::CTPKObject] Invalid CTPK binary: data size smaller than header size!" << std::endl;
         return;
     }
 
     const CtpkFileHeader* header = reinterpret_cast<const CtpkFileHeader*>(ctpkData);
     if (header->magic != CTPK_MAGIC) {
-        std::cerr << "[CTPKObject::CTPKObject] Invalid CTPK binary: header magic is nonmatching!\n";
+        Logging::err << "[CTPKObject::CTPKObject] Invalid CTPK binary: header magic is nonmatching!" << std::endl;
         return;
     }
 
     if (header->formatVersion != CTPK_VERSION) {
-        std::cerr << "[CTPKObject::CTPKObject] Expected CTPK version " << CTPK_VERSION <<
+        Logging::err << "[CTPKObject::CTPKObject] Expected CTPK version " << CTPK_VERSION <<
             ", got version 0x" << header->formatVersion << " instead!";
         return;
     }
@@ -211,8 +213,8 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
         CTPKTexture& textureOut = this->textures[i];
 
         if (textureIn->type != 2) {
-            std::cerr << "[CTPKObject::CTPKObject] Unsupported texture (no. " << i+1 <<
-                "): non-2D textures are not supported!\n";
+            Logging::err << "[CTPKObject::CTPKObject] Unsupported texture (no. " << i+1 <<
+                "): non-2D textures are not supported!" << std::endl;
             return;
         }
 
@@ -275,9 +277,9 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         texEntry->dataFormat = static_cast<uint32_t>(texture.format);
 
         if (texture.width > 1024 || texture.height > 1024) {
-            std::cerr <<
-                "[CTPKObject::Serialize] Texture no. " << i+1 << " exceeds the dimensions limit of 1024x1024; the\n"
-                "                        texture will be scaled down to fit within the bounds.";
+            Logging::err <<
+                "[CTPKObject::Serialize] Texture no. " << i+1 << " exceeds the dimensions limit of 1024x1024; the" << std::endl <<
+                "                        texture will be scaled down to fit within the bounds." << std::endl;
             
             float scale = std::min(
                 1024.f / texture.width,
