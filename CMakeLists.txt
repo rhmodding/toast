@@ -168,6 +168,8 @@ ELSE() # Generic
         glfw
 
         dl
+        pthread
+        m
     )
 ENDIF()
 
