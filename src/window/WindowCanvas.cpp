@@ -346,11 +346,12 @@ void WindowCanvas::Update() {
     drawList->AddRectFilled(this->canvasTopLeft, canvasBottomRight, backgroundColor);
 
     // This catches interactions (dragging, hovering, clicking, etc.)
-    ImGui::InvisibleButton("CanvasInteraction", this->canvasSize,
-        ImGuiButtonFlags_MouseButtonLeft |
-        ImGuiButtonFlags_MouseButtonRight |
-        ImGuiButtonFlags_MouseButtonMiddle
-    );
+    if (this->canvasSize.x != 0.f && this->canvasSize.y != 0.f)
+        ImGui::InvisibleButton("CanvasInteraction", this->canvasSize,
+            ImGuiButtonFlags_MouseButtonLeft |
+            ImGuiButtonFlags_MouseButtonRight |
+            ImGuiButtonFlags_MouseButtonMiddle
+        );
 
     const bool interactionHovered     = ImGui::IsItemHovered();
     const bool interactionActive      = ImGui::IsItemActive();      // Held

@@ -853,11 +853,12 @@ void WindowSpritesheet::Update() {
     drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor);
 
     // This catches interactions
-    ImGui::InvisibleButton("CanvasInteractions", canvasSize,
-        ImGuiButtonFlags_MouseButtonLeft |
-        ImGuiButtonFlags_MouseButtonRight |
-        ImGuiButtonFlags_MouseButtonMiddle
-    );
+    if (canvasSize.x != 0.f && canvasSize.y != 0.f)
+        ImGui::InvisibleButton("CanvasInteractions", canvasSize,
+            ImGuiButtonFlags_MouseButtonLeft |
+            ImGuiButtonFlags_MouseButtonRight |
+            ImGuiButtonFlags_MouseButtonMiddle
+        );
 
     const bool interactionHovered = ImGui::IsItemHovered();
     const bool interactionActive = ImGui::IsItemActive(); // Held

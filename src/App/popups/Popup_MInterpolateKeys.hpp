@@ -115,9 +115,10 @@ static bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
     char buf[128];
     snprintf(buf, sizeof(buf), "%s##bInteract", label);
 
-    ImGui::InvisibleButton(buf, outerBb.GetSize(),
-        ImGuiButtonFlags_MouseButtonLeft
-    );
+    if (outerBb.GetArea() != 0.f)
+        ImGui::InvisibleButton(buf, outerBb.GetSize(),
+            ImGuiButtonFlags_MouseButtonLeft
+        );
 
     //const bool interactionHovered     = ImGui::IsItemHovered();
     const bool interactionActive      = ImGui::IsItemActive();      // Held
