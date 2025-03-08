@@ -20,7 +20,7 @@ set(SOURCES
 
     ext/tinyfiledialogs/tinyfiledialogs.c
 
-    src/rg_etc1/rg_etc1.cpp
+    ext/rg-etc1/rg_etc1.cpp
 
     src/stb/stb_dxt_impl.cpp
     src/stb/stb_image_write_impl.cpp
@@ -110,9 +110,10 @@ ENDIF()
 
 # Include directories
 target_include_directories(toast PRIVATE
-    ext/imgui/
+    ext/imgui
     ext/imgui/backends
     ext/tinyfiledialogs
+    ext/rg-etc1
 
     libs/glfw/include
 )

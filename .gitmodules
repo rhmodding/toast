@@ -11,3 +11,6 @@
 [submodule "ext/tinyfiledialogs"]
 	path = ext/tinyfiledialogs
 	url = git://git.code.sf.net/p/tinyfiledialogs/code
+[submodule "ext/rg-etc1"]
+	path = ext/rg-etc1
+	url = https://github.com/conhlee/rg-etc1.git

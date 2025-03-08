@@ -6,7 +6,7 @@
 
 #include "../Logging.hpp"
 
-#include "../rg_etc1/rg_etc1.h"
+#include <rg_etc1.h>
 
 #include "../ConfigManager.hpp"
 
