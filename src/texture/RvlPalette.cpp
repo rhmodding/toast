@@ -73,7 +73,7 @@ void RvlPalette::readCLUT(
 
     default:
         std::cerr <<
-            "[RvlPalette::toRGBA32] Invalid color palette format! Expected 0 to " <<
+            "[RvlPalette::readCLUT] Invalid color palette format! Expected 0 to " <<
             TPL::TPL_CLUT_FORMAT_COUNT - 1 << ", got " << static_cast<int>(format) << '\n';
         return;
     }
@@ -90,12 +90,12 @@ bool RvlPalette::writeCLUT(
     switch (format) {
     case TPL::TPL_CLUT_FORMAT_IA8: {
         std::cerr <<
-            "[RvlPalette::WriteRGBA32Palette] IA8 format not implemented!\n";
+            "[RvlPalette::writeCLUT] IA8 format not implemented!\n";
         return false;
     } break;
     case TPL::TPL_CLUT_FORMAT_RGB565: {
         std::cerr <<
-            "[RvlPalette::WriteRGBA32Palette] RGB565 format not implemented!\n";
+            "[RvlPalette::writeCLUT] RGB565 format not implemented!\n";
         return false;
     } break;
     case TPL::TPL_CLUT_FORMAT_RGB5A3: {
