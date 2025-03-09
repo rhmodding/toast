@@ -488,7 +488,7 @@ void CellanimRenderer::InternDraw(
         drawList->AddCallback(CellanimRenderer::renderPartCallback, &callbackData, sizeof(callbackData));
 
         drawList->AddImageQuad(
-            (ImTextureID)texture->getTextureId(),
+            texture->getImTextureId(),
             quad[0], quad[1], quad[2], quad[3],
             uvs[0], uvs[1], uvs[2], uvs[3],
             vertexColor

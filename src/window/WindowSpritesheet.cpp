@@ -458,7 +458,7 @@ void WindowSpritesheet::FormatPopup() {
 
             if (this->formatPreviewTexture)
                 ImGui::GetWindowDrawList()->AddImage(
-                    (ImTextureID)this->formatPreviewTexture->getTextureId(),
+                    this->formatPreviewTexture->getImTextureId(),
                     imagePosition,
                     { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
                 );
@@ -936,7 +936,7 @@ void WindowSpritesheet::Update() {
     };
 
     drawList->AddImage(
-        (ImTextureID)cellanimSheet->getTextureId(),
+        cellanimSheet->getImTextureId(),
         imagePosition,
         { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
     );

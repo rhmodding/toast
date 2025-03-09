@@ -81,7 +81,7 @@ static void Popup_SpritesheetManager() {
             );
 
             ImGui::GetWindowDrawList()->AddImage(
-                (ImTextureID)cellanimSheet->getTextureId(),
+                cellanimSheet->getImTextureId(),
                 imagePosition,
                 { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
             );
