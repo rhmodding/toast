@@ -6,6 +6,8 @@
 #include "TPL.hpp"
 #include "CTPK.hpp"
 
+#include <imgui.h> // for ImTextureID
+
 class Texture {
 public:
     static constexpr GLuint INVALID_TEXTURE_ID = 0;
@@ -40,6 +42,7 @@ public:
     unsigned getPixelCount() const { return this->width * this->height; }
 
     GLuint getTextureId() const { return this->textureId; }
+    ImTextureID getImTextureId() const { return static_cast<ImTextureID>(this->textureId); }
 
     TPL::TPLImageFormat getTPLOutputFormat() const { return this->tplOutputFormat; }
     void setTPLOutputFormat(TPL::TPLImageFormat format) { this->tplOutputFormat = format; }
