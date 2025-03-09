@@ -441,10 +441,8 @@ void Toast::Menubar() {
                 auto* currentSession = sessionManager.getCurrentSession();
 
                 for (unsigned i = 0; i < currentSession->cellanims.size(); i++) {
-                    const std::string& str = currentSession->cellanims[i].name;
-
                     std::ostringstream fmtStream;
-                    fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
+                    fmtStream << std::to_string(i+1) << ". " << currentSession->cellanims[i].name;
 
                     if (ImGui::MenuItem(
                         fmtStream.str().c_str(), nullptr,
@@ -775,10 +773,8 @@ void Toast::Menubar() {
                     ImGui::TextUnformatted("Select a Cellanim:");
                     ImGui::Separator();
                     for (unsigned i = 0; i < session.cellanims.size(); i++) {
-                        const std::string& str = session.cellanims[i].name;
-
                         std::ostringstream fmtStream;
-                        fmtStream << std::to_string(i+1) << ". " << str.substr(0, str.size() - 6);
+                        fmtStream << std::to_string(i+1) << ". " << session.cellanims[i].name;
 
                         if (ImGui::MenuItem(
                             fmtStream.str().c_str(), nullptr,
@@ -800,11 +796,10 @@ void Toast::Menubar() {
                     ImGui::EndPopup();
                 }
 
-                const std::string& cellanimName = session.getCurrentCellanim().name;
                 ImGui::SetItemTooltip(
                     "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
                     session.resourcePath.c_str(),
-                    cellanimName.substr(0, cellanimName.size() - 6).c_str()
+                    session.getCurrentCellanim().name.c_str()
                 );
 
                 if (!sessionOpen) {

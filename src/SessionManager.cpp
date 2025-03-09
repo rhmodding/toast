@@ -140,7 +140,7 @@ static SessionManager::Error InitRvlSession(
     for (const auto& file : rootDirIt->files) {
         if (
             file.name.size() >= 6 &&
-            file.name.substr(file.name.size() - 6) == ".brcad"
+            file.name.substr(file.name.size() - STR_LIT_LEN(".brcad")) == ".brcad"
         )
             brcadFiles.push_back(&file);
     }
@@ -163,7 +163,7 @@ static SessionManager::Error InitRvlSession(
         auto& cellanim = session.cellanims[i];
         const auto* file = brcadFiles[i];
 
-        cellanim.name = file->name;
+        cellanim.name = file->name.substr(0, file->name.size() - STR_LIT_LEN(".brcad"));
         cellanim.object =
             std::make_shared<CellAnim::CellAnimObject>(
                 file->data.data(), file->data.size()
@@ -181,11 +181,13 @@ static SessionManager::Error InitRvlSession(
         const U8Archive::File* brcadFile = brcadFiles[i];
         const U8Archive::File* headerFile { nullptr };
 
+        unsigned cellanimNameLen = brcadFile->name.size() - STR_LIT_LEN(".brcad");
+
         char targetHeaderName[128];
         snprintf(
             targetHeaderName, sizeof(targetHeaderName),
             "rcad_%.*s_labels.h",
-            static_cast<int>(brcadFile->name.size() - STR_LIT_LEN(".brcad")),
+            static_cast<int>(cellanimNameLen),
             brcadFile->name.c_str()
         );
 
@@ -217,8 +219,12 @@ static SessionManager::Error InitRvlSession(
                     key = key.substr(0, commentPos);
 
                 auto& animations = session.cellanims[i].object->animations;
-                if (value < animations.size())
-                    session.cellanims[i].object->animations.at(value).name = key;
+                if (value < animations.size()) {
+                    auto& animation = session.cellanims[i].object->animations.at(value);
+
+                    // +1 because of the trailing underscore.
+                    animation.name = key.substr(cellanimNameLen + 1);
+                }
             }
         }
     }
@@ -271,9 +277,9 @@ static SessionManager::Error InitCtrSession(
     std::vector<const SARC::File*> bccadFiles;
     for (const auto& file : rootDirIt->files) {
         if (file.name.size() >= STR_LIT_LEN(".bccad") &&
-            file.name.substr(file.name.size() - STR_LIT_LEN(".bccad")) == ".bccad") {
+            file.name.substr(file.name.size() - STR_LIT_LEN(".bccad")) == ".bccad"
+        )
             bccadFiles.push_back(&file);
-        }
     }
     
     if (bccadFiles.empty())
@@ -324,7 +330,7 @@ static SessionManager::Error InitCtrSession(
         auto& cellanim = session.cellanims[i];
         const auto* file = bccadFiles[i];
 
-        cellanim.name = file->name;
+        cellanim.name = file->name.substr(0, file->name.size() - STR_LIT_LEN(".bccad"));
         cellanim.object = std::make_shared<CellAnim::CellAnimObject>(
             file->data.data(), file->data.size()
         );
@@ -512,7 +518,7 @@ static SessionManager::Error SerializeRvlSession(
 
     // BRCAD files
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
-        U8Archive::File file(session.cellanims[i].name);
+        U8Archive::File file(session.cellanims[i].name + ".brcad");
         file.data = session.cellanims[i].object->Serialize();
 
         directory.AddFile(std::move(file));
@@ -520,20 +526,19 @@ static SessionManager::Error SerializeRvlSession(
 
     // Header files
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
+        const std::string& cellanimName = session.cellanims[i].name;
+
         std::ostringstream stream;
         for (unsigned j = 0; j < session.cellanims[i].object->animations.size(); j++) {
             const auto& animation = session.cellanims[i].object->animations[j];
             if (animation.name.empty())
                 continue;
 
-            stream << "#define " << animation.name << '\t' << std::to_string(j) << "\t// (null)\n";
+            stream << "#define " << cellanimName << '_' << animation.name << '\t' << std::to_string(j) << "\t// (null)\n";
         }
 
-        const std::string& cellanimName = session.cellanims[i].name;
         U8Archive::File file(
-            "rcad_" +
-            cellanimName.substr(0, cellanimName.size() - STR_LIT_LEN(".brcad")) +
-            "_labels.h"
+            "rcad_" + cellanimName + "_labels.h"
         );
 
         const std::string str = stream.str();
@@ -609,7 +614,7 @@ static SessionManager::Error SerializeCtrSession(
 
     // BCCAD files
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
-        SARC::File file(session.cellanims[i].name);
+        SARC::File file(session.cellanims[i].name + ".bccad");
         file.data = session.cellanims[i].object->Serialize();
 
         directory.AddFile(std::move(file));

@@ -32,13 +32,7 @@ static void Popup_EditAnimationName(int animationIndex) {
                 ->getCurrentCellanim().object
                 ->animations.at(animationIndex);
 
-        if (animation.name.empty()) {
-            const std::string& str = sessionManager.getCurrentSession()->getCurrentCellanim().name;
-            snprintf(newMacro, sizeof(newMacro), "%.*s_", static_cast<int>(str.size() - 6), str.c_str());
-        }
-        else {
-            strncpy(newMacro, animation.name.c_str(), sizeof(newMacro) - 1);
-        }
+        strncpy(newMacro, animation.name.c_str(), sizeof(newMacro) - 1);
     }
 
     if (open) {
