@@ -52,7 +52,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     deflated.resize(sizeof(NZLibHeader) + strm.total_out);
 
-    float reductionRate = (strm.total_out / static_cast<float>(dataSize)) * 100.f;
+    float reductionRate = ((dataSize - strm.total_out) / static_cast<float>(dataSize)) * 100.f;
 
     Logging::info <<
         "[NZlib::compress] Successfully compressed " << (dataSize / 1000) << "kb of data down to " <<

@@ -132,9 +132,10 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
             }
         }
     }
-    // Direct store. Result will be 12.5% bigger than the original data since one
+    // (Almost) store; result will be 12.5% bigger than the original data since one
     // op byte is needed for every 8 bytes. This should be used only to bypass
-    // the usage of Zlib.
+    // the usage of zlib-ng (for debugging purposes or otherwise), in any other case
+    // this is super ultra horrible.
     else {
         // One op byte for every 8 bytes.
         unsigned compressedSize = dataSize + ((dataSize + 7) / 8);
@@ -174,7 +175,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
             (compressedSize / 1000) << "kb)." << std::endl;
     }
     else {
-        float reductionRate = (compressedSize / static_cast<float>(dataSize)) * 100.f;
+        float reductionRate = ((dataSize - compressedSize) / static_cast<float>(dataSize)) * 100.f;
         Logging::info <<
             "[Yaz0::compress] Successfully compressed " << (dataSize / 1000) << "kb of data down to " <<
             (compressedSize / 1000) << "kb (" << reductionRate << "% reduction)." << std::endl;
