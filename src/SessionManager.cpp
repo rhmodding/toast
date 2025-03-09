@@ -528,18 +528,19 @@ static SessionManager::Error SerializeRvlSession(
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
         const std::string& cellanimName = session.cellanims[i].name;
 
+        U8Archive::File file(
+            "rcad_" + cellanimName + "_labels.h"
+        );
+
         std::ostringstream stream;
         for (unsigned j = 0; j < session.cellanims[i].object->animations.size(); j++) {
             const auto& animation = session.cellanims[i].object->animations[j];
             if (animation.name.empty())
                 continue;
 
+            // Note: Bread requires a comment at the end, so we write it for reverse-compatibillity.
             stream << "#define " << cellanimName << '_' << animation.name << '\t' << std::to_string(j) << "\t// (null)\n";
         }
-
-        U8Archive::File file(
-            "rcad_" + cellanimName + "_labels.h"
-        );
 
         const std::string str = stream.str();
         file.data.insert(file.data.end(), str.begin(), str.end());
@@ -696,8 +697,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
         break;
     
     default:
-        this->currentError = Error_Unknown;
-        return false;
+        error = Error_Unknown;
         break;
     }
 
