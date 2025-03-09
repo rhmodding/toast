@@ -126,11 +126,12 @@ void WindowInspector::Level_Arrangement() {
                 ImGui::SetNextItemWidth(152.f);
 
                 if (ImGui::InputInt("##ArrangementInput", &newArrangement)) {
-                    playerManager.getKey().arrangementIndex = std::max<unsigned>(
+                    if (newArrangement < 1) newArrangement = 1;
+
+                    playerManager.getKey().arrangementIndex = std::min<unsigned>(
                         newArrangement - 1, arrangements.size() - 1
                     );
-
-                    PlayerManager::getInstance().correctState();
+                    playerManager.correctState();
                 }
 
                 if (ImGui::IsItemActivated())
@@ -148,7 +149,7 @@ void WindowInspector::Level_Arrangement() {
                 if (newKey != originalKey) {
                     playerManager.getKey() = originalKey;
 
-                    SessionManager::getInstance().getCurrentSession()->addCommand(
+                    sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandModifyAnimationKey>(
                         sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                         playerManager.getAnimationIndex(),
@@ -377,7 +378,7 @@ void WindowInspector::Level_Arrangement() {
             if (newPart != originalPart) {
                 part = originalPart;
 
-                SessionManager::getInstance().getCurrentSession()->addCommand(
+                sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifyArrangementPart>(
                     sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                     playerManager.getArrangementIndex(),
