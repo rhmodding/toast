@@ -641,29 +641,47 @@ static SessionManager::Error SerializeCtrSession(
     }
 
     // CTPK files
+    std::vector<CTPK::CTPKTexture> ctpkTextures;
+
+    SessionManager::Error getTexturesError { SessionManager::Error_None };
+    MainThreadTaskManager::getInstance().QueueTask([&session, &ctpkTextures, &getTexturesError]() {
+        for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
+            auto ctpkTexture = session.sheets->getTextureByIndex(i)->CTPKTexture();
+            if (!ctpkTexture.has_value()) {
+                getTexturesError = SessionManager::OutError_FailTextureExport;
+                return;
+            }
+
+            ctpkTextures.push_back(std::move(*ctpkTexture));
+        }
+    }).get();
+
+    if (getTexturesError != SessionManager::Error_None)
+        return getTexturesError;
+
     for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
         const auto& texture = session.sheets->getTextureByIndex(i);
+        auto& ctpkTex = ctpkTextures[i];
 
         SARC::File file(texture->getName() + ".ctpk");
-
-        auto ctpkTex = texture->CTPKTexture();
-        if (!ctpkTex.has_value())
-            return SessionManager::OutError_FailTextureExport;
         
-        ctpkTex->rotateCW();
+        ctpkTex.rotateCW();
 
-        ctpkTex->sourcePath = "data/" + texture->getName() + "_rot.tga";
+        ctpkTex.sourcePath = "data/" + texture->getName() + "_rot.tga";
 
         CTPK::CTPKObject ctpkObject;
         ctpkObject.ok = true;
 
-        ctpkObject.textures.push_back(std::move(*ctpkTex));
-        ctpkTex.reset();
+        ctpkObject.textures.assign(1, std::move(ctpkTex));
+
+        Logging::info << "[SerializeCtrSession] Serializing texture \"" << texture->getName() << "\".." << std::endl;
 
         file.data = ctpkObject.Serialize();
 
         directory.AddFile(std::move(file));
     }
+
+    ctpkTextures.clear();
 
     // TED file
     {
