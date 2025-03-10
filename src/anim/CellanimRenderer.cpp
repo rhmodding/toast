@@ -192,7 +192,13 @@ void CellanimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& ani
     this->InternDraw(drawList, animation.keys.at(keyIndex), -1, 0xFFFFFFFFu, allowOpacity);
 }
 
-void CellanimRenderer::DrawOnionSkin(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, unsigned backCount, unsigned frontCount, bool rollOver, uint8_t opacity) {
+void CellanimRenderer::DrawOnionSkin(
+    ImDrawList* drawList,
+    const CellAnim::Animation& animation, unsigned keyIndex,
+    unsigned backCount, unsigned frontCount,
+    bool rollOver,
+    uint8_t opacity
+) {
     NONFATAL_ASSERT_RET(this->cellanim, true);
     NONFATAL_ASSERT_RET(this->textureGroup, true);
 
@@ -201,7 +207,7 @@ void CellanimRenderer::DrawOnionSkin(ImDrawList* drawList, const CellAnim::Anima
 
     const unsigned keyCount = animation.keys.size();
 
-    auto _drawOnionSkin = [&](int startIndex, int endIndex, int step, uint32_t color) {
+    auto _drawOnionSkin = [this, rollOver, keyCount, drawList, animation](int startIndex, int endIndex, int step, uint32_t color) {
         int i = startIndex;
         while ((step < 0) ? (i >= endIndex) : (i <= endIndex)) {
             int wrappedIndex = i;
@@ -215,7 +221,6 @@ void CellanimRenderer::DrawOnionSkin(ImDrawList* drawList, const CellAnim::Anima
                     wrappedIndex = wrappedIndex % keyCount;
             }
 
-            // Break out if rollover is disabled
             if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= static_cast<int>(keyCount)))
                 break;
 
