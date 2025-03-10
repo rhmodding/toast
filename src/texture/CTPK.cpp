@@ -409,7 +409,12 @@ std::vector<unsigned char> CTPKObject::Serialize() {
             dstTexture.height = texEntry->height;
         }
 
-        for (unsigned i = 0; i < dstTexture.mipCount; i++) {
+        for (unsigned j = 0; j < dstTexture.mipCount; j++) {
+            Logging::info <<
+                "[CTPKObject::Serialize] Writing data for texture no. " << (i+1) << " (mip-level no. " <<
+                j+1 << ") (" << dstTexture.width << 'x' << dstTexture.height << ", " <<
+                getImageFormatName(dstTexture.format) << ").." << std::endl;
+
             CtrImageConvert::fromRGBA32(dstTexture, currentData);
             currentData += CtrImageConvert::getImageByteSize(
                 dstTexture.format, dstTexture.width, dstTexture.height, 1
@@ -418,7 +423,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
             unsigned newWidth = (dstTexture.width > 1) ? dstTexture.width / 2 : 1;
             unsigned newHeight = (dstTexture.height > 1) ? dstTexture.height / 2 : 1;
 
-            if (i + 1 != dstTexture.mipCount)
+            if (j + 1 != dstTexture.mipCount)
                 bilinearScale(
                     dstTexture.width, dstTexture.height,
                     newWidth, newHeight,
