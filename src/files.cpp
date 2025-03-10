@@ -1,10 +1,11 @@
-#include "files.hpp"
+#include "Files.hpp"
 
 #include <cstdio>
 #include <fstream>
 
 #include "Logging.hpp"
 
+// Apparently, the fastest way to do this is with fopen
 bool Files::doesFileExist(const char* filePath) {
     if (filePath == nullptr)
         return false;
@@ -17,25 +18,19 @@ bool Files::doesFileExist(const char* filePath) {
     return true;
 }
 
-bool Files::BackupFile(const char* filePath, bool once) {
-    char newFileName[1024];
-    snprintf(newFileName, sizeof(newFileName), "%s.bak", filePath);
+bool Files::copyFile(const char* filePathSrc, const char* filePathDst, bool overwrite) {
+    if (doesFileExist(filePathDst))
+        return true;
 
-    if (FILE* file = fopen(newFileName, "r")) {
-        fclose(file);
-        if (once)
-            return true;
-    }
-
-    std::ifstream src(filePath, std::ios::binary);
+    std::ifstream src(filePathSrc, std::ios::binary);
     if (!src) {
-        Logging::err << "[Files::BackupFile] Error: Unable to open source file at path: " << filePath << std::endl;
+        Logging::err << "[Files::copyFile] Unable to open source file at path \"" << filePathSrc << "\"!" << std::endl;
         return false;
     }
 
-    std::ofstream dst(newFileName, std::ios::binary);
+    std::ofstream dst(filePathDst, std::ios::binary);
     if (!dst) {
-        Logging::err << "[Files::BackupFile] Error: Unable to create backup file at path: " << newFileName << std::endl;
+        Logging::err << "[Files::copyFile] Unable to open destination file at path \"" << filePathDst << "\"!" << std::endl;
         return false;
     }
 

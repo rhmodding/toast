@@ -5,11 +5,10 @@ namespace Files {
 
 bool doesFileExist(const char* filePath);
 
-// Backup a file at the specified path. If once is true, avoid writing the
-// backup file if it already exists.
+// Copy one file to another by their paths. If overwrite is set, 
 //
-// Returns: true if succeeded, false if failed
-bool BackupFile(const char* filePath, bool once);
+// Returns: true if successfully copied (or file already exists and overwrite is set), false if failed
+bool copyFile(const char* filePathSrc, const char* filePathDst, bool overwrite);
 
 } // namespace Files
 
