@@ -292,10 +292,12 @@ Toast::~Toast() {
 
     windowDemo.Destroy();
 
+    SessionManager::getInstance().RemoveAllSessions();
+    SessionManager::destroySingleton();
+
     CellanimRenderer::DestroyShader();
 
     AppState::destroySingleton();
-    SessionManager::destroySingleton();
     ConfigManager::destroySingleton();
     PlayerManager::destroySingleton();
     AsyncTaskManager::destroySingleton();
