@@ -13,24 +13,12 @@
 
 #include "../common.hpp"
 
-// Pre-byteswapped.
-constexpr uint32_t TPL_VERSION_NUMBER = 0x30AF2000;
-
-struct TPLClutHeader {
-    uint16_t numEntries;
-
-    // Boolean value, used in official SDK to keep track of TPL state.
-    uint8_t _unpacked { 0x00 };
-
-    uint8_t _pad8 { 0x00 };
-
-    uint32_t format; // TPLClutFormat (big endian)
-
-    uint32_t dataOffset;
-} __attribute__((packed));
+// 14 Feb 2000
+// Pre-byteswapped to BE.
+constexpr uint32_t TPL_VERSION_NUMBER = __builtin_bswap32(2142000);
 
 struct TPLPalette {
-    // 2142000 in big-endian. This is a date (Feb 14 2000).
+    // Compare to TPL_VERSION_NUMBER
     uint32_t versionNumber { TPL_VERSION_NUMBER };
     
     // Amount of descriptors in the descriptor table.
@@ -70,9 +58,26 @@ struct TPLHeader {
     uint8_t minLOD;
     uint8_t maxLOD;
 
-    // Boolean value, used in official SDK to keep track of status
-    uint8_t _unpacked { 0x00 };
+    // Set by game.
+    uint8_t _relocated { 0x00 };
 } __attribute__((packed));
+
+struct TPLClutHeader {
+    uint16_t numEntries;
+
+    // Set by game.
+    uint8_t _relocated { 0x00 };
+
+    uint8_t _pad8 { 0x00 };
+
+    uint32_t format; // TPLClutFormat (big endian)
+
+    uint32_t dataOffset;
+} __attribute__((packed));
+
+// RGB5A3 is the only CLUT format with support for transparency & full color at
+// the same time.
+constexpr TPL::TPLClutFormat DEFAULT_CLUT_FORMAT = TPL::TPL_CLUT_FORMAT_RGB5A3;
 
 namespace TPL {
 
@@ -149,27 +154,31 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         return;
     }
 
-    uint32_t descriptorCount = BYTESWAP_32(palette->descriptorCount);
+    const uint32_t descriptorCount = BYTESWAP_32(palette->descriptorCount);
     const TPLDescriptor* descriptors = reinterpret_cast<const TPLDescriptor*>(
         tplData + BYTESWAP_32(palette->descriptorsOffset)
     );
 
     this->textures.resize(descriptorCount);
 
-    for (uint32_t i = 0; i < descriptorCount; i++) {
+    for (unsigned i = 0; i < descriptorCount; i++) {
         const TPLDescriptor* descriptor = descriptors + i;
 
         if (descriptor->textureHeaderOffset == 0) {
             Logging::err << "[TPLObject::TPLObject] Texture no. " << i+1 << " could not be read (texture header offset is zero)!" << std::endl;
-            return;
+            continue;
         }
 
-        const TPLHeader* header = reinterpret_cast<const TPLHeader*>(tplData + BYTESWAP_32(descriptor->textureHeaderOffset));
+        const TPLHeader* header = reinterpret_cast<const TPLHeader*>(
+            tplData + BYTESWAP_32(descriptor->textureHeaderOffset)
+        );
 
         TPLTexture& textureData = this->textures[i];
 
         if (descriptor->CLUTHeaderOffset != 0) {
-            const TPLClutHeader* clutHeader = reinterpret_cast<const TPLClutHeader*>(tplData + BYTESWAP_32(descriptor->CLUTHeaderOffset));
+            const TPLClutHeader* clutHeader = reinterpret_cast<const TPLClutHeader*>(
+                tplData + BYTESWAP_32(descriptor->CLUTHeaderOffset)
+            );
 
             RvlPalette::readCLUT(
                 textureData.palette,
@@ -177,7 +186,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
                 tplData + BYTESWAP_32(clutHeader->dataOffset),
                 BYTESWAP_16(clutHeader->numEntries),
 
-                static_cast<TPL::TPLClutFormat>(BYTESWAP_32(clutHeader->format))
+                static_cast<TPLClutFormat>(BYTESWAP_32(clutHeader->format))
             );
         }
 
@@ -194,7 +203,6 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         textureData.minFilter = static_cast<TPLTexFilter>(BYTESWAP_32(header->minFilter));
         textureData.magFilter = static_cast<TPLTexFilter>(BYTESWAP_32(header->magFilter));
 
-        // Copy image data
         const unsigned char* imageData = tplData + BYTESWAP_32(header->dataOffset);
 
         textureData.data.resize(textureData.width * textureData.height * 4);
@@ -209,7 +217,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
     const unsigned textureCount = this->textures.size();
 
-    // Precompute size required & texture indexes for color palettes
+    // Precompute required size & texture indexes for color palettes.
     unsigned paletteEntriesSize { 0 };
 
     struct PaletteTexEntry {
@@ -252,7 +260,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
     
     unsigned fullSize = dataSectionStart;
 
-    // Precompute size of data section
+    // Precompute size of data section.
     for (unsigned i = 0; i < textureCount; i++) {
         const unsigned imageSize = RvlImageConvert::getImageByteSize(this->textures[i]);
 
@@ -318,9 +326,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
     for (unsigned clutIndex = 0; clutIndex < paletteTextures.size(); clutIndex++) {
         TPLClutHeader* clutHeader = clutHeaders + clutIndex;
 
-        // RGB5A3 is the only CLUT format with support for transparency & full color at
-        // the same time.
-        clutHeader->format = BYTESWAP_32(TPL::TPL_CLUT_FORMAT_RGB5A3);
+        clutHeader->format = BYTESWAP_32(DEFAULT_CLUT_FORMAT);
         clutHeader->dataOffset = BYTESWAP_32(nextClutOffset);
 
         unsigned colorCount = ALIGN_UP_16(paletteTextures[clutIndex].palette.size());
@@ -390,6 +396,11 @@ std::vector<unsigned char> TPLObject::Serialize() {
         writeOffset = ALIGN_UP_32(writeOffset);
         headers[i].dataOffset = BYTESWAP_32(writeOffset);
 
+        Logging::info <<
+            "[TPLObject::Serialize] Writing data for texture no. " << (i+1) << " (" <<
+            texture.width << 'x' << texture.height << ", " <<
+            getImageFormatName(texture.format) << ").." << std::endl;
+
         const unsigned imageSize = RvlImageConvert::getImageByteSize(texture);
 
         unsigned char* imageData = result.data() + writeOffset;
@@ -406,7 +417,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
             RvlPalette::writeCLUT(
                 result.data() + BYTESWAP_32(clutHeader->dataOffset),
-                texture.palette, TPL_CLUT_FORMAT_RGB5A3
+                texture.palette, DEFAULT_CLUT_FORMAT
             );
         }
 
