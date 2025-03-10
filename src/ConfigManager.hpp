@@ -13,14 +13,14 @@
 
 enum BackupBehaviour {
     BackupBehaviour_None,
-    BackupBehaviour_SaveOnce,
-    BackupBehaviour_SaveEverytime
+    BackupBehaviour_Save,
+    BackupBehaviour_SaveOverwrite
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(BackupBehaviour, {
     {BackupBehaviour_None, "None"},
-    {BackupBehaviour_SaveOnce, "SaveOnce"},
-    {BackupBehaviour_SaveEverytime, "SaveEverytime"}
+    {BackupBehaviour_Save, "Save"},
+    {BackupBehaviour_SaveOverwrite, "SaveOverwrite"}
 });
 
 enum ThemeChoice : int {
