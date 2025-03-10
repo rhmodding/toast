@@ -37,7 +37,7 @@ private:
 
     bool showPaletteWindow { false };
 
-    std::shared_ptr<Texture> formatPreviewTexture;
+    std::shared_ptr<Texture> formattingNewTex;
 
 private:
     void RunEditor();

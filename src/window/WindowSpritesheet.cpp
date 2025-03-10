@@ -140,11 +140,6 @@ void WindowSpritesheet::FormatPopup() {
             unsigned selectedMax = isRVL ? rvlFormats.size() - 1 : ctrFormats.size() - 1;
             if (selectedFormatIndex > selectedMax)
                 selectedFormatIndex = selectedMax;
-            
-            if (mipCount < 1)
-                mipCount = 1;
-            if (mipCount > 8)
-                mipCount = 8;
 
             unsigned char* imageData = cellanimSheet->GetRGBA32();
             if (!imageData)
@@ -197,27 +192,27 @@ void WindowSpritesheet::FormatPopup() {
                 delete[] imageBuffer;
             }
 
-            this->formatPreviewTexture->LoadRGBA32(
+            this->formattingNewTex->LoadRGBA32(
                 imageData,
                 cellanimSheet->getWidth(), cellanimSheet->getHeight()
             );
             
             if (isRVL)
-                this->formatPreviewTexture->setTPLOutputFormat(rvlFormats[selectedFormatIndex]);
+                this->formattingNewTex->setTPLOutputFormat(rvlFormats[selectedFormatIndex]);
             else
-                this->formatPreviewTexture->setCTPKOutputFormat(ctrFormats[selectedFormatIndex]);
+                this->formattingNewTex->setCTPKOutputFormat(ctrFormats[selectedFormatIndex]);
 
             delete[] imageData;
         };
 
         if (!lateOpen) {
-            mipCount = 0;
+            mipCount = cellanimSheet->getOutputMipCount();
 
-            this->formatPreviewTexture = std::make_shared<Texture>();
+            this->formattingNewTex = std::make_shared<Texture>();
 
             unsigned char* imageData = cellanimSheet->GetRGBA32();
             if (imageData) {
-                this->formatPreviewTexture->LoadRGBA32(
+                this->formattingNewTex->LoadRGBA32(
                     imageData,
                     cellanimSheet->getWidth(), cellanimSheet->getHeight()
                 );
@@ -231,7 +226,7 @@ void WindowSpritesheet::FormatPopup() {
                     if (it != rvlFormats.end())
                         selectedFormatIndex = std::distance(rvlFormats.begin(), it);
                     else
-                        selectedFormatIndex =defaultRvlFormatIdx;
+                        selectedFormatIndex = defaultRvlFormatIdx;
                 }
                 else {
                     auto it = std::find(
@@ -397,6 +392,13 @@ void WindowSpritesheet::FormatPopup() {
                 updateTextureData();
             }
 
+            if (ImGui::InputInt("Mip-levels", &mipCount, 1, 2)) {
+                if (mipCount < 1) mipCount = 1;
+                if (mipCount > 8) mipCount = 8;
+
+                this->formattingNewTex->setOutputMipCount(mipCount);
+            }
+
             ImGui::EndChild();
 
             if (ImGui::Button("Cancel"))
@@ -404,16 +406,16 @@ void WindowSpritesheet::FormatPopup() {
             ImGui::SameLine();
 
             if (ImGui::Button("Apply")) {
-                this->formatPreviewTexture->setName(cellanimSheet->getName());
+                this->formattingNewTex->setName(cellanimSheet->getName());
 
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifySpritesheet>(
                     sessionManager.getCurrentSession()
                         ->getCurrentCellanim().object->sheetIndex,
-                    this->formatPreviewTexture
+                    this->formattingNewTex
                 ));
 
-                this->formatPreviewTexture.reset();
+                this->formattingNewTex.reset();
 
                 ImGui::CloseCurrentPopup();
             }
@@ -457,9 +459,9 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::ColorConvertFloat4ToU32({ bgScale, bgScale, bgScale, 1.f })
             );
 
-            if (this->formatPreviewTexture)
+            if (this->formattingNewTex)
                 ImGui::GetWindowDrawList()->AddImage(
-                    this->formatPreviewTexture->getImTextureId(),
+                    this->formattingNewTex->getImTextureId(),
                     imagePosition,
                     { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
                 );

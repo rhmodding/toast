@@ -382,6 +382,7 @@ static SessionManager::Error InitCtrSession(
                 texture.createGPUTexture()
             );
             sheet->setCTPKOutputFormat(texture.format);
+            sheet->setOutputMipCount(texture.mipCount);
             sheet->setName(file->name.substr(0, file->name.size() - STR_LIT_LEN(".ctpk")));
 
             session.sheets->addTexture(std::move(sheet));
