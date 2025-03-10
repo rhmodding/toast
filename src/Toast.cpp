@@ -205,11 +205,20 @@ Toast::Toast(int argc, const char** argv) {
 
     CellanimRenderer::InitShader();
 
-    // Open cellanim archive (.szs) from argument
+    glfwSetDropCallback(this->glfwWindowHndl, [](GLFWwindow*, int pathCount, const char** paths) {
+        for (int i = 0; i < pathCount; i++) {
+            AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(
+                std::string(paths[i])
+            );
+        }
+    });
+
     if (argc >= 2) {
-        AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(
-            std::string(argv[1])
-        );
+        for (unsigned i = 1; i < argc; i++) {
+            AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(
+                std::string(argv[i])
+            );
+        }
     }
 
     Logging::info << "[Toast::Toast] Finished initializing." << std::endl;
