@@ -90,7 +90,7 @@ set(SOURCES
 
     src/MainThreadTaskManager.cpp
 
-    src/files.cpp
+    src/Files.cpp
 )
 
 IF (APPLE)

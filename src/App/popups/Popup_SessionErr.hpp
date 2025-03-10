@@ -72,6 +72,14 @@ static void Popup_SessionErr() {
         strcpy(errorMessage, "The destination file could not be opened for reading.");
         errorType = 1;
         break;
+    case SessionManager::OutError_FailBackupFile:
+        strcpy(errorMessage,
+            "The destination file already exists and could not be backed up (does toast have the\n"
+            "proper permissions to access this file?)\n"
+            "You can disable backup behaviour in the config menu."
+        );
+        errorType = 1;
+        break;
     case SessionManager::OutError_ZlibError:
         strcpy(errorMessage, "Zlib raised an error while compressing the file.\nPlease check the log for more details.");
         errorType = 1;

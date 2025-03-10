@@ -179,6 +179,7 @@ public:
         OpenError_LayoutArchive, // The user selected a layout archive instead of a cellanim archive.
 
         OutError_FailOpenFile,
+        OutError_FailBackupFile,
         OutError_ZlibError,
         OutError_FailTextureExport,
 

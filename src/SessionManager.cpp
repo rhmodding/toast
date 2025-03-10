@@ -32,7 +32,7 @@
 
 #include "AppState.hpp"
 
-#include "files.hpp"
+#include "Files.hpp"
 
 #include "common.hpp"
 
@@ -726,14 +726,31 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
 
     const ConfigManager& configManager = ConfigManager::getInstance();
 
-    if (configManager.getConfig().backupBehaviour != BackupBehaviour_None) {
-        bool backedUp = Files::BackupFile(
-            dstFilePath,
-            configManager.getConfig().backupBehaviour == BackupBehaviour_SaveOnce
+    bool alreadyExists = Files::doesFileExist(dstFilePath);
+    if (alreadyExists && configManager.getConfig().backupBehaviour != BackupBehaviour_None) {
+        unsigned dstFilePathLen = strlen(dstFilePath);
+        char* backupPath = new char[dstFilePathLen + STR_LIT_LEN(".bak") + 1];
+
+        memcpy(backupPath, dstFilePath, dstFilePathLen);
+        memcpy(backupPath + dstFilePathLen, ".bak", STR_LIT_LEN(".bak") + 1);
+
+        Logging::info <<
+            "[SessionManager::ExportSession] Backing up file at \"" << dstFilePath <<
+            "\" to \"" << backupPath << "\".." << std::endl;
+
+        bool success = Files::copyFile(
+            dstFilePath, backupPath,
+            configManager.getConfig().backupBehaviour == BackupBehaviour_SaveOverwrite
         );
 
-        if (!backedUp)
-            Logging::err << "[SessionManager::ExportSession] Failed to save backup of file!" << std::endl;
+        delete[] backupPath;
+
+        if (!success) {
+            Logging::err << "[SessionManager::ExportSession] Failed to save backup of file! Aborting.." << std::endl;
+
+            this->currentError = OutError_FailBackupFile;
+            return false;
+        }
     }
 
     std::ofstream file(dstFilePath, std::ios::binary);
