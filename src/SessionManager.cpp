@@ -97,6 +97,8 @@ void SessionManager::setCurrentSessionIndex(int sessionIndex) {
     this->currentSessionIndex = sessionIndex;
 
     PlayerManager::getInstance().correctState();
+
+    Logging::info << "[SessionManager::setCurrentSessionIndex] Selected session no. " << sessionIndex+1 << '.' << std::endl;
 }
 
 static SessionManager::Error InitRvlSession(
@@ -400,6 +402,9 @@ int SessionManager::CreateSession(const char* filePath) {
         return -1;
     }
 
+    Logging::info <<
+        "[SessionManager::CreateSession] Creating session from path \"" << filePath << "\".." << std::endl;
+
     std::vector<unsigned char> data;
     {
         std::ifstream file(filePath, std::ios::binary | std::ios::ate);
@@ -428,7 +433,7 @@ int SessionManager::CreateSession(const char* filePath) {
 
         const auto decompressedData = Yaz0::decompress(data.data(), data.size());
         if (!decompressedData.has_value()) {
-            Logging::err << "[SessionManager::CreateSession] Error decompressing file at path: " << filePath << std::endl;
+            Logging::err << "[SessionManager::CreateSession] Failed to decompress Yaz0 data!" << std::endl;
 
             std::lock_guard<std::mutex> lock(this->mtx);
             this->currentError = OpenError_FailOpenArchive;
@@ -443,7 +448,7 @@ int SessionManager::CreateSession(const char* filePath) {
 
         const auto decompressedData = NZlib::decompress(data.data(), data.size());
         if (!decompressedData.has_value()) {
-            Logging::err << "[SessionManager::CreateSession] Error decompressing file at path: " << filePath << std::endl;
+            Logging::err << "[SessionManager::CreateSession] Failed to decompress NZlib data!" << std::endl;
 
             std::lock_guard<std::mutex> lock(this->mtx);
             this->currentError = OpenError_FailOpenArchive;
@@ -452,6 +457,14 @@ int SessionManager::CreateSession(const char* filePath) {
         }
 
         data = std::move(*decompressedData);
+    }
+    else {
+        Logging::err << "[SessionManager::CreateSession] Data doesn't match Yaz0 or NZlib.." << std::endl;
+
+        std::lock_guard<std::mutex> lock(this->mtx);
+        this->currentError = OpenError_FailOpenArchive;
+
+        return -1;
     }
 
     Error initError { Error_None };
@@ -684,6 +697,10 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
 
     if (dstFilePath == nullptr)
         dstFilePath = session.resourcePath.c_str();
+
+    Logging::info <<
+        "[SessionManager::ExportSession] Exporting session no. " << sessionIndex+1 <<
+        " to path \"" << dstFilePath << "\".." << std::endl;
     
     Error error;
     std::vector<unsigned char> result;
@@ -697,6 +714,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
         break;
     
     default:
+        Logging::err << "[SessionManager::ExportSession] Session type is invalid (" << static_cast<int>(session.type) << ")!" << std::endl;
         error = Error_Unknown;
         break;
     }
@@ -743,6 +761,8 @@ void SessionManager::RemoveSession(unsigned sessionIndex) {
     if (sessionIndex >= this->sessions.size())
         return;
 
+    Logging::info << "[SessionManager::RemoveSession] Removing session no. " << sessionIndex+1 << ".." << std::endl;
+
     auto sessionIt = this->sessions.begin() + sessionIndex;
     this->sessions.erase(sessionIt);
 
@@ -763,4 +783,6 @@ void SessionManager::RemoveAllSessions() {
 
     this->sessions.clear();
     this->currentSessionIndex = -1;
+
+    Logging::info << "[SessionManager::RemoveAllSessions] Removed all sessions." << std::endl;
 }
