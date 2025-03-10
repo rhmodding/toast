@@ -64,8 +64,6 @@ private:
 
     bool isWindowMaximized { false };
 
-    std::array<float, 4> windowClearColor;
-
     template <typename T>
     struct AppWindow {
     public:

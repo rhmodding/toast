@@ -2,6 +2,8 @@
 
 #include "../../SessionManager.hpp"
 
+#include "../../ThemeManager.hpp"
+
 #include "../../anim/CellanimRenderer.hpp"
 
 #include "../../command/CommandModifyAnimationKey.hpp"
@@ -38,7 +40,7 @@ void WindowInspector::Level_Key() {
 
         ImGui::Text("Anim \"%s\" (no. %u)", animationName, animationIndex+1);
 
-        ImGui::PushFont(appState.fonts.large);
+        ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
         ImGui::TextWrapped("Key no. %u", playerManager.getKeyIndex() + 1);
         ImGui::PopFont();
 

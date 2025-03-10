@@ -1,6 +1,7 @@
 #include "WindowAbout.hpp"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -13,7 +14,7 @@
 
 #include "../_binary/images/toastIcon_title.png.h"
 
-#include "../AppState.hpp"
+#include "../ThemeManager.hpp"
 
 enum LineCommand {
     LC_EMPTY_LINE,
@@ -137,7 +138,7 @@ static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, I
 }
 
 static void drawHeader(ImVec2& position, ImGuiWindow* window) {
-    AppState& appState = AppState::getInstance();
+    ThemeManager& themeManager = ThemeManager::getInstance();
 
     // Set position for GitHub button.
     ImGui::SetCursorPos({
@@ -145,7 +146,7 @@ static void drawHeader(ImVec2& position, ImGuiWindow* window) {
         position.y + (30.f / 2) - window->Pos.y
     });
     
-    ImGui::PushFont(appState.fonts.giant);
+    ImGui::PushFont(themeManager.getFonts().giant);
 
     // Title.
     window->DrawList->AddText(position, ImGui::GetColorU32(ImGuiCol_Text), headerTitle);

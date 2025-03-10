@@ -18,14 +18,14 @@
 
 #include "anim/CellAnim.hpp"
 
-#include "font/SegoeUI.h"
-#include "font/FontAwesome.h"
-
 #include "AppState.hpp"
 
 #include "SessionManager.hpp"
 #include "ConfigManager.hpp"
 #include "PlayerManager.hpp"
+#include "ThemeManager.hpp"
+
+#include "font/FontAwesome.h"
 
 #include "command/CommandSwitchCellanim.hpp"
 #include "command/CommandDeleteArrangement.hpp"
@@ -58,45 +58,6 @@
 #define WINDOW_TITLE "toast"
 
 Toast* globlToast { nullptr };
-
-static void setupFonts() {
-    AppState::Fonts& fonts = AppState::getInstance().fonts;
-    ImGuiIO& io = ImGui::GetIO();
-
-    { // normal: SegoeUI (18px)
-        ImFontConfig fontConfig;
-        fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
-
-        fonts.normal = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 18.f, &fontConfig);
-    }
-
-    { // icon: Font Awesome
-        static const ImWchar range[] { ICON_MIN_FA, ICON_MAX_FA, 0 };
-
-        ImFontConfig fontConfig;
-        fontConfig.MergeMode = true;
-        fontConfig.PixelSnapH = true;
-
-        fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range);
-    }
-
-    { // large: SegoeUI (24px)
-        ImFontConfig fontConfig;
-        fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
-
-        fonts.large = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 24.f, &fontConfig);
-    }
-
-    { // giant: SegoeUI (52px)
-        ImFontConfig fontConfig;
-        fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
-
-        fonts.giant = io.Fonts->AddFontFromMemoryTTF(SegoeUI_data, SegoeUI_length, 52.f, &fontConfig);
-    }
-}
 
 // TODO: come up with a better name for this
 static void cycleSleep() {
@@ -138,6 +99,7 @@ Toast::Toast(int argc, const char** argv) {
     MainThreadTaskManager::createSingleton();
     AsyncTaskManager::createSingleton();
     AppState::createSingleton();
+    ThemeManager::createSingleton();
     ConfigManager::createSingleton();
     PlayerManager::createSingleton();
     SessionManager::createSingleton();
@@ -220,51 +182,26 @@ Toast::Toast(int argc, const char** argv) {
     stbi_image_free(windowIcon.pixels);
 #endif // !defined(__APPLE__)
 
-#ifndef NDEBUG
+#if !defined(NDEBUG)
     IMGUI_CHECKVERSION();
-#endif // NDEBUG
+#endif // !defined(NDEBUG)
 
     ImGui::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags =
         ImGuiConfigFlags_NavEnableKeyboard | // Enable Keyboard Controls
-        ImGuiConfigFlags_DockingEnable | // Enable Docking
-        ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+        ImGuiConfigFlags_DockingEnable |     // Enable Docking
+        ImGuiConfigFlags_ViewportsEnable;    // Enable Multi-Viewport / Platform Windows
 
-    AppState::getInstance().applyTheming();
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows
-    // can look identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        style.WindowRounding = 0.f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.f;
-    }
-
-    style.WindowPadding.x = 10.f;
-    style.WindowPadding.y = 10.f;
-
-    style.FrameRounding = 5.f;
-    style.WindowRounding = 5.f;
-    style.ChildRounding = 5.f;
-    style.GrabRounding = 5.f;
-    style.PopupRounding = 5.f;
-
-    style.FramePadding.x = 5.f;
-    style.FramePadding.y = 3.f;
-
-    style.ItemSpacing.x = 9.f;
-    style.ItemSpacing.y = 4.f;
-
-    style.WindowTitleAlign.x = .5f;
-    style.WindowTitleAlign.y = .5f;
-
-    // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(this->glfwWindowHndl, true);
     ImGui_ImplOpenGL3_Init(glslVersion);
 
-    setupFonts();
+    ThemeManager& themeManager = ThemeManager::getInstance();
+
+    themeManager.Initialize();
+
+    themeManager.applyTheming();
 
     CellanimRenderer::InitShader();
 
@@ -300,6 +237,7 @@ Toast::~Toast() {
     AppState::destroySingleton();
     ConfigManager::destroySingleton();
     PlayerManager::destroySingleton();
+    ThemeManager::destroySingleton();
     AsyncTaskManager::destroySingleton();
     MainThreadTaskManager::destroySingleton();
 
@@ -905,8 +843,11 @@ void Toast::Draw() {
 
     glViewport(0, 0, framebufferWidth, framebufferHeight);
 
-    const auto& clearColor = AppState::getInstance().getWindowClearColor();
-    glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+    const auto& windowClearColor = ThemeManager::getInstance().getWindowClearColor();
+    glClearColor(
+        windowClearColor[0], windowClearColor[1],
+        windowClearColor[2], windowClearColor[3]
+    );
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -917,14 +858,13 @@ void Toast::Draw() {
     }
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    // Update and x additional Platform Windows
+    // Update and draw platform windows.
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        GLFWwindow* backupCurrentContext = glfwGetCurrentContext();
-
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
 
-        glfwMakeContextCurrent(backupCurrentContext);
+        // Restore GLFW context.
+        glfwMakeContextCurrent(this->glfwWindowHndl);
     }
 
     glfwSwapBuffers(this->glfwWindowHndl);

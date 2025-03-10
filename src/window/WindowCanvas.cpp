@@ -8,6 +8,7 @@
 #include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"
 #include "../PlayerManager.hpp"
+#include "../ThemeManager.hpp"
 
 #include "../AppState.hpp"
 
@@ -209,7 +210,7 @@ void WindowCanvas::Menubar() {
                     if (enabled)
                         gridType = GridType_Custom;
                     else
-                        gridType = AppState::getInstance().getDarkThemeEnabled() ? GridType_Dark : GridType_Light;
+                        gridType = ThemeManager::getInstance().getThemeIsLight() ? GridType_Light : GridType_Dark;
                 };
 
                 ImGui::SeparatorText("Color Picker");
@@ -292,8 +293,8 @@ void WindowCanvas::Menubar() {
 void WindowCanvas::Update() {
     static bool firstOpen { true };
     if (firstOpen) {
-        this->gridType = AppState::getInstance().getDarkThemeEnabled() ?
-            GridType_Dark : GridType_Light;
+        this->gridType = ThemeManager::getInstance().getThemeIsLight() ?
+            GridType_Light : GridType_Dark;
 
         firstOpen = false;
     }
@@ -869,7 +870,7 @@ void WindowCanvas::Update() {
         bool isBackgroundLight = false;
         switch (this->gridType) {
         case GridType_None:
-            isBackgroundLight = !AppState::getInstance().getDarkThemeEnabled();
+            isBackgroundLight = ThemeManager::getInstance().getThemeIsLight();
             break;
         case GridType_Dark:
             isBackgroundLight = false;
@@ -1117,7 +1118,7 @@ void WindowCanvas::DrawCanvasText() {
     switch (this->gridType) {
     case GridType_None:
         // White or Black
-        textColor = AppState::getInstance().getDarkThemeEnabled() ? 0xFFFFFFFF : 0xFF000000;
+        textColor = ThemeManager::getInstance().getThemeIsLight() ? 0xFF000000 : 0xFFFFFFFF;
         break;
 
     case GridType_Dark:

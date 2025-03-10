@@ -4,18 +4,19 @@
 
 #include "../../SessionManager.hpp"
 
+#include "../../ThemeManager.hpp"
+
+#include "../../AppState.hpp"
+
 #include "../../anim/CellanimRenderer.hpp"
 
 #include "../../command/CommandSetAnimationInterpolated.hpp"
 
 #include "../../font/FontAwesome.h"
 
-#include "../../AppState.hpp"
-
 #include "../../App/Popups.hpp"
 
 void WindowInspector::Level_Animation() {
-    AppState& appState = AppState::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
     SessionManager& sessionManager = SessionManager::getInstance();
 
@@ -36,7 +37,7 @@ void WindowInspector::Level_Animation() {
 
         ImGui::Text("Animation no. %u:", animationIndex + 1);
 
-        ImGui::PushFont(appState.fonts.large);
+        ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
         ImGui::TextWrapped("%s", animationName);
         ImGui::PopFont();
 

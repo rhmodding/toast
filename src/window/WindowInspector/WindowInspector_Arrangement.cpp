@@ -3,6 +3,8 @@
 // #include "../../ConfigManager.hpp"
 #include "../../SessionManager.hpp"
 
+#include "../../ThemeManager.hpp"
+
 #include "../../anim/CellanimRenderer.hpp"
 
 #include "../../command/CommandModifyArrangement.hpp"
@@ -111,7 +113,7 @@ void WindowInspector::Level_Arrangement() {
         {
             //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 
-            ImGui::PushFont(appState.fonts.large);
+            ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
             ImGui::TextWrapped("Arrangement no.");
             ImGui::PopFont();
 

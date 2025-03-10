@@ -25,6 +25,7 @@
 
 #include "../SessionManager.hpp"
 #include "../ConfigManager.hpp"
+#include "../ThemeManager.hpp"
 
 #include "../texture/RvlImageConvert.hpp"
 #include "../texture/CtrImageConvert.hpp"
@@ -266,7 +267,7 @@ void WindowSpritesheet::FormatPopup() {
             );
 
             {
-                ImGui::PushFont(AppState::getInstance().fonts.large);
+                ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
                 ImGui::SeparatorText("Image Info");
                 ImGui::PopFont();
 
@@ -325,7 +326,7 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::EndChild();
             }
             {
-                ImGui::PushFont(AppState::getInstance().fonts.large);
+                ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
                 ImGui::SeparatorText("Format Info");
                 ImGui::PopFont();
 
@@ -642,8 +643,8 @@ bool FixSheetEdgePixels() {
 void WindowSpritesheet::Update() {
     static bool firstOpen { true };
     if (firstOpen) {
-        this->gridType = AppState::getInstance().getDarkThemeEnabled() ?
-            GridType_Dark : GridType_Light;
+        this->gridType = ThemeManager::getInstance().getThemeIsLight() ?
+            GridType_Light : GridType_Dark;
 
         firstOpen = false;
     }
@@ -679,7 +680,7 @@ void WindowSpritesheet::Update() {
                     if (enabled)
                         gridType = GridType_Custom;
                     else
-                        gridType = AppState::getInstance().getDarkThemeEnabled() ? GridType_Dark : GridType_Light;
+                        gridType = ThemeManager::getInstance().getThemeIsLight() ? GridType_Light : GridType_Dark;
                 };
 
                 ImGui::SeparatorText("Color Picker");

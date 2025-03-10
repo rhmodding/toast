@@ -1,7 +1,10 @@
 #include "WindowInspector.hpp"
 
-#include "../AppState.hpp"
 #include "../SessionManager.hpp"
+
+#include "../AppState.hpp"
+
+#include "../ThemeManager.hpp"
 
 #include "../anim/CellanimHelpers.hpp"
 
@@ -21,13 +24,13 @@ void WindowInspector::drawPreview() {
         canvasTopLeft.y + static_cast<int>(canvasSize.y / 2)
     );
 
-    const uint32_t backgroundColor = AppState::getInstance().getDarkThemeEnabled() ?
-        IM_COL32(50, 50, 50, 255) :
-        IM_COL32(255, 255, 255, 255);
+    const uint32_t backgroundColor = ThemeManager::getInstance().getThemeIsLight() ?
+        IM_COL32(255, 255, 255, 255) :
+        IM_COL32(50, 50, 50, 255);
 
     drawList->AddRectFilled(canvasTopLeft, canvasBottomRight, backgroundColor, ImGui::GetStyle().FrameRounding);
 
-    //drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
+    drawList->PushClipRect(canvasTopLeft, canvasBottomRight, true);
 
     const auto& currentSession = SessionManager::getInstance().getCurrentSession();
 
@@ -49,7 +52,7 @@ void WindowInspector::drawPreview() {
 
     this->previewRenderer.Draw(drawList, playerManager.getAnimation(), playerManager.getKeyIndex());
 
-    //drawList->PopClipRect();
+    drawList->PopClipRect();
 
     ImGui::Dummy(canvasSize);
 }

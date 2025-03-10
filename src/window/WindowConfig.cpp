@@ -1,10 +1,11 @@
 #include "WindowConfig.hpp"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <cstdint>
 
-#include "../AppState.hpp"
+#include "../ThemeManager.hpp"
 
 enum Categories {
     Category_General,
@@ -89,7 +90,7 @@ void WindowConfig::Update() {
 
             ImGui::TextWrapped("Category");
 
-            ImGui::PushFont(AppState::getInstance().fonts.large);
+            ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
             ImGui::TextWrapped("%s", categoryNames[selected]);
             ImGui::PopFont();
 
@@ -201,7 +202,7 @@ void WindowConfig::Update() {
                 configManager.setConfig(this->selfConfig);
                 configManager.SaveConfig();
 
-                AppState::getInstance().applyTheming();
+                ThemeManager::getInstance().applyTheming();
             }
             ImGui::EndDisabled();
             ImGui::EndGroup();

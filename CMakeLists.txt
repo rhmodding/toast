@@ -90,6 +90,8 @@ set(SOURCES
 
     src/MainThreadTaskManager.cpp
 
+    src/ThemeManager.cpp
+
     src/Files.cpp
 )
 

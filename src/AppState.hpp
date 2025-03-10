@@ -48,43 +48,12 @@ private:
 public:
     ~AppState() = default;
 
-private:
-    std::array<float, 4> windowClearColor;
 public:
-    bool getDarkThemeEnabled() const {
-        return ConfigManager::getInstance().getConfig().theme == ThemeChoice_Dark;
-    }
-
-    void applyTheming() {
-        if (this->getDarkThemeEnabled()) {
-            ImGui::StyleColorsDark();
-            this->windowClearColor = std::array<float, 4>({ 24 / 255.f, 24 / 255.f, 24 / 255.f, 1.f });
-        }
-        else {
-            ImGui::StyleColorsLight();
-            this->windowClearColor = std::array<float, 4>({ 248 / 255.f, 248 / 255.f, 248 / 255.f, 1.f });
-        }
-
-        ImGui::GetStyle().Colors[ImGuiCol_TabSelectedOverline] = ImVec4();
-        ImGui::GetStyle().Colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4();
-    }
-
-    const std::array<float, 4>& getWindowClearColor() const {
-        return this->windowClearColor;
-    }
-
     unsigned getUpdateRate() const {
         return ConfigManager::getInstance().getConfig().updateRate;
     }
 
     ImGuiID globalPopupID { 0xBEEFAB1E };
-
-    struct Fonts {
-        ImFont* normal;
-        ImFont* large;
-        ImFont* giant;
-        ImFont* icon;
-    } fonts;
 
     bool getArrangementMode() const {
         SessionManager& sessionManager = SessionManager::getInstance();
