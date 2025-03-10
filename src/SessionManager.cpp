@@ -538,6 +538,10 @@ static SessionManager::Error SerializeRvlSession(
     // BRCAD files
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
         U8Archive::File file(session.cellanims[i].name + ".brcad");
+
+        Logging::info <<
+            "[SerializeRvlSession] Serializing cellanim \"" << session.cellanims[i].name << "\".." << std::endl;
+
         file.data = session.cellanims[i].object->Serialize();
 
         directory.AddFile(std::move(file));
@@ -550,6 +554,9 @@ static SessionManager::Error SerializeRvlSession(
         U8Archive::File file(
             "rcad_" + cellanimName + "_labels.h"
         );
+
+        Logging::info <<
+            "[SerializeRvlSession] Writing label header for cellanim \"" << cellanimName << "\".." << std::endl;
 
         std::ostringstream stream;
         for (unsigned j = 0; j < session.cellanims[i].object->animations.size(); j++) {
@@ -589,6 +596,8 @@ static SessionManager::Error SerializeRvlSession(
         if (error != SessionManager::Error_None)
             return error;
 
+        Logging::info << "[SerializeRvlSession] Serializing textures.." << std::endl;
+
         file.data = tplObject.Serialize();
 
         directory.AddFile(std::move(file));
@@ -606,9 +615,13 @@ static SessionManager::Error SerializeRvlSession(
         directory.AddFile(std::move(file));
     }
 
+    Logging::info << "[SerializeRvlSession] Serializing archive.." << std::endl;
+
     directory.SortAlphabetically();
 
     auto archiveBinary = archive.Serialize();
+
+    Logging::info << "[SerializeRvlSession] Compressing archive.." << std::endl;
 
     auto compressedArchive = Yaz0::compress(
         archiveBinary.data(), archiveBinary.size(),
@@ -634,8 +647,14 @@ static SessionManager::Error SerializeCtrSession(
 
     // BCCAD files
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
-        SARC::File file(session.cellanims[i].name + ".bccad");
-        file.data = session.cellanims[i].object->Serialize();
+        const auto& cellanim = session.cellanims[i];
+
+        SARC::File file(cellanim.name + ".bccad");
+
+        Logging::info <<
+            "[SerializeCtrSession] Serializing cellanim \"" << cellanim.name << "\".." << std::endl;
+
+        file.data = cellanim.object->Serialize();
 
         directory.AddFile(std::move(file));
     }
@@ -695,7 +714,11 @@ static SessionManager::Error SerializeCtrSession(
         directory.AddFile(std::move(file));
     }
 
+    Logging::info << "[SerializeCtrSession] Serializing archive.." << std::endl;
+
     auto archiveBinary = archive.Serialize();
+
+    Logging::info << "[SerializeCtrSession] Compressing archive.." << std::endl;
 
     auto compressedArchive = NZlib::compress(
         archiveBinary.data(), archiveBinary.size(),
@@ -792,6 +815,9 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
     }
 
     session.modified = false;
+
+    Logging::info <<
+            "[SessionManager::ExportSession] Finished exporting session no. " << sessionIndex+1 << '.' << std::endl;
 
     return true;
 }
