@@ -21,7 +21,7 @@ AsyncTaskExportSession::AsyncTaskExportSession(
 {}
 
 void AsyncTaskExportSession::Run() {
-    int exportResult = SessionManager::getInstance().ExportSession(
+    bool exportResult = SessionManager::getInstance().ExportSession(
         this->sessionIndex,
         this->useSessionPath ? nullptr : this->filePath.c_str()
     );
@@ -29,7 +29,7 @@ void AsyncTaskExportSession::Run() {
 }
 
 void AsyncTaskExportSession::Effect() {
-    if (this->result < 0) {
+    if (!this->result) {
         OPEN_GLOBAL_POPUP("###SessionErr");
         return;
     }

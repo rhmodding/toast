@@ -32,7 +32,7 @@ private:
 
     bool useSessionPath;
 
-    std::atomic<int> result { 0 };
+    std::atomic<bool> result { 0 };
 };
 
 #endif // ASYNCTASK_EXPORTSESSION_HPP
