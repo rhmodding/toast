@@ -86,6 +86,11 @@ void Session::setCurrentCellanimIndex(unsigned index) {
     );
 
     PlayerManager::getInstance().correctState();
+
+    const std::string& cellanimName = this->cellanims.at(this->currentCellanim).name;
+
+    Logging::info <<
+        "[SessionManager::setCurrentCellanimIndex] Selected cellanim no. " << index+1 << " (\"" << cellanimName << "\")." << std::endl;
 }
 
 void SessionManager::setCurrentSessionIndex(int sessionIndex) {
@@ -798,8 +803,11 @@ void SessionManager::RemoveSession(unsigned sessionIndex) {
 void SessionManager::RemoveAllSessions() {
     std::lock_guard<std::mutex> lock(this->mtx);
 
+    unsigned sessionCount = this->sessions.size();
+
     this->sessions.clear();
     this->currentSessionIndex = -1;
 
-    Logging::info << "[SessionManager::RemoveAllSessions] Removed all sessions." << std::endl;
+    if (sessionCount != 0)
+        Logging::info << "[SessionManager::RemoveAllSessions] Removed all sessions (" << sessionCount << ")." << std::endl;
 }
