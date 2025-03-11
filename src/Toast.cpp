@@ -59,8 +59,7 @@
 
 Toast* globlToast { nullptr };
 
-// TODO: come up with a better name for this
-static void cycleSleep() {
+static void syncToUpdateRate() {
     static std::chrono::system_clock::time_point a { std::chrono::system_clock::now() };
     static std::chrono::system_clock::time_point b { std::chrono::system_clock::now() };
 
@@ -159,7 +158,7 @@ Toast::Toast(int argc, const char** argv) {
     });
 
     glfwMakeContextCurrent(this->glfwWindowHndl);
-    //glfwSwapInterval(1); // Enable VSync
+    glfwSwapInterval(1); // Enable VSync.
 
 #if defined(USING_GLEW)
     if (glewInit() != GLEW_OK) {
@@ -771,7 +770,7 @@ void Toast::Menubar() {
 }
 
 void Toast::Update() {
-    cycleSleep();
+    syncToUpdateRate();
 
     glfwMakeContextCurrent(this->glfwWindowHndl);
 
@@ -865,7 +864,8 @@ void Toast::Draw() {
         Logging::err << "[Toast:Draw] ImGui::GetDrawData returned NULL!" << std::endl;
         TRAP();
     }
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    ImGui_ImplOpenGL3_RenderDrawData(drawData);
 
     // Update and draw platform windows.
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
