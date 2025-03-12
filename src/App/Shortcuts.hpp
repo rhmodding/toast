@@ -3,50 +3,105 @@
 
 #include "Actions.hpp"
 
-#if defined(__APPLE__)
-    #define SCS_EXIT "Cmd+Q"
-    #define SCST_CTRL "Cmd"
-#else
-    #define SCS_EXIT "Alt+F4"
-    #define SCST_CTRL "Ctrl"
-#endif // defined(__APPLE__)
+#include "../Logging.hpp"
 
-#define SCS_LAUNCH_OPEN_SZS_DIALOG SCST_CTRL "+O"
-#define SC_LAUNCH_OPEN_SZS_DIALOG (ImGuiKey_O | ImGuiMod_Ctrl)
+#include <unordered_map>
 
-#define SCS_SAVE_CURRENT_SESSION_SZS SCST_CTRL "+S"
-#define SC_SAVE_CURRENT_SESSION_SZS (ImGuiKey_S | ImGuiMod_Ctrl)
-
-#define SCS_LAUNCH_SAVE_AS_SZS_DIALOG SCST_CTRL "+Shift+S"
-#define SC_LAUNCH_SAVE_AS_SZS_DIALOG (ImGuiKey_S | ImGuiMod_Ctrl | ImGuiMod_Shift)
-
-#define SCS_UNDO SCST_CTRL "+Z"
-#define SC_UNDO (ImGuiKey_Z | ImGuiMod_Ctrl)
-
-#define SCS_REDO SCST_CTRL "+Shift+Z"
-#define SC_REDO (ImGuiKey_Z | ImGuiMod_Ctrl | ImGuiMod_Shift)
+#include <string>
 
 namespace Shortcuts {
 
-void Handle() {
-    // ImGui::Shortcut must be called with flag ImGuiInputFlags_RouteAlways,
-    // otherwise the input will not be registered
+#if defined(__APPLE__)
+constexpr const char* CTRL_SYMBOL = "Cmd";
+constexpr const char* EXIT_SHORTCUT = "Cmd+Q";
+#else
+constexpr const char* CTRL_SYMBOL = "Ctrl";
+constexpr const char* EXIT_SHORTCUT = "Alt+F4";
+#endif
 
-    if (ImGui::Shortcut(SC_LAUNCH_OPEN_SZS_DIALOG, ImGuiInputFlags_RouteAlways))
-        return Actions::Dialog_CreateCompressedArcSession();
+enum class ShortcutAction {
+    Open,
+    Save,
+    SaveAs,
+    Undo,
+    Redo,
+    Exit
+};
 
-    if (ImGui::Shortcut(SC_SAVE_CURRENT_SESSION_SZS, ImGuiInputFlags_RouteAlways))
-        return Actions::SaveCurrentSessionSzs();
-    else if (ImGui::Shortcut(SC_LAUNCH_SAVE_AS_SZS_DIALOG, ImGuiInputFlags_RouteAlways))
-        return Actions::Dialog_SaveCurrentSessionAsSzs();
+struct Shortcut {
+    std::string displayName;
+    std::string displayChord;
+    ImGuiKeyChord chord;
+};
 
+inline const std::unordered_map<ShortcutAction, Shortcut> ShortcutMap = {
+    { ShortcutAction::Open, { "Open (szs, zlib)...", std::string(CTRL_SYMBOL) + "+O", ImGuiKey_O | ImGuiMod_Ctrl } },
+    { ShortcutAction::SaveAs, { "Save as...", std::string(CTRL_SYMBOL) + "+Shift+S", ImGuiKey_S | ImGuiMod_Ctrl | ImGuiMod_Shift } },
+    { ShortcutAction::Save, { "Save", std::string(CTRL_SYMBOL) + "+S", ImGuiKey_S | ImGuiMod_Ctrl } },
+    { ShortcutAction::Redo, { "Redo", std::string(CTRL_SYMBOL) + "+Shift+Z", ImGuiKey_Z | ImGuiMod_Ctrl | ImGuiMod_Shift } },
+    { ShortcutAction::Undo, { "Undo", std::string(CTRL_SYMBOL) + "+Z", ImGuiKey_Z | ImGuiMod_Ctrl } },
+    { ShortcutAction::Exit, { "Exit", EXIT_SHORTCUT, ImGuiKey_None }} // Just for show; we don't actually handle it
+};
+
+[[nodiscard]] std::string getDisplayName(ShortcutAction action, const char8_t* icon = nullptr) {
+    auto it = ShortcutMap.find(action);
+    if (it == ShortcutMap.end()) {
+        Logging::err << "[Shortcuts::getDisplayName] Shortcut not found (" << static_cast<int>(action) << ")." << std::endl;
+        TRAP();
+    }
+
+    const Shortcut& shortcut = it->second;
+
+    if (icon)
+        return std::string((const char*)icon) + " " + shortcut.displayName;
+    else
+        return shortcut.displayName;
+}
+
+[[nodiscard]] const std::string& getDisplayChord(ShortcutAction action) {
+    auto it = ShortcutMap.find(action);
+    if (it == ShortcutMap.end()) {
+        Logging::err << "[Shortcuts::getDisplayChord] Shortcut not found (" << static_cast<int>(action) << ")." << std::endl;
+        TRAP();
+    }
+
+    const Shortcut& shortcut = it->second;
+
+    return shortcut.displayChord;
+}
+
+inline void Handle() {
     SessionManager& sessionManager = SessionManager::getInstance();
 
-    if (sessionManager.getSessionAvaliable()) {
-        if (ImGui::Shortcut(SC_UNDO, ImGuiInputFlags_RouteAlways | ImGuiInputFlags_Repeat))
-            return sessionManager.getCurrentSession()->undo();
-        else if (ImGui::Shortcut(SC_REDO, ImGuiInputFlags_RouteAlways | ImGuiInputFlags_Repeat))
-            return sessionManager.getCurrentSession()->redo();
+    for (const auto& [action, shortcut] : ShortcutMap) {
+        if (shortcut.chord == ImGuiKey_None)
+            continue;
+
+        ImGuiInputFlags flags = ImGuiInputFlags_RouteAlways;
+        if (action == ShortcutAction::Undo || action == ShortcutAction::Redo)
+            flags |= ImGuiInputFlags_Repeat;
+        
+        if (ImGui::Shortcut(shortcut.chord, flags)) {
+            switch (action) {
+                case ShortcutAction::Open:
+                    return Actions::CreateSessionPromptPath();
+                case ShortcutAction::Save:
+                    return Actions::ExportSession();
+                case ShortcutAction::SaveAs:
+                    return Actions::ExportSessionPromptPath();
+                case ShortcutAction::Undo:
+                    if (sessionManager.getSessionAvaliable())
+                        return sessionManager.getCurrentSession()->undo();
+                    break;
+                case ShortcutAction::Redo:
+                    if (sessionManager.getSessionAvaliable())
+                        return sessionManager.getCurrentSession()->redo();
+                    break;
+
+                default:
+                    break;
+            }
+        }
     }
 }
 

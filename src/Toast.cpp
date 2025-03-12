@@ -306,7 +306,10 @@ void Toast::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem((const char*)ICON_FA_DOOR_OPEN " Quit", SCS_EXIT, nullptr))
+            if (ImGui::MenuItem(
+                Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Exit, ICON_FA_DOOR_OPEN).c_str(),
+                Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Exit).c_str()
+            ))
                 this->AttemptExit();
 
             ImGui::EndMenu();
@@ -314,11 +317,11 @@ void Toast::Menubar() {
 
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem(
-                (const char*)ICON_FA_FILE_IMPORT " Open (szs)...",
-                SCS_LAUNCH_OPEN_SZS_DIALOG,
+                Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Open, ICON_FA_FILE_IMPORT).c_str(),
+                Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Open).c_str(),
                 nullptr
             ))
-                Actions::Dialog_CreateCompressedArcSession();
+                Actions::CreateSessionPromptPath();
 
             const auto& recentlyOpened = configManager.getConfig().recentlyOpened;
 
@@ -349,33 +352,47 @@ void Toast::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem(
-                (const char*)ICON_FA_FILE_EXPORT " Save (szs)", SCS_SAVE_CURRENT_SESSION_SZS, false,
-                    sessionManager.getSessionAvaliable()
-            ))
-                Actions::SaveCurrentSessionSzs();
+            CellAnim::CellAnimType cellanimType { CellAnim::CELLANIM_TYPE_INVALID };
+            if (sessionManager.getSessionAvaliable())
+                cellanimType = sessionManager.getCurrentSession()->type;
+
+            (void)cellanimType; // TODO
 
             if (ImGui::MenuItem(
-                (const char*)ICON_FA_FILE_EXPORT " Save as (szs)...", SCS_LAUNCH_SAVE_AS_SZS_DIALOG, false,
+                Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Save, ICON_FA_FILE_EXPORT).c_str(),
+                Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Save).c_str(),
+                false,
                 sessionManager.getSessionAvaliable()
             ))
-                Actions::Dialog_SaveCurrentSessionAsSzs();
+                Actions::ExportSession();
+
+            if (ImGui::MenuItem(
+                Shortcuts::getDisplayName(Shortcuts::ShortcutAction::SaveAs, ICON_FA_FILE_EXPORT).c_str(),
+                Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::SaveAs).c_str(),
+                false,
+                sessionManager.getSessionAvaliable()
+            ))
+                Actions::ExportSessionPromptPath();
 
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Edit")) {
             if (ImGui::MenuItem(
-                (const char*)ICON_FA_ARROW_ROTATE_LEFT " Undo", SCS_UNDO, false,
-                    sessionManager.getSessionAvaliable() &&
-                    sessionManager.getCurrentSession()->canUndo()
+                Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Undo, ICON_FA_ARROW_ROTATE_LEFT).c_str(),
+                Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Undo).c_str(),
+                false,
+                sessionManager.getSessionAvaliable() &&
+                sessionManager.getCurrentSession()->canUndo()
             ))
                 sessionManager.getCurrentSession()->undo();
 
             if (ImGui::MenuItem(
-                (const char*)ICON_FA_ARROW_ROTATE_RIGHT " Redo", SCS_REDO, false,
-                    sessionManager.getSessionAvaliable() &&
-                    sessionManager.getCurrentSession()->canRedo()
+                Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Redo, ICON_FA_ARROW_ROTATE_RIGHT).c_str(),
+                Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Redo).c_str(),
+                false,
+                sessionManager.getSessionAvaliable() &&
+                sessionManager.getCurrentSession()->canRedo()
             ))
                 sessionManager.getCurrentSession()->redo();
 
@@ -694,7 +711,7 @@ void Toast::Menubar() {
 
         SessionManager& sessionManager = SessionManager::getInstance();
 
-        if (ImGui::BeginTabBar("FileTabBar", tabBarFlags)) {
+        if (ImGui::BeginTabBar("SessionTabs", tabBarFlags)) {
             for (int n = 0; n < sessionManager.sessions.size(); n++) {
                 ImGui::PushID(n);
 
@@ -704,10 +721,9 @@ void Toast::Menubar() {
                 bool tabVisible = ImGui::BeginTabItem(
                     session.resourcePath.c_str(),
                     &sessionOpen,
-                    ImGuiTabItemFlags_None | (
-                        session.modified ?
-                        ImGuiTabItemFlags_UnsavedDocument : 0
-                    )
+                    session.modified ?
+                        ImGuiTabItemFlags_UnsavedDocument :
+                        ImGuiTabItemFlags_None
                 );
 
                 if (tabVisible)
