@@ -17,13 +17,13 @@
 
 namespace Actions {
 
-void Dialog_CreateCompressedArcSession() {
-    const char* filterPatterns[] { "*.szs" };
+void CreateSessionPromptPath() {
+    const char* filterPatterns[] { "*.szs", "*.zlib" };
     char* openFileDialog = tinyfd_openFileDialog(
         "Select a cellanim file",
         nullptr,
         ARRAY_LENGTH(filterPatterns), filterPatterns,
-        "Compressed Arc File (.szs)",
+        "Cellanim Archive Files",
         false
     );
 
@@ -35,7 +35,7 @@ void Dialog_CreateCompressedArcSession() {
     );
 }
 
-void Dialog_SaveCurrentSessionAsSzs() {
+void ExportSessionPromptPath() {
     SessionManager& sessionManager = SessionManager::getInstance();
     AsyncTaskManager& asyncTaskManager = AsyncTaskManager::getInstance();
 
@@ -45,12 +45,14 @@ void Dialog_SaveCurrentSessionAsSzs() {
     )
         return;
 
-    const char* filterPatterns[] { "*.szs" };
+    const bool isRvl = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL;
+
+    const char* filterPatterns[] { isRvl ? "*.szs" : "*.zlib" };
     char* saveFileDialog = tinyfd_saveFileDialog(
         "Select a file to save to",
         nullptr,
         ARRAY_LENGTH(filterPatterns), filterPatterns,
-        "Compressed Arc File (.szs)"
+        "Cellanim Archive files"
     );
 
     if (saveFileDialog)
@@ -60,7 +62,7 @@ void Dialog_SaveCurrentSessionAsSzs() {
         );
 }
 
-void SaveCurrentSessionSzs() {
+void ExportSession() {
     SessionManager& sessionManager = SessionManager::getInstance();
     AsyncTaskManager& asyncTaskManager = AsyncTaskManager::getInstance();
 
