@@ -238,8 +238,6 @@ void WindowSpritesheet::FormatPopup() {
                     else
                         selectedFormatIndex = defaultCtrFormatIdx;
                 }
-
-                updateTextureData();
             }
         }
         lateOpen = true;
@@ -389,6 +387,10 @@ void WindowSpritesheet::FormatPopup() {
             unsigned comboCount = isRVL ? rvlFormats.size() : ctrFormats.size();
 
             if (ImGui::Combo("Format", &selectedFormatIndex, comboNames, comboCount)) {
+                unsigned selectedMax = isRVL ? rvlFormats.size() - 1 : ctrFormats.size() - 1;
+                if (selectedFormatIndex > selectedMax)
+                    selectedFormatIndex = selectedMax;
+                
                 updateTextureData();
             }
 
