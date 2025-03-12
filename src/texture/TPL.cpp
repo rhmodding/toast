@@ -360,7 +360,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.wrapS != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.width)
         ) {
-            Logging::err << "[TPLObject::Serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP" << std::endl;
+            Logging::warn << "[TPLObject::Serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP" << std::endl;
             header->wrapS = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
@@ -370,7 +370,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.wrapT != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.height)
         ) {
-            Logging::err << "[TPLObject::Serialize] Image width is not a power of two, so vertical wrap will be set to CLAMP" << std::endl;
+            Logging::warn << "[TPLObject::Serialize] Image height is not a power of two, so vertical wrap will be set to CLAMP" << std::endl;
             header->wrapT = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
