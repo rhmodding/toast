@@ -791,11 +791,14 @@ void WindowSpritesheet::Update() {
         }
 
         if (ImGui::BeginMenu("Data")) {
-            auto imageFormat =
-                sessionManager.getCurrentSession()
-                    ->getCurrentCellanimSheet()->getTPLOutputFormat();
+            const char* imageFormatName;
 
-            ImGui::Text("Image Format: %s", TPL::getImageFormatName(imageFormat));
+            if (sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL)
+                imageFormatName = TPL::getImageFormatName(cellanimSheet->getTPLOutputFormat());
+            else
+                imageFormatName = CTPK::getImageFormatName(cellanimSheet->getCTPKOutputFormat());
+
+            ImGui::Text("Image Format: %s", imageFormatName);
 
             ImGui::Separator();
 
