@@ -12,6 +12,11 @@ Texture::~Texture() {
 }
 
 void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned height) {
+    if (data == nullptr) {
+        Logging::err << "[Texture::LoadRGBA32] Failed to load image data: data is nullptr" << std::endl;
+        return;
+    }
+
     this->width = width;
     this->height = height;
 
@@ -33,6 +38,11 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
 }
 
 bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
+    if (data == nullptr) {
+        Logging::err << "[Texture::LoadSTBFile] Failed to load image data: data is nullptr" << std::endl;
+        return false;
+    }
+
     int w, h;
     unsigned char* imageData = stbi_load_from_memory(data, dataSize, &w, &h, nullptr, 4);
 
@@ -49,6 +59,11 @@ bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
 }
 
 bool Texture::LoadSTBFile(const char* filename) {
+    if (filename == nullptr) {
+        Logging::err << "[Texture::LoadSTBFile] Failed to export to file \"" << filename << "\": filename is nullptr" << std::endl;
+        return false;
+    }
+
     int imageWidth, imageHeight;
     unsigned char* imageData = stbi_load(filename, &imageWidth, &imageHeight, nullptr, 4);
 
@@ -88,6 +103,11 @@ unsigned char* Texture::GetRGBA32() {
 }
 
 bool Texture::GetRGBA32(unsigned char* buffer) {
+    if (buffer == nullptr) {
+        Logging::err << "[Texture::GetRGBA32] Failed to download image data: buffer is nullptr" << std::endl;
+        return false;
+    }
+
     if (this->textureId == INVALID_TEXTURE_ID) {
         Logging::err << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid" << std::endl;
         return false;
@@ -105,9 +125,14 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
 }
 
 bool Texture::ExportToFile(const char* filename) {
+    if (filename == nullptr) {
+        Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": filename is nullptr" << std::endl;
+        return false;
+    }
+
     unsigned char* imageData = this->GetRGBA32();
     if (imageData == nullptr) {
-        Logging::err << "[Texture::ExportToFile] Failed to export to file (\"" << filename << "\"): GetRGBA32 failed" << std::endl;
+        Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": GetRGBA32 failed" << std::endl;
         return false;
     }
 
@@ -122,7 +147,7 @@ bool Texture::ExportToFile(const char* filename) {
     delete[] imageData;
 
     if (!write) {
-        Logging::err << "[Texture::ExportToFile] Failed to export to file (" << filename << "): stbi_write_png failed" << std::endl;
+        Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": stbi_write_png failed" << std::endl;
         return false;
     }
 
