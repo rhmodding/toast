@@ -47,8 +47,8 @@ struct TransformValues {
 
     TransformValues lerp(const TransformValues& other, float t) const {
         TransformValues transform {
-            .positionX = int(std::lerp(this->positionX, other.positionX, t) + .5f),
-            .positionY = int(std::lerp(this->positionY, other.positionY, t) + .5f),
+            .positionX = LERP_INTS(this->positionX, other.positionX, t),
+            .positionY = LERP_INTS(this->positionY, other.positionY, t),
 
             .scaleX = std::lerp(this->scaleX, other.scaleX, t),
             .scaleY = std::lerp(this->scaleY, other.scaleY, t),

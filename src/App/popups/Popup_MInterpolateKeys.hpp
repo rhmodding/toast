@@ -288,11 +288,8 @@ static void _ApplyInterpolation(
 
         newKey.transform = newKey.transform.lerp(frontKey->transform, t);
         newKey.opacity = std::clamp<int>(
-            std::lerp(
-                static_cast<int>(backKey->opacity),
-                static_cast<int>(frontKey->opacity),
-                t
-            ), 0x00, 0xFF
+            LERP_INTS(backKey->opacity, frontKey->opacity, t),
+            0x00, 0xFF
         );
         newKey.holdFrames = interval;
 

@@ -44,6 +44,9 @@
 
 #define STR_LIT_LEN(stringLiteral) ( sizeof((stringLiteral)) - 1 )
 
+// t is a normalized float ([0 .. 1])
+#define LERP_INTS(a, b, t) ( (int)((int)(a) + (int)((float)(t) * ((int)(b) - (int)(a)))) )
+
 #define AVERAGE_FLOATS(a, b) ( ((float)((a) + (b))) / 2.f )
 #define AVERAGE_INTS(a, b)   ( ((int)((a) + (b))) / 2 )
 #define AVERAGE_UINTS(a, b)  ( ((unsigned int)((a) + (b))) / 2 )
