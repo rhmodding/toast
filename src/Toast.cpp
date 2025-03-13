@@ -430,6 +430,11 @@ void Toast::Menubar() {
             if (ImGui::MenuItem("Optimize .."))
                 OPEN_GLOBAL_POPUP("###MOptimizeGlobal");
 
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Transform .."))
+                OPEN_GLOBAL_POPUP("MTransformCellanim");
+
             ImGui::EndMenu();
         }
 
