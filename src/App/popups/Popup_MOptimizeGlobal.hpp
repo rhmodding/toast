@@ -37,7 +37,7 @@ static void Popup_MOptimizeGlobal() {
         // Animation names are required on CTR, doesn't make sense to remove them as
         // they are not supplemental.
         if (sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL)
-            ImGui::Checkbox("Remove all animation name macros", &options.removeAnimationNames);
+            ImGui::Checkbox("Remove all animation names", &options.removeAnimationNames);
         // Make sure it's off..
         else
             options.removeAnimationNames = false;

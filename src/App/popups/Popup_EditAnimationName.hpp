@@ -16,28 +16,28 @@ static void Popup_EditAnimationName(int animationIndex) {
 
     static bool lateOpen { false };
 
-    static char newMacro[256] { '\0' };
+    static char newName[512] { '\0' };
 
     CENTER_NEXT_WINDOW();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
-    bool open = ImGui::BeginPopupModal("Edit animation macro###EditAnimationName", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    bool open = ImGui::BeginPopupModal("Edit animation name###EditAnimationName", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::PopStyleVar();
 
     SessionManager& sessionManager = SessionManager::getInstance();
 
     if (!lateOpen && open) {
         const auto& animation =
-            sessionManager.getCurrentSession()
-                ->getCurrentCellanim().object
+            sessionManager.getCurrentSession()->getCurrentCellanim().object
                 ->animations.at(animationIndex);
 
-        strncpy(newMacro, animation.name.c_str(), sizeof(newMacro) - 1);
+        strncpy(newName, animation.name.c_str(), sizeof(newName) - 1);
+        newName[sizeof(newName) - 1] = '\0';
     }
 
     if (open) {
-        ImGui::Text("Edit macro name for animation no. %u:", animationIndex + 1);
-        ImGui::InputText("##Input", newMacro, sizeof(newMacro));
+        ImGui::Text("Edit name for animation no. %u:", animationIndex + 1);
+        ImGui::InputText("##Input", newName, sizeof(newName));
 
         ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();
@@ -59,7 +59,7 @@ static void Popup_EditAnimationName(int animationIndex) {
             std::make_shared<CommandModifyAnimationName>(
                 sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                 animationIndex,
-                newMacro
+                newName
             ));
 
             ImGui::CloseCurrentPopup();

@@ -452,7 +452,7 @@ void Toast::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Edit macro name ..")) {
+            if (ImGui::MenuItem("Edit name ..")) {
                 Popups::_editAnimationNameIdx = animIndex;
                 OPEN_GLOBAL_POPUP("###EditAnimationName");
             }

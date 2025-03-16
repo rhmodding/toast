@@ -58,7 +58,7 @@ static void Popup_SwapAnimation(int animationIndex) {
                     ImGui::TextWrapped("Select a animation to swap with.");
                 }
                 else {
-                    ImGui::Checkbox("Swap macro names", &swapNames);
+                    ImGui::Checkbox("Swap animation names", &swapNames);
                 }
             }
             ImGui::EndChild();
@@ -109,7 +109,7 @@ static void Popup_SwapAnimation(int animationIndex) {
 
                 const char* animName = animations.at(swapNames ? n : nI).name.c_str();
                 if (animName[0] == '\0')
-                    animName = "(no macro defined)";
+                    animName = "(no name set)";
 
                 fmtStream << std::to_string(nI+1) << ". " << animName;
                 if (nI != n)

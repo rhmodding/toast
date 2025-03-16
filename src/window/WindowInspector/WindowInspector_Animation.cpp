@@ -29,7 +29,7 @@ void WindowInspector::Level_Animation() {
     unsigned animationIndex = playerManager.getAnimationIndex();
     const char* animationName = playerManager.getAnimation().name.c_str();
     if (animationName[0] == '\0')
-        animationName = "(no macro defined)";
+        animationName = "(no name set)";
 
     ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
@@ -64,13 +64,13 @@ void WindowInspector::Level_Animation() {
         ImGui::Dummy({ 0.f, 5.f });
     }
 
-    if (ImGui::Button("Edit macro name..")) {
+    if (ImGui::Button("Edit animation name..")) {
         Popups::_editAnimationNameIdx = animationIndex;
         OPEN_GLOBAL_POPUP("###EditAnimationName");
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Swap index..")) {
+    if (ImGui::Button("Swap animation..")) {
         Popups::_swapAnimationIdx = animationIndex;
         OPEN_GLOBAL_POPUP("###SwapAnimation");
     }

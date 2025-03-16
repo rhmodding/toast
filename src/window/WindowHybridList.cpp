@@ -94,7 +94,7 @@ void WindowHybridList::Update() {
 
                 const char* animName = animations[n].name.c_str();
                 if (animName[0] == '\0')
-                    animName = "(no macro defined)";
+                    animName = "(no name set)";
 
                 fmtStream << std::to_string(n+1) << ". " << animName;
 

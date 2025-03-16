@@ -32,7 +32,7 @@ void WindowInspector::Level_Key() {
     unsigned animationIndex = playerManager.getAnimationIndex();
     const char* animationName = playerManager.getAnimation().name.c_str();
     if (animationName[0] == '\0')
-        animationName = "(no macro defined)";
+        animationName = "(no name set)";
 
     ImGui::BeginChild("LevelHeader", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
     {
