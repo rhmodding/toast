@@ -44,14 +44,36 @@ static void Popup_EditAnimationName(int animationIndex) {
         ImGui::Dummy({ 0.f, 5.f });
 
         if (ImGui::Button("OK", { 120.f, 0.f })) {
-            // Replace spaces with underscores
-            {
-                char* character = newMacro;
+            // 'Fix' the new name.
 
-                while (*character != '\0') {
-                    if (*character == ' ')
-                        *character = '_';
-                    character++;
+            // On RVL we make the name suitable to be a C macro name. It doesn't make sense to
+            // do this for CTR cellanims since only RVL stores it's animation names in C header files.
+            if (sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL) {
+                unsigned i = 0;
+
+                // Prefix a underscore (shifting the string one character to the right)
+                if (isdigit(newName[0])) {
+                    memmove(newName + 1, newName, strlen(newName) + 1);
+                    newName[sizeof(newName) - 1] = '\0';
+
+                    newName[0] = '_';
+                    i = 1;
+                }
+
+                while (newName[i] != '\0') {
+                    if (!isalnum(newName[i]) && newName[i] != '_')
+                        newName[i] = '_';
+                    i++;
+                }
+            }
+            // On CTR we simply replace spaces with underscores.
+            else {
+                unsigned i = 0;
+
+                while (newName[i] != '\0') {
+                    if (!isalnum(newName[i]) && newName[i] != '_')
+                        newName[i] = '_';
+                    i++;
                 }
             }
 
