@@ -61,6 +61,7 @@ private:
     bool running { true };
 
     GLFWwindow* glfwWindowHndl { nullptr };
+    ImGuiContext* guiContext { nullptr };
 
     bool isWindowMaximized { false };
 

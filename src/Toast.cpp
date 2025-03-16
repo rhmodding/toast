@@ -185,7 +185,7 @@ Toast::Toast(int argc, const char** argv) {
     IMGUI_CHECKVERSION();
 #endif // !defined(NDEBUG)
 
-    ImGui::CreateContext();
+    this->guiContext = ImGui::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags =
@@ -800,6 +800,9 @@ void Toast::Update() {
     // Start frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+
+    ImGui::SetCurrentContext(this->guiContext);
+
     ImGui::NewFrame();
 
     // Begin main window
