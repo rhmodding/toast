@@ -75,11 +75,14 @@ void WindowInspector::Level_Animation() {
         OPEN_GLOBAL_POPUP("###SwapAnimation");
     }
 
-    ImGui::Indent();
-        ImGui::Bullet(); ImGui::SameLine();
-        ImGui::TextWrapped(
-            "Macro names are not used for mapping animations directly in the game.\n"
-            "To swap animations, use [Swap index..]."
-        );
-    ImGui::Unindent();
+    if (!isCtr) {
+        ImGui::Indent();
+            ImGui::Bullet(); ImGui::SameLine();
+            ImGui::TextWrapped(
+                "Animation names are not used for mapping animations directly in the game; instead\n"
+                "the animation index is used (the ordering of the animation).\n"
+                "To swap animations, select [ Swap animation.. ]."
+            );
+        ImGui::Unindent();
+    }
 }
