@@ -25,8 +25,8 @@ struct TransformValues {
 
     // In pixels.
     int positionX { 0 }, positionY { 0 };
-    // Keys: scales from center
-    // Arrangement parts: scales from top-left
+    // Keys scale from the center, while arrangement parts scale from
+    // their origin (top-left).
     float scaleX { 1.f }, scaleY { 1.f };
     // In degrees.
     float angle { 0.f };

@@ -19,21 +19,20 @@ struct RvlCellAnimHeader {
     // Compare to RCAD_REVISION_DATE
     uint32_t revisionDate { RCAD_REVISION_DATE };
 
-    // Load textures in palette (CI) mode (boolean)
+    // Load textures in paletted (CI) mode; also enables varyings.
     uint8_t usePalette;
 
     uint8_t _pad24[3] { 0x00, 0x00, 0x00 };
 
-    // Index into cellanim.tpl for the associated sheet
+    // Index into cellanim.tpl for the associated sheet.
     uint16_t sheetIndex;
 
-    // Unused value. Never referenced in the game
+    // Unused value (never referenced in the game's code).
     uint16_t _unused { 0x0000 };
 
     uint16_t sheetW; // Sheet width in relation to UV regions.
     uint16_t sheetH; // Sheet height in relation to UV regions.
 
-    // Amount of arrangements (commonly referred to as sprites)
     uint16_t arrangementCount;
 
     uint16_t _pad16 { 0x0000 };
@@ -45,7 +44,6 @@ struct CtrCellAnimHeader {
     uint16_t sheetW; // Sheet width in relation to UV regions.
     uint16_t sheetH; // Sheet height in relation to UV regions.
 
-    // Amount of arrangements (commonly referred to as sprites)
     uint16_t arrangementCount;
 
     uint16_t _pad16 { 0x0000 };
@@ -82,13 +80,16 @@ struct RvlTransformValues {
     }
 } __attribute__((packed));
 
+// Note: In Bread (the predecessor of toast) 'arrangements' were called 'sprites'.
+
 struct RvlArrangementPart {
     uint16_t regionX; // X position of UV region in spritesheet
     uint16_t regionY; // Y position of UV region in spritesheet
     uint16_t regionW; // Width of UV region in spritesheet
     uint16_t regionH; // Height of UV region in spritesheet
 
-    uint16_t textureVarying; // Additive to the texture index if usePalette is true
+    // Additive to the texture index (if usePalette is true).
+    uint16_t textureVarying;
 
     uint16_t _pad16 { 0x0000 };
 
@@ -203,10 +204,9 @@ struct AnimationsHeader {
 } __attribute__((packed));
 
 struct RvlAnimationKey {
-    // Index of arrangement (commonly referred to as sprites)
     uint16_t arrangementIndex;
 
-    // Amount of frames the key is held for
+    // Amount of frames the key is held for (0 is invalid).
     uint16_t holdFrames;
 
     RvlTransformValues transform;
@@ -226,10 +226,9 @@ struct RvlAnimationKey {
     }
 } __attribute__((packed));
 struct CtrAnimationKey {
-    // Index of arrangement (commonly referred to as sprites)
     uint16_t arrangementIndex;
 
-    // Amount of frames the key is held for
+    // Amount of frames the key is held for (0 is invalid).
     uint16_t holdFrames;
 
     int16_t positionX { 0 }, positionY { 0 }; // In pixels.
