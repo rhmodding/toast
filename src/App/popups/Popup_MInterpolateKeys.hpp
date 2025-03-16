@@ -268,7 +268,7 @@ static bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 static void _ApplyInterpolation(
     const std::array<float, 4>& curve,
     int interval,
-    CellAnim::AnimationKey* backKey, CellAnim::AnimationKey* frontKey,
+    const CellAnim::AnimationKey* backKey, const CellAnim::AnimationKey* frontKey,
     const CellAnim::Animation& animation, unsigned animationIndex
 ) {
     AppState& appState = AppState::getInstance();
@@ -329,11 +329,8 @@ static void _ApplyInterpolation(
                 }
 
                 part.opacity = std::clamp<int>(
-                    std::lerp(
-                        static_cast<int>(part.opacity),
-                        static_cast<int>(endPart->opacity),
-                        t
-                    ), 0x00, 0xFF
+                    LERP_INTS(part.opacity, endPart->opacity, t),
+                    0x00, 0xFF
                 );
             }
 
