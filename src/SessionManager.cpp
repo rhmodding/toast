@@ -521,8 +521,12 @@ int SessionManager::CreateSession(const char* filePath) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
     this->sessions.push_back(std::move(newSession));
+    const int sessionIndex = this->sessions.size() - 1;
 
     this->currentError = Error_None;
+
+    Logging::info <<
+        "[SessionManager::CreateSession] Created session no. " << sessionIndex+1 << '.' << std::endl;
 
     return static_cast<int>(this->sessions.size() - 1);
 }
