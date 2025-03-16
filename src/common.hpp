@@ -47,13 +47,13 @@
 // t is a normalized float ([0 .. 1])
 #define LERP_INTS(a, b, t) ( (int)((int)(a) + (int)((float)(t) * ((int)(b) - (int)(a)))) )
 
-#define AVERAGE_FLOATS(a, b) ( ((float)((a) + (b))) / 2.f )
-#define AVERAGE_INTS(a, b)   ( ((int)((a) + (b))) / 2 )
-#define AVERAGE_UINTS(a, b)  ( ((unsigned int)((a) + (b))) / 2 )
+#define AVERAGE_FLOATS(a, b) ( (((float)(a) + (float)(b))) / 2.f )
+#define AVERAGE_INTS(a, b)   ( (((int)(a) + (int)(b))) / 2 )
+#define AVERAGE_UINTS(a, b)  ( (((unsigned int)(a) + (unsigned int)(b))) / 2 )
 
 #define AVERAGE_UCHARS(a, b) ( \
-    ((uint8_t)(a) / 2) + ((uint8_t)(b) / 2) + \
-    (((uint8_t)(a) & 1) & ((uint8_t)(b) & 1)) \
+    ((unsigned char)(a) / 2) + ((unsigned char)(b) / 2) + \
+    (((unsigned char)(a) & 1) & ((unsigned char)(b) & 1)) \
 )
 
 #define AVERAGE_IMVEC2(vecA, vecB) (ImVec2( \
@@ -64,8 +64,8 @@
     (float)(int)(((vecA).y + (vecB).y) / 2.f + .5f) \
 ))
 
-#define ROUND_FLOAT(value) ( (float)(int)((value) + .5f) )
-#define FLOOR_FLOAT(value) ( (float)(int)((value)) )
+#define ROUND_FLOAT(value) ( (float)(int)((float)(value) + .5f) )
+#define FLOOR_FLOAT(value) ( (float)(int)((float)(value)) )
 
 #define ROUND_IMVEC2(vec) (ImVec2( \
     ROUND_FLOAT((vec).x), ROUND_FLOAT((vec).y) \
