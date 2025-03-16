@@ -101,7 +101,7 @@ ELSE()
     add_executable (toast ${SOURCES} ${HEADERS})
 ENDIF()
 
-target_compile_definitions(toast PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
+target_compile_definitions(toast PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS IMGUI_DISABLE_DEFAULT_FONT)
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_definitions(toast PRIVATE RG_ETC1_BUILD_DEBUG)
 ENDIF()
