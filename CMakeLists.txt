@@ -101,7 +101,11 @@ ELSE()
     add_executable (toast ${SOURCES} ${HEADERS})
 ENDIF()
 
-target_compile_definitions(toast PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS IMGUI_DISABLE_DEFAULT_FONT)
+target_compile_definitions(toast PRIVATE
+    IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+    IMGUI_ENABLE_OSX_DEFAULT_CLIPBOARD_FUNCTIONS
+    IMGUI_DISABLE_DEFAULT_FONT
+)
 IF(CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_definitions(toast PRIVATE RG_ETC1_BUILD_DEBUG)
 ENDIF()
@@ -165,6 +169,7 @@ ELSEIF(APPLE) # macOS
         "-framework Cocoa"
         "-framework IOKit"
         "-framework CoreFoundation"
+        "-framework ApplicationServices"
     )
 ELSE() # Generic
     target_link_libraries(toast PRIVATE
