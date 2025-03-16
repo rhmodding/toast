@@ -124,12 +124,12 @@ void WindowConfig::Update() {
             } break;
 
             case Category_Export: {
-                enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_None, CL_Count };
+                enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_Count };
 
-                static const char* compressionLevelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low", "None" };
+                static const char* compressionLevelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low" };
                 static const int compressionLevelMap[CL_Count] = { 9, 8, 7, 4, 2 };
                 static const int compressionLevels[] = {
-                    CL_None, // 0
+                    CL_Count, // 0
                     CL_Count, // 1
                     CL_VeryLow, // 2
                     CL_Count, // 3
