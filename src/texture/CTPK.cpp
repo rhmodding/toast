@@ -420,18 +420,17 @@ std::vector<unsigned char> CTPKObject::Serialize() {
                 dstTexture.format, dstTexture.width, dstTexture.height, 1
             );
 
-            unsigned newWidth = (dstTexture.width > 1) ? dstTexture.width / 2 : 1;
-            unsigned newHeight = (dstTexture.height > 1) ? dstTexture.height / 2 : 1;
+            // Scale texture for next mip-level.
+            if (j + 1 != dstTexture.mipCount) {
+                dstTexture.width = (dstTexture.width > 1) ? dstTexture.width / 2 : 1;
+                dstTexture.height = (dstTexture.height > 1) ? dstTexture.height / 2 : 1;
 
-            if (j + 1 != dstTexture.mipCount)
                 bilinearScale(
+                    srcTexture.width, srcTexture.height,
                     dstTexture.width, dstTexture.height,
-                    newWidth, newHeight,
                     srcTexture.data.data(), dstTexture.data.data()
                 );
-            
-            dstTexture.width = newWidth;
-            dstTexture.height = newHeight;
+            }
         }
     }
 
