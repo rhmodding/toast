@@ -6,7 +6,7 @@
 
 #include "../command/CommandInsertArrangement.hpp"
 
-unsigned CellanimHelpers::DuplicateArrangement(unsigned arrangementIndex) {
+unsigned CellanimHelpers::duplicateArrangement(unsigned arrangementIndex) {
     SessionManager& sessionManager = SessionManager::getInstance();
 
     std::shared_ptr object = sessionManager.getCurrentSession()->getCurrentCellanim().object;

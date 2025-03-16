@@ -3,7 +3,7 @@
 
 namespace CellanimHelpers {
 
-unsigned DuplicateArrangement(unsigned arrangementIndex);
+unsigned duplicateArrangement(unsigned arrangementIndex);
 
 bool getArrangementUnique(unsigned arrangementIndex);
 

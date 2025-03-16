@@ -586,7 +586,7 @@ void Toast::Menubar() {
                 ImGui::BeginDisabled(arrangementUnique);
 
                 if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
-                    unsigned newIndex = CellanimHelpers::DuplicateArrangement(key.arrangementIndex);
+                    unsigned newIndex = CellanimHelpers::duplicateArrangement(key.arrangementIndex);
 
                     if (!appState.getArrangementMode()) {
                         auto newKey = key;

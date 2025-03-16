@@ -65,7 +65,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
 
     if (ImGui::Button("Make arrangement unique (duplicate)"))
         newKey.arrangementIndex =
-            CellanimHelpers::DuplicateArrangement(originalKey.arrangementIndex);
+            CellanimHelpers::duplicateArrangement(originalKey.arrangementIndex);
 
     ImGui::EndDisabled();
 
@@ -82,7 +82,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
 
         if (ImGui::Selectable("Ok"))
             newKey.arrangementIndex =
-                CellanimHelpers::DuplicateArrangement(originalKey.arrangementIndex);
+                CellanimHelpers::duplicateArrangement(originalKey.arrangementIndex);
         ImGui::Selectable("Nevermind");
 
         ImGui::EndPopup();
