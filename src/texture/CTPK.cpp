@@ -12,6 +12,8 @@
 
 #include "../CRC32.hpp"
 
+#include "../stb/stb_image_resize2.h"
+
 #include "../common.hpp"
 
 constexpr uint32_t CTPK_MAGIC = IDENTIFIER_TO_U32('C','T','P','K');
@@ -74,47 +76,6 @@ struct CtpkInfoEntry {
     uint8_t compressed; // Is texture data compressed (ETC1)?
     uint8_t compressionMethod;  // ETC1 compression method.
 } __attribute((packed));
-
-static void bilinearScale(
-    unsigned srcWidth, unsigned srcHeight,
-    unsigned dstWidth, unsigned dstHeight,
-    const unsigned char* srcPixels, unsigned char* dstPixels
-) {
-    const float ratioX = static_cast<float>(srcWidth - 1) / dstWidth;
-    const float ratioY = static_cast<float>(srcHeight - 1) / dstHeight;
-
-    for (unsigned _y = 0; _y < dstHeight; _y++) {
-        const float scaledY = ratioY * _y;
-        const unsigned y    = static_cast<unsigned>(scaledY);
-        const float diffY   = scaledY - y;
-
-        const unsigned yOffset     = y * srcWidth * 4;
-        const unsigned yOffsetNext = (y + 1) * srcWidth * 4;
-
-        for (unsigned _x = 0; _x < dstWidth; _x++) {
-            const float scaledX = ratioX * _x;
-            const unsigned x    = static_cast<unsigned>(scaledX);
-            const float diffX   = scaledX - x;
-
-            const unsigned index     = yOffset + x * 4;
-            const unsigned indexNext = yOffsetNext + x * 4;
-
-            for (unsigned c = 0; c < 4; c++) {
-                float topLeft     = srcPixels[index + c];
-                float topRight    = srcPixels[index + 4 + c];
-                float bottomLeft  = srcPixels[indexNext + c];
-                float bottomRight = srcPixels[indexNext + 4 + c];
-
-                float channel = topLeft * (1 - diffX) * (1 - diffY) +
-                                topRight * diffX * (1 - diffY) +
-                                bottomLeft * (1 - diffX) * diffY +
-                                bottomRight * diffX * diffY;
-
-                dstPixels[(_y * dstWidth + _x) * 4 + c] = static_cast<unsigned char>(channel);
-            }
-        }
-    }
-}
 
 namespace CTPK {
 
@@ -399,14 +360,18 @@ std::vector<unsigned char> CTPKObject::Serialize() {
 
         // If texture dimensions were clamped, scale down to new size.
         if (dstTexture.width != texEntry->width || dstTexture.height != texEntry->height) {
-            bilinearScale(
-                dstTexture.width, dstTexture.height,
-                texEntry->width, texEntry->height,
-                srcTexture.data.data(), dstTexture.data.data()
-            );
-
             dstTexture.width = texEntry->width;
             dstTexture.height = texEntry->height;
+
+            dstTexture.data.resize(dstTexture.width * dstTexture.height * 4);
+
+            stbir_resize_uint8_linear(
+                srcTexture.data.data(), srcTexture.width, srcTexture.height,
+                srcTexture.width * 4,
+                dstTexture.data.data(), dstTexture.width, dstTexture.height,
+                dstTexture.width * 4,
+                STBIR_RGBA
+            );
         }
 
         for (unsigned j = 0; j < dstTexture.mipCount; j++) {
@@ -425,10 +390,15 @@ std::vector<unsigned char> CTPKObject::Serialize() {
                 dstTexture.width = (dstTexture.width > 1) ? dstTexture.width / 2 : 1;
                 dstTexture.height = (dstTexture.height > 1) ? dstTexture.height / 2 : 1;
 
-                bilinearScale(
-                    srcTexture.width, srcTexture.height,
-                    dstTexture.width, dstTexture.height,
-                    srcTexture.data.data(), dstTexture.data.data()
+                // Not really necessary.
+                // dstTexture.data.resize(dstTexture.width * dstTexture.height * 4);
+
+                stbir_resize_uint8_linear(
+                    srcTexture.data.data(), srcTexture.width, srcTexture.height,
+                    srcTexture.width * 4,
+                    dstTexture.data.data(), dstTexture.width, dstTexture.height,
+                    dstTexture.width * 4,
+                    STBIR_RGBA
                 );
             }
         }

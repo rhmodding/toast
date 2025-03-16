@@ -25,6 +25,7 @@ set(SOURCES
     src/stb/stb_dxt_impl.cpp
     src/stb/stb_image_write_impl.cpp
     src/stb/stb_image_impl.cpp
+    src/stb/stb_image_resize2_impl.cpp
     src/stb/stb_rect_pack_impl.cpp
 
     src/main.cpp

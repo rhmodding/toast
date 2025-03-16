@@ -4,6 +4,8 @@
 
 #include "../MainThreadTaskManager.hpp"
 
+#include "../stb/stb_image_resize2.h"
+
 AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
     AsyncTaskId id,
     Session* session, OptimizeCellanimOptions options
@@ -12,47 +14,6 @@ AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
 
     session(session), options(options)
 {}
-
-static void bilinearScale(
-    unsigned srcWidth, unsigned srcHeight,
-    unsigned dstWidth, unsigned dstHeight,
-    unsigned char* srcPixels, unsigned char* dstPixels
-) {
-    const float ratioX = static_cast<float>(srcWidth - 1) / dstWidth;
-    const float ratioY = static_cast<float>(srcHeight - 1) / dstHeight;
-
-    for (unsigned _y = 0; _y < dstHeight; _y++) {
-        const float scaledY = ratioY * _y;
-        const unsigned y    = static_cast<unsigned>(scaledY);
-        const float diffY   = scaledY - y;
-
-        const unsigned yOffset     = y * srcWidth * 4;
-        const unsigned yOffsetNext = (y + 1) * srcWidth * 4;
-
-        for (unsigned _x = 0; _x < dstWidth; _x++) {
-            const float scaledX = ratioX * _x;
-            const unsigned x    = static_cast<unsigned>(scaledX);
-            const float diffX   = scaledX - x;
-
-            const unsigned index     = yOffset + x * 4;
-            const unsigned indexNext = yOffsetNext + x * 4;
-
-            for (unsigned c = 0; c < 4; c++) {
-                float topLeft     = srcPixels[index + c];
-                float topRight    = srcPixels[index + 4 + c];
-                float bottomLeft  = srcPixels[indexNext + c];
-                float bottomRight = srcPixels[indexNext + 4 + c];
-
-                float channel = topLeft * (1 - diffX) * (1 - diffY) +
-                                topRight * diffX * (1 - diffY) +
-                                bottomLeft * (1 - diffX) * diffY +
-                                bottomRight * diffX * diffY;
-
-                dstPixels[(_y * dstWidth + _x) * 4 + c] = static_cast<unsigned char>(channel);
-            }
-        }
-    }
-}
 
 static void removeAnimationNames(Session* session) {
     auto& animations = session->getCurrentCellanim().object->animations;
@@ -144,7 +105,13 @@ static void downscaleSpritesheet(Session* session, const OptimizeCellanimOptions
     // RGBA image
     unsigned char* downscaledPixels = new unsigned char[sheet->getWidth() * sheet->getHeight() * 4];
 
-    bilinearScale(sheet->getWidth(), sheet->getHeight(), newWidth, newHeight, originalPixels, downscaledPixels);
+    stbir_resize_uint8_linear(
+        originalPixels, sheet->getWidth(), sheet->getHeight(),
+        sheet->getWidth() * 4,
+        downscaledPixels, newWidth, newHeight,
+        newWidth * 4,
+        STBIR_RGBA
+    );
 
     delete[] originalPixels;
 
