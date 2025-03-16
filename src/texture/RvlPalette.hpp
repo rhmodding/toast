@@ -8,8 +8,6 @@
 #include <vector>
 #include <set>
 
-#include "../common.hpp"
-
 namespace RvlPalette {
 
 std::set<uint32_t> generate(const unsigned char* rgbaImage, unsigned pixelCount);
