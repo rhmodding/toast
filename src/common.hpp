@@ -1,13 +1,13 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#include <cstdint>
+#include <cstdint> // IWYU pragma: keep
 
-#include <bit>
+#include <bit> // IWYU pragma: keep
 
 #include <imgui.h>
 
-#include "Logging.hpp"
+#include "Logging.hpp" // IWYU pragma: keep
 
 #define BYTESWAP_64 __builtin_bswap64
 #define BYTESWAP_32 __builtin_bswap32
