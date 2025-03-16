@@ -218,6 +218,8 @@ void WindowSpritesheet::FormatPopup() {
                 );
                 delete[] imageData;
 
+                this->formattingNewTex->setOutputMipCount(mipCount);
+
                 if (isRVL) {
                     auto it = std::find(
                         rvlFormats.begin(), rvlFormats.end(), cellanimSheet->getTPLOutputFormat()
