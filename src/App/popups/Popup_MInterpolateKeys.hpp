@@ -248,12 +248,12 @@ static bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
                 (1.f - P[3]) * bb.GetHeight() + bb.Min.y
             };
 
-            drawList->AddLine(bb.GetBL(), p1, 0xFF000000, LINE_WIDTH);
-            drawList->AddLine(bb.GetTR(), p2, 0xFF000000, LINE_WIDTH);
+            drawList->AddLine(bb.GetBL(), p1, IM_COL32(0,0,0,0xFF), LINE_WIDTH);
+            drawList->AddLine(bb.GetTR(), p2, IM_COL32(0,0,0,0xFF), LINE_WIDTH);
 
-            drawList->AddCircleFilled(p1, GRAB_RADIUS, 0xFF000000);
+            drawList->AddCircleFilled(p1, GRAB_RADIUS, IM_COL32(0,0,0,0xFF));
             drawList->AddCircleFilled(p1, GRAB_RADIUS-GRAB_BORDER, handleColA);
-            drawList->AddCircleFilled(p2, GRAB_RADIUS, 0xFF000000);
+            drawList->AddCircleFilled(p2, GRAB_RADIUS, IM_COL32(0,0,0,0xFF));
             drawList->AddCircleFilled(p2, GRAB_RADIUS-GRAB_BORDER, handleColB);
         }
 

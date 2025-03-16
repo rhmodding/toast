@@ -317,10 +317,10 @@ void WindowCanvas::Update() {
 
     this->Menubar();
 
-    uint32_t backgroundColor; // Black
+    uint32_t backgroundColor;
     switch (this->gridType) {
     case GridType_None:
-        backgroundColor = 0x00000000; // Transparent Black
+        backgroundColor = IM_COL32_BLACK_TRANS;
         break;
 
     case GridType_Dark:
@@ -1009,9 +1009,9 @@ void WindowCanvas::Update() {
         drawList->PopClipRect();
 
         // Draw selection box + handles & pivot point.
-        if (!noParts /* && appState.focusOnSelectedPart */) {
-            const uint32_t colorLine = isBackgroundLight ? 0xFF000000 : 0xFFFFFFFF;
-            const uint32_t colorFill = isBackgroundLight ? 0xFFFFFFFF : 0xFF000000;
+        if (!noParts /* && appState.focusOnSelectedPart */) { // TODO
+            const uint32_t colorLine = isBackgroundLight ? IM_COL32(0,0,0,0xFF) : IM_COL32(0xFF,0xFF,0xFF,0xFF);
+            const uint32_t colorFill = isBackgroundLight ? IM_COL32(0xFF,0xFF,0xFF,0xFF) : IM_COL32(0,0,0,0xFF);
 
             constexpr float lineThickness = 1.5f;
             constexpr float handleLineThickness = 2.f;
@@ -1098,8 +1098,8 @@ void WindowCanvas::Update() {
                 drawList->AddCircle(displayPivotPointOld, pivotRadiusOld, pivotColorOld, 0, 3.f);
             }
 
-            drawList->AddCircleFilled(displayPivotPoint, pivotDrawRadius, 0xFFFFFFFF);
-            drawList->AddCircle(displayPivotPoint, pivotDrawRadius, 0xFF000000, 0, pivotLineThickness);
+            drawList->AddCircleFilled(displayPivotPoint, pivotDrawRadius, IM_COL32_WHITE);
+            drawList->AddCircle(displayPivotPoint, pivotDrawRadius, IM_COL32_BLACK, 0, pivotLineThickness);
         }
 
         this->DrawCanvasText();
@@ -1114,19 +1114,18 @@ void WindowCanvas::Update() {
 void WindowCanvas::DrawCanvasText() {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    uint32_t textColor { 0xFF000000 }; // Black
+    uint32_t textColor { IM_COL32_BLACK };
     switch (this->gridType) {
     case GridType_None:
-        // White or Black
-        textColor = ThemeManager::getInstance().getThemeIsLight() ? 0xFF000000 : 0xFFFFFFFF;
+        textColor = ThemeManager::getInstance().getThemeIsLight() ? IM_COL32_BLACK : IM_COL32_WHITE;
         break;
 
     case GridType_Dark:
-        textColor = 0xFFFFFFFF; // White
+        textColor = IM_COL32_WHITE;
         break;
 
     case GridType_Light:
-        textColor = 0xFF000000; // Black
+        textColor = IM_COL32_BLACK;
         break;
 
     case GridType_Custom: {
@@ -1134,10 +1133,7 @@ void WindowCanvas::DrawCanvasText() {
             .2126f * customGridColor.x +
             .7152f * customGridColor.y +
             .0722f * customGridColor.z;
-        if (lumi > .5f)
-            textColor = 0xFF000000; // Black
-        else
-            textColor = 0xFFFFFFFF; // White
+        textColor = (lumi > .5f) ? IM_COL32_BLACK : IM_COL32_WHITE;
     } break;
 
     default:

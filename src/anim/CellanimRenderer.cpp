@@ -189,7 +189,7 @@ void CellanimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& ani
     if (!this->visible)
         return;
 
-    this->InternDraw(drawList, animation.keys.at(keyIndex), -1, 0xFFFFFFFFu, allowOpacity);
+    this->InternDraw(drawList, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
 }
 
 void CellanimRenderer::DrawOnionSkin(
@@ -478,9 +478,9 @@ void CellanimRenderer::InternDraw(
         const auto& texture = this->textureGroup->getTextureByVarying(part.textureVarying);
 
         unsigned baseAlpha = allowOpacity ?
-            uint8_t((unsigned(part.opacity) * unsigned(key.opacity)) / 0xFFu) :
-            0xFFu;
-        
+            ((unsigned(part.opacity) * unsigned(key.opacity)) / 0xFF) :
+            0xFF;
+
         unsigned vertexAlpha = (baseAlpha * ((colorMod >> 24) & 0xFF)) / 0xFF;
         uint32_t vertexColor = (colorMod & 0x00FFFFFF) | (vertexAlpha << 24);
 

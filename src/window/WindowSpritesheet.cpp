@@ -483,7 +483,7 @@ void WindowSpritesheet::FormatPopup() {
 bool RepackSheet() {
     constexpr int PADDING = 4;
     constexpr int PADDING_HALF = PADDING / 2;
-    constexpr uint32_t BORDER_COLOR = 0xFF000000; // Black
+    constexpr uint32_t BORDER_COLOR = IM_COL32_BLACK;
 
     SessionManager& sessionManager = SessionManager::getInstance();
 
@@ -526,7 +526,7 @@ bool RepackSheet() {
         return false;
 
     const unsigned pixelCount = cellanimSheet->getPixelCount();
-    std::unique_ptr<unsigned char[]> newImage(new unsigned char[pixelCount * 4]());
+    std::unique_ptr<unsigned char[]> newImage(new unsigned char[pixelCount * 4]);
     std::unique_ptr<unsigned char[]> srcImage(new unsigned char[pixelCount * 4]);
     cellanimSheet->GetRGBA32(srcImage.get());
 
@@ -832,10 +832,10 @@ void WindowSpritesheet::Update() {
     ImVec2 canvasSize = ImGui::GetContentRegionAvail();
     ImVec2 canvasBottomRight { canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y };
 
-    uint32_t backgroundColor { 0xFF000000 }; // Black
+    uint32_t backgroundColor { IM_COL32(0,0,0,0xFF) };
     switch (this->gridType) {
     case GridType_None:
-        backgroundColor = 0x00000000; // Transparent Black
+        backgroundColor = IM_COL32(0,0,0,0);
         break;
 
     case GridType_Dark:
