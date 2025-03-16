@@ -8,7 +8,7 @@
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
 
-#include "../anim/CellAnim.hpp"
+#include "../cellanim/CellAnim.hpp"
 
 class CommandInsertArrangement : public BaseCommand {
 public:

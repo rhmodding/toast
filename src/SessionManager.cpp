@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-#include "anim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
 #include "archive/U8Archive.hpp"
 #include "archive/SARC.hpp"

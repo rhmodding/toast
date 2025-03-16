@@ -13,7 +13,7 @@
 
 #include <tinyfiledialogs.h>
 
-#include "anim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
 #include "AppState.hpp"
 
@@ -32,7 +32,7 @@
 #include "command/CommandMoveAnimationKey.hpp"
 #include "command/CommandInsertAnimationKey.hpp"
 
-#include "anim/CellanimHelpers.hpp"
+#include "cellanim/CellanimHelpers.hpp"
 
 #include "task/AsyncTaskManager.hpp"
 

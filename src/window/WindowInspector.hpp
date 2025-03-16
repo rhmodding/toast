@@ -5,7 +5,7 @@
 
 #include <imgui.h>
 
-#include "../anim/CellanimRenderer.hpp"
+#include "../cellanim/CellanimRenderer.hpp"
 
 class WindowInspector : public BaseWindow {
 public:

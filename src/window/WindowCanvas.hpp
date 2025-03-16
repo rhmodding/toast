@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "../anim/CellanimRenderer.hpp"
+#include "../cellanim/CellanimRenderer.hpp"
 
 class WindowCanvas : public BaseWindow {
 public:

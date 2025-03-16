@@ -7,7 +7,7 @@
 
 #include "../SessionManager.hpp"
 
-#include "../anim/CellAnim.hpp"
+#include "../cellanim/CellAnim.hpp"
 
 class CommandInsertAnimationKey : public BaseCommand {
 public:

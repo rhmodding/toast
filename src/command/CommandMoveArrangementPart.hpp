@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include "../anim/CellAnim.hpp"
+#include "../cellanim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 

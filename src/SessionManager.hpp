@@ -6,7 +6,7 @@
 #include "texture/Texture.hpp"
 #include "texture/TextureGroup.hpp"
 
-#include "anim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
 #include "command/BaseCommand.hpp"
 

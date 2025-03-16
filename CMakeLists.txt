@@ -28,17 +28,17 @@ set(SOURCES
     src/stb/stb_rect_pack_impl.cpp
 
     src/main.cpp
-    
+
     src/Toast.cpp
 
     src/Logging.cpp
 
     src/App/Popups.cpp
 
-    src/anim/CellanimRenderer.cpp
-    src/anim/CellAnim.cpp
+    src/cellanim/CellanimRenderer.cpp
+    src/cellanim/CellAnim.cpp
 
-    src/anim/CellanimHelpers.cpp
+    src/cellanim/CellanimHelpers.cpp
 
     src/archive/SARC.cpp
     src/archive/U8Archive.cpp

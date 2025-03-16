@@ -1,4 +1,4 @@
-#include "anim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
 #include <numeric>
 

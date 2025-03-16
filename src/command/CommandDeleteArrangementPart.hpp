@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../anim/CellAnim.hpp"
+#include "../cellanim/CellAnim.hpp"
 
 #include "../AppState.hpp"
 #include "../SessionManager.hpp"

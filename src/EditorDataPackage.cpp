@@ -9,7 +9,7 @@
 
 #include "Logging.hpp"
 
-#include "anim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
 // Major version must be changed for any breaking changes.
 constexpr unsigned int TED_VERSION_MAJOR = 0;

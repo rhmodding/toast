@@ -7,7 +7,7 @@
 
 #include <array>
 
-#include "../../anim/CellAnim.hpp"
+#include "../../cellanim/CellAnim.hpp"
 
 #include "../../SessionManager.hpp"
 #include "../../command/CommandModifyAnimation.hpp"

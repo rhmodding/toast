@@ -6,7 +6,7 @@
 
 #include "../ThemeManager.hpp"
 
-#include "../anim/CellanimHelpers.hpp"
+#include "../cellanim/CellanimHelpers.hpp"
 
 #include "../command/CommandSetArrangementMode.hpp"
 
