@@ -5,12 +5,6 @@
 
 #include <string>
 
-#include "../SessionManager.hpp"
-
-#include "../ConfigManager.hpp"
-
-#include "../AppState.hpp"
-
 class AsyncTaskExportSession : public AsyncTask {
 public:
     AsyncTaskExportSession(

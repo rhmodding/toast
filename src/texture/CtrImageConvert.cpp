@@ -4,6 +4,8 @@
 
 #include <thread>
 
+#include <cstdint>
+
 #include "../Logging.hpp"
 
 #include <rg_etc1.h>
@@ -56,7 +58,7 @@ static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth
     uint32_t* result = reinterpret_cast<uint32_t*>(_result);
 
     unsigned readOffset { 0 };
-	
+
     for (unsigned yy = 0; yy < srcHeight; yy += 8) {
         for (unsigned xx = 0; xx < srcWidth; xx += 8) {
             for (unsigned z = 0; z < 4; z++) {
@@ -102,7 +104,7 @@ static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth
 
 static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* _data) {
     rg_etc1::pack_etc1_block_init();
-    
+
     rg_etc1::etc1_pack_params packerParams;
     packerParams.m_quality = static_cast<rg_etc1::etc1_quality>(
         std::min(ConfigManager::getInstance().getConfig().etc1Quality, ETC1Quality_High)
@@ -119,7 +121,7 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
     unsigned numThreads = std::thread::hardware_concurrency();
     if (numThreads == 0)
         numThreads = 4;
-    
+
     unsigned chunkHeight = (srcHeight + numThreads - 1) / numThreads;
 
     auto worker = [result, data, srcWidth, &packerParams](unsigned yStart, unsigned yEnd) {
@@ -182,7 +184,7 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
 
 bool CtrImageConvert::toRGBA32(
     unsigned char* buffer,
-    const CTPK::CTPKImageFormat format,
+    const ImageFormat format,
     const unsigned srcWidth,
     const unsigned srcHeight,
     const unsigned char* data
@@ -192,7 +194,7 @@ bool CtrImageConvert::toRGBA32(
 	case ImageFormat::CTPK_IMAGE_FORMAT_RGBA4444:
 		implementation = IMPLEMENTATION_FROM_RGBA4444;
 		break;
-	
+
     case ImageFormat::CTPK_IMAGE_FORMAT_ETC1A4:
         implementation = IMPLEMENTATION_FROM_ETC1A4;
         break;
@@ -221,7 +223,7 @@ bool CtrImageConvert::toRGBA32(
 
 bool CtrImageConvert::fromRGBA32(
     unsigned char* buffer,
-    const CTPK::CTPKImageFormat format,
+    const ImageFormat format,
     const unsigned srcWidth,
     const unsigned srcHeight,
     const unsigned char* data
@@ -268,7 +270,7 @@ static unsigned ImageByteSize_ETC1(unsigned width, unsigned height) {
    	return tilesX * tilesY * 8;
 }
 
-unsigned CtrImageConvert::getImageByteSize(const CTPK::CTPKImageFormat type, unsigned width, unsigned height, unsigned mipCount) {
+unsigned CtrImageConvert::getImageByteSize(const ImageFormat type, unsigned width, unsigned height, unsigned mipCount) {
     unsigned sum = 0;
 
     switch (type) {

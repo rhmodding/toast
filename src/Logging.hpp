@@ -7,8 +7,6 @@
 #include <sstream>
 #include <ostream>
 
-#include <iomanip>
-
 #include <string>
 
 #include <mutex>

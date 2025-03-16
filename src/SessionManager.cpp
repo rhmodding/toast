@@ -1,6 +1,5 @@
 #include "SessionManager.hpp"
 
-#include <cstdint>
 #include <cstdio>
 #include <cstring>
 
@@ -8,8 +7,6 @@
 #include <fstream>
 
 #include "Logging.hpp"
-
-#include <filesystem>
 
 #include <algorithm>
 
@@ -29,8 +26,6 @@
 #include "ConfigManager.hpp"
 #include "PlayerManager.hpp"
 #include "MainThreadTaskManager.hpp"
-
-#include "AppState.hpp"
 
 #include "Files.hpp"
 
@@ -98,7 +93,7 @@ void SessionManager::setCurrentSessionIndex(int sessionIndex) {
 
     if (sessionIndex >= this->sessions.size())
         return;
-    
+
     this->currentSessionIndex = sessionIndex;
 
     PlayerManager::getInstance().correctState();
@@ -288,25 +283,25 @@ static SessionManager::Error InitCtrSession(
         )
             bccadFiles.push_back(&file);
     }
-    
+
     if (bccadFiles.empty())
         return SessionManager::OpenError_NoBXCADsFound;
-    
+
     std::vector<const SARC::File*> ctpkFiles;
-    
+
     for (const auto* bccadFile : bccadFiles) {
         std::string baseName = bccadFile->name.substr(0, bccadFile->name.find_last_of('.'));
-    
+
         bool foundMatch = false;
         const SARC::File* bestMatch = nullptr;
         size_t bestMatchLength = 0;
-    
+
         for (const auto& file : rootDirIt->files) {
             if (file.name.size() >= STR_LIT_LEN(".ctpk") &&
                 file.name.substr(file.name.size() - STR_LIT_LEN(".ctpk")) == ".ctpk") {
-                
+
                 std::string ctpkBaseName = file.name.substr(0, file.name.find_last_of('.'));
-    
+
                 // HACK: because of some edge-cases where the developers didn't exactly mirror the
                 // filenames, we have to do a substring search -_-
 
@@ -319,15 +314,15 @@ static SessionManager::Error InitCtrSession(
                 }
             }
         }
-    
+
         if (bestMatch) {
             ctpkFiles.push_back(bestMatch);
             foundMatch = true;
         }
-    
+
         if (!foundMatch)
             return SessionManager::OpenError_MissingCTPK;
-    }        
+    }
 
     session.cellanims.resize(bccadFiles.size());
     session.sheets->getVector().reserve(ctpkFiles.size());
@@ -347,7 +342,7 @@ static SessionManager::Error InitCtrSession(
             cellanim.object->getType() != CellAnim::CELLANIM_TYPE_CTR
         )
             return SessionManager::OpenError_FailOpenBXCAD;
-        
+
         cellanim.object->sheetIndex = i;
     }
 
@@ -416,7 +411,7 @@ int SessionManager::CreateSession(const char* filePath) {
         std::ifstream file(filePath, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
             Logging::err << "[SessionManager::CreateSession] Error opening file at path: " << filePath << std::endl;
-            
+
             std::lock_guard<std::mutex> lock(this->mtx);
             this->currentError = OpenError_FailOpenFile;
 
@@ -500,7 +495,7 @@ int SessionManager::CreateSession(const char* filePath) {
 
         initError = InitCtrSession(newSession, archive);
     } break;
-    
+
     default:
         initError = OpenError_FailOpenArchive;
         break;
@@ -634,7 +629,7 @@ static SessionManager::Error SerializeRvlSession(
 
     if (!compressedArchive.has_value())
         return SessionManager::OutError_ZlibError;
-    
+
     output = std::move(*compressedArchive);
     compressedArchive.reset();
 
@@ -687,7 +682,7 @@ static SessionManager::Error SerializeCtrSession(
         auto& ctpkTex = ctpkTextures[i];
 
         SARC::File file(texture->getName() + ".ctpk");
-        
+
         ctpkTex.rotateCW();
 
         ctpkTex.sourcePath = "data/" + texture->getName() + "_rot.tga";
@@ -731,7 +726,7 @@ static SessionManager::Error SerializeCtrSession(
 
     if (!compressedArchive.has_value())
         return SessionManager::OutError_ZlibError;
-    
+
     output = std::move(*compressedArchive);
     compressedArchive.reset();
 
@@ -743,7 +738,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
 
     if (sessionIndex >= this->sessions.size())
         return false;
-    
+
     auto& session = this->sessions[sessionIndex];
 
     if (dstFilePath == nullptr)
@@ -752,7 +747,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
     Logging::info <<
         "[SessionManager::ExportSession] Exporting session no. " << sessionIndex+1 <<
         " to path \"" << dstFilePath << "\".." << std::endl;
-    
+
     Error error;
     std::vector<unsigned char> result;
 
@@ -763,7 +758,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
     case CellAnim::CELLANIM_TYPE_CTR:
         error = SerializeCtrSession(session, result);
         break;
-    
+
     default:
         Logging::err << "[SessionManager::ExportSession] Session type is invalid (" << static_cast<int>(session.type) << ")!" << std::endl;
         error = Error_Unknown;

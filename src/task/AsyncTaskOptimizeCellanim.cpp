@@ -1,5 +1,9 @@
 #include "AsyncTaskOptimizeCellanim.hpp"
 
+#include <unordered_set>
+
+#include "../MainThreadTaskManager.hpp"
+
 AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
     AsyncTaskId id,
     Session* session, OptimizeCellanimOptions options

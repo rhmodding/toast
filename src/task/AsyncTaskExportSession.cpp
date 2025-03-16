@@ -1,5 +1,11 @@
 #include "AsyncTaskExportSession.hpp"
 
+#include "../SessionManager.hpp"
+
+#include "../ConfigManager.hpp"
+
+#include "../AppState.hpp"
+
 AsyncTaskExportSession::AsyncTaskExportSession(
     AsyncTaskId id,
     unsigned sessionIndex, std::string filePath

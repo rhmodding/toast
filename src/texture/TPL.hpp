@@ -5,10 +5,6 @@
 
 #include <vector>
 
-#include <string>
-
-#include <optional>
-
 #include "../glInclude.hpp"
 
 namespace TPL {

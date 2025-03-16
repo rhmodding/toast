@@ -5,8 +5,6 @@
 
 #include "../../ThemeManager.hpp"
 
-#include "../../anim/CellanimRenderer.hpp"
-
 #include "../../command/CommandModifyArrangement.hpp"
 #include "../../command/CommandModifyArrangementPart.hpp"
 #include "../../command/CommandInsertArrangementPart.hpp"
@@ -174,7 +172,7 @@ void WindowInspector::Level_Arrangement() {
             ImGui::BeginDisabled(part.editorLocked);
 
             ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Part Name (editor)");
-            
+
             textInputStdString("Name", part.editorName);
 
             ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");

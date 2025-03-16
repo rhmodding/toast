@@ -5,7 +5,7 @@
 
 #include <atomic>
 
-#include "../common.hpp"
+#include <cstdint>
 
 typedef uint32_t AsyncTaskId;
 

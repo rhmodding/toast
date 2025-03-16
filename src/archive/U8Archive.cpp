@@ -7,8 +7,6 @@
 
 #include <fstream>
 
-#include <algorithm>
-
 #include <utility>
 #include <stack>
 
@@ -200,9 +198,9 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
         // Process files
         if (fileIt != currentDir->files.end()) {
             flattenedArchive.push_back({
-                .ptr = &(*fileIt), 
-                .parent = parentList.back(), 
-                // .nextOutOfDir = 0, 
+                .ptr = &(*fileIt),
+                .parent = parentList.back(),
+                // .nextOutOfDir = 0,
                 // nextOutOfDir is not used.
                 .isDir = false
             });
@@ -212,8 +210,8 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
         else if (dirIt != currentDir->subdirectories.end()) {
             Directory* subDir = &(*dirIt);
             flattenedArchive.push_back({
-                .ptr = subDir, 
-                .parent = parentList.back(), 
+                .ptr = subDir,
+                .parent = parentList.back(),
                 // .nextOutOfDir = 0,
                 // nextOutOfDir is set later.
                 .isDir = true
@@ -308,7 +306,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
                 ),
                 reinterpret_cast<Directory*>(entry.ptr)->name.c_str()
             );
-        } 
+        }
         else {
             unsigned char* fileData = reinterpret_cast<File*>(entry.ptr)->data.data();
             unsigned fileDataSize = reinterpret_cast<File*>(entry.ptr)->data.size();

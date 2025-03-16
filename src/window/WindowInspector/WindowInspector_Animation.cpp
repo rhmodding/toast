@@ -1,14 +1,10 @@
 #include "../WindowInspector.hpp"
 
-#include <sstream>
-
 #include "../../SessionManager.hpp"
 
 #include "../../ThemeManager.hpp"
 
 #include "../../AppState.hpp"
-
-#include "../../anim/CellanimRenderer.hpp"
 
 #include "../../command/CommandSetAnimationInterpolated.hpp"
 

@@ -3,14 +3,10 @@
 
 #include "BaseCommand.hpp"
 
-#include <algorithm>
-
 #include "../anim/CellAnim.hpp"
 
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
-
-#include "../AppState.hpp"
 
 class CommandDeleteArrangement : public BaseCommand {
 public:

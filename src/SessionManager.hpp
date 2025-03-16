@@ -4,25 +4,19 @@
 #include "Singleton.hpp"
 
 #include "texture/Texture.hpp"
-
 #include "texture/TextureGroup.hpp"
 
 #include "anim/CellAnim.hpp"
 
 #include "command/BaseCommand.hpp"
 
-#include <cstdint>
-
 #include <string>
 
-#include <unordered_map>
 #include <deque>
 
 #include <memory>
 
 #include <mutex>
-
-#include "common.hpp"
 
 class Session {
 public:

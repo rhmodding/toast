@@ -4,8 +4,6 @@
 
 #include "../Logging.hpp"
 
-#include <fstream>
-
 #include "../common.hpp"
 
 // 12 Mar 2010
@@ -521,7 +519,7 @@ static std::vector<unsigned char> SerializeRvlCellAnim(
         fullSize += sizeof(RvlArrangement) + (sizeof(RvlArrangementPart) * arrangement.parts.size());
     for (const CellAnim::Animation& animation : object.animations)
         fullSize += sizeof(RvlAnimation) + (sizeof(RvlAnimationKey) * animation.keys.size());
-    
+
     std::vector<unsigned char> result(fullSize);
 
     RvlCellAnimHeader* header = reinterpret_cast<RvlCellAnimHeader*>(result.data());
@@ -589,7 +587,7 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
         );
         fullSize += sizeof(CtrAnimation) + (sizeof(CtrAnimationKey) * animation.keys.size());
     }
-    
+
     std::vector<unsigned char> result(fullSize);
 
     CtrCellAnimHeader* header = reinterpret_cast<CtrCellAnimHeader*>(result.data());
@@ -663,7 +661,7 @@ CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize)
         this->type = CELLANIM_TYPE_CTR;
         this->initialized = InitCtrCellAnim(*this, data, dataSize);
         return;
-    
+
     default:
         Logging::err << "[CellAnimObject::CellAnimObject] Invalid cellanim binary: revision date doesn't match RVL or CTR!" << std::endl;
         return;
@@ -676,7 +674,7 @@ std::vector<unsigned char> CellAnimObject::Serialize() {
         return SerializeRvlCellAnim(*this);
     case CELLANIM_TYPE_CTR:
         return SerializeCtrCellAnim(*this);
-    
+
     default:
         Logging::err << "[CellAnimObject::Serialize] Invalid type (" <<
             static_cast<int>(this->type) << ")!" << std::endl;

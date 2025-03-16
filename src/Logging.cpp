@@ -3,6 +3,8 @@
 #include <chrono>
 #include <ctime>
 
+#include <iomanip>
+
 std::ofstream Logging::logFile;
 std::mutex Logging::mtx;
 
@@ -16,6 +18,7 @@ Logging::LogStream& Logging::LogStream::operator<<(
     std::ostream& (*manip)(std::ostream&)
 ) {
     std::lock_guard<std::mutex> lock(mtx);
+
     if (manip == static_cast<std::ostream& (*)(std::ostream&)>(std::endl))
         flush();
     return *this;

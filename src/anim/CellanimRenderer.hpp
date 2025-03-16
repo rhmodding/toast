@@ -10,7 +10,6 @@
 
 #include "CellAnim.hpp"
 
-#include "../texture/Texture.hpp"
 #include "../texture/TextureGroup.hpp"
 
 class CellanimRenderer {
@@ -20,7 +19,7 @@ public:
 
 private:
     static void renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd);
-    
+
     static GLuint shaderProgram;
 
     static GLint foreColorUniform;

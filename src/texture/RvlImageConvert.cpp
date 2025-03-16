@@ -1,7 +1,6 @@
 #include "RvlImageConvert.hpp"
 
 #include <unordered_map>
-#include <set>
 
 #include "../Logging.hpp"
 
@@ -347,7 +346,7 @@ static void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, u
 }
 
 
-static void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {    
+static void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t* palette) {
     unsigned readOffset { 0 };
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
@@ -369,7 +368,7 @@ static void IMPLEMENTATION_FROM_C8(unsigned char* result, unsigned srcWidth, uns
                     result[destIndex + 0] = (color >> 24) & 0xFFu;
                     result[destIndex + 1] = (color >> 16) & 0xFFu;
                     result[destIndex + 2] = (color >>  8) & 0xFFu;
-                    result[destIndex + 3] = color & 0xFFu;
+                    result[destIndex + 3] = (color >>  0) & 0xFFu;
                 }
             }
             readOffset += 1 * 8 * 4;
@@ -401,7 +400,7 @@ static void IMPLEMENTATION_FROM_C14X2(unsigned char* result, unsigned srcWidth, 
                     result[destIndex + 0] = (color >> 24) & 0xFFu;
                     result[destIndex + 1] = (color >> 16) & 0xFFu;
                     result[destIndex + 2] = (color >>  8) & 0xFFu;
-                    result[destIndex + 3] = color & 0xFFu;
+                    result[destIndex + 3] = (color >>  0) & 0xFFu;
                 }
             }
             readOffset += 2 * 4 * 4;
@@ -571,7 +570,7 @@ static void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, un
 
     for (unsigned yy = 0; yy < srcHeight; yy += 4) {
         for (unsigned xx = 0; xx < srcWidth; xx += 8) {
-            
+
             for (unsigned y = 0; y < 4; y++) {
                 if (yy + y >= srcHeight) break;
 
@@ -653,7 +652,7 @@ static void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut,
 
 bool RvlImageConvert::toRGBA32(
     unsigned char* buffer,
-    const TPL::TPLImageFormat format,
+    const ImageFormat format,
     const unsigned srcWidth,
     const unsigned srcHeight,
     const unsigned char* data,
@@ -737,7 +736,7 @@ bool RvlImageConvert::fromRGBA32(
     unsigned char* buffer,
     uint32_t* paletteOut,
     unsigned* paletteSizeOut,
-    const TPL::TPLImageFormat format,
+    const ImageFormat format,
     const unsigned srcWidth,
     const unsigned srcHeight,
     const unsigned char* data
@@ -840,7 +839,7 @@ static unsigned ImageByteSize_CMPR(unsigned width, unsigned height) {
 	return tilesX * tilesY * 32;
 }
 
-unsigned RvlImageConvert::getImageByteSize(const TPL::TPLImageFormat type, const unsigned width, const unsigned height) {
+unsigned RvlImageConvert::getImageByteSize(const ImageFormat type, const unsigned width, const unsigned height) {
     switch (type) {
     case ImageFormat::TPL_IMAGE_FORMAT_I4:
         return ImageByteSize_4(width, height);

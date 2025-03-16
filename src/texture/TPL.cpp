@@ -1,10 +1,6 @@
 #include "TPL.hpp"
 
-#include <fstream>
-
 #include "../Logging.hpp"
-
-#include <unordered_set>
 
 #include "../MainThreadTaskManager.hpp"
 
@@ -20,7 +16,7 @@ constexpr uint32_t TPL_VERSION_NUMBER = __builtin_bswap32(2142000);
 struct TPLPalette {
     // Compare to TPL_VERSION_NUMBER
     uint32_t versionNumber { TPL_VERSION_NUMBER };
-    
+
     // Amount of descriptors in the descriptor table.
     uint32_t descriptorCount;
 
@@ -257,7 +253,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
     );
 
     unsigned dataSectionStart = headerSectionStart + (sizeof(TPLHeader) * textureCount);
-    
+
     unsigned fullSize = dataSectionStart;
 
     // Precompute size of data section.

@@ -5,6 +5,8 @@
 
 #include "../SessionManager.hpp"
 
+#include "../PlayerManager.hpp"
+
 class CommandSwitchCellanim : public BaseCommand {
 public:
     // Constructor: Switch cellanim space by index.
@@ -22,7 +24,7 @@ public:
 
     void Execute() override {
         SessionManager& sessionManager = SessionManager::getInstance();
-        
+
         auto& session = sessionManager.sessions.at(this->sessionIndex);
         session.setCurrentCellanimIndex(this->cellanimIndex);
 
@@ -31,7 +33,7 @@ public:
 
     void Rollback() override {
         SessionManager& sessionManager = SessionManager::getInstance();
-        
+
         auto& session = sessionManager.sessions.at(this->sessionIndex);
         session.setCurrentCellanimIndex(this->previousCellanim);
 

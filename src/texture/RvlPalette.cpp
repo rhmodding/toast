@@ -2,11 +2,13 @@
 
 #include "../Logging.hpp"
 
+#include "../common.hpp"
+
 std::set<uint32_t> RvlPalette::generate(const unsigned char* rgbaImage, unsigned pixelCount) {
     std::set<uint32_t> uniqueColors;
     for (unsigned i = 0; i < pixelCount; ++i)
         uniqueColors.insert(((const uint32_t*)rgbaImage)[i]);
-    
+
     return uniqueColors;
 }
 
@@ -40,7 +42,7 @@ void RvlPalette::readCLUT(
             const uint32_t r = ((sourcePixel >> 11) & 0x1f) << 3;
             const uint32_t g = ((sourcePixel >>  5) & 0x3f) << 2;
             const uint32_t b = ((sourcePixel >>  0) & 0x1f) << 3;
-            
+
             colorsOut[i] = (r << 24) | (g << 16) | (b << 8) | 0xFFu;
         }
     } break;

@@ -7,6 +7,8 @@
 
 #include "../font/FontAwesome.h"
 
+#include "../common.hpp"
+
 AsyncTask::AsyncTask(AsyncTaskId id, const char* message) :
     id(id), message(message)
 {

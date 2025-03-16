@@ -5,8 +5,6 @@
 
 #include "anim/CellAnim.hpp"
 
-#include "anim/CellanimRenderer.hpp"
-
 #include "SessionManager.hpp"
 
 #include "PlayerManager.hpp"
@@ -16,12 +14,9 @@
 #include <algorithm>
 
 #include <cstdint>
-#include <cstring>
 
 #include <imgui.h>
 #include <imgui_internal.h>
-
-#include "common.hpp"
 
 #define BEGIN_GLOBAL_POPUP() \
     do { \
@@ -130,7 +125,7 @@ public:
         auto it = std::lower_bound(
             selectedParts.begin(), selectedParts.end(),
             partIndex, [](const SelectedPart& sp, int partIndex) {
-                return static_cast<int>(sp.index) < partIndex; 
+                return static_cast<int>(sp.index) < partIndex;
             }
         );
 

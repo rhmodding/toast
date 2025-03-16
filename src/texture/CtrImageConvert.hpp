@@ -1,8 +1,6 @@
 #ifndef CTR_IMAGECONVERT_HPP
 #define CTR_IMAGECONVERT_HPP
 
-#include <cstdint>
-
 #include "CTPK.hpp"
 
 namespace CtrImageConvert {

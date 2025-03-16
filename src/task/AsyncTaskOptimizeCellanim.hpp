@@ -3,16 +3,9 @@
 
 #include "AsyncTask.hpp"
 
-#include <algorithm>
-
-#include <unordered_set>
-
 #include "../glInclude.hpp"
 
 #include "../SessionManager.hpp"
-#include "../MainThreadTaskManager.hpp"
-
-#include "../AppState.hpp"
 
 struct OptimizeCellanimOptions {
     bool removeAnimationNames { false };

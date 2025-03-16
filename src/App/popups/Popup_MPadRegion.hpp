@@ -1,11 +1,7 @@
 #ifndef POPUP_MPADREGION_HPP
 #define POPUP_MPADREGION_HPP
 
-#include <cstdint>
-
 #include <imgui.h>
-
-#include "../../anim/CellanimRenderer.hpp"
 
 #include "../../AppState.hpp"
 

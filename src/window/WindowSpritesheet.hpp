@@ -3,8 +3,6 @@
 
 #include "BaseWindow.hpp"
 
-#include <cstdint>
-
 #include <memory>
 
 #include <imgui.h>

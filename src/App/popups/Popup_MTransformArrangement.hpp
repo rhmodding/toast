@@ -6,10 +6,6 @@
 
 #include <imgui.h>
 
-#include "../../anim/CellanimRenderer.hpp"
-
-#include "../../AppState.hpp"
-
 #include "../../SessionManager.hpp"
 #include "../../command/CommandModifyArrangement.hpp"
 

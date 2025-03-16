@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#include <locale>
+#include <clocale>
 
 int main(int argc, const char** argv) {
     std::setlocale(LC_ALL, "C.UTF-8");

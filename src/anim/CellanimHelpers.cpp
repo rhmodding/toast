@@ -1,5 +1,7 @@
 #include "CellanimHelpers.hpp"
 
+#include <memory>
+
 #include "../SessionManager.hpp"
 
 #include "../command/CommandInsertArrangement.hpp"

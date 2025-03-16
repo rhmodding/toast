@@ -3,8 +3,6 @@
 
 #include <imgui.h>
 
-#include "../../AppState.hpp"
-
 #include "../../SessionManager.hpp"
 
 #include "../../task/AsyncTaskManager.hpp"
@@ -12,7 +10,7 @@
 
 static void Popup_MOptimizeGlobal() {
     static OptimizeCellanimOptions options {};
-    
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal("Optimize Cellanim###MOptimizeGlobal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         SessionManager& sessionManager = SessionManager::getInstance();

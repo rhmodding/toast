@@ -13,7 +13,6 @@
 #include "../AppState.hpp"
 
 #include "../command/CommandModifyArrangement.hpp"
-#include "../command/CommandModifyArrangementPart.hpp"
 
 #include "../common.hpp"
 
@@ -30,7 +29,6 @@ static void fitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
     rectToFit.y *= scale;
 }
 
-// Check if point is inside a polygon defined by vertices
 static bool pointInPolygon(const ImVec2& point, const ImVec2* vertices, unsigned numVertices) {
     float x = point.x, y = point.y;
     bool inside { false };
@@ -81,7 +79,7 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& rend
         ImVec2(BOUNDING_INVALID, BOUNDING_INVALID),
         ImVec2(BOUNDING_INVALID, BOUNDING_INVALID)
     });
-    
+
     quadRotation = 0.f;
 
     AppState& appState = AppState::getInstance();
@@ -115,11 +113,11 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& rend
 
         if (part.editorLocked)
             continue;
-        
+
         any = true;
 
         std::array<ImVec2, 4> quad = renderer.getPartWorldQuad(playerManager.getKey().transform, arrangement, index);
-        
+
         for (const auto& vertex : quad) {
             minX = std::min(minX, vertex.x);
             minY = std::min(minY, vertex.y);
@@ -241,10 +239,10 @@ void WindowCanvas::Menubar() {
             if (ImGui::MenuItem("Reset to Safe Area", nullptr, false)) {
                 this->canvasOffset = { 0.f, 0.f };
 
-                ImVec2 rect = getSafeAreaSize();
+                ImVec2 safeAreaSize = getSafeAreaSize();
 
                 float scale;
-                fitRect(rect, this->canvasSize, scale);
+                fitRect(safeAreaSize, this->canvasSize, scale);
 
                 this->canvasZoom = scale - .1f;
             }
@@ -470,7 +468,7 @@ void WindowCanvas::Update() {
     bool hoveringOverParts { false };
     if (interactionHovered && !noParts)
         hoveringOverParts = pointInPolygon(io.MousePos, partsBounding.data(), 4);
-    
+
     // Top-left, top-right, bottom-right, bottom-left, top, right, bottom, left
     bool hoveringTransformHandles[8] { false };
     // We can't use hoveringOverParts because the handles hang off the edge.
@@ -639,7 +637,7 @@ void WindowCanvas::Update() {
 
             const auto& key = playerManager.getKey();
 
-            float theta = -key.transform.angle * M_PI / 180.f;
+            float theta = -key.transform.angle * (float)M_PI / 180.f;
 
             float rotatedX = scaledOffset.x * cosf(theta) - scaledOffset.y * sinf(theta);
             float rotatedY = scaledOffset.x * sinf(theta) + scaledOffset.y * cosf(theta);
@@ -730,15 +728,13 @@ void WindowCanvas::Update() {
                 mousePosition.x - pivotRealX // x
             );
 
-            partsTransformation.rotation = (nowAngle - startAngle) * (180.f / M_PI);
+            partsTransformation.rotation = (nowAngle - startAngle) * (180.f / (float)M_PI);
 
             // Snap to 45deg if Shift is held.
-            if (shiftHeld) {
-                partsTransformation.rotation =
-                    roundf(partsTransformation.rotation / 45.f) * 45.f;
-            }
+            if (shiftHeld)
+                partsTransformation.rotation = roundf(partsTransformation.rotation / 45.f) * 45.f;
         } break;
-        
+
         default:
             break;
         }
@@ -1079,7 +1075,7 @@ void WindowCanvas::Update() {
 
             // Draw the pivot
             const bool pivotDrawActive = hoveringOverPivot || movingPivot;
-        
+
             float pivotDrawRadius = pivotDrawActive ? pivotRadius + 1.f : pivotRadius;
             constexpr float pivotLineThickness = 2.25f;
 
@@ -1153,7 +1149,7 @@ void WindowCanvas::DrawCanvasText() {
                 "Offset: " <<
                 std::to_string(this->canvasOffset.x) << ", " <<
                 std::to_string(this->canvasOffset.y);
-            
+
             str = fmtStream.str();
         }
 

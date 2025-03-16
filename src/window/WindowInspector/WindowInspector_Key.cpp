@@ -4,11 +4,7 @@
 
 #include "../../ThemeManager.hpp"
 
-#include "../../anim/CellanimRenderer.hpp"
-
 #include "../../command/CommandModifyAnimationKey.hpp"
-
-#include "../../anim/CellanimHelpers.hpp"
 
 #include "../../font/FontAwesome.h"
 

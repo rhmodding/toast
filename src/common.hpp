@@ -3,8 +3,6 @@
 
 #include <cstdint>
 
-#include <iostream>
-
 #include <bit>
 
 #include <imgui.h>

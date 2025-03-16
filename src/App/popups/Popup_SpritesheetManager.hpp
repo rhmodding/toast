@@ -16,10 +16,14 @@ static void Popup_SpritesheetManager() {
 
     CENTER_NEXT_WINDOW();
 
-    if (ImGui::BeginPopupModal("Spritesheet Manager###SpritesheetManager")) {
+    bool shouldStayOpen = true;
+    if (ImGui::BeginPopupModal("Spritesheet Manager###SpritesheetManager", &shouldStayOpen)) {
         if (ImGui::IsWindowAppearing())
             selectedSheet = sessionManager.getCurrentSession()
                 ->getCurrentCellanim().object->sheetIndex;
+
+        if (shouldStayOpen == false)
+            ImGui::CloseCurrentPopup();
         
         auto& sheets = sessionManager.getCurrentSession()->sheets;
 
@@ -57,33 +61,32 @@ static void Popup_SpritesheetManager() {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::SliderFloat("##BGSlider", &bgScale, 0.f, 1.f, "BG: %.3f");
 
-            ImVec2 imageRect {
+            ImVec2 imageSize {
                 static_cast<float>(cellanimSheet->getWidth()),
                 static_cast<float>(cellanimSheet->getHeight())
             };
 
             float imageScale = std::min(
-                ImGui::GetContentRegionAvail().x / imageRect.x, // width ratio
-                ImGui::GetContentRegionAvail().y / imageRect.y // height ratio
+                ImGui::GetContentRegionAvail().x / imageSize.x, // width ratio
+                ImGui::GetContentRegionAvail().y / imageSize.y // height ratio
             );
-            imageRect.x *= imageScale;
-            imageRect.y *= imageScale;
+            imageSize.x *= imageScale;
+            imageSize.y *= imageScale;
 
-            ImVec2 imagePosition {
-                ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageRect.x) * .5f,
-                ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - imageRect.y) * .5f
+            const ImVec2 imageTL {
+                ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - imageSize.x) * .5f,
+                ImGui::GetCursorScreenPos().y + (ImGui::GetContentRegionAvail().y - imageSize.y) * .5f
             };
+            const ImVec2 imageBR { imageTL.x + imageSize.x, imageTL.y + imageSize.y, };
 
             ImGui::GetWindowDrawList()->AddRectFilled(
-                imagePosition,
-                { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, },
+                imageTL, imageBR,
                 ImGui::ColorConvertFloat4ToU32({ bgScale, bgScale, bgScale, 1.f })
             );
 
             ImGui::GetWindowDrawList()->AddImage(
                 cellanimSheet->getImTextureId(),
-                imagePosition,
-                { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
+                imageTL, imageBR
             );
 
             ImGui::EndChild();

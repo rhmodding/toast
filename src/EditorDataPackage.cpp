@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstring>
 
-#include <unordered_set>
 #include <string>
 
 #include <iostream>
@@ -21,7 +20,7 @@ static_assert(TED_VERSION_MINOR < 16, "TED_VERSION_MINOR must be less than 16");
 
 struct TedFileHeader {
     char magic[5] { 'T', 'O', 'A', 'S', 'T' };
-    
+
     // Version
     union {
         struct {

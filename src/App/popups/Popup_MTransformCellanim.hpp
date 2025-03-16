@@ -1,14 +1,7 @@
 #ifndef POPUP_MTRANSFORMCELLANIM_HPP
 #define POPUP_MTRANSFORMCELLANIM_HPP
 
-#include <cstdint>
-#include <cstring>
-
 #include <imgui.h>
-
-#include "../../anim/CellanimRenderer.hpp"
-
-#include "../../AppState.hpp"
 
 #include "../../SessionManager.hpp"
 

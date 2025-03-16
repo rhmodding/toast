@@ -6,8 +6,6 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include <sstream>
-
 #include <thread>
 
 #include "../font/FontAwesome.h"
@@ -64,7 +62,7 @@ static const Line aboutLines[] = {
     { LC_STRING_LINE, "Chrislo (a.k.a. chrislo27)" },
     { LC_STRING_LINE, "patataofcourse" },
     { LC_STRING_LINE, "TheAlternateDoctor" },
-};    
+};
 
 static const char* githubButton  = (const char*)ICON_FA_CODE "";
 static const char* githubTooltip = "Open GitHub page..";
@@ -87,7 +85,7 @@ static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, I
     for (unsigned i = 0; i < lineCount; i++) {
         const Line* line = lines + i;
 
-        switch (line->command) {        
+        switch (line->command) {
         case LC_STRING_LINE:
             window->DrawList->AddText(
                 { position.x + additiveLineX, position.y + additiveLineHeight },
@@ -129,7 +127,7 @@ static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, I
         case LC_EMPTY_LINE:
         default:
             break;
-        }  
+        }
 
         additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;
 
@@ -145,7 +143,7 @@ static void drawHeader(ImVec2& position, ImGuiWindow* window) {
         window->WorkRect.Max.x - 25.f - 30.f - window->Pos.x,
         position.y + (30.f / 2) - window->Pos.y
     });
-    
+
     ImGui::PushFont(themeManager.getFonts().giant);
 
     // Title.

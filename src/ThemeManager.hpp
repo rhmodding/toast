@@ -3,6 +3,10 @@
 
 #include "Singleton.hpp"
 
+#include <array>
+
+#include <imgui.h>
+
 class ThemeManager : public Singleton<ThemeManager> {
     friend class Singleton<ThemeManager>; // Allow access to base class constructor
 
@@ -21,7 +25,7 @@ public:
     void Initialize();
 
     void applyTheming();
-    
+
     const std::array<float, 4>& getWindowClearColor() const {
         return this->windowClearColor;
     }

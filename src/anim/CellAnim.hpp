@@ -6,8 +6,6 @@
 #include <cstdint>
 #include <cmath>
 
-#include <memory>
-
 #include "../common.hpp"
 
 namespace CellAnim {
@@ -182,12 +180,12 @@ struct ArrangementPart {
             this->flipY == other.flipY &&
 
             this->opacity == other.opacity &&
-            
+
             this->foreColor == other.foreColor &&
             this->backColor == other.backColor &&
-            
+
             this->quadDepth == other.quadDepth &&
-            
+
             this->id == other.id;
     }
 
@@ -240,7 +238,7 @@ struct AnimationKey {
             this->translateZ == other.translateZ &&
 
             this->opacity == other.opacity &&
-            
+
             this->foreColor == other.foreColor &&
             this->backColor == other.backColor;
     }
@@ -273,7 +271,7 @@ public:
 public:
     int sheetIndex { -1 };
     unsigned sheetW { 0 }, sheetH { 0 };
-    
+
     bool usePalette { false };
 
     std::vector<Arrangement> arrangements;

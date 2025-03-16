@@ -1,7 +1,5 @@
 #include "ThemeManager.hpp"
 
-#include <imgui.h>
-
 #include "font/SegoeUIData.h"
 #include "font/FontAwesomeData.h"
 
@@ -56,7 +54,7 @@ void ThemeManager::Initialize() {
         this->fonts.giant = io.Fonts->AddFontFromMemoryTTF(
             const_cast<unsigned char*>(SegoeUI_data), SegoeUI_length, 52.f, &fontConfig
         );
-    }    
+    }
 }
 
 void ThemeManager::applyTheming() {
@@ -76,7 +74,7 @@ void ThemeManager::applyTheming() {
             ImGui::StyleColorsDark();
         else if (theme == ThemeChoice_Light)
             ImGui::StyleColorsLight();
-        
+
         ImGuiStyle& style = ImGui::GetStyle();
 
         style.Colors[ImGuiCol_WindowBg].w = 1.f;

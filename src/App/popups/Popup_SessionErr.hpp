@@ -3,8 +3,6 @@
 
 #include <imgui.h>
 
-#include "../../AppState.hpp"
-
 #include "../../SessionManager.hpp"
 
 #include "../../common.hpp"
@@ -51,7 +49,7 @@ static void Popup_SessionErr() {
     case SessionManager::OpenError_MissingCTPK:
         strcpy(errorMessage, "A CTPK file is missing (not all cellanim files could be matched with a CTPK file).");
         errorType = 0;
-        break; 
+        break;
     case SessionManager::OpenError_FailOpenCTPK:
         strcpy(errorMessage, "A CTPK file could not be opened. It might be corrupted.");
         errorType = 0;

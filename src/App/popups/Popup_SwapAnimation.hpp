@@ -14,8 +14,6 @@
 #include "../../SessionManager.hpp"
 #include "../../command/CommandSwapAnimations.hpp"
 
-#include "../../AppState.hpp"
-
 #include "../../Easings.hpp"
 
 #include "../../common.hpp"

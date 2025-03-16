@@ -1,9 +1,6 @@
 #include "Toast.hpp"
 
-#include <algorithm>
 #include <array>
-
-#include <cmath>
 
 #include <imgui.h>
 
@@ -139,7 +136,7 @@ Toast::Toast(int argc, const char** argv) {
 
     if (!this->glfwWindowHndl) {
         Logging::err << "[Toast::Toast] glfwCreateWindow failed!" << std::endl;
-        
+
         glfwTerminate();
         TRAP();
     }
@@ -151,7 +148,7 @@ Toast::Toast(int argc, const char** argv) {
 
     if (configManager.getConfig().lastWindowMaximized)
         glfwMaximizeWindow(this->glfwWindowHndl);
-    
+
     glfwSetWindowMaximizeCallback(this->glfwWindowHndl, [](GLFWwindow*, int maximized) {
         extern Toast* globlToast;
         globlToast->isWindowMaximized = maximized;
