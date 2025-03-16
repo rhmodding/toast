@@ -33,8 +33,14 @@ struct TransformValues {
 
     TransformValues average(const TransformValues& other) const {
         TransformValues transform {
-            .positionX = AVERAGE_INTS(this->positionX, other.positionX),
-            .positionY = AVERAGE_INTS(this->positionY, other.positionY),
+            .positionX = std::clamp<int>(
+                AVERAGE_INTS(this->positionX, other.positionX),
+                MIN_POSITION, MAX_POSITION
+            ),
+            .positionY = std::clamp<int>(
+                AVERAGE_INTS(this->positionY, other.positionY),
+                MIN_POSITION, MAX_POSITION
+            ),
 
             .scaleX = AVERAGE_FLOATS(this->scaleX, other.scaleX),
             .scaleY = AVERAGE_FLOATS(this->scaleY, other.scaleY),
@@ -47,8 +53,14 @@ struct TransformValues {
 
     TransformValues lerp(const TransformValues& other, float t) const {
         TransformValues transform {
-            .positionX = LERP_INTS(this->positionX, other.positionX, t),
-            .positionY = LERP_INTS(this->positionY, other.positionY, t),
+            .positionX = std::clamp<int>(
+                LERP_INTS(this->positionX, other.positionX, t),
+                MIN_POSITION, MAX_POSITION
+            ),
+            .positionY = std::clamp<int>(
+                LERP_INTS(this->positionY, other.positionY, t),
+                MIN_POSITION, MAX_POSITION
+            ),
 
             .scaleX = std::lerp(this->scaleX, other.scaleX, t),
             .scaleY = std::lerp(this->scaleY, other.scaleY, t),
