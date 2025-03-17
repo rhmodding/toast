@@ -42,7 +42,7 @@ public:
         return this->isDir != 0x00;
     }
 
-    // Offset is relative to string pool start
+    // The name offset is relative to the start of the string pool.
     unsigned getNameOffset() const {
         return BYTESWAP_32(this->nameOffset << 8);
     }
@@ -55,13 +55,16 @@ public:
     }
 
 public:
-    // File: Offset of begin of data
-    // Directory: Index of the parent directory
-    uint32_t dataOffsetOrParent;
-
-    // File: Size of data
-    // Directory: Index of the first node that is not part of this directory
-    uint32_t sizeOrNextEntry;
+    union {
+        struct {
+            // dataOffset is relative to the start of the file.
+            uint32_t dataOffset, dataSize;
+        } file;
+        struct {
+            // parent & nextOutOfDir are both node indices.
+            uint32_t parent, nextOutOfDir;
+        } dir;
+    };
 } __attribute__((packed));
 
 namespace U8Archive {
@@ -119,11 +122,11 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSiz
     const U8ArchiveNode* nodes = reinterpret_cast<const U8ArchiveNode*>(
         data + nodeSectionStart
     );
-    const uint32_t nodeCount = BYTESWAP_32(nodes[0].sizeOrNextEntry);
+    const uint32_t nodeCount = BYTESWAP_32(nodes[0].dir.nextOutOfDir);
 
     const char* stringPool = reinterpret_cast<const char*>(nodes + nodeCount);
 
-    //                   ptr         nextEntry
+    //                   ptr         nextOutOfDir
     std::stack<std::pair<Directory*, unsigned>> dirStack;
     Directory* currentDirectory { &this->structure };
 
@@ -136,21 +139,20 @@ U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSiz
         const char* name = stringPool + node->getNameOffset();
 
         if (node->isDirectory()) {
-            Directory directory(name);
-            currentDirectory->AddDirectory(directory);
+            currentDirectory->AddDirectory(Directory(name));
 
             currentDirectory = &currentDirectory->subdirectories.back();
-            dirStack.push({ currentDirectory, BYTESWAP_32(node->sizeOrNextEntry) });
+            dirStack.push({ currentDirectory, BYTESWAP_32(node->dir.nextOutOfDir) });
         }
         else {
             File file(name);
 
-            const unsigned char* fileDataStart = data + BYTESWAP_32(node->dataOffsetOrParent);
-            const unsigned char* fileDataEnd   = fileDataStart + BYTESWAP_32(node->sizeOrNextEntry);
+            const unsigned char* fileDataStart = data + BYTESWAP_32(node->file.dataOffset);
+            const unsigned char* fileDataEnd   = fileDataStart + BYTESWAP_32(node->file.dataSize);
 
             file.data = std::vector<unsigned char>(fileDataStart, fileDataEnd);
 
-            currentDirectory->AddFile(file);
+            currentDirectory->AddFile(std::move(file));
         }
 
         while (!dirStack.empty() && dirStack.top().second == i + 1) {
@@ -295,8 +297,8 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
         node->setNameOffset(stringOffsets[i]);
 
         if (entry.isDir) {
-            node->sizeOrNextEntry = BYTESWAP_32(entry.nextOutOfDir);
-            node->dataOffsetOrParent = BYTESWAP_32(entry.parent);
+            node->dir.nextOutOfDir = BYTESWAP_32(entry.nextOutOfDir);
+            node->dir.parent = BYTESWAP_32(entry.parent);
 
             strcpy(
                 reinterpret_cast<char*>(
@@ -311,8 +313,8 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
             unsigned char* fileData = reinterpret_cast<File*>(entry.ptr)->data.data();
             unsigned fileDataSize = reinterpret_cast<File*>(entry.ptr)->data.size();
 
-            node->sizeOrNextEntry = BYTESWAP_32(fileDataSize);
-            node->dataOffsetOrParent = BYTESWAP_32(dataOffsets[i]);
+            node->file.dataOffset = BYTESWAP_32(dataOffsets[i]);
+            node->file.dataSize = BYTESWAP_32(fileDataSize);
 
             // Copy file name
             strcpy(

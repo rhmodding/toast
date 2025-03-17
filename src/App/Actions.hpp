@@ -185,7 +185,7 @@ void ExportSessionAsOther() {
         asyncTaskManager.StartTask<AsyncTaskExportSession>(
             sessionManager.getCurrentSessionIndex(),
             std::string(saveFileDialog)
-        );        
+        );
     }
 }
 
