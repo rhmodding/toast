@@ -312,6 +312,10 @@ void Toast::Menubar() {
             ImGui::EndMenu();
         }
 
+        CellAnim::CellAnimType cellanimType { CellAnim::CELLANIM_TYPE_INVALID };
+            if (sessionManager.getSessionAvaliable())
+                cellanimType = sessionManager.getCurrentSession()->type;
+
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem(
                 Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Open, ICON_FA_FILE_IMPORT).c_str(),
@@ -349,12 +353,6 @@ void Toast::Menubar() {
 
             ImGui::Separator();
 
-            CellAnim::CellAnimType cellanimType { CellAnim::CELLANIM_TYPE_INVALID };
-            if (sessionManager.getSessionAvaliable())
-                cellanimType = sessionManager.getCurrentSession()->type;
-
-            (void)cellanimType; // TODO
-
             if (ImGui::MenuItem(
                 Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Save, ICON_FA_FILE_EXPORT).c_str(),
                 Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Save).c_str(),
@@ -370,6 +368,19 @@ void Toast::Menubar() {
                 sessionManager.getSessionAvaliable()
             ))
                 Actions::ExportSessionPromptPath();
+
+            ImGui::Separator();
+
+            const char* convertOptionTitle = (const char*)ICON_FA_FILE_EXPORT " Save as other...";
+            if (cellanimType == CellAnim::CELLANIM_TYPE_RVL)
+                convertOptionTitle = (const char*)ICON_FA_FILE_EXPORT " Save as Megamix (CTR) cellanim...";
+            else if (cellanimType == CellAnim::CELLANIM_TYPE_CTR)
+                convertOptionTitle = (const char*)ICON_FA_FILE_EXPORT " Save as Fever (RVL) cellanim...";
+
+            if (ImGui::MenuItem(
+                convertOptionTitle, nullptr, false, sessionManager.getSessionAvaliable()
+            ))
+                Actions::ExportSessionAsOther();
 
             ImGui::EndMenu();
         }
