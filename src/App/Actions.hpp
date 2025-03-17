@@ -177,10 +177,40 @@ void ExportSessionAsOther() {
             }
         }
 
-        for (auto& cellanim : currentSession->cellanims)
+        currentSession->type = newType;
+
+        for (auto& cellanim : currentSession->cellanims) {
             cellanim.object->setType(newType);
 
-        currentSession->type = newType;
+            for (auto& arrangement : cellanim.object->arrangements) {
+                for (auto& part : arrangement.parts) {
+                    if (isRvl) {
+                        part.textureVarying = 0;
+                    }
+                    else {
+                        part.backColor = CellAnim::CTRColor { 0.f, 0.f, 0.f };
+                        part.foreColor = CellAnim::CTRColor { 1.f, 1.f, 1.f };
+
+                        part.quadDepth = CellAnim::CTRQuadDepth {};
+
+                        part.id = 0;
+                    }
+                }
+            }
+
+            if (!isRvl) {
+                for (auto& animation : cellanim.object->animations) {
+                    animation.isInterpolated = false;
+                    
+                    for (auto& key : animation.keys) {
+                        key.translateZ = 0.f;
+
+                        key.backColor = CellAnim::CTRColor { 0.f, 0.f, 0.f };
+                        key.foreColor = CellAnim::CTRColor { 1.f, 1.f, 1.f };
+                    }
+                }
+            }
+        }
 
         asyncTaskManager.StartTask<AsyncTaskExportSession>(
             sessionManager.getCurrentSessionIndex(),

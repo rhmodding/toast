@@ -223,9 +223,9 @@ struct AnimationKey {
     uint8_t opacity { 0xFFu };
 
     // On CTR only.
-    CTRColor foreColor { 0xFF, 0xFF, 0xFF };
+    CTRColor foreColor { 1.f, 1.f, 1.f }; // TODO: implement
     // On CTR only.
-    CTRColor backColor { 0x00, 0x00, 0x00 };
+    CTRColor backColor { 0.f, 0.f, 0.f };
 
     bool operator==(const AnimationKey& other) const {
         return

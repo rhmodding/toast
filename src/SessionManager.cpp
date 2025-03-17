@@ -303,7 +303,7 @@ static SessionManager::Error InitCtrSession(
                 std::string ctpkBaseName = file.name.substr(0, file.name.find_last_of('.'));
 
                 // HACK: because of some edge-cases where the developers didn't exactly mirror the
-                // filenames, we have to do a substring search -_-
+                // BCCAD and CTPK filenames, we have to do a substring search -_-
 
                 if (baseName.find(ctpkBaseName) != std::string::npos) {
                     // Prioritize longest match.
