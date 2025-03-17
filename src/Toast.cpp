@@ -472,6 +472,11 @@ void Toast::Menubar() {
                 OPEN_GLOBAL_POPUP("###SwapAnimation");
             }
 
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Transform .."))
+                OPEN_GLOBAL_POPUP("MTransformAnimation");
+
             ImGui::EndMenu();
         }
 

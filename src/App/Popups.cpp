@@ -20,6 +20,7 @@ int _editPartNamePartIdx { -1 };
 #include "../AppState.hpp"
 
 #include "popups/Popup_MTransformCellanim.hpp"
+#include "popups/Popup_MTransformAnimation.hpp"
 #include "popups/Popup_MTransformArrangement.hpp"
 #include "popups/Popup_MPadRegion.hpp"
 #include "popups/Popup_MOptimizeGlobal.hpp"
@@ -51,6 +52,7 @@ void Popups::Update() {
     BEGIN_GLOBAL_POPUP();
 
     Popup_MTransformCellanim();
+    Popup_MTransformAnimation();
     Popup_MTransformArrangement();
     Popup_MPadRegion();
     Popup_MOptimizeGlobal();
