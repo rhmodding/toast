@@ -34,24 +34,29 @@ struct U8ArchiveHeader {
 
 struct U8ArchiveNode {
 private:
-    uint32_t isDir : 8;
-    uint32_t nameOffset : 24;
+    uint32_t isDirAndNameOffset;
 
 public:
     bool isDirectory() const {
-        return this->isDir != 0x00;
+        return (this->isDirAndNameOffset & 0xFF) != 0x00;
     }
 
     // The name offset is relative to the start of the string pool.
     unsigned getNameOffset() const {
-        return BYTESWAP_32(this->nameOffset << 8);
+        return BYTESWAP_32(this->isDirAndNameOffset & 0xFFFFFF00);
     }
 
     void setIsDirectory(bool _isDir) {
-        this->isDir = _isDir ? 0x01 : 0x00;
+        this->isDirAndNameOffset &= 0xFFFFFF00;
+        if (_isDir)
+            this->isDirAndNameOffset |= 1;
     }
+
     void setNameOffset(unsigned _nameOffset) {
-        this->nameOffset = BYTESWAP_32(_nameOffset) >> 8;
+        uint32_t isDir = this->isDirAndNameOffset & 0xFF;
+        uint32_t nameOffset = BYTESWAP_32(_nameOffset & 0xFFFFFF);
+
+        this->isDirAndNameOffset = isDir | nameOffset;
     }
 
 public:
