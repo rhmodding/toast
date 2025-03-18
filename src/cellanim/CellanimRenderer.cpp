@@ -625,12 +625,14 @@ void CellanimRenderer::InternDraw(
 
         const ImRect frameRect = this->getKeyWorldRect(key);
 
-        this->drawTexSize = frameRect.GetSize();
         this->drawTexSize = ImVec2(
             CEIL_FLOAT(frameRect.Max.x - frameRect.Min.x) * SCALE_FACTOR,
             CEIL_FLOAT(frameRect.Max.y - frameRect.Min.y) * SCALE_FACTOR
         );
-        this->drawTexOffset = frameRect.GetCenter();
+        this->drawTexOffset = ImVec2(
+            (frameRect.Min.x + frameRect.Max.x) * .5f * SCALE_FACTOR,
+            (frameRect.Min.y + frameRect.Max.y) * .5f * SCALE_FACTOR
+        );
 
         unsigned vertexCount = drawData.size() * 6;
 
