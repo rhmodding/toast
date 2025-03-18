@@ -506,13 +506,14 @@ static std::vector<PartDrawCommand> constructDrawData(
 ) {
     const CellAnim::Arrangement& arrangement = cellanim.arrangements.at(key.arrangementIndex);
 
-    std::vector<PartDrawCommand> drawData (arrangement.parts.size());
+    std::vector<PartDrawCommand> drawData;
+    drawData.reserve(arrangement.parts.size());
 
     const float texWidth = cellanim.sheetW;
     const float texHeight = cellanim.sheetH;
 
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
-        if (partIndex != -1 && partIndex != static_cast<int>(i))
+        if (partIndex >= 0 && partIndex != static_cast<int>(i))
             continue;
         
         const CellAnim::ArrangementPart& part = arrangement.parts.at(i);
@@ -521,7 +522,7 @@ static std::vector<PartDrawCommand> constructDrawData(
         if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)
             continue;
 
-        PartDrawCommand& command = drawData[i];
+        PartDrawCommand command {};
 
         command.quad = renderer.getPartWorldQuad(key, i);
 
@@ -567,6 +568,8 @@ static std::vector<PartDrawCommand> constructDrawData(
             .foreColorA = part.foreColor,
             .foreColorB = key.foreColor
         };
+
+        drawData.push_back(std::move(command));
     }
 
     return drawData;
