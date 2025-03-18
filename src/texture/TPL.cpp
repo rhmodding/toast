@@ -121,11 +121,11 @@ GLuint TPLTexture::createGPUTexture() const {
 
         glTexParameteri(
             GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-            this->wrapS == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
+            this->wrapS == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP_TO_EDGE
         );
         glTexParameteri(
             GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-            this->wrapT == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP
+            this->wrapT == TPL::TPL_WRAP_MODE_REPEAT ? GL_REPEAT : GL_CLAMP_TO_EDGE
         );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
