@@ -58,6 +58,8 @@ set(SOURCES
     src/texture/CTPK.cpp
     src/texture/TPL.cpp
 
+    src/texture/APNGHack.cpp
+
     src/task/AsyncTaskManager.cpp
 
     src/task/AsyncTask.cpp
