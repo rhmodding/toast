@@ -1,6 +1,6 @@
 #if defined(__APPLE__)
-#include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
+#include <OpenGL/gl3.h>
+#include <OpenGL/gl3ext.h>
 #else
 // GLEW is needed on Windows & Linux; macOS doesn't need it.
 #define USING_GLEW
