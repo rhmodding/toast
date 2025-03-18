@@ -22,8 +22,10 @@ private:
 
     static GLuint shaderProgram;
 
-    static GLint foreColorUniform;
-    static GLint backColorUniform;
+    static GLint foreColorAUniform;
+    static GLint backColorAUniform;
+    static GLint foreColorBUniform;
+    static GLint backColorBUniform;
     static GLint projMtxUniform;
 
 public:

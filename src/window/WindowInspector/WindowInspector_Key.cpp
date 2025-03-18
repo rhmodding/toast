@@ -17,6 +17,8 @@ void WindowInspector::Level_Key() {
 
     this->drawPreview();
 
+    const bool isCtr = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_CTR;
+
     ImGui::SameLine();
 
     const auto& arrangements = sessionManager.getCurrentSession()
@@ -207,6 +209,42 @@ void WindowInspector::Level_Key() {
         if (ImGui::IsItemDeactivated()) {
             originalKey.opacity = oldOpacity;
             newKey.opacity = newOpacity;
+        }
+    }
+
+    // Fore Color
+    if (isCtr) {
+        static CellAnim::CTRColor oldForeColor { 0.f, 0.f, 0.f };
+
+        CellAnim::CTRColor newForeColor = animKey.foreColor;
+
+        if (ImGui::ColorEdit3("Fore Color", &newForeColor.r))
+            animKey.foreColor = newForeColor;
+
+        if (ImGui::IsItemActivated())
+            oldForeColor = originalKey.foreColor;
+
+        if (ImGui::IsItemDeactivated()) {
+            originalKey.foreColor = oldForeColor;
+            newKey.foreColor = newForeColor;
+        }
+    }
+
+    // Back Color
+    if (isCtr) {
+        static CellAnim::CTRColor oldBackColor { 0.f, 0.f, 0.f };
+
+        CellAnim::CTRColor newBackColor = animKey.backColor;
+
+        if (ImGui::ColorEdit3("Back Color", &newBackColor.r))
+            animKey.backColor = newBackColor;
+
+        if (ImGui::IsItemActivated())
+            oldBackColor = originalKey.backColor;
+
+        if (ImGui::IsItemDeactivated()) {
+            originalKey.backColor = oldBackColor;
+            newKey.backColor = newBackColor;
         }
     }
 

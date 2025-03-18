@@ -223,7 +223,7 @@ struct AnimationKey {
     uint8_t opacity { 0xFFu };
 
     // On CTR only.
-    CTRColor foreColor { 1.f, 1.f, 1.f }; // TODO: implement
+    CTRColor foreColor { 1.f, 1.f, 1.f };
     // On CTR only.
     CTRColor backColor { 0.f, 0.f, 0.f };
 

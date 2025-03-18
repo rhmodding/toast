@@ -46,8 +46,12 @@ static const char* vertexShaderSource =
 static const char* fragmentShaderSource =
     GLSL_VERSION_STR "\n\n"
     "uniform sampler2D Texture;\n"
-    "uniform vec3 Fore_Color;\n"
-    "uniform vec3 Back_Color;\n"
+    "\n"
+    "uniform vec3 Fore_Color_A;\n" // For the part.
+    "uniform vec3 Back_Color_A;\n"
+    "\n"
+    "uniform vec3 Fore_Color_B;\n" // For the key.
+    "uniform vec3 Back_Color_B;\n"
     "\n"
     "in vec2 Frag_UV;\n"
     "in vec4 Frag_Color;\n"
@@ -57,17 +61,22 @@ static const char* fragmentShaderSource =
     "void main() {\n"
     "    vec4 texColor = texture(Texture, Frag_UV.st);\n"
     "\n"
-    "    vec3 multipliedColor = vec3(texColor) * Fore_Color;\n"
-    "    vec3 finalColor = vec3(1.0) - (vec3(1.0) - multipliedColor) * (vec3(1.0) - Back_Color);\n"
+    "    vec3 multipliedColorA = texColor.xyz * Fore_Color_A;\n"
+    "    vec3 passA = vec3(1.0) - (vec3(1.0) - multipliedColorA) * (vec3(1.0) - Back_Color_A);\n"
     "\n"
-    "    Out_Color = vec4(finalColor, texColor.a) * Frag_Color;\n"
+    "    vec3 multipliedColorB = passA * Fore_Color_B;\n"
+    "    vec3 passB = vec3(1.0) - (vec3(1.0) - multipliedColorB) * (vec3(1.0) - Back_Color_B);\n"
+    "\n"
+    "    Out_Color = vec4(passB, texColor.a) * Frag_Color;\n"
     "}\n";
 
 GLuint CellanimRenderer::shaderProgram { 0 };
 
-GLint CellanimRenderer::foreColorUniform { 0 };
-GLint CellanimRenderer::backColorUniform { 0 };
-GLint CellanimRenderer::projMtxUniform { 0 };
+GLint CellanimRenderer::foreColorAUniform { -1 };
+GLint CellanimRenderer::backColorAUniform { -1 };
+GLint CellanimRenderer::foreColorBUniform { -1 };
+GLint CellanimRenderer::backColorBUniform { -1 };
+GLint CellanimRenderer::projMtxUniform { -1 };
 
 static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, const std::string& errorMessage) {
     GLint success { 0 };
@@ -123,11 +132,17 @@ void CellanimRenderer::InitShader() {
 
     // Looking up the uniform locations in advance avoids stuttering issues.
 
-    CellanimRenderer::foreColorUniform = glGetUniformLocation(
-        CellanimRenderer::shaderProgram, "Fore_Color"
+    CellanimRenderer::foreColorAUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Fore_Color_A"
     );
-    CellanimRenderer::backColorUniform = glGetUniformLocation(
-        CellanimRenderer::shaderProgram, "Back_Color"
+    CellanimRenderer::backColorAUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Back_Color_A"
+    );
+    CellanimRenderer::foreColorBUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Fore_Color_B"
+    );
+    CellanimRenderer::backColorBUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Back_Color_B"
     );
 
     CellanimRenderer::projMtxUniform = glGetUniformLocation(
@@ -144,26 +159,38 @@ void CellanimRenderer::DestroyShader() {
 }
 
 struct RenderPartCallbackData {
-    CellAnim::CTRColor backColor;
-    CellAnim::CTRColor foreColor;
+    CellAnim::CTRColor backColorA, backColorB;
+    CellAnim::CTRColor foreColorA, foreColorB;
 };
 
 void CellanimRenderer::renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd) {
     const RenderPartCallbackData* renderData =
         reinterpret_cast<const RenderPartCallbackData*>(cmd->UserCallbackData);
 
-    const auto& foreColor = renderData->foreColor;
-    const auto& backColor = renderData->backColor;
+    const auto& foreColorA = renderData->foreColorA;
+    const auto& backColorA = renderData->backColorA;
+
+    const auto& foreColorB = renderData->foreColorB;
+    const auto& backColorB = renderData->backColorB;
 
     glUseProgram(CellanimRenderer::shaderProgram);
 
     glUniform3f(
-        CellanimRenderer::foreColorUniform,
-        foreColor.r, foreColor.g, foreColor.b
+        CellanimRenderer::foreColorAUniform,
+        foreColorA.r, foreColorA.g, foreColorA.b
     );
     glUniform3f(
-        CellanimRenderer::backColorUniform,
-        backColor.r, backColor.g, backColor.b
+        CellanimRenderer::backColorAUniform,
+        backColorA.r, backColorA.g, backColorA.b
+    );
+
+    glUniform3f(
+        CellanimRenderer::foreColorBUniform,
+        foreColorB.r, foreColorB.g, foreColorB.b
+    );
+    glUniform3f(
+        CellanimRenderer::backColorBUniform,
+        backColorB.r, backColorB.g, backColorB.b
     );
 
     const ImDrawData* drawData = ImGui::GetDrawData();
@@ -485,8 +512,10 @@ void CellanimRenderer::InternDraw(
         uint32_t vertexColor = (colorMod & 0x00FFFFFF) | (vertexAlpha << 24);
 
         RenderPartCallbackData callbackData {
-            .backColor = part.backColor,
-            .foreColor = part.foreColor
+            .backColorA = part.backColor,
+            .backColorB = key.backColor,
+            .foreColorA = part.foreColor,
+            .foreColorB = key.foreColor
         };
         
         // ImGui will copy the userdata.
