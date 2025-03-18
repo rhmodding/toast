@@ -22,11 +22,18 @@ private:
 
     static GLuint shaderProgram;
 
+    static GLint textureUniform;
     static GLint foreColorAUniform;
     static GLint backColorAUniform;
     static GLint foreColorBUniform;
     static GLint backColorBUniform;
     static GLint projMtxUniform;
+
+    static GLint positionAttrib;
+    static GLint uvAttrib;
+    static GLint colorAttrib;
+
+    static GLuint texDrawFramebuffer;
 
 public:
     CellanimRenderer() = default;
@@ -45,6 +52,12 @@ public:
         bool allowOpacity = true
     ) __attribute__((nonnull));
 
+    void DrawTex(
+        GLuint textureId,
+        const CellAnim::Animation& animation, unsigned keyIndex,
+        bool allowOpacity = true
+    );
+
     void DrawOnionSkin(
         ImDrawList* drawList,
         const CellAnim::Animation& animation, unsigned keyIndex,
@@ -58,8 +71,16 @@ public:
     ImRect getKeyWorldRect(const CellAnim::AnimationKey& key) const;
 
 private:
+    enum class DrawMethod {
+        DrawList,
+        Texture
+    };
+
+    ImDrawList* currentDrawList;
+    GLuint currentDrawTex;
+
     void InternDraw(
-        ImDrawList* drawList,
+        DrawMethod drawMethod,
         const CellAnim::AnimationKey& key, int partIndex,
         uint32_t colorMod,
         bool allowOpacity
@@ -72,6 +93,10 @@ public:
     float scaleY { 1.f };
 
     bool visible { true };
+
+    // These get set by InternDraw.
+    ImVec2 drawTexSize;
+    ImVec2 drawTexOffset;
 
 private:
     std::shared_ptr<CellAnim::CellAnimObject> cellanim;

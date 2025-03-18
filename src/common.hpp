@@ -64,6 +64,7 @@
 
 #define ROUND_FLOAT(value) ( (float)(int)((float)(value) + .5f) )
 #define FLOOR_FLOAT(value) ( (float)(int)((float)(value)) )
+#define CEIL_FLOAT(value)  ( (int)(float)(value) + ((float)(value) > (int)(float)(value)) )
 
 #define ROUND_IMVEC2(vec) (ImVec2( \
     ROUND_FLOAT((vec).x), ROUND_FLOAT((vec).y) \

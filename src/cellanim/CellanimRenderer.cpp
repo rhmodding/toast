@@ -72,11 +72,18 @@ static const char* fragmentShaderSource =
 
 GLuint CellanimRenderer::shaderProgram { 0 };
 
+GLint CellanimRenderer::textureUniform { -1 };
 GLint CellanimRenderer::foreColorAUniform { -1 };
 GLint CellanimRenderer::backColorAUniform { -1 };
 GLint CellanimRenderer::foreColorBUniform { -1 };
 GLint CellanimRenderer::backColorBUniform { -1 };
 GLint CellanimRenderer::projMtxUniform { -1 };
+
+GLint CellanimRenderer::positionAttrib { -1 };
+GLint CellanimRenderer::uvAttrib { -1 };
+GLint CellanimRenderer::colorAttrib { -1 };
+
+GLuint CellanimRenderer::texDrawFramebuffer { 0 };
 
 static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, const std::string& errorMessage) {
     GLint success { 0 };
@@ -132,6 +139,10 @@ void CellanimRenderer::InitShader() {
 
     // Looking up the uniform locations in advance avoids stuttering issues.
 
+    CellanimRenderer::textureUniform = glGetUniformLocation(
+        CellanimRenderer::shaderProgram, "Texture"
+    );
+
     CellanimRenderer::foreColorAUniform = glGetUniformLocation(
         CellanimRenderer::shaderProgram, "Fore_Color_A"
     );
@@ -149,6 +160,18 @@ void CellanimRenderer::InitShader() {
         CellanimRenderer::shaderProgram, "ProjMtx"
     );
 
+    CellanimRenderer::positionAttrib = glGetAttribLocation(
+        CellanimRenderer::shaderProgram, "Position"
+    );
+    CellanimRenderer::uvAttrib = glGetAttribLocation(
+        CellanimRenderer::shaderProgram, "UV"
+    );
+    CellanimRenderer::colorAttrib = glGetAttribLocation(
+        CellanimRenderer::shaderProgram, "Color"
+    );
+
+    glGenFramebuffers(1, &CellanimRenderer::texDrawFramebuffer);
+
     Logging::info << "[CellanimRenderer::InitShader] Successfully initialized shader." << std::endl;
 }
 
@@ -156,6 +179,8 @@ void CellanimRenderer::DestroyShader() {
     Logging::info << "[CellanimRenderer::DestroyShader] Destroying shader.." << std::endl;
 
     glDeleteProgram(CellanimRenderer::shaderProgram);
+
+    glDeleteFramebuffers(1, &CellanimRenderer::texDrawFramebuffer);
 }
 
 struct RenderPartCallbackData {
@@ -216,7 +241,19 @@ void CellanimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& ani
     if (!this->visible)
         return;
 
-    this->InternDraw(drawList, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
+    this->currentDrawList = drawList;
+    this->InternDraw(DrawMethod::DrawList, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
+}
+
+void CellanimRenderer::DrawTex(GLuint textureId, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
+    NONFATAL_ASSERT_RET(this->cellanim, true);
+    NONFATAL_ASSERT_RET(this->textureGroup, true);
+
+    if (!this->visible)
+        return;
+
+    this->currentDrawTex = textureId;
+    this->InternDraw(DrawMethod::Texture, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
 }
 
 void CellanimRenderer::DrawOnionSkin(
@@ -251,7 +288,8 @@ void CellanimRenderer::DrawOnionSkin(
             if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= static_cast<int>(keyCount)))
                 break;
 
-            this->InternDraw(drawList, animation.keys.at(wrappedIndex), -1, color, true);
+            this->currentDrawList = drawList;
+            this->InternDraw(DrawMethod::DrawList, animation.keys.at(wrappedIndex), -1, color, true);
             i += step;
         }
     };
@@ -452,18 +490,26 @@ ImRect CellanimRenderer::getKeyWorldRect(const CellAnim::AnimationKey& key) cons
     return ImRect({ minX, minY }, { maxX, maxY });
 }
 
-void CellanimRenderer::InternDraw(
-    ImDrawList* drawList,
+struct PartDrawCommand {
+    std::array<ImVec2, 4> quad;
+    std::array<ImVec2, 4> uvs;
+    GLuint textureId;
+    uint32_t vertexColor;
+    RenderPartCallbackData callbackData;
+};
+
+static std::vector<PartDrawCommand> constructDrawData(
+    const CellanimRenderer& renderer,
+    const CellAnim::CellAnimObject& cellanim, TextureGroup& textureGroup,
     const CellAnim::AnimationKey& key, int partIndex,
-    uint32_t colorMod,
-    bool allowOpacity
+    uint32_t colorMod, bool allowOpacity
 ) {
-    NONFATAL_ASSERT_RET(this->cellanim, true);
+    const CellAnim::Arrangement& arrangement = cellanim.arrangements.at(key.arrangementIndex);
 
-    const CellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key.arrangementIndex);
+    std::vector<PartDrawCommand> drawData (arrangement.parts.size());
 
-    const float texWidth = this->cellanim->sheetW;
-    const float texHeight = this->cellanim->sheetH;
+    const float texWidth = cellanim.sheetW;
+    const float texHeight = cellanim.sheetH;
 
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex != -1 && partIndex != static_cast<int>(i))
@@ -475,7 +521,9 @@ void CellanimRenderer::InternDraw(
         if (((part.opacity == 0) && allowOpacity) || !part.editorVisible)
             continue;
 
-        std::array<ImVec2, 4> quad = this->getPartWorldQuad(key, i);
+        PartDrawCommand& command = drawData[i];
+
+        command.quad = renderer.getPartWorldQuad(key, i);
 
         ImVec2 uvTopLeft = {
             part.regionX / texWidth,
@@ -486,7 +534,7 @@ void CellanimRenderer::InternDraw(
             uvTopLeft.y + (part.regionH / texHeight)
         };
 
-        std::array<ImVec2, 4> uvs = std::array<ImVec2, 4>({
+        command.uvs = std::array<ImVec2, 4>({
             uvTopLeft,
             { uvBottomRight.x, uvTopLeft.y },
             uvBottomRight,
@@ -494,40 +542,224 @@ void CellanimRenderer::InternDraw(
         });
 
         if (part.flipX) {
-            std::swap(uvs[0], uvs[1]);
-            std::swap(uvs[2], uvs[3]);
+            std::swap(command.uvs[0], command.uvs[1]);
+            std::swap(command.uvs[2], command.uvs[3]);
         }
         if (part.flipY) {
-            std::swap(uvs[0], uvs[3]);
-            std::swap(uvs[1], uvs[2]);
+            std::swap(command.uvs[0], command.uvs[3]);
+            std::swap(command.uvs[1], command.uvs[2]);
         }
 
-        const auto& texture = this->textureGroup->getTextureByVarying(part.textureVarying);
+        const auto& texture = textureGroup.getTextureByVarying(part.textureVarying);
+
+        command.textureId = texture->getTextureId();
 
         unsigned baseAlpha = allowOpacity ?
             ((unsigned(part.opacity) * unsigned(key.opacity)) / 0xFF) :
             0xFF;
 
         unsigned vertexAlpha = (baseAlpha * ((colorMod >> 24) & 0xFF)) / 0xFF;
-        uint32_t vertexColor = (colorMod & 0x00FFFFFF) | (vertexAlpha << 24);
+        command.vertexColor = (colorMod & 0x00FFFFFF) | (vertexAlpha << 24);
 
-        RenderPartCallbackData callbackData {
+        command.callbackData = RenderPartCallbackData {
             .backColorA = part.backColor,
             .backColorB = key.backColor,
             .foreColorA = part.foreColor,
             .foreColorB = key.foreColor
         };
-        
-        // ImGui will copy the userdata.
-        drawList->AddCallback(CellanimRenderer::renderPartCallback, &callbackData, sizeof(callbackData));
-
-        drawList->AddImageQuad(
-            texture->getImTextureId(),
-            quad[0], quad[1], quad[2], quad[3],
-            uvs[0], uvs[1], uvs[2], uvs[3],
-            vertexColor
-        );
     }
 
-    drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr, 0);
+    return drawData;
+}
+
+static inline std::array<ImVec2, 6> quadToTriangles(const std::array<ImVec2, 4>& quad) {
+    return std::array<ImVec2, 6>({
+        quad[0], quad[1], quad[3],
+        quad[1], quad[2], quad[3]
+    });
+}
+
+void CellanimRenderer::InternDraw(
+    DrawMethod drawMethod,
+    const CellAnim::AnimationKey& key, int partIndex,
+    uint32_t colorMod,
+    bool allowOpacity
+) {
+    NONFATAL_ASSERT_RET(this->cellanim, true);
+
+    const ImVec2 prevOffset = this->offset;
+    const float prevScaleX = this->scaleX, prevScaleY = this->scaleY;
+
+    if (drawMethod == DrawMethod::Texture) {
+        this->offset = ImVec2(0.f, 0.f);
+        this->scaleX = 1.f; this->scaleY = 1.f;
+    }
+
+    std::vector<PartDrawCommand> drawData = constructDrawData(
+        *this, *this->cellanim, *this->textureGroup,
+        key, partIndex, colorMod, allowOpacity
+    );
+
+    switch (drawMethod) {
+    case DrawMethod::DrawList: {
+        for (auto& cmd : drawData) {
+            // ImGui will copy the userdata.
+            this->currentDrawList->AddCallback(CellanimRenderer::renderPartCallback, &cmd.callbackData, sizeof(cmd.callbackData));
+    
+            this->currentDrawList->AddImageQuad(
+                static_cast<ImTextureID>(cmd.textureId),
+                cmd.quad[0], cmd.quad[1], cmd.quad[2], cmd.quad[3],
+                cmd.uvs[0], cmd.uvs[1], cmd.uvs[2], cmd.uvs[3],
+                cmd.vertexColor
+            );
+        }
+    
+        this->currentDrawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr, 0);
+    } break;
+
+    case DrawMethod::Texture: {
+        constexpr float SCALE_FACTOR = 2.f;
+
+        const ImRect frameRect = this->getKeyWorldRect(key);
+
+        this->drawTexSize = frameRect.GetSize();
+        this->drawTexSize = ImVec2(
+            CEIL_FLOAT(frameRect.Max.x - frameRect.Min.x) * SCALE_FACTOR,
+            CEIL_FLOAT(frameRect.Max.y - frameRect.Min.y) * SCALE_FACTOR
+        );
+        this->drawTexOffset = frameRect.GetCenter();
+
+        unsigned vertexCount = drawData.size() * 6;
+
+        struct Vertex {
+            ImVec2 pos;
+            ImVec2 uv;
+            ImVec4 color;
+        };
+        std::vector<Vertex> vertexData (vertexCount);
+
+        for (unsigned i = 0; i < drawData.size(); i++) {
+            auto tris = quadToTriangles(drawData[i].quad);
+            auto uvTris = quadToTriangles(drawData[i].uvs);
+            for (unsigned j = 0; j < 6; j++) {
+                vertexData[(i * 6) + j] = Vertex {
+                    .pos = tris[j],
+                    .uv = uvTris[j],
+                    .color = ImGui::ColorConvertU32ToFloat4(drawData[i].vertexColor)
+                };
+            }
+        }
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        GLuint VBO;
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+
+        GLuint VAO;
+        glGenVertexArrays(1, &VAO);
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+        glVertexAttribPointer(CellanimRenderer::positionAttrib,
+            2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos)
+        );
+        glEnableVertexAttribArray(CellanimRenderer::positionAttrib);
+
+        glVertexAttribPointer(CellanimRenderer::uvAttrib,
+            2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glEnableVertexAttribArray(CellanimRenderer::uvAttrib);
+
+        glVertexAttribPointer(CellanimRenderer::colorAttrib,
+            4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color)
+        );
+        glEnableVertexAttribArray(CellanimRenderer::colorAttrib);
+
+        glBindTexture(GL_TEXTURE_2D, this->currentDrawTex);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->drawTexSize.x, this->drawTexSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, this->texDrawFramebuffer);
+
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->currentDrawTex, 0);
+
+        GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+        glDrawBuffers(1, drawBuffers);
+
+        // Uh-oh.
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            return;
+
+        glViewport(0, 0, this->drawTexSize.x, this->drawTexSize.y);
+
+        glBindVertexArray(VAO);
+
+        for (unsigned i = 0; i < drawData.size(); i++) {
+            const auto& cmd = drawData[i];
+
+            const auto& foreColorA = cmd.callbackData.foreColorA;
+            const auto& backColorA = cmd.callbackData.backColorA;
+
+            const auto& foreColorB = cmd.callbackData.foreColorB;
+            const auto& backColorB = cmd.callbackData.backColorB;
+
+            glUseProgram(CellanimRenderer::shaderProgram);
+
+            glUniform3f(
+                CellanimRenderer::foreColorAUniform,
+                foreColorA.r, foreColorA.g, foreColorA.b
+            );
+            glUniform3f(
+                CellanimRenderer::backColorAUniform,
+                backColorA.r, backColorA.g, backColorA.b
+            );
+
+            glUniform3f(
+                CellanimRenderer::foreColorBUniform,
+                foreColorB.r, foreColorB.g, foreColorB.b
+            );
+            glUniform3f(
+                CellanimRenderer::backColorBUniform,
+                backColorB.r, backColorB.g, backColorB.b
+            );
+
+            float L = frameRect.Min.x;
+            float R = frameRect.Min.x + (this->drawTexSize.x / SCALE_FACTOR);
+            float T = frameRect.Min.y + (this->drawTexSize.y / SCALE_FACTOR);
+            float B = frameRect.Min.y;
+
+            const float orthoProjection[4][4] = {
+                { 2.f / (R-L),   0.f,           0.f,  0.f },
+                { 0.f,           2.f / (T-B),   0.f,  0.f },
+                { 0.f,           0.f,          -1.f,  0.f },
+                { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
+            };
+            glUniformMatrix4fv(CellanimRenderer::projMtxUniform, 1, GL_FALSE, orthoProjection[0]);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, cmd.textureId);
+            glUniform1i(CellanimRenderer::textureUniform, 0);
+
+            glDrawArrays(GL_TRIANGLES, i*6, 6);
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glDeleteBuffers(1, &VBO);
+        glDeleteVertexArrays(1, &VAO);
+    } break;
+    
+    default:
+        break;
+    }
+
+    this->offset = prevOffset;
+    this->scaleX = prevScaleX; this->scaleY = prevScaleY;
 }
