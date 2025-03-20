@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <cmath>
 
+#include <algorithm>
+
 #include "../common.hpp"
 
 namespace CellAnim {

@@ -6,6 +6,8 @@
 #include "TPL.hpp"
 #include "CTPK.hpp"
 
+#include <optional>
+
 #include <imgui.h> // for ImTextureID
 
 class Texture {
