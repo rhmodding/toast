@@ -79,29 +79,6 @@ bool Texture::LoadSTBFile(const char* filename) {
     return true;
 }
 
-unsigned char* Texture::GetRGBA32() {
-    if (this->textureId == INVALID_TEXTURE_ID) {
-        Logging::err << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid" << std::endl;
-        return nullptr;
-    }
-
-    unsigned char* imageData = new unsigned char[this->width * this->height * 4];
-    if (imageData == nullptr) {
-        Logging::err << "[Texture::GetRGBA32] Failed to download image data: allocation failed" << std::endl;
-        return nullptr;
-    }
-
-    MainThreadTaskManager::getInstance().QueueTask([this, imageData]() {
-        glBindTexture(GL_TEXTURE_2D, this->textureId);
-
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }).get();
-
-    return imageData;
-}
-
 bool Texture::GetRGBA32(unsigned char* buffer) {
     if (buffer == nullptr) {
         Logging::err << "[Texture::GetRGBA32] Failed to download image data: buffer is nullptr" << std::endl;
@@ -122,6 +99,23 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
     }).get();
 
     return true;  
+}
+
+unsigned char* Texture::GetRGBA32() {
+    unsigned char* imageData = new unsigned char[this->width * this->height * 4];
+    if (imageData == nullptr) {
+        Logging::err << "[Texture::GetRGBA32] Failed to download image data: allocation failed" << std::endl;
+        return nullptr;
+    }
+
+    bool succeeded = Texture::GetRGBA32(imageData);
+
+    if (succeeded)
+        return imageData;
+    else {
+        delete[] imageData;
+        return nullptr;
+    }
 }
 
 bool Texture::ExportToFile(const char* filename) {
