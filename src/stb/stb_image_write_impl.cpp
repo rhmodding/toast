@@ -3,6 +3,8 @@
 
 #define __STDC_LIB_EXT1__
 
+#if !defined(sprintf_s)
+
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -13,6 +15,8 @@ static inline int sprintf_s(char *str, size_t size, const char *format, ...) {
     va_end(args);
     return result;
 }
+
+#endif // !defined(sprintf_s)
 
 #endif // defined(__GNUC__)
 
