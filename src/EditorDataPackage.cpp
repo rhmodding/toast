@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+#include <unordered_map>
+
 #include "Logging.hpp"
 
 #include "cellanim/CellAnim.hpp"
