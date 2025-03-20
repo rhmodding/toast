@@ -397,10 +397,10 @@ static void IMPLEMENTATION_FROM_C14X2(unsigned char* result, unsigned srcWidth, 
                     ));
                     const uint32_t color = palette[index & 0x3FFF];
 
-                    result[destIndex + 0] = (color >> 24) & 0xFFu;
-                    result[destIndex + 1] = (color >> 16) & 0xFFu;
-                    result[destIndex + 2] = (color >>  8) & 0xFFu;
-                    result[destIndex + 3] = (color >>  0) & 0xFFu;
+                    result[destIndex + 0] = (color >> 0) & 0xFFu;
+                    result[destIndex + 1] = (color >> 8) & 0xFFu;
+                    result[destIndex + 2] = (color >> 16) & 0xFFu;
+                    result[destIndex + 3] = (color >> 24) & 0xFFu;
                 }
             }
             readOffset += 2 * 4 * 4;
