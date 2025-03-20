@@ -658,29 +658,64 @@ void WindowCanvas::Update() {
 
             const auto& keyTransform = playerManager.getKey().transform;
 
-            /*
-                quad
-                0,  1,
-                3,  2
-            */
+            float keyCompensateRot = -keyTransform.angle;
 
-            float compensateRot = -keyTransform.angle;
+            float partCompensateRot = 0.f;
+            ImVec2 partAvgCenter ( 0.f, 0.f );
+            for (const auto& [index, _] : appState.selectedParts) {
+                const auto& part = arrangement.parts.at(index);
 
-            printf("compensateRot:%f\n", compensateRot);
+                partCompensateRot -= part.transform.angle;
+
+                float centerX = part.transform.positionX + (part.regionW * part.transform.scaleX * .5f);
+                float centerY = part.transform.positionY + (part.regionH * part.transform.scaleY * .5f);
+
+                partAvgCenter.x += centerX;
+                partAvgCenter.y += centerY;
+            }
+            partCompensateRot /= appState.selectedParts.size();
+
+            partAvgCenter.x = (partAvgCenter.x / appState.selectedParts.size()) * keyTransform.scaleX * this->canvasZoom;
+            partAvgCenter.y = (partAvgCenter.y / appState.selectedParts.size()) * keyTransform.scaleY * this->canvasZoom;
+
+            ImVec2 partOrigin = { origin.x + partAvgCenter.x, origin.y + partAvgCenter.y };
 
             myPartsBounding = partsBounding;
-            for (auto& point : myPartsBounding)
-                point = rotateVec2(point, compensateRot, origin);
+            for (ImVec2& point : myPartsBounding) {
+                point = rotateVec2(point, keyCompensateRot, origin);
+            }
 
-            auto myMouseDragStart = rotateVec2(mouseDragStart, compensateRot, { 0.f, 0.f });
+            const uint32_t colorLine = IM_COL32_WHITE;
 
-            auto myDragDelta = rotateVec2(dragDelta, compensateRot, { 0.f, 0.f });
+            // drawList->AddQuad(myPartsBounding[0], myPartsBounding[1], myPartsBounding[2], myPartsBounding[3], colorLine, 1.5f);
+
+            for (ImVec2& point : myPartsBounding) {
+                point = rotateVec2(point, partCompensateRot, partOrigin);
+            }
+
+            // drawList->AddCircleFilled(partOrigin, 2.f, colorLine);
+
+            // drawList->AddQuad(myPartsBounding[0], myPartsBounding[1], myPartsBounding[2], myPartsBounding[3], colorLine, 2.f);
+
+            ImVec2 myMouseDragStart = rotateVec2(mouseDragStart, keyCompensateRot, { 0.f, 0.f });
+            myMouseDragStart = rotateVec2(myMouseDragStart, partCompensateRot, partAvgCenter);
+            ImVec2 myMousePosition = rotateVec2(mousePosition, keyCompensateRot, { 0.f, 0.f });
+            myMousePosition = rotateVec2(myMousePosition, partCompensateRot, partAvgCenter);
+
+            // drawList->AddLine({myMousePosition.x+origin.x, myMousePosition.y+origin.y}, {myMouseDragStart.x+origin.x,myMouseDragStart.y+origin.y}, colorLine, 2.f);
+
+            ImVec2 myDragDelta = {
+                myMousePosition.x - myMouseDragStart.x,
+                myMousePosition.y - myMouseDragStart.y
+            };
 
             float startWidth = myPartsBounding[2].x - myPartsBounding[0].x;
             float startHeight = myPartsBounding[2].y - myPartsBounding[0].y;
 
-            float pivotRealX = (partsTransformation.pivotX * this->canvasZoom);
-            float pivotRealY = (partsTransformation.pivotY * this->canvasZoom);
+            ImVec2 myPivot = rotateVec2({
+                (partsTransformation.pivotX * this->canvasZoom),
+                (partsTransformation.pivotY * this->canvasZoom)
+            }, keyCompensateRot, { 0.f, 0.f });
 
             const float rangeStartX = myPartsBounding[0].x - origin.x;
             const float rangeEndX = myPartsBounding[1].x - origin.x;
@@ -696,8 +731,8 @@ void WindowCanvas::Update() {
             const float inputEndX = quadX - origin.x;
             const float inputEndY = quadY - origin.y;
 
-            const float mapX = mapRange(pivotRealX - myDragDelta.x, pivotRealX, inputEndX);
-            const float mapY = mapRange(pivotRealY - myDragDelta.y, pivotRealY, inputEndY);
+            const float mapX = mapRange(myPivot.x - myDragDelta.x, myPivot.x, inputEndX);
+            const float mapY = mapRange(myPivot.y - myDragDelta.y, myPivot.y, inputEndY);
 
             float newWidth = startWidth * (1.f - mapX);
             float newHeight = startHeight * (1.f - mapY);
@@ -739,6 +774,7 @@ void WindowCanvas::Update() {
             break;
         }
 
+        // Apply transformation
         for (const auto& [index, _] : appState.selectedParts) {
             auto& part = arrangement.parts.at(index);
 
@@ -758,14 +794,19 @@ void WindowCanvas::Update() {
             float keyPosY = keyTransform.positionY;
 
             // Transform to part-space
-            float pivotPSX = (partsTransformation.pivotX - keyPosX) / keyScaleX;
-            float pivotPSY = (partsTransformation.pivotY - keyPosY) / keyScaleY;
+
+            ImVec2 pivotPS = rotateVec2(
+                { partsTransformation.pivotX, partsTransformation.pivotY },
+                -keyTransform.angle, { 0.f, 0.f }
+            );
+            pivotPS.x = (pivotPS.x - keyPosX) / keyScaleX;
+            pivotPS.y = (pivotPS.y - keyPosY) / keyScaleY;
 
             float posAddedX = part.transform.positionX + partsTransformation.translateX;
             float posAddedY = part.transform.positionY + partsTransformation.translateY;
 
-            float offsetX = (posAddedX - pivotPSX) * (1.f - partsTransformation.scaleX);
-            float offsetY = (posAddedY - pivotPSY) * (1.f - partsTransformation.scaleY);
+            float offsetX = (posAddedX - pivotPS.x) * (1.f - partsTransformation.scaleX);
+            float offsetY = (posAddedY - pivotPS.y) * (1.f - partsTransformation.scaleY);
 
             part.transform.positionX = posAddedX - offsetX;
             part.transform.positionY = posAddedY - offsetY;
@@ -773,16 +814,16 @@ void WindowCanvas::Update() {
             part.transform.scaleX *= partsTransformation.scaleX;
             part.transform.scaleY *= partsTransformation.scaleY;
 
-            float pX = pivotPSX - (part.regionW * part.transform.scaleX) / 2;
-            float pY = pivotPSY - (part.regionH * part.transform.scaleY) / 2;
+            float pX = pivotPS.x - (part.regionW * part.transform.scaleX) / 2.f;
+            float pY = pivotPS.y - (part.regionH * part.transform.scaleY) / 2.f;
 
             // Compensation on position for transformation rotation.
 
             float dx = part.transform.positionX - pX;
             float dy = part.transform.positionY - pY;
 
-            float cosAngle = cosf(partsTransformation.rotation * (M_PI / 180.f)); 
-            float sinAngle = sinf(partsTransformation.rotation * (M_PI / 180.f));
+            float cosAngle = cosf(partsTransformation.rotation * ((float)M_PI / 180.f));
+            float sinAngle = sinf(partsTransformation.rotation * ((float)M_PI / 180.f));
 
             float rotatedX = dx * cosAngle - dy * sinAngle;
             float rotatedY = dx * sinAngle + dy * cosAngle;
