@@ -563,7 +563,7 @@ static void IMPLEMENTATION_TO_CMPR(unsigned char* result, uint32_t*, unsigned*, 
 
 
 static void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
-    std::unordered_map<uint32_t, uint8_t> colorToIndex;
+    std::unordered_map<uint32_t, unsigned> colorToIndex;
     unsigned nextColorIndex { 0 };
 
     unsigned writeOffset { 0 };
@@ -606,7 +606,7 @@ static void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, un
 }
 
 static void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut, unsigned* paletteSizeOut, unsigned srcWidth, unsigned srcHeight, const unsigned char* data) {
-    std::unordered_map<uint32_t, uint8_t> colorToIndex;
+    std::unordered_map<uint32_t, unsigned> colorToIndex;
     unsigned nextColorIndex { 0 };
 
     unsigned writeOffset { 0 };
@@ -638,14 +638,15 @@ static void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut,
                         paletteOut[nextColorIndex] = readPixel;
                         colorToIndex[readPixel] = nextColorIndex++;
                     }
-                    *pixel = BYTESWAP_16(colorToIndex[readPixel]);
+                    *pixel = BYTESWAP_16(static_cast<uint16_t>(colorToIndex[readPixel]));
                 }
             }
             writeOffset += 2 * 4 * 4;
         }
     }
 
-    *paletteSizeOut = nextColorIndex;
+    if (paletteSizeOut)
+        *paletteSizeOut = nextColorIndex;
 }
 
 
