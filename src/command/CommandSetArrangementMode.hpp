@@ -41,12 +41,8 @@ private:
         playerManager.correctState();
 
         if (lEnabled) {
-            // TODO
-            // appState.controlKey.arrangementIndex = playerManager.getKey().arrangementIndex;
-
             playerManager.setPlaying(false);
-            // TODO
-            // globalAnimatable.overrideAnimationKey(&appState.controlKey);
+            playerManager.setArrangementModeIdx(playerManager.getKey().arrangementIndex);
         }
     }
 

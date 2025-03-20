@@ -6,6 +6,26 @@
 
 #include "AppState.hpp"
 
+static CellAnim::Animation arrangementModeAnim {
+    .keys = std::vector<CellAnim::AnimationKey>({
+        CellAnim::AnimationKey {}
+    })
+};
+
+void PlayerManager::setArrangementModeIdx(unsigned index) {
+    arrangementModeAnim.keys[0].arrangementIndex = index;
+}
+unsigned PlayerManager::getArrangementModeIdx() const {
+    return arrangementModeAnim.keys[0].arrangementIndex;
+}
+
+CellAnim::Animation& PlayerManager::getAnimation() const {
+    if (this->arrangementModeEnabled())
+        return arrangementModeAnim;
+
+    return this->getCellanim()->animations.at(this->animationIndex);
+}
+
 static void matchSelectedParts(const CellAnim::Arrangement& before, const CellAnim::Arrangement& after) {
     AppState& appState = AppState::getInstance();
 
@@ -50,8 +70,8 @@ void PlayerManager::ResetTimer() {
     this->tickPrev = std::chrono::steady_clock::now();
 }
 
-void PlayerManager::setPlaying(bool animating) {
-    this->playing = animating;
+void PlayerManager::setPlaying(bool playing) {
+    this->playing = playing;
 }
 
 unsigned PlayerManager::getTotalFrames() const {
@@ -84,7 +104,7 @@ unsigned PlayerManager::getElapsedFrames() const {
 }
 
 void PlayerManager::Update() {
-    if (!this->playing)
+    if (!this->playing || this->arrangementModeEnabled())
         return;
 
     auto tickNow = std::chrono::steady_clock::now();

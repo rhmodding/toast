@@ -165,8 +165,8 @@ void WindowHybridList::Update() {
                 char buffer[48];
                 snprintf(buffer, sizeof(buffer), "Arrangement no. %d", n+1);
 
-                if (ImGui::Selectable(buffer, appState.controlKey.arrangementIndex == n, ImGuiSelectableFlags_SelectOnNav)) {
-                    appState.controlKey.arrangementIndex = n;
+                if (ImGui::Selectable(buffer, playerManager.getArrangementModeIdx() == n, ImGuiSelectableFlags_SelectOnNav)) {
+                    playerManager.setArrangementModeIdx(n);
 
                     PlayerManager::getInstance().correctState();
                 }
@@ -182,7 +182,7 @@ void WindowHybridList::Update() {
                             CellAnim::Arrangement()
                         );
 
-                        appState.controlKey.arrangementIndex = n + 1;
+                        playerManager.setArrangementModeIdx(n + 1);
                     }
                     if (ImGui::Selectable("Insert new arrangement below")) {
                         command = std::make_shared<CommandInsertArrangement>(
@@ -191,7 +191,7 @@ void WindowHybridList::Update() {
                             CellAnim::Arrangement()
                         );
 
-                        appState.controlKey.arrangementIndex = n;
+                        playerManager.setArrangementModeIdx(n);
                     }
 
                     ImGui::Separator();
@@ -204,7 +204,7 @@ void WindowHybridList::Update() {
                                 copyArrangement
                             );
 
-                            appState.controlKey.arrangementIndex = n + 1;
+                            playerManager.setArrangementModeIdx(n + 1);
                         };
                         if (ImGui::MenuItem("..below")) {
                             command = std::make_shared<CommandInsertArrangement>(
@@ -213,7 +213,7 @@ void WindowHybridList::Update() {
                                 copyArrangement
                             );
 
-                            appState.controlKey.arrangementIndex = n;
+                            playerManager.setArrangementModeIdx(n);
                         }
 
                         ImGui::Separator();

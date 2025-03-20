@@ -59,9 +59,6 @@ public:
             return false;
     }
 
-    // This key object is meant for the arrangement mode to control the state of the key.
-    CellAnim::AnimationKey controlKey;
-
     struct SelectedPart {
         unsigned index;
         int selectionOrder;

@@ -24,6 +24,7 @@ private:
 
     std::chrono::steady_clock::time_point tickPrev;
     float timeLeft { 0.f };
+
 public:
     bool playing { false };
 
@@ -39,9 +40,7 @@ public:
     unsigned getAnimationIndex() const { return this->animationIndex; }
     void setAnimationIndex(unsigned index);
 
-    CellAnim::Animation& getAnimation() const {
-        return this->getCellanim()->animations.at(this->animationIndex);
-    }
+    CellAnim::Animation& getAnimation() const;
 
     unsigned getKeyIndex() const { return this->keyIndex; }
     void setKeyIndex(unsigned index);
@@ -64,7 +63,7 @@ public:
     int getHoldFramesLeft() const { return this->holdFramesLeft; }
 
     bool getPlaying() const { return this->playing; }
-    void setPlaying(bool animating);
+    void setPlaying(bool playing);
 
     unsigned getTotalFrames() const;
     unsigned getElapsedFrames() const;
@@ -80,6 +79,10 @@ public:
     // the new circumstances.
     void correctState() {
         if (SessionManager::getInstance().getCurrentSessionIndex() >= 0) {
+            unsigned arrangementCount = this->getCellanim()->arrangements.size();
+            if (this->getArrangementModeIdx() >= arrangementCount)
+                this->setArrangementModeIdx(arrangementCount - 1);
+
             unsigned animCount = this->getCellanim()->animations.size();
             unsigned animIndex = std::min(
                 animCount - 1,
@@ -95,10 +98,17 @@ public:
         }
     }
 
+    void setArrangementModeIdx(unsigned index);
+    unsigned getArrangementModeIdx() const;
+
 private:
     const std::shared_ptr<CellAnim::CellAnimObject>& getCellanim() const {
         return SessionManager::getInstance().getCurrentSession()
             ->getCurrentCellanim().object;
+    }
+
+    bool arrangementModeEnabled() const {
+        return SessionManager::getInstance().getCurrentSession()->arrangementMode;
     }
 
     PlayerManager() = default; // Private constructor to prevent instantiation
