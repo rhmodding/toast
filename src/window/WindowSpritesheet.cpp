@@ -106,10 +106,11 @@ void WindowSpritesheet::FormatPopup() {
 
         const bool isRVL = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL;
 
-        constexpr std::array<TPL::TPLImageFormat, 3> rvlFormats = {
+        constexpr std::array<TPL::TPLImageFormat, 4> rvlFormats = {
             TPL::TPL_IMAGE_FORMAT_RGBA32,
             TPL::TPL_IMAGE_FORMAT_RGB5A3,
-            TPL::TPL_IMAGE_FORMAT_CMPR
+            TPL::TPL_IMAGE_FORMAT_CMPR,
+            TPL::TPL_IMAGE_FORMAT_C14X2
         };
         constexpr unsigned defaultRvlFormatIdx = 1;
 
@@ -136,6 +137,9 @@ void WindowSpritesheet::FormatPopup() {
         static int selectedFormatIndex { 0 };
         static int mipCount { 1 };
 
+        static unsigned colorPaletteCount { 0 };
+        static unsigned colorPaletteSize { 0 };
+
         auto updateTextureData = [&]() {
             unsigned selectedMax = isRVL ? rvlFormats.size() - 1 : ctrFormats.size() - 1;
             if (selectedFormatIndex > selectedMax)
@@ -153,17 +157,40 @@ void WindowSpritesheet::FormatPopup() {
 
                 unsigned char* imageBuffer = new unsigned char[bufferSize];
 
+                std::vector<uint32_t> colorPalette;
+                colorPaletteCount = 0;
+
+                // Only actually initialize color palette buffer if needed.
+                switch (rvlFormats[selectedFormatIndex]) {
+                case TPL::TPL_IMAGE_FORMAT_C14X2:
+                    colorPalette = std::vector<uint32_t>(16384);
+                    break;
+                case TPL::TPL_IMAGE_FORMAT_C8:
+                    colorPalette = std::vector<uint32_t>(256);
+                    break;
+                case TPL::TPL_IMAGE_FORMAT_C4:
+                    colorPalette = std::vector<uint32_t>(16);
+                    break;
+                
+                default:
+                    break;
+                }
+
                 RvlImageConvert::fromRGBA32(
-                    imageBuffer, nullptr, nullptr, rvlFormats[selectedFormatIndex],
+                    imageBuffer, colorPalette.data(), &colorPaletteCount,
+                    rvlFormats[selectedFormatIndex],
                     cellanimSheet->getWidth(), cellanimSheet->getHeight(),
                     imageData
                 );
+
+                // colorPaletteCount * sizeof CLUT entry
+                colorPaletteSize = colorPaletteCount * 2;
     
                 // Swap buffers.
                 RvlImageConvert::toRGBA32(
                     imageData, rvlFormats[selectedFormatIndex],
                     cellanimSheet->getWidth(), cellanimSheet->getHeight(),
-                    imageBuffer, nullptr
+                    imageBuffer, colorPalette.data()
                 );
 
                 delete[] imageBuffer;
@@ -281,7 +308,7 @@ void WindowSpritesheet::FormatPopup() {
                     if (isRVL) {
                         dataSize = RvlImageConvert::getImageByteSize(
                             rvlFormats[selectedFormatIndex], imageWidth, imageHeight
-                        );
+                        ) + colorPaletteSize;
                     }
                     else {
                         dataSize = CtrImageConvert::getImageByteSize(
@@ -313,7 +340,7 @@ void WindowSpritesheet::FormatPopup() {
                                 digitCount++;
                             }
                         }
-                        formattedStr[destLen] = '\0'; // Null-terminate the new string
+                        formattedStr[destLen] = '\0';
                     }
 
                     ImGui::BulletText("Data Size: %sB", formattedStr);
@@ -330,8 +357,9 @@ void WindowSpritesheet::FormatPopup() {
                     { 0.f, 0.f },
                     ImGuiChildFlags_Borders | ImGuiChildFlags_AutoResizeY
                 )) {
-                    const char* colorDesc = "";
-                    const char* alphaDesc = "";
+                    const char* colorDesc = nullptr;
+                    const char* alphaDesc = nullptr;
+                    bool showPaletteCount = false;
 
                     if (isRVL) {
                         switch (rvlFormats[selectedFormatIndex]) {
@@ -339,6 +367,8 @@ void WindowSpritesheet::FormatPopup() {
                             colorDesc = "Colors: 24-bit, millions of colors";
                             alphaDesc = "Alpha: 8-bit, ranged 0 to 255";
                             break;
+                        case TPL::TPL_IMAGE_FORMAT_C14X2: // Uses RGB5A3 for the CLUT.
+                            showPaletteCount = true;
                         case TPL::TPL_IMAGE_FORMAT_RGB5A3:
                             colorDesc =
                                 "Color:\n"
@@ -349,8 +379,13 @@ void WindowSpritesheet::FormatPopup() {
                             alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
                             break;
                         case TPL::TPL_IMAGE_FORMAT_CMPR:
-                            colorDesc = "Colors: 16-bit (interpolated), 65536 colors";
-                            alphaDesc = "Alpha: 1-bit, either opaque or transparent";
+                            colorDesc =
+                                "Color:\n"
+                                "   Opaque pixels:\n"
+                                "      15-bit, 32768 colors\n"
+                                "   Transparent pixels:\n"
+                                "      12-bit, 4096 colors";
+                            alphaDesc = "Alpha: 3-bit, ranged 0 to 7";
                             break;
                         default:
                             break;
@@ -375,8 +410,12 @@ void WindowSpritesheet::FormatPopup() {
                         }
                     }
 
-                    ImGui::BulletText("%s", colorDesc);
-                    ImGui::BulletText("%s", alphaDesc);
+                    if (colorDesc)
+                        ImGui::BulletText("%s", colorDesc);
+                    if (alphaDesc)
+                        ImGui::BulletText("%s", alphaDesc);
+                    if (showPaletteCount)
+                        ImGui::BulletText("Paletted (%u colors)", colorPaletteCount);
                 }
                 ImGui::EndChild();
             }
