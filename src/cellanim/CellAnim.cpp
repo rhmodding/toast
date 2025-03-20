@@ -68,8 +68,8 @@ struct RvlTransformValues {
 
         const int additive = (isArrangementPart ? -512 : 0);
 
-        transformValues.positionX = static_cast<int>(int16_t(BYTESWAP_16(this->positionX) + additive));
-        transformValues.positionY = static_cast<int>(int16_t(BYTESWAP_16(this->positionY) + additive));
+        transformValues.positionX = static_cast<int>(static_cast<int16_t>(BYTESWAP_16(this->positionX) + additive));
+        transformValues.positionY = static_cast<int>(static_cast<int16_t>(BYTESWAP_16(this->positionY) + additive));
         transformValues.scaleX = BYTESWAP_FLOAT(this->scaleX);
         transformValues.scaleY = BYTESWAP_FLOAT(this->scaleY);
         transformValues.angle = BYTESWAP_FLOAT(this->angle);
@@ -417,8 +417,8 @@ static bool InitCtrCellAnim(
                 .regionH = arrangementPartIn->regionH,
 
                 .transform = CellAnim::TransformValues {
-                    .positionX = static_cast<int>(int16_t(arrangementPartIn->positionX - 512)),
-                    .positionY = static_cast<int>(int16_t(arrangementPartIn->positionY - 512)),
+                    .positionX = static_cast<int>(static_cast<int16_t>(arrangementPartIn->positionX - 512)),
+                    .positionY = static_cast<int>(static_cast<int16_t>(arrangementPartIn->positionY - 512)),
                     .scaleX = arrangementPartIn->scaleX,
                     .scaleY = arrangementPartIn->scaleY,
                     .angle = arrangementPartIn->angle,
