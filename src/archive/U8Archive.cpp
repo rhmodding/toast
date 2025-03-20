@@ -17,15 +17,15 @@
 constexpr uint32_t U8_MAGIC = IDENTIFIER_TO_U32('U', 0xAA, '8', '-');
 
 struct U8ArchiveHeader {
-    // Compare to U8_MAGIC
+    // Compare to U8_MAGIC.
     uint32_t magic { U8_MAGIC };
 
-    // Offset to the node section
+    // Offset to the node section.
     int32_t nodeSectionStart;
-    // Size of the node section (including string pool)
+    // Size of the node section (including string pool).
     int32_t nodeSectionSize;
 
-    // Offset to the data section
+    // Offset to the data section.
     int32_t dataSectionStart;
 
     // Reserved fields (not used in Fever)
@@ -34,6 +34,8 @@ struct U8ArchiveHeader {
 
 struct U8ArchiveNode {
 private:
+    // Big-endian 32-bit bitfield:
+    //     | isDir (8b) | nameOffset (24b) |
     uint32_t isDirAndNameOffset;
 
 public:
@@ -74,10 +76,16 @@ public:
 
 namespace U8Archive {
 
-File::File(const std::string& n) : name(n) {}
+File::File(const std::string& n) :
+    name(n)
+{}
 
-Directory::Directory(const std::string& n) : name(n) {}
-Directory::Directory(const std::string& n, Directory* parentDir) : name(n), parent(parentDir) {}
+Directory::Directory(const std::string& n) :
+    name(n)
+{}
+Directory::Directory(const std::string& n, Directory* parentDir) :
+    name(n), parent(parentDir)
+{}
 
 void Directory::AddFile(File& file) {
     file.parent = this;
@@ -179,49 +187,65 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
     };
 
     struct FlatEntry {
-        void* ptr;
+        union {
+            Directory* dir;
+            File* file;
+        };
+        bool isDir;
+
         unsigned parent;
         unsigned nextOutOfDir;
-        bool isDir;
     };
+
+    // Initialize the root directory entry.
     std::vector<FlatEntry> flattenedArchive = {
-        { &this->structure, 0, 0, true } // Root node
+        {
+            .dir = &this->structure,
+            .isDir = true,
+            
+            .parent = 0,
+            // .nextOutOfDir = 0,
+            // nextOutOfDir is set later.
+        }
     };
 
     std::stack<std::pair<Directory*, std::list<File>::iterator>> fileItStack;
     std::stack<std::pair<Directory*, std::list<Directory>::iterator>> directoryItStack;
 
-    // Start with the root directory
+    // Push the root directory.
     fileItStack.push({ &this->structure, this->structure.files.begin() });
     directoryItStack.push({ &this->structure, this->structure.subdirectories.begin() });
 
     std::vector<unsigned> parentList = { 0 };
 
     while (!fileItStack.empty()) {
-        Directory* currentDir = fileItStack.top().first;
+        const Directory* currentDir = fileItStack.top().first;
+    
         auto& fileIt = fileItStack.top().second;
         auto& dirIt = directoryItStack.top().second;
 
-        // Process files
+        // Process files.
         if (fileIt != currentDir->files.end()) {
             flattenedArchive.push_back({
-                .ptr = &(*fileIt),
-                .parent = parentList.back(),
+                .file = &(*fileIt),
+                .isDir = false,
+
+                .parent = parentList.back()
                 // .nextOutOfDir = 0,
                 // nextOutOfDir is not used.
-                .isDir = false
             });
             ++fileIt;
         }
-        // Process subdirectories
+        // Process subdirectories.
         else if (dirIt != currentDir->subdirectories.end()) {
             Directory* subDir = &(*dirIt);
             flattenedArchive.push_back({
-                .ptr = subDir,
-                .parent = parentList.back(),
+                .dir = subDir,
+                .isDir = true,
+
+                .parent = parentList.back()
                 // .nextOutOfDir = 0,
                 // nextOutOfDir is set later.
-                .isDir = true
             });
 
             parentList.push_back(flattenedArchive.size() - 1);
@@ -230,7 +254,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
             fileItStack.push({ subDir, subDir->files.begin() });
             directoryItStack.push({ subDir, subDir->subdirectories.begin() });
         }
-        // All files and subdirectories processed, backtrack
+        // All files and subdirectories processed; backtrack.
         else {
             for (unsigned parentIndex : parentList)
                 flattenedArchive[parentIndex].nextOutOfDir = flattenedArchive.size();
@@ -241,27 +265,29 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
         }
     }
 
-    //unsigned dataSize { 0 };
-
     std::vector<unsigned> stringOffsets(flattenedArchive.size(), 0);
     std::vector<unsigned> dataOffsets(flattenedArchive.size(), 0);
 
     unsigned nextStringPoolOffset { 0 };
 
-    // Calculate string offsets
+    // Calculate string offsets.
     for (unsigned i = 0; i < flattenedArchive.size(); ++i) {
         const FlatEntry& entry = flattenedArchive[i];
 
         stringOffsets[i] = nextStringPoolOffset;
-        nextStringPoolOffset += (entry.isDir ?
-            reinterpret_cast<Directory*>(entry.ptr)->name.size() :
-            reinterpret_cast<File*>(entry.ptr)->name.size()
+        nextStringPoolOffset += (
+            entry.isDir ? entry.dir->name.size() : entry.file->name.size()
         ) + 1;
 
         nextStringPoolOffset = ALIGN_UP_4(nextStringPoolOffset);
     }
 
-    // Calculate data offset
+    header->nodeSectionSize = BYTESWAP_32(static_cast<uint32_t>(
+        (sizeof(U8ArchiveNode) * flattenedArchive.size()) + nextStringPoolOffset
+    ));
+
+    // End of string pool is start of data section.
+
     unsigned baseDataOffset = ALIGN_UP_32(
         sizeof(U8ArchiveHeader) +
         (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
@@ -269,26 +295,22 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
     );
     unsigned nextDataOffset = baseDataOffset;
 
-    // Calculate data offsets
+    header->dataSectionStart = BYTESWAP_32(baseDataOffset);
+
+    // Calculate data offsets.
     for (unsigned i = 1; i < flattenedArchive.size(); ++i) {
         const FlatEntry& entry = flattenedArchive[i];
 
         if (!entry.isDir) {
             dataOffsets[i] = nextDataOffset;
 
-            nextDataOffset += reinterpret_cast<File*>(entry.ptr)->data.size();
+            nextDataOffset += entry.file->data.size();
             nextDataOffset = ALIGN_UP_32(nextDataOffset);
         }
     }
 
     result.resize(nextDataOffset);
     header = reinterpret_cast<U8ArchiveHeader*>(result.data());
-
-    // Set header offsets
-    header->dataSectionStart = BYTESWAP_32(baseDataOffset);
-    header->nodeSectionSize = BYTESWAP_32(static_cast<uint32_t>(
-        (sizeof(U8ArchiveNode) * flattenedArchive.size()) + nextStringPoolOffset
-    ));
 
     // Write nodes
     for (unsigned i = 0; i < flattenedArchive.size(); ++i) {
@@ -311,12 +333,12 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
                     (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
                     stringOffsets[i]
                 ),
-                reinterpret_cast<Directory*>(entry.ptr)->name.c_str()
+                entry.dir->name.c_str()
             );
         }
         else {
-            unsigned char* fileData = reinterpret_cast<File*>(entry.ptr)->data.data();
-            unsigned fileDataSize = reinterpret_cast<File*>(entry.ptr)->data.size();
+            unsigned char* fileData = entry.file->data.data();
+            unsigned fileDataSize = entry.file->data.size();
 
             node->file.dataOffset = BYTESWAP_32(dataOffsets[i]);
             node->file.dataSize = BYTESWAP_32(fileDataSize);
@@ -328,7 +350,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
                     (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
                     stringOffsets[i]
                 ),
-                reinterpret_cast<File*>(entry.ptr)->name.c_str()
+                entry.file->name.c_str()
             );
             // Copy file data
             memcpy(result.data() + dataOffsets[i], fileData, fileDataSize);
