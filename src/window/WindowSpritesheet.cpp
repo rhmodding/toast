@@ -680,7 +680,15 @@ bool FixSheetEdgePixels() {
         }
     }
 
-    cellanimSheet->LoadRGBA32(texture.get(), width, height);
+    // Update texture
+    auto newTexture = std::make_shared<Texture>();
+    newTexture->LoadRGBA32(texture.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
+
+    newTexture->setName(cellanimSheet->getName());
+
+    session.addCommand(std::make_shared<CommandModifySpritesheet>(
+        cellanimObject->sheetIndex, newTexture
+    ));
 
     return true;
 }
