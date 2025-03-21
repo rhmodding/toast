@@ -1,6 +1,9 @@
 # CMakeLists.txt
 
 cmake_minimum_required(VERSION 3.10)
+
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum macOS deployment target")
+
 project(toast)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -115,12 +118,6 @@ ENDIF()
 
 IF (WIN32)
     target_compile_definitions(toast PRIVATE GLEW_STATIC)
-ENDIF()
-
-# Fixes issues on OSX Catalina.
-IF (APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.15")
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -mmacosx-version-min=10.15")
 ENDIF()
 
 # Include directories
