@@ -117,6 +117,12 @@ IF (WIN32)
 target_compile_definitions(toast PRIVATE GLEW_STATIC)
 ENDIF()
 
+IF (APPLE)
+# Fixes issues on OSX Catalina.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.15")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -mmacosx-version-min=10.15")
+ENDIF()
+
 # Include directories
 target_include_directories(toast PRIVATE
     ext/imgui
