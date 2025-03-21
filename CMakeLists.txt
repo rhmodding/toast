@@ -114,13 +114,13 @@ IF(CMAKE_BUILD_TYPE MATCHES "Debug")
 ENDIF()
 
 IF (WIN32)
-target_compile_definitions(toast PRIVATE GLEW_STATIC)
+    target_compile_definitions(toast PRIVATE GLEW_STATIC)
 ENDIF()
 
-IF (APPLE)
 # Fixes issues on OSX Catalina.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.15")
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -mmacosx-version-min=10.15")
+IF (APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.15")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -mmacosx-version-min=10.15")
 ENDIF()
 
 # Include directories
