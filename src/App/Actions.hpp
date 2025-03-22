@@ -11,7 +11,13 @@
 #include "../task/AsyncTaskPushSession.hpp"
 #include "../task/AsyncTaskExportSession.hpp"
 
+#include <cstdlib>
+
 #include <string>
+
+#include <thread>
+
+#include <filesystem>
 
 #include "../common.hpp"
 
@@ -217,6 +223,24 @@ void ExportSessionAsOther() {
             std::string(saveFileDialog)
         );
     }
+}
+
+void OpenSessionSourceFolder() {
+    const auto& filePath = SessionManager::getInstance().getCurrentSession()->resourcePath;
+
+    std::string folderPath = std::filesystem::absolute(filePath).parent_path();
+
+#if defined(__WIN32__)
+    std::string command = "explorer \"" + folderPath + "\"";
+#elif defined(__APPLE__)
+    std::string command = "open \"" + folderPath + "\"";
+#else // Probably Linux.
+    std::string command = "xdg-open \"" + folderPath + "\"";
+#endif // defined(__WIN32__), defined(__APPLE__)
+
+    std::thread([command]() {
+        std::system(command.c_str());
+    }).detach();
 }
 
 } // namespace Actions

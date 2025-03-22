@@ -45,6 +45,8 @@
 
 #include "common.hpp"
 
+#include "texture/APNGHack.hpp"
+
 // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
 #include "stb/stb_image.h"
@@ -350,6 +352,14 @@ void Toast::Menubar() {
 
                 ImGui::EndMenu();
             }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem(
+                (const char*)ICON_FA_FILE_IMPORT " Open containing folder...",
+                nullptr, false, sessionManager.getSessionAvaliable()
+            ))
+                Actions::OpenSessionSourceFolder();
 
             ImGui::Separator();
 
