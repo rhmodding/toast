@@ -44,13 +44,29 @@ struct SarcFileHeader {
 struct SfatNode {
     uint32_t nameHash;
 
-    struct {
-        // In 4byte increments; multiply by 4 to get the true offset.
-        // Relative to the start of the SFNT section's data.
-        uint32_t nameOffset : 24;
+    // | nameOffset (24b) | collisionCount (8b) |
+    uint32_t nameOffsetAndCollisionCount;
 
-        uint32_t collisionCount : 8;
-    };
+    // In 4byte increments; multiply by 4 to get the true offset.
+    // Relative to the start of the SFNT section's data.
+    unsigned getNameOffset() const {
+        return this->nameOffsetAndCollisionCount & 0x00FFFFFF;
+    }
+
+    // TODO: not sure what this exactly is
+    unsigned getCollisionCount() const {
+        return (this->nameOffsetAndCollisionCount & 0xFF000000) >> 24;
+    }
+
+    void setCollisionCount(unsigned collisionCount) {
+        this->nameOffsetAndCollisionCount &= 0x00FFFFFF;
+        this->nameOffsetAndCollisionCount |= ((collisionCount & 0xFF) << 24);
+    }
+
+    void setNameOffset(unsigned nameOffset) {
+        this->nameOffsetAndCollisionCount &= 0xFF000000;
+        this->nameOffsetAndCollisionCount |= (nameOffset & 0xFFFFFF);
+    }
 
     uint32_t dataOffsetStart; // Relative to the file header's dataStart.
     uint32_t dataOffsetEnd; // Relative to the file header's dataStart.
@@ -157,7 +173,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         const SfatNode* node = sfatSection->nodes + i;
 
         // Path to the file, in the format "dir1/dir2/file.ext".
-        const char* name = sfntSection->data + (node->nameOffset * 4);
+        const char* name = sfntSection->data + (node->getNameOffset() * 4);
 
         const unsigned char* nodeDataStart = data + header->dataStart + node->dataOffsetStart;
         const unsigned char* nodeDataEnd = data + header->dataStart + node->dataOffsetEnd;
@@ -282,8 +298,8 @@ std::vector<unsigned char> SARCObject::Serialize() {
 
         node->nameHash = file.pathHash;
 
-        node->collisionCount = 1;
-        node->nameOffset = static_cast<uint32_t>(currentName - sfntSection->data) / 4;
+        node->setCollisionCount(1);
+        node->setNameOffset((currentName - sfntSection->data) / 4);
 
         strcpy(currentName, file.path.c_str());
         currentName += ALIGN_UP_4(file.path.size() + 1);
