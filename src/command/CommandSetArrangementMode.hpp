@@ -18,34 +18,28 @@ public:
 
     void Execute() override {
         SessionManager& sessionManager = SessionManager::getInstance();
+        PlayerManager& playerManager = PlayerManager::getInstance();
+
+        if (this->enabled) {
+            playerManager.setPlaying(false);
+            playerManager.setArrangementModeIdx(playerManager.getKey().arrangementIndex);
+        }
 
         sessionManager.getCurrentSession()->arrangementMode = this->enabled;
 
-        this->UpdateState(this->enabled);
+        playerManager.correctState();
     }
 
     void Rollback() override {
         SessionManager& sessionManager = SessionManager::getInstance();
+        PlayerManager& playerManager = PlayerManager::getInstance();
 
         sessionManager.getCurrentSession()->arrangementMode = !this->enabled;
 
-        this->UpdateState(!this->enabled);
+        playerManager.correctState();
     }
 
 private:
-    void UpdateState(bool lEnabled) {
-        AppState& appState = AppState::getInstance();
-        (void)appState;
-        PlayerManager& playerManager = PlayerManager::getInstance();
-
-        playerManager.correctState();
-
-        if (lEnabled) {
-            playerManager.setPlaying(false);
-            playerManager.setArrangementModeIdx(playerManager.getKey().arrangementIndex);
-        }
-    }
-
     bool enabled;
 };
 
