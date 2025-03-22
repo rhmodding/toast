@@ -79,6 +79,8 @@ static const char* githubURLCmd =
 #endif // __APPLE__, _WIN32
     "https://github.com/conhlee/toast";
 
+constexpr const char buildString[] = "built on: " __DATE__ " " __TIME__;
+
 static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, ImGuiWindow* window) {
     float additiveLineHeight { 0.f };
     float totalLineWidth { 0.f };
@@ -144,19 +146,28 @@ static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, I
 static void drawHeader(ImVec2& position, ImGuiWindow* window) {
     ThemeManager& themeManager = ThemeManager::getInstance();
 
+    const float startX = position.x;
+
     // Set position for GitHub button.
     ImGui::SetCursorPos({
         window->WorkRect.Max.x - 25.f - 30.f - window->Pos.x,
-        position.y + (30.f / 2) - window->Pos.y
+        position.y + (30.f / 2.f) - window->Pos.y
     });
 
     ImGui::PushFont(themeManager.getFonts().giant);
 
     // Title.
     window->DrawList->AddText(position, ImGui::GetColorU32(ImGuiCol_Text), headerTitle);
-    position.y += ImGui::GetTextLineHeight() + 5.f;
+
+    position.x += ImGui::CalcTextSize(headerTitle).x + (ImGui::GetTextLineHeight() / 5.f);
+    position.y += ImGui::GetTextLineHeight() / 1.8f;
 
     ImGui::PopFont();
+
+    window->DrawList->AddText(position, ImGui::GetColorU32(ImGuiCol_TextDisabled), buildString);
+
+    position.x = startX;
+    position.y += ImGui::GetTextLineHeight() / .6f;
 
     // Description.
     window->DrawList->AddText(position, ImGui::GetColorU32(ImGuiCol_Text), headerDesc);
@@ -171,7 +182,7 @@ static void drawHeader(ImVec2& position, ImGuiWindow* window) {
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
         ImGui::SetTooltip("%s", githubTooltip);
 
-    position.y += (ImGui::GetTextLineHeight() * 2) + 5.f;
+    position.y += (ImGui::GetTextLineHeight() * 2.f) + 5.f;
 }
 
 void WindowAbout::Update() {
