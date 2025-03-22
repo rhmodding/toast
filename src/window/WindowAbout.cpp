@@ -16,6 +16,7 @@
 
 enum LineCommand {
     LC_EMPTY_LINE,
+    LC_EMPTY_LINE_QUART,
     LC_STRING_LINE,
     LC_SEPARATOR,
     LC_NEXT_ROW,
@@ -35,7 +36,7 @@ static const Line aboutLines[] = {
     { LC_SEPARATOR },
 
     { LC_STRING_LINE, (const char*)ICON_FA_WRENCH "  Initial testing" },
-    { LC_EMPTY_LINE },
+    { LC_EMPTY_LINE_QUART },
 
     { LC_STRING_LINE, "Placeholder" },
     { LC_STRING_LINE, "Placeholder Placeholder" },
@@ -45,11 +46,11 @@ static const Line aboutLines[] = {
     { LC_NEXT_ROW },
 
     { LC_STRING_LINE, (const char*)ICON_FA_FILE_CODE "  Open-source software used / referenced" },
-    { LC_EMPTY_LINE },
+    { LC_EMPTY_LINE_QUART },
 
     { LC_STRING_LINE, "Dear ImGui (ocornut/imgui) [MIT]" },
     { LC_STRING_LINE, "GLFW [Zlib/libpng]" },
-    { LC_STRING_LINE, "Various STB libraries [public domain]" },
+    { LC_STRING_LINE, "Various STB libraries (nothings/stb) [public domain]" },
     { LC_STRING_LINE, "zlib-ng [Zlib]" },
     { LC_STRING_LINE, "syaz0 (zeldamods/syaz0) [GPL-2.0]" },
     { LC_STRING_LINE, "rg_etc1 (by Richard Geldreich) [Zlib]" },
@@ -59,7 +60,7 @@ static const Line aboutLines[] = {
     { LC_NEXT_COLUMN },
 
     { LC_STRING_LINE, (const char*)ICON_FA_STAR "  Special thanks" },
-    { LC_EMPTY_LINE },
+    { LC_EMPTY_LINE_QUART },
     { LC_STRING_LINE, "Chrislo (a.k.a. chrislo27)" },
     { LC_STRING_LINE, "patataofcourse" },
     { LC_STRING_LINE, "TheAlternateDoctor" },
@@ -123,6 +124,10 @@ static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, I
             totalLineWidth = 0.f;
 
             additiveLineX = 0.f;
+            continue;
+
+        case LC_EMPTY_LINE_QUART:
+            additiveLineHeight += (ImGui::GetTextLineHeight() / 4.f) + 2.f;
             continue;
 
         case LC_EMPTY_LINE:
@@ -211,7 +216,7 @@ void WindowAbout::Update() {
 
     ImVec2 currentPosition (
         imageBottomRight.x + 10.f,
-        canvasTopLeft.y + 20.f
+        canvasTopLeft.y + 10.f
     );
 
     drawHeader(currentPosition, window);
