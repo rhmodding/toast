@@ -53,12 +53,12 @@ struct PNGDummyChunk {
     uint8_t crcStart[0];
     uint32_t chunkIdentifier;
     uint8_t chunkData[0];
-} __attribute((packed));
+} __attribute__((packed));
 
 struct PNGFileHeader {
     uint32_t magic0 { PNG_MAGIC_0 }, magic1 { PNG_MAGIC_1 };
     PNGDummyChunk firstChunk[0];
-} __attribute((packed));
+} __attribute__((packed));
 
 struct PNGIhdrChunk {
     uint32_t chunkDataSize { BYTESWAP_32(13) };
@@ -74,7 +74,7 @@ struct PNGIhdrChunk {
     PNGInterlaceMethod interlaceMethod;
 
     uint32_t crc[0];
-} __attribute((packed));
+} __attribute__((packed));
 
 // https://wiki.mozilla.org/APNG_Specification
 // ^^ this sucks REALLY bad but it's the only real APNG specification
@@ -89,7 +89,7 @@ struct PNGActlChunk {
     uint32_t playCount; // 0 is infinite loop.
 
     uint32_t crc[0];
-} __attribute((packed));
+} __attribute__((packed));
 
 // Specifies how the draw buffer is cleared when drawing a frame.
 enum class APNGDisposeOp : uint8_t {
@@ -117,7 +117,7 @@ struct PNGFctlChunk {
     APNGBlendOp blendOpr;
 
     uint32_t crc[0];
-} __attribute((packed));
+} __attribute__((packed));
 
 static const PNGDummyChunk* FindPNGChunk(const void* pngDataStart, const void* pngDataEnd, uint32_t targetIdentifier) {
     const PNGFileHeader* fileHeader = reinterpret_cast<const PNGFileHeader*>(pngDataStart);

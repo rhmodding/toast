@@ -40,7 +40,7 @@ struct CtpkTextureEntry {
     uint32_t mipSizesOffset;
 
     uint32_t sourceTimestamp; // Unix timestamp of source texture.
-} __attribute((packed));
+} __attribute__((packed));
 
 struct CtpkFileHeader {
     uint32_t magic { CTPK_MAGIC }; // Compare to CTPK_MAGIC
@@ -61,12 +61,12 @@ struct CtpkFileHeader {
     uint32_t _pad64[2] { 0x00000000, 0x00000000 };
 
     CtpkTextureEntry textureEntries[0];
-} __attribute((packed));
+} __attribute__((packed));
 
 struct CtpkLookupEntry {
     uint32_t sourcePathHash; // CRC-32/ISO-HDLC hash of the source path.
     uint32_t textureEntryIndex;
-} __attribute((packed));
+} __attribute__((packed));
 
 struct CtpkInfoEntry {
     uint8_t dataFormat; // Texture data format (CTPKImageFormat).
@@ -75,7 +75,7 @@ struct CtpkInfoEntry {
 
     uint8_t compressed; // Is texture data compressed (ETC1)?
     uint8_t compressionMethod;  // ETC1 compression method.
-} __attribute((packed));
+} __attribute__((packed));
 
 namespace CTPK {
 

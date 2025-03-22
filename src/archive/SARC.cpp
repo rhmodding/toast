@@ -39,7 +39,7 @@ struct SarcFileHeader {
     uint16_t formatVersion { SARC_VERSION }; // Compare to SARC_VERSION
 
     uint16_t _reserved { 0x0000 };
-} __attribute((packed));
+} __attribute__((packed));
 
 struct SfatNode {
     uint32_t nameHash;
@@ -54,7 +54,7 @@ struct SfatNode {
 
     uint32_t dataOffsetStart; // Relative to the file header's dataStart.
     uint32_t dataOffsetEnd; // Relative to the file header's dataStart.
-} __attribute((packed));
+} __attribute__((packed));
 
 struct SfatSection {
     uint32_t magic { SFAT_MAGIC }; // Compare to SFAT_MAGIC
@@ -67,7 +67,7 @@ struct SfatSection {
     uint32_t hashKey;
 
     SfatNode nodes[0];
-} __attribute((packed));
+} __attribute__((packed));
 
 struct SfntSection {
     uint32_t magic { SFNT_MAGIC }; // Compare to SFNT_MAGIC
@@ -76,7 +76,7 @@ struct SfntSection {
     uint16_t _pad16 { 0x0000 };
 
     char data[0];
-} __attribute((packed));
+} __attribute__((packed));
 
 static uint32_t sarcComputeHash(std::string_view string, uint32_t key) {
     uint32_t result = 0;
