@@ -891,6 +891,8 @@ void Toast::Update() {
 void Toast::Draw() {
     ImGui::Render();
 
+    glfwMakeContextCurrent(this->glfwWindowHndl);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     int framebufferWidth, framebufferHeight;
