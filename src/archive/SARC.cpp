@@ -78,7 +78,7 @@ struct SfatSection {
 
     uint16_t nodeCount;
 
-    // SARC_DEFAULT_HASH_KEY by default; can differ in the case of
+    // SARC_DEFAULT_HASH_KEY by default; may differ in the case of
     // a collision.
     uint32_t hashKey;
 
@@ -229,7 +229,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
         std::string path;
         uint32_t pathHash;
     };
-    std::vector<FileEntry> files;
+    std::vector<FileEntry> entries;
 
     std::stack<const Directory*> dirStack;
     dirStack.push(&this->structure);
@@ -248,7 +248,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
                 dir = dir->parent;
             }
 
-            files.push_back({
+            entries.push_back({
                 .file = &file,
                 .path = path,
                 .pathHash = sarcComputeHash(path, SARC_DEFAULT_HASH_KEY)
@@ -257,17 +257,17 @@ std::vector<unsigned char> SARCObject::Serialize() {
         for (const auto& subdir : currentDir->subdirectories)
             dirStack.push(&subdir);
     }
-    
-    std::sort(files.begin(), files.end(),
+
+    std::sort(entries.begin(), entries.end(),
     [](const FileEntry& a, const FileEntry& b) {
         return a.pathHash < b.pathHash;
     });
 
     unsigned fullSize = sizeof(SarcFileHeader) + sizeof(SfatSection) +
-        sizeof(SfntSection) + (sizeof(SfatNode) * files.size());
-    for (unsigned i = 0; i < files.size(); i++) {
-        fullSize += ALIGN_UP_4(files[i].path.size() + 1);
-        fullSize = ALIGN_UP_32(fullSize) + ALIGN_UP_32(files[i].file->data.size());
+        sizeof(SfntSection) + (sizeof(SfatNode) * entries.size());
+    for (unsigned i = 0; i < entries.size(); i++) {
+        fullSize += ALIGN_UP_4(entries[i].path.size() + 1);
+        fullSize = ALIGN_UP_32(fullSize) + ALIGN_UP_32(entries[i].file->data.size());
     }
     std::vector<unsigned char> result(fullSize);
 
@@ -278,7 +278,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
 
     SfatSection* sfatSection = reinterpret_cast<SfatSection*>(result.data() + header->headerSize);
     *sfatSection = SfatSection {
-        .nodeCount = static_cast<uint16_t>(files.size()),
+        .nodeCount = static_cast<uint16_t>(entries.size()),
 
         .hashKey = SARC_DEFAULT_HASH_KEY
     };
@@ -291,18 +291,18 @@ std::vector<unsigned char> SARCObject::Serialize() {
     // Write the strings & nodes at the same time.
 
     char* currentName = sfntSection->data;
-    for (unsigned i = 0; i < files.size(); i++) {
-        const FileEntry& file = files[i];
+    for (unsigned i = 0; i < entries.size(); i++) {
+        const FileEntry& entry = entries[i];
 
         SfatNode* node = sfatSection->nodes + i;
 
-        node->nameHash = file.pathHash;
+        node->nameHash = entry.pathHash;
 
         node->setCollisionCount(1);
         node->setNameOffset((currentName - sfntSection->data) / 4);
 
-        strcpy(currentName, file.path.c_str());
-        currentName += ALIGN_UP_4(file.path.size() + 1);
+        strcpy(currentName, entry.path.c_str());
+        currentName += ALIGN_UP_4(entry.path.size() + 1);
     }
 
     // Write the data.
@@ -312,16 +312,16 @@ std::vector<unsigned char> SARCObject::Serialize() {
     header->dataStart = static_cast<uint32_t>(dataStart - result.data());
 
     unsigned char* currentData = dataStart;
-    for (unsigned i = 0; i < files.size(); i++) {
-        const FileEntry& file = files[i];
+    for (unsigned i = 0; i < entries.size(); i++) {
+        const FileEntry& entry = entries[i];
 
         SfatNode* node = sfatSection->nodes + i;
 
         node->dataOffsetStart = static_cast<uint32_t>(currentData - dataStart);
-        node->dataOffsetEnd = node->dataOffsetStart + file.file->data.size();
+        node->dataOffsetEnd = node->dataOffsetStart + entry.file->data.size();
 
-        memcpy(currentData, file.file->data.data(), file.file->data.size());
-        currentData += ALIGN_UP_32(file.file->data.size());
+        memcpy(currentData, entry.file->data.data(), entry.file->data.size());
+        currentData += ALIGN_UP_32(entry.file->data.size());
     }
 
     return result;
