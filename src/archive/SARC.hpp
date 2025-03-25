@@ -9,6 +9,8 @@
 
 #include <optional>
 
+#include <string_view>
+
 namespace SARC {
 
 class Directory;
@@ -60,9 +62,9 @@ private:
     bool initialized { false };
 };
 
-std::optional<SARCObject> readNZlibSARC(const char* filePath);
+std::optional<SARCObject> readNZlibSARC(std::string_view filePath);
 
-File* findFile(const char* path, Directory& directory);
+File* findFile(std::string_view path, Directory& directory);
 
 } // namespace SARC
 

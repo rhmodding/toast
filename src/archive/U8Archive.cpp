@@ -360,7 +360,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
     return result;
 }
 
-std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
+std::optional<U8ArchiveObject> readYaz0U8Archive(std::string_view filePath) {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         Logging::err << "[U8Archive::readYaz0U8Archive] Error opening file at path: " << filePath << std::endl;
@@ -396,21 +396,22 @@ std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath) {
     return archive;
 }
 
-File* findFile(const char* path, Directory& directory) {
-    const char* slash = strchr(path, '/');
+File* findFile(std::string_view path, Directory& directory) {
+    size_t slashOffset = path.find('/');
 
-    if (slash == nullptr) { // Slash not found: it's a file, search for it
+    // Slash not found: it's a file, search for it
+    if (slashOffset == std::string_view::npos) {
         for (File& file : directory.files)
-            if (strcmp(file.name.c_str(), path) == 0)
+            if (file.name == path)
                 return &file;
 
         return nullptr;
     }
-    else { // Slash found, it's a subdirectory, recursive search
-        unsigned slashOffset = (slash - path);
+    // Slash found: it's a subdirectory, recursive search
+    else {
         for (Directory& subDir : directory.subdirectories)
-            if (strncmp(subDir.name.c_str(), path, slashOffset) == 0)
-                return findFile(slash + 1, subDir);
+            if (strncmp(subDir.name.data(), path.data(), slashOffset) == 0)
+                return findFile(path.substr(slashOffset), subDir);
 
         return nullptr;
     }

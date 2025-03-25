@@ -9,6 +9,8 @@
 
 #include <optional>
 
+#include <string_view>
+
 // Although commonly referred to as a "U8 archive", it's true name is DARCH (meaning
 // DVD archive). However, the term "U8 archive" has become widely adopted, while the
 // correct name DARCH remains pretty much unknown (try googling U8 archive vs DARCH, lol).
@@ -68,9 +70,9 @@ private:
     bool initialized { false };
 };
 
-std::optional<U8ArchiveObject> readYaz0U8Archive(const char* filePath);
+std::optional<U8ArchiveObject> readYaz0U8Archive(std::string_view filePath);
 
-File* findFile(const char* path, Directory& directory);
+File* findFile(std::string_view path, Directory& directory);
 
 } // namespace U8
 

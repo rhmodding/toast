@@ -234,6 +234,9 @@ std::vector<unsigned char> SARCObject::Serialize() {
     std::stack<const Directory*> dirStack;
     dirStack.push(&this->structure);
 
+    // TODO: it's naively assumed that there are no hash collisions; we should
+    //       probably be checking
+
     while (!dirStack.empty()) {
         const Directory* currentDir = dirStack.top();
         dirStack.pop();
@@ -258,6 +261,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
             dirStack.push(&subdir);
     }
 
+    // SARC nodes are always sorted by their hashes.
     std::sort(entries.begin(), entries.end(),
     [](const FileEntry& a, const FileEntry& b) {
         return a.pathHash < b.pathHash;
@@ -308,7 +312,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
     // Write the data.
 
     unsigned char* dataStart = reinterpret_cast<unsigned char*>(currentName);
-    
+
     header->dataStart = static_cast<uint32_t>(dataStart - result.data());
 
     unsigned char* currentData = dataStart;
@@ -363,21 +367,22 @@ std::optional<SARCObject> readNZlibSARC(const char* filePath) {
     return archive;
 }
 
-File* findFile(const char* path, Directory& directory) {
-    const char* slash = strchr(path, '/');
+File* findFile(std::string_view path, Directory& directory) {
+    size_t slashOffset = path.find('/');
 
-    if (slash == nullptr) { // Slash not found: it's a file, search for it
+    // Slash not found: it's a file, search for it
+    if (slashOffset == std::string_view::npos) {
         for (File& file : directory.files)
-            if (strcmp(file.name.c_str(), path) == 0)
+            if (file.name == path)
                 return &file;
 
         return nullptr;
     }
-    else { // Slash found, it's a subdirectory, recursive search
-        unsigned slashOffset = (slash - path);
+    // Slash found: it's a subdirectory, recursive search
+    else {
         for (Directory& subDir : directory.subdirectories)
-            if (strncmp(subDir.name.c_str(), path, slashOffset) == 0)
-                return findFile(slash + 1, subDir);
+            if (strncmp(subDir.name.data(), path.data(), slashOffset) == 0)
+                return findFile(path.substr(slashOffset), subDir);
 
         return nullptr;
     }
