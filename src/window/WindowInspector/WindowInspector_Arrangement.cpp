@@ -574,6 +574,8 @@ void WindowInspector::Level_Arrangement() {
                                     newArrangement.parts.erase(newArrangement.parts.begin() + index);
                             }
 
+                            n = std::clamp(n, 0, static_cast<int>(newArrangement.parts.size()));
+
                             newArrangement.parts.insert(
                                 newArrangement.parts.begin() + n,
                                 copyParts.begin(),
@@ -581,16 +583,18 @@ void WindowInspector::Level_Arrangement() {
                             );
 
                             sessionManager.getCurrentSession()->addCommand(
-                            std::make_shared<CommandModifyArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
-                                playerManager.getArrangementIndex(),
-                                newArrangement
-                            ));
+                                std::make_shared<CommandModifyArrangement>(
+                                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                    playerManager.getArrangementIndex(),
+                                    newArrangement
+                                )
+                            );
 
                             appState.clearSelectedParts();
-                            for (unsigned i = 0; i < copyParts.size(); i++)
-                                appState.setPartSelected(n + i, true);
-                            //appState.setPartSelected(n, true);
+                            for (unsigned i = 0; i < copyParts.size(); i++) {
+                                if (n + i < newArrangement.parts.size())
+                                    appState.setPartSelected(n + i, true);
+                            }
                         }
                         ImGui::EndMenu();
                     }
