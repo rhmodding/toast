@@ -363,13 +363,11 @@ void WindowCanvas::Update() {
 
     // Dragging
     const float mouseDragThreshold = 1.f;
+    const bool draggingWithLMB = ImGui::IsMouseDragging(ImGuiMouseButton_Left, mouseDragThreshold);
     const bool draggingCanvas = interactionActive && (
+        draggingWithLMB ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mouseDragThreshold) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mouseDragThreshold) ||
-        (
-            ConfigManager::getInstance().getConfig().canvasLMBPanEnabled &&
-            ImGui::IsMouseDragging(ImGuiMouseButton_Left, mouseDragThreshold)
-        )
+        ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mouseDragThreshold)
     );
 
     static bool panningCanvas { false };
@@ -430,8 +428,8 @@ void WindowCanvas::Update() {
 
     // Canvas zooming
     {
-        const float maxZoom = 10.f;
-        const float minZoom = .1f;
+        constexpr float maxZoom = 10.f;
+        constexpr float minZoom = .1f;
 
         if (interactionHovered) {
             if (io.MouseWheel != 0) {
@@ -441,11 +439,7 @@ void WindowCanvas::Update() {
                     this->canvasZoom += io.MouseWheel * CANVAS_ZOOM_SPEED;
             }
 
-            if (this->canvasZoom < minZoom)
-                this->canvasZoom = minZoom;
-
-            if (this->canvasZoom > maxZoom)
-                this->canvasZoom = maxZoom;
+            this->canvasZoom = std::clamp<float>(this->canvasZoom, minZoom, maxZoom);
         }
     }
 
@@ -599,8 +593,14 @@ void WindowCanvas::Update() {
 
             arrangementBeforeMutation = arrangement;
         }
-        else
-            panningCanvas = true;
+        else {
+            if (!ConfigManager::getInstance().getConfig().canvasLMBPanEnabled) {
+                if (!draggingWithLMB)
+                    panningCanvas = true;
+            }
+            else
+                panningCanvas = true;
+        }
     }
 
     if (movingPivot) {
