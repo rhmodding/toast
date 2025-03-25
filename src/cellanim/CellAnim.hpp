@@ -162,6 +162,9 @@ struct ArrangementPart {
     // On CTR only.
     unsigned id { 0 };
 
+    // Unknown flag on CTR.
+    uint8_t ctrUnknown { 0xFF };
+
     bool editorVisible { true };
     bool editorLocked { false };
 

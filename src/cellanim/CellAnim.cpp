@@ -140,7 +140,8 @@ struct CtrArrangementPart {
     uint8_t id;
 
     uint8_t _unknown1; // Something to do with EFTs?
-    uint8_t _pad8;
+
+    uint8_t _pad8 { 0x00 };
 
     float depthTL { 0.f }, depthBL { 0.f };
     float depthTR { 0.f }, depthBR { 0.f };
@@ -170,7 +171,11 @@ struct CtrArrangementPart {
 
         this->opacity = arrangementPart.opacity;
 
+        memset(this->_unknown0, 0xFF, 12);
+
         this->id = arrangementPart.id;
+
+        this->_unknown1 = arrangementPart.ctrUnknown;
 
         this->depthTL = arrangementPart.quadDepth.topLeft;
         this->depthBL = arrangementPart.quadDepth.bottomLeft;
@@ -447,7 +452,9 @@ static bool InitCtrCellAnim(
                     .bottomRight = arrangementPartIn->depthBR,
                 },
 
-                .id = arrangementPartIn->id
+                .id = arrangementPartIn->id,
+
+                .ctrUnknown = arrangementPartIn->_unknown1
             };
         }
     }
@@ -588,6 +595,9 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
         fullSize += sizeof(CtrAnimation) + (sizeof(CtrAnimationKey) * animation.keys.size());
     }
 
+    // For some reason all BCCADs have a single extra null byte at the end.
+    fullSize++;
+
     std::vector<unsigned char> result(fullSize);
 
     CtrCellAnimHeader* header = reinterpret_cast<CtrCellAnimHeader*>(result.data());
@@ -643,6 +653,9 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
             *animationKeyOut = CtrAnimationKey(key);
         }
     }
+
+    // Set that last null byte.
+    *currentOutput = 0x00;
 
     return result;
 }
