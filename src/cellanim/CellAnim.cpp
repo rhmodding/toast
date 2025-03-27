@@ -283,7 +283,7 @@ struct RvlAnimation {
     RvlAnimationKey keys[0];
 } __attribute__((packed));
 
-struct CtrAnimationName {
+struct CtrPascalString {
     uint8_t stringLength;
     char string[0];
 } __attribute__((packed));
@@ -471,8 +471,8 @@ static bool InitCtrCellAnim(
     object.animations.resize(animationCount);
 
     for (unsigned i = 0; i < animationCount; i++) {
-        const CtrAnimationName* animationName = reinterpret_cast<const CtrAnimationName*>(currentData);
-        currentData += ALIGN_UP_4(sizeof(CtrAnimationName) + animationName->stringLength + 1);
+        const CtrPascalString* animationName = reinterpret_cast<const CtrPascalString*>(currentData);
+        currentData += ALIGN_UP_4(sizeof(CtrPascalString) + animationName->stringLength + 1);
 
         const CtrAnimation* animationIn = reinterpret_cast<const CtrAnimation*>(currentData);
         currentData += sizeof(CtrAnimation);
@@ -638,15 +638,14 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
     }
     for (const CellAnim::Animation& animation : object.animations) {
         fullSize += ALIGN_UP_4(
-            sizeof(CtrAnimationName) + static_cast<uint8_t>(animation.name.size()) + 1
+            sizeof(CtrPascalString) + static_cast<uint8_t>(std::min(animation.name.size(), 0xFFul)) + 1
         );
         fullSize += sizeof(CtrAnimation) + (sizeof(CtrAnimationKey) * animation.keys.size());
     }
 
-    fullSize += sizeof(uint8_t);
-    for (const auto& [name, index] : emitterNames) {
-        fullSize += sizeof(uint8_t) + name.size();
-    }
+    fullSize += sizeof(uint8_t); // Emitter name count.
+    for (const auto& [name, index] : emitterNames)
+        fullSize += sizeof(CtrPascalString) + static_cast<uint8_t>(std::min(name.size(), 0xFFul));
 
     std::vector<unsigned char> result(fullSize);
 
@@ -689,12 +688,12 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
     currentOutput += sizeof(AnimationsHeader);
 
     for (const CellAnim::Animation& animation : object.animations) {
-        CtrAnimationName* animationNameOut = reinterpret_cast<CtrAnimationName*>(currentOutput);
+        CtrPascalString* animationNameOut = reinterpret_cast<CtrPascalString*>(currentOutput);
 
-        animationNameOut->stringLength = static_cast<uint8_t>(animation.name.size());
+        animationNameOut->stringLength = static_cast<uint8_t>(std::min(animation.name.size(), 0xFFul));
         strncpy(animationNameOut->string, animation.name.c_str(), animationNameOut->stringLength + 1);
 
-        currentOutput += ALIGN_UP_4(sizeof(CtrAnimationName) + animationNameOut->stringLength + 1);
+        currentOutput += ALIGN_UP_4(sizeof(CtrPascalString) + animationNameOut->stringLength + 1);
 
         CtrAnimation* animationOut = reinterpret_cast<CtrAnimation*>(currentOutput);
         currentOutput += sizeof(CtrAnimation);
