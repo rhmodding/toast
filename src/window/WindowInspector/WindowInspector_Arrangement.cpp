@@ -171,11 +171,11 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::BeginDisabled(part.editorLocked);
 
-            ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Part Name (editor)");
+            ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Name (editor)");
 
             textInputStdString("Name", part.editorName);
 
-            ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Part Transform");
+            ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
             {
                 // Position XY
                 {
@@ -372,6 +372,25 @@ void WindowInspector::Level_Arrangement() {
                         newPart.regionW = sizeValues[0];
                         newPart.regionH = sizeValues[1];
                     }
+                }
+            }
+
+            // ID
+            if (isCtr) {
+                ImGui::SeparatorText((const char*)ICON_FA_PENCIL " ID");
+
+                static int oldID { 0 };
+                int newID = part.id;
+
+                if (ImGui::InputInt("ID", &newID))
+                    part.id = std::clamp<int>(newID, 0, CellAnim::ArrangementPart::MAX_ID);
+
+                if (ImGui::IsItemActivated())
+                    oldID = originalPart.id;
+
+                if (ImGui::IsItemDeactivated()) {
+                    originalPart.id = oldID;
+                    newPart.id = std::clamp<int>(newID, 0, CellAnim::ArrangementPart::MAX_ID);
                 }
             }
 
