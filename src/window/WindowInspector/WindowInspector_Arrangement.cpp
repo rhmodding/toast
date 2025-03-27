@@ -394,6 +394,26 @@ void WindowInspector::Level_Arrangement() {
                 }
             }
 
+            // Emitter Name
+            if (isCtr) {
+                ImGui::SeparatorText((const char*)ICON_FA_WAND_MAGIC_SPARKLES " Effects");
+
+                static std::string oldEmitterName {};
+
+                std::string newEmitterName = part.emitterName;
+
+                if (textInputStdString("Emitter Name", newEmitterName))
+                    part.emitterName = newEmitterName;
+
+                if (ImGui::IsItemActivated())
+                    oldEmitterName = originalPart.emitterName;
+
+                if (ImGui::IsItemDeactivated()) {
+                    originalPart.emitterName = oldEmitterName;
+                    newPart.emitterName = newEmitterName;
+                }
+            }
+
             if (newPart != originalPart) {
                 part = originalPart;
 
