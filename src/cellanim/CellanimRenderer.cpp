@@ -636,11 +636,7 @@ void CellanimRenderer::InternDraw(
 
         unsigned vertexCount = drawData.size() * 6;
 
-        struct Vertex {
-            ImVec2 pos;
-            ImVec2 uv;
-            ImVec4 color;
-        };
+        struct Vertex { ImVec2 pos, uv; ImVec4 color; };
         std::vector<Vertex> vertexData (vertexCount);
 
         for (unsigned i = 0; i < drawData.size(); i++) {
@@ -658,33 +654,24 @@ void CellanimRenderer::InternDraw(
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        GLuint VBO;
+        GLuint VBO, VAO;
+
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
 
-        GLuint VAO;
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
-
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-        glVertexAttribPointer(CellanimRenderer::positionAttrib,
-            2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos)
-        );
+        glVertexAttribPointer(CellanimRenderer::positionAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
         glEnableVertexAttribArray(CellanimRenderer::positionAttrib);
-
-        glVertexAttribPointer(CellanimRenderer::uvAttrib,
-            2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glVertexAttribPointer(CellanimRenderer::uvAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
         glEnableVertexAttribArray(CellanimRenderer::uvAttrib);
-
-        glVertexAttribPointer(CellanimRenderer::colorAttrib,
-            4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color)
-        );
+        glVertexAttribPointer(CellanimRenderer::colorAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
         glEnableVertexAttribArray(CellanimRenderer::colorAttrib);
 
         glBindTexture(GL_TEXTURE_2D, this->currentDrawTex);
-
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->drawTexSize.x, this->drawTexSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -692,7 +679,6 @@ void CellanimRenderer::InternDraw(
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glBindFramebuffer(GL_FRAMEBUFFER, this->texDrawFramebuffer);
-
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->currentDrawTex, 0);
 
         GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
@@ -705,6 +691,21 @@ void CellanimRenderer::InternDraw(
         glViewport(0, 0, this->drawTexSize.x, this->drawTexSize.y);
 
         glBindVertexArray(VAO);
+        glUseProgram(CellanimRenderer::shaderProgram);
+
+        float L = frameRect.Min.x, R = L + (this->drawTexSize.x / SCALE_FACTOR);
+        float T = frameRect.Min.y + (this->drawTexSize.y / SCALE_FACTOR), B = frameRect.Min.y;
+
+        const float orthoProjection[4][4] = {
+            { 2.f / (R-L),   0.f,           0.f,  0.f },
+            { 0.f,           2.f / (T-B),   0.f,  0.f },
+            { 0.f,           0.f,          -1.f,  0.f },
+            { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
+        };
+        glUniformMatrix4fv(CellanimRenderer::projMtxUniform, 1, GL_FALSE, orthoProjection[0]);
+
+        glActiveTexture(GL_TEXTURE0);
+        glUniform1i(CellanimRenderer::textureUniform, 0);
 
         for (unsigned i = 0; i < drawData.size(); i++) {
             const auto& cmd = drawData[i];
@@ -715,48 +716,16 @@ void CellanimRenderer::InternDraw(
             const auto& foreColorB = cmd.callbackData.foreColorB;
             const auto& backColorB = cmd.callbackData.backColorB;
 
-            glUseProgram(CellanimRenderer::shaderProgram);
+            glUniform3f(CellanimRenderer::foreColorAUniform, foreColorA.r, foreColorA.g, foreColorA.b);
+            glUniform3f(CellanimRenderer::backColorAUniform, backColorA.r, backColorA.g, backColorA.b);
+            glUniform3f(CellanimRenderer::foreColorBUniform, foreColorB.r, foreColorB.g, foreColorB.b);
+            glUniform3f(CellanimRenderer::backColorBUniform, backColorB.r, backColorB.g, backColorB.b);
 
-            glUniform3f(
-                CellanimRenderer::foreColorAUniform,
-                foreColorA.r, foreColorA.g, foreColorA.b
-            );
-            glUniform3f(
-                CellanimRenderer::backColorAUniform,
-                backColorA.r, backColorA.g, backColorA.b
-            );
-
-            glUniform3f(
-                CellanimRenderer::foreColorBUniform,
-                foreColorB.r, foreColorB.g, foreColorB.b
-            );
-            glUniform3f(
-                CellanimRenderer::backColorBUniform,
-                backColorB.r, backColorB.g, backColorB.b
-            );
-
-            float L = frameRect.Min.x;
-            float R = frameRect.Min.x + (this->drawTexSize.x / SCALE_FACTOR);
-            float T = frameRect.Min.y + (this->drawTexSize.y / SCALE_FACTOR);
-            float B = frameRect.Min.y;
-
-            const float orthoProjection[4][4] = {
-                { 2.f / (R-L),   0.f,           0.f,  0.f },
-                { 0.f,           2.f / (T-B),   0.f,  0.f },
-                { 0.f,           0.f,          -1.f,  0.f },
-                { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
-            };
-            glUniformMatrix4fv(CellanimRenderer::projMtxUniform, 1, GL_FALSE, orthoProjection[0]);
-
-            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, cmd.textureId);
-            glUniform1i(CellanimRenderer::textureUniform, 0);
-
-            glDrawArrays(GL_TRIANGLES, i*6, 6);
+            glDrawArrays(GL_TRIANGLES, i * 6, 6);
         }
-
+    
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         glDeleteBuffers(1, &VBO);
         glDeleteVertexArrays(1, &VAO);
     } break;
