@@ -69,7 +69,7 @@ public:
 
     unsigned updateRate { 120 };
 
-    BackupBehaviour backupBehaviour { BackupBehaviour_None };
+    BackupBehaviour backupBehaviour { BackupBehaviour_Save };
 
     unsigned compressionLevel { 9 };
 
