@@ -228,7 +228,7 @@ void ExportSessionAsOther() {
 void OpenSessionSourceFolder() {
     const auto& filePath = SessionManager::getInstance().getCurrentSession()->resourcePath;
 
-    std::string folderPath = std::filesystem::absolute(filePath).parent_path();
+    std::string folderPath = std::filesystem::absolute(filePath).parent_path().string();
 
 #if defined(__WIN32__)
     std::string command = "explorer \"" + folderPath + "\"";

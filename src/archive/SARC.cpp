@@ -331,8 +331,8 @@ std::vector<unsigned char> SARCObject::Serialize() {
     return result;
 }
 
-std::optional<SARCObject> readNZlibSARC(const char* filePath) {
-    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+std::optional<SARCObject> readNZlibSARC(std::string_view filePath) {
+    std::ifstream file(filePath.data(), std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         Logging::err << "[SARC::readNZlibSARC] Error opening file at path: " << filePath << std::endl;
         return std::nullopt;

@@ -361,7 +361,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
 }
 
 std::optional<U8ArchiveObject> readYaz0U8Archive(std::string_view filePath) {
-    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+    std::ifstream file(filePath.data(), std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         Logging::err << "[U8Archive::readYaz0U8Archive] Error opening file at path: " << filePath << std::endl;
         return std::nullopt;
