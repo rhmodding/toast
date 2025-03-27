@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+#include <map>
+
 #include "../Logging.hpp"
 
 #include "../common.hpp"
@@ -135,11 +137,13 @@ struct CtrArrangementPart {
 
     uint8_t opacity;
 
+    // Every element seems to equal 0xFF.
     uint8_t _unknown0[12];
 
     uint8_t id;
 
-    uint8_t _unknown1; // Something to do with EFTs?
+    // 0xFF means no ID.
+    uint8_t emitterId { 0xFF };
 
     uint8_t _pad8 { 0x00 };
 
@@ -175,7 +179,7 @@ struct CtrArrangementPart {
 
         this->id = arrangementPart.id;
 
-        this->_unknown1 = arrangementPart.ctrUnknown;
+        // this->emitterId = arrangementPart.emitterId;
 
         this->depthTL = arrangementPart.quadDepth.topLeft;
         this->depthBL = arrangementPart.quadDepth.bottomLeft;
@@ -403,6 +407,8 @@ static bool InitCtrCellAnim(
     // Arrangements
     object.arrangements.resize(header->arrangementCount);
 
+    const unsigned char* arrangementsStart = currentData;
+
     for (unsigned i = 0; i < header->arrangementCount; i++) {
         const CtrArrangement* arrangementIn = reinterpret_cast<const CtrArrangement*>(currentData);
         currentData += sizeof(CtrArrangement);
@@ -452,9 +458,9 @@ static bool InitCtrCellAnim(
                     .bottomRight = arrangementPartIn->depthBR,
                 },
 
-                .id = arrangementPartIn->id,
+                .id = arrangementPartIn->id
 
-                .ctrUnknown = arrangementPartIn->_unknown1
+                // emitterName is set later.
             };
         }
     }
@@ -512,6 +518,36 @@ static bool InitCtrCellAnim(
                     .b = keyIn->backColor[2] / 255.f,
                 }
             };
+        }
+    }
+
+    const uint8_t emitterNameCount = *reinterpret_cast<const uint8_t*>(currentData);
+    currentData += sizeof(uint8_t);
+
+    if (emitterNameCount != 0) {
+        std::vector<std::string> emitterNames(static_cast<unsigned>(emitterNameCount));
+        for (unsigned i = 0; i < emitterNameCount; i++) {
+            const uint8_t stringLength = *reinterpret_cast<const uint8_t*>(currentData);
+
+            emitterNames[i].assign(reinterpret_cast<const char*>(currentData + 1), stringLength);
+
+            currentData += sizeof(uint8_t) + stringLength;
+        }
+
+        currentData = arrangementsStart;
+
+        for (unsigned i = 0; i < header->arrangementCount; i++) {
+            currentData += sizeof(CtrArrangement);
+    
+            CellAnim::Arrangement& arrangement = object.arrangements[i];
+    
+            for (unsigned j = 0; j < arrangement.parts.size(); j++) {
+                const CtrArrangementPart* arrangementPartIn = reinterpret_cast<const CtrArrangementPart*>(currentData);
+                currentData += sizeof(CtrArrangementPart);
+    
+                if (arrangementPartIn->emitterId != 0xFF)
+                    arrangement.parts[j].emitterName = emitterNames[arrangementPartIn->emitterId];
+            }
         }
     }
 
@@ -585,9 +621,21 @@ static std::vector<unsigned char> SerializeRvlCellAnim(
 static std::vector<unsigned char> SerializeCtrCellAnim(
     const CellAnim::CellAnimObject& object
 ) {
+    std::map<std::string, unsigned> emitterNames;
+    unsigned nextEmitterIndex { 0 };
+
     unsigned fullSize = sizeof(CtrCellAnimHeader) + sizeof(AnimationsHeader);
-    for (const CellAnim::Arrangement& arrangement : object.arrangements)
-        fullSize += sizeof(CtrArrangement) + (sizeof(CtrArrangementPart) * arrangement.parts.size());
+    for (const CellAnim::Arrangement& arrangement : object.arrangements) {
+        fullSize += sizeof(CtrArrangement);
+        for (const CellAnim::ArrangementPart& part : arrangement.parts) {
+            if (!part.emitterName.empty()) {
+                if (emitterNames.find(part.emitterName) == emitterNames.end())
+                    emitterNames[part.emitterName] = nextEmitterIndex++;
+            }
+
+            fullSize += sizeof(CtrArrangementPart);
+        }
+    }
     for (const CellAnim::Animation& animation : object.animations) {
         fullSize += ALIGN_UP_4(
             sizeof(CtrAnimationName) + static_cast<uint8_t>(animation.name.size()) + 1
@@ -595,8 +643,10 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
         fullSize += sizeof(CtrAnimation) + (sizeof(CtrAnimationKey) * animation.keys.size());
     }
 
-    // For some reason all BCCADs have a single extra null byte at the end.
-    fullSize++;
+    fullSize += sizeof(uint8_t);
+    for (const auto& [name, index] : emitterNames) {
+        fullSize += sizeof(uint8_t) + name.size();
+    }
 
     std::vector<unsigned char> result(fullSize);
 
@@ -621,6 +671,12 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
             currentOutput += sizeof(CtrArrangementPart);
 
             *arrangementPartOut = CtrArrangementPart(part);
+
+            if (!part.emitterName.empty()) {
+                auto it = emitterNames.find(part.emitterName);
+                if (it != emitterNames.end())
+                    arrangementPartOut->emitterId = static_cast<uint8_t>(it->second);
+            }
 
             if (!part.editorVisible)
                 arrangementPartOut->opacity = 0x00;
@@ -654,8 +710,23 @@ static std::vector<unsigned char> SerializeCtrCellAnim(
         }
     }
 
-    // Set that last null byte.
-    *currentOutput = 0x00;
+    *reinterpret_cast<uint8_t*>(currentOutput) = static_cast<uint8_t>(
+        emitterNames.size()
+    );
+    currentOutput += sizeof(uint8_t);
+
+    std::vector<const std::string*> sortedEmitters(emitterNames.size());
+    for (const auto& [name, index] : emitterNames)
+        sortedEmitters[index] = &name;
+
+    for (const std::string* emitterName : sortedEmitters) {
+        const uint8_t stringLength = static_cast<uint8_t>(std::min(emitterName->size(), 0xFFul));
+
+        *reinterpret_cast<uint8_t*>(currentOutput) = stringLength;
+
+        strncpy(reinterpret_cast<char*>(currentOutput + 1), emitterName->c_str(), stringLength);
+        currentOutput += sizeof(uint8_t) + stringLength;
+    }
 
     return result;
 }

@@ -162,8 +162,8 @@ struct ArrangementPart {
     // On CTR only.
     unsigned id { 0 };
 
-    // Unknown flag on CTR.
-    uint8_t ctrUnknown { 0xFF };
+    // On CTR only.
+    std::string emitterName;
 
     bool editorVisible { true };
     bool editorLocked { false };
@@ -191,7 +191,9 @@ struct ArrangementPart {
 
             this->quadDepth == other.quadDepth &&
 
-            this->id == other.id;
+            this->id == other.id &&
+            
+            this->emitterName == other.emitterName;
     }
 
     bool operator!=(const ArrangementPart& other) const {
