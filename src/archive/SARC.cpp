@@ -382,7 +382,7 @@ File* findFile(std::string_view path, Directory& directory) {
     else {
         for (Directory& subDir : directory.subdirectories)
             if (strncmp(subDir.name.data(), path.data(), slashOffset) == 0)
-                return findFile(path.substr(slashOffset), subDir);
+                return findFile(path.substr(slashOffset + 1), subDir);
 
         return nullptr;
     }
