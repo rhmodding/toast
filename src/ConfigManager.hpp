@@ -51,6 +51,9 @@ struct Config {
 public:
     static constexpr unsigned int MAX_RECENTLY_OPENED = 12;
 
+    static constexpr unsigned int DEFAULT_WINDOW_WIDTH = 1280;
+    static constexpr unsigned int DEFAULT_WINDOW_HEIGHT = 720;
+
 public:
     ThemeChoice theme { ThemeChoice_Dark };
 
@@ -60,8 +63,8 @@ public:
 
     std::vector<std::string> recentlyOpened;
 
-    int lastWindowWidth { 1500 };
-    int lastWindowHeight { 780 };
+    int lastWindowWidth { DEFAULT_WINDOW_WIDTH };
+    int lastWindowHeight { DEFAULT_WINDOW_HEIGHT };
 
     bool lastWindowMaximized { false };
 

@@ -129,9 +129,16 @@ Toast::Toast(int argc, const char** argv) {
     ConfigManager& configManager = ConfigManager::getInstance();
     configManager.LoadConfig();
 
+    int windowWidth = configManager.getConfig().lastWindowWidth;
+    int windowHeight = configManager.getConfig().lastWindowHeight;
+
+    if (windowWidth < 1)
+        windowWidth = Config::DEFAULT_WINDOW_WIDTH;
+    if (windowHeight < 1)
+        windowHeight = Config::DEFAULT_WINDOW_HEIGHT;
+
     this->glfwWindowHndl = glfwCreateWindow(
-        configManager.getConfig().lastWindowWidth,
-        configManager.getConfig().lastWindowHeight,
+        windowWidth, windowHeight,
         WINDOW_TITLE,
         nullptr, nullptr
     );
