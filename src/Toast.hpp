@@ -66,9 +66,9 @@ private:
     bool isWindowMaximized { false };
 
     template <typename T>
-    struct AppWindow {
+    struct ToastWindow {
     public:
-        AppWindow() {
+        ToastWindow() {
             static_assert(std::is_base_of<BaseWindow, T>::value, "T must be derived from BaseWindow");
             this->windowInstance = std::make_unique<T>();
         }
@@ -83,7 +83,7 @@ private:
                 return;
 
             if (UNLIKELY(!this->windowInstance)) {
-                Logging::err << "[AppWindow<" << typeid(T).name() << ">::Update] Window instance does not exist (anymore)!" << std::endl;
+                Logging::err << "[ToastWindow<" << typeid(T).name() << ">::Update] Window instance does not exist (anymore)!" << std::endl;
                 TRAP();
             }
 
@@ -95,16 +95,16 @@ private:
         }
     };
 
-    AppWindow<WindowCanvas> windowCanvas;
-    AppWindow<WindowHybridList> windowHybridList;
-    AppWindow<WindowInspector> windowInspector;
-    AppWindow<WindowTimeline> windowTimeline;
-    AppWindow<WindowSpritesheet> windowSpritesheet;
+    ToastWindow<WindowCanvas> windowCanvas;
+    ToastWindow<WindowHybridList> windowHybridList;
+    ToastWindow<WindowInspector> windowInspector;
+    ToastWindow<WindowTimeline> windowTimeline;
+    ToastWindow<WindowSpritesheet> windowSpritesheet;
 
-    AppWindow<WindowConfig> windowConfig;
-    AppWindow<WindowAbout> windowAbout;
+    ToastWindow<WindowConfig> windowConfig;
+    ToastWindow<WindowAbout> windowAbout;
 
-    AppWindow<WindowImguiDemo> windowDemo;
+    ToastWindow<WindowImguiDemo> windowDemo;
 
     std::thread::id mainThreadId;
 };
