@@ -1011,7 +1011,9 @@ void WindowSpritesheet::Update() {
         const auto& arrangement = playerManager.getArrangement();
 
         for (unsigned i = 0; i < arrangement.parts.size(); i++) {
-            if (appState.focusOnSelectedPart && !appState.isPartSelected(i))
+            const auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+
+            if (appState.focusOnSelectedPart && !selectionState.isPartSelected(i))
                 continue;
 
             const auto& part = arrangement.parts[i];

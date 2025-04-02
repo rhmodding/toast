@@ -27,25 +27,27 @@ CellAnim::Animation& PlayerManager::getAnimation() const {
 }
 
 static void matchSelectedParts(const CellAnim::Arrangement& before, const CellAnim::Arrangement& after) {
-    AppState& appState = AppState::getInstance();
+    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
 
-    for (auto& part : appState.selectedParts) {
-        int p = appState.getMatchingNamePartIndex(before.parts.at(part.index), after);
+    for (auto& part : selectionState.selectedParts) {
+        int p = selectionState.getMatchingNamePartIndex(before.parts.at(part.index), after);
         if (p >= 0)
             part.index = p;
     }
 
-    appState.correctSelectedParts();
+    selectionState.correctSelectedParts();
 }
 
 void PlayerManager::setAnimationIndex(unsigned index) {
+    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+
     this->animationIndex = index;
     this->keyIndex = std::min<unsigned>(
         this->keyIndex,
         this->getKeyCount() - 1
     );
 
-    AppState::getInstance().correctSelectedParts();
+    selectionState.correctSelectedParts();
 }
 
 void PlayerManager::setKeyIndex(unsigned index) {
@@ -59,10 +61,12 @@ void PlayerManager::setKeyIndex(unsigned index) {
         );
     }
 
+    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+
     this->keyIndex = index;
     this->holdFramesLeft = keys.at(index).holdFrames;
 
-    AppState::getInstance().correctSelectedParts();
+    selectionState.correctSelectedParts();
 }
 
 void PlayerManager::ResetTimer() {
@@ -151,13 +155,15 @@ void PlayerManager::Update() {
         }
     }
 
+    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+
     if (arrangementIdxBefore != keys.at(this->keyIndex).arrangementIndex) {
         matchSelectedParts(
             arrangements.at(arrangementIdxBefore),
             arrangements.at(keys.at(this->keyIndex).arrangementIndex)
         );
 
-        AppState::getInstance().correctSelectedParts();
+        selectionState.correctSelectedParts();
     }
 
     this->timeLeft -= delta;

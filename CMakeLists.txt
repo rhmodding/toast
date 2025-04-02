@@ -88,6 +88,8 @@ set(SOURCES
 
     src/EditorDataPackage.cpp
 
+    src/SelectionState.cpp
+
     src/SessionManager.cpp
 
     src/PlayerManager.cpp

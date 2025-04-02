@@ -82,14 +82,15 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& rend
 
     quadRotation = 0.f;
 
-    AppState& appState = AppState::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
+    
+    const auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
 
-    if (!appState.anyPartsSelected())
+    if (!selectionState.anyPartsSelected())
         return partsBounding;
 
-    if (appState.singlePartSelected()) {
-        unsigned index = appState.selectedParts[0].index;
+    if (selectionState.singlePartSelected()) {
+        unsigned index = selectionState.selectedParts[0].index;
         const auto& part = arrangement.parts.at(index);
 
         if (!part.editorLocked) {
@@ -108,7 +109,7 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& rend
 
     bool any { false };
 
-    for (const auto& [index, _] : appState.selectedParts) {
+    for (const auto& [index, _] : selectionState.selectedParts) {
         const auto& part = arrangement.parts.at(index);
 
         if (part.editorLocked)
@@ -138,10 +139,11 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& rend
 
 // Check if selectedParts or arrangement index has changed since last cycle.
 static bool selectionChangedSinceLastCycle() {
-    AppState& appState = AppState::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    const auto& currentSelected = appState.selectedParts;
+    const auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+
+    const auto& currentSelected = selectionState.selectedParts;
     unsigned currentArrangeIdx = playerManager.getArrangementIndex();
 
     static auto lastSelected { currentSelected };
@@ -406,18 +408,21 @@ void WindowCanvas::Update() {
     static float pivotBeforeMoveLocal[2] { 0.f, 0.f };
     static float pivotBeforeMoveWorld[2] { 0.f, 0.f };
 
-    AppState& appState = AppState::getInstance();
+    AppState& appState = AppState::getInstance(); // TODO: eradicate
+
     PlayerManager& playerManager = PlayerManager::getInstance();
+
+    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
 
     CellAnim::Arrangement& arrangement = playerManager.getArrangement();
 
     // Select all parts with CTRL+A
     if (ImGui::Shortcut(ImGuiKey_A | ImGuiMod_Ctrl)) {
-        appState.clearSelectedParts();
-        appState.selectedParts.reserve(arrangement.parts.size());
+        selectionState.clearSelectedParts();
+        selectionState.selectedParts.reserve(arrangement.parts.size());
 
-        for (unsigned i = 0; i < arrangement.parts.size(); i++, appState.spSelectionOrder++) {
-            appState.setBatchPartSelection(i, true);
+        for (unsigned i = 0; i < arrangement.parts.size(); i++, selectionState.nextSelectionOrder++) {
+            selectionState.setBatchPartSelection(i, true);
         }
     }
 
@@ -662,7 +667,7 @@ void WindowCanvas::Update() {
 
             float partCompensateRot = 0.f;
             ImVec2 partAvgCenter ( 0.f, 0.f );
-            for (const auto& [index, _] : appState.selectedParts) {
+            for (const auto& [index, _] : selectionState.selectedParts) {
                 const auto& part = arrangement.parts.at(index);
 
                 partCompensateRot -= part.transform.angle;
@@ -673,10 +678,10 @@ void WindowCanvas::Update() {
                 partAvgCenter.x += centerX;
                 partAvgCenter.y += centerY;
             }
-            partCompensateRot /= appState.selectedParts.size();
+            partCompensateRot /= selectionState.selectedParts.size();
 
-            partAvgCenter.x = (partAvgCenter.x / appState.selectedParts.size()) * keyTransform.scaleX * this->canvasZoom;
-            partAvgCenter.y = (partAvgCenter.y / appState.selectedParts.size()) * keyTransform.scaleY * this->canvasZoom;
+            partAvgCenter.x = (partAvgCenter.x / selectionState.selectedParts.size()) * keyTransform.scaleX * this->canvasZoom;
+            partAvgCenter.y = (partAvgCenter.y / selectionState.selectedParts.size()) * keyTransform.scaleY * this->canvasZoom;
 
             ImVec2 partOrigin = { origin.x + partAvgCenter.x, origin.y + partAvgCenter.y };
 
@@ -775,7 +780,7 @@ void WindowCanvas::Update() {
         }
 
         // Apply transformation
-        for (const auto& [index, _] : appState.selectedParts) {
+        for (const auto& [index, _] : selectionState.selectedParts) {
             auto& part = arrangement.parts.at(index);
 
             if (part.editorLocked)
@@ -899,7 +904,7 @@ void WindowCanvas::Update() {
             ));
         }
         else
-            appState.clearSelectedParts();
+            selectionState.clearSelectedParts();
     }
 
     // All drawing operations

@@ -14,7 +14,7 @@
 
 #include "../../PlayerManager.hpp"
 
-#include "../../AppState.hpp"
+#include "../../SelectionState.hpp"
 
 #include "../../common.hpp"
 
@@ -301,7 +301,7 @@ static void _ApplyInterpolation(
                 auto& part = newArrangement.parts.at(j);
 
                 unsigned jClamp = std::min<unsigned>(j, endArrangement->parts.size() - 1);
-                int mnpi = appState.getMatchingNamePartIndex(part, *endArrangement);
+                int mnpi = SelectionState::getMatchingNamePartIndex(part, *endArrangement);
 
                 const auto* endPart = &endArrangement->parts.at(mnpi >= 0 ? mnpi : jClamp);
 
@@ -310,7 +310,7 @@ static void _ApplyInterpolation(
                                 endPart->regionW != part.regionW ||
                                 endPart->regionH != part.regionH)
                 ) {
-                    int mrpi = appState.getMatchingRegionPartIndex(part, *endArrangement);
+                    int mrpi = SelectionState::getMatchingRegionPartIndex(part, *endArrangement);
 
                     if (mrpi >= 0)
                         endPart = &endArrangement->parts.at(mrpi);

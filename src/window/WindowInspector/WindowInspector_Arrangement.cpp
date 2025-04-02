@@ -15,8 +15,6 @@
 
 #include "../../font/FontAwesome.h"
 
-#include "../../AppState.hpp"
-
 // Used for the part visibillity & lock buttons.
 static bool partToggleButton(const char* label, bool toggled) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -87,9 +85,10 @@ static bool textInputStdString(const char* label, std::string& str) {
 }
 
 void WindowInspector::Level_Arrangement() {
-    AppState& appState = AppState::getInstance();
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
+
+    auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
     const bool isCtr = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_CTR;
 
@@ -137,7 +136,7 @@ void WindowInspector::Level_Arrangement() {
                 if (ImGui::IsItemActivated())
                     oldArrangement = originalKey.arrangementIndex;
 
-                if (ImGui::IsItemDeactivated() && !appState.getArrangementMode()) {
+                if (ImGui::IsItemDeactivated() && !sessionManager.getCurrentSession()->arrangementMode) {
                     originalKey.arrangementIndex = oldArrangement;
                     newKey.arrangementIndex = std::min<unsigned>(
                         newArrangement - 1, arrangements.size() - 1
@@ -163,8 +162,8 @@ void WindowInspector::Level_Arrangement() {
         }
         ImGui::EndChild();
 
-        if (appState.singlePartSelected()) {
-            auto& part = playerManager.getArrangement().parts.at(appState.selectedParts[0].index);
+        if (selectionState.singlePartSelected()) {
+            auto& part = playerManager.getArrangement().parts.at(selectionState.selectedParts[0].index);
 
             CellAnim::ArrangementPart newPart = part;
             CellAnim::ArrangementPart originalPart = part;
@@ -421,7 +420,7 @@ void WindowInspector::Level_Arrangement() {
                 std::make_shared<CommandModifyArrangementPart>(
                     sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                     playerManager.getArrangementIndex(),
-                    appState.selectedParts.at(0).index,
+                    selectionState.selectedParts.at(0).index,
                     newPart
                 ));
             }
@@ -429,7 +428,7 @@ void WindowInspector::Level_Arrangement() {
             ImGui::EndDisabled();
         }
         else {
-            if (appState.multiplePartsSelected())
+            if (selectionState.multiplePartsSelected())
                 ImGui::TextWrapped("Multiple parts selected -- inspector unavaliable."); // TODOLT: implement
             else
                 ImGui::TextWrapped("No part selected.");
@@ -457,17 +456,17 @@ void WindowInspector::Level_Arrangement() {
             ImGuiMultiSelectFlags msFlags =
                 ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_ClearOnClickVoid |
                 ImGuiMultiSelectFlags_BoxSelect1d;
-            ImGuiMultiSelectIO* msIo = ImGui::BeginMultiSelect(msFlags, appState.selectedParts.size(), arrangement.parts.size());
+            ImGuiMultiSelectIO* msIo = ImGui::BeginMultiSelect(msFlags, selectionState.selectedParts.size(), arrangement.parts.size());
 
-            appState.processMultiSelectRequests(msIo);
+            selectionState.processMultiSelectRequests(msIo);
 
             bool wantDeleteSelected = (
                 ImGui::Shortcut(ImGuiKey_Backspace | ImGuiMod_Ctrl, ImGuiInputFlags_Repeat) ||
                 ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat)
-            ) && appState.anyPartsSelected();
+            ) && selectionState.anyPartsSelected();
 
             int itemCurrentIndexToFocus = wantDeleteSelected ?
-                appState.getNextPartIndexAfterDeletion(msIo, arrangement.parts.size()) :
+                selectionState.getNextPartIndexAfterDeletion(msIo, arrangement.parts.size()) :
                 -1;
 
             for (int n = arrangement.parts.size() - 1; n >= 0; n--) {
@@ -487,7 +486,7 @@ void WindowInspector::Level_Arrangement() {
                         "Part no. %u (%s)", n+1, part.editorName.c_str()
                     );
 
-                const bool isPartSelected = appState.isPartSelected(n);
+                const bool isPartSelected = selectionState.isPartSelected(n);
 
                 ImGui::SetNextItemAllowOverlap();
 
@@ -504,7 +503,7 @@ void WindowInspector::Level_Arrangement() {
                         snprintf(
                             label, sizeof(label),
                             "%zu selected parts",
-                            appState.selectedParts.size()
+                            selectionState.selectedParts.size()
                         );
                     }
                     else
@@ -517,7 +516,7 @@ void WindowInspector::Level_Arrangement() {
                     int locked = -1;
 
                     if (isPartSelected) {
-                        for (const auto& [index, _] : appState.selectedParts) {
+                        for (const auto& [index, _] : selectionState.selectedParts) {
                             const auto& part = arrangement.parts.at(index);
 
                             if (visible == -1)
@@ -571,9 +570,9 @@ void WindowInspector::Level_Arrangement() {
                                 newArrangement
                             ));
 
-                            appState.clearSelectedParts();
+                            selectionState.clearSelectedParts();
                             for (unsigned i = 0; i < copyParts.size(); i++)
-                                appState.setPartSelected(n + 1 + i, true);
+                                selectionState.setPartSelected(n + 1 + i, true);
                             //appState.setPartSelected(n + 1, true);
                         }
                         if (ImGui::MenuItem("..below")) {
@@ -591,9 +590,9 @@ void WindowInspector::Level_Arrangement() {
                                 newArrangement
                             ));
 
-                            appState.clearSelectedParts();
+                            selectionState.clearSelectedParts();
                             for (unsigned i = 0; i < copyParts.size(); i++)
-                                appState.setPartSelected(n + i, true);
+                                selectionState.setPartSelected(n + i, true);
                             //appState.setPartSelected(n, true);
                         }
 
@@ -603,12 +602,12 @@ void WindowInspector::Level_Arrangement() {
                             auto newArrangement = playerManager.getArrangement();
 
                             std::sort(
-                                appState.selectedParts.begin(), appState.selectedParts.end(),
-                                [](const AppState::SelectedPart& a, const AppState::SelectedPart& b) {
+                                selectionState.selectedParts.begin(), selectionState.selectedParts.end(),
+                                [](const SelectionState::SelectedPart& a, const SelectionState::SelectedPart& b) {
                                     return a.index > b.index;
                                 }
                             );
-                            for (const auto& [index, _] : appState.selectedParts) {
+                            for (const auto& [index, _] : selectionState.selectedParts) {
                                 if (index < newArrangement.parts.size())
                                     newArrangement.parts.erase(newArrangement.parts.begin() + index);
                             }
@@ -629,10 +628,10 @@ void WindowInspector::Level_Arrangement() {
                                 )
                             );
 
-                            appState.clearSelectedParts();
+                            selectionState.clearSelectedParts();
                             for (unsigned i = 0; i < copyParts.size(); i++) {
                                 if (n + i < newArrangement.parts.size())
-                                    appState.setPartSelected(n + i, true);
+                                    selectionState.setPartSelected(n + i, true);
                             }
                         }
                         ImGui::EndMenu();
@@ -655,8 +654,8 @@ void WindowInspector::Level_Arrangement() {
                                 newPart
                             ));
 
-                            appState.clearSelectedParts();
-                            appState.setPartSelected(n, true);
+                            selectionState.clearSelectedParts();
+                            selectionState.setPartSelected(n, true);
                         }
 
                         if (ImGui::MenuItem("..opacity")) {
@@ -671,8 +670,8 @@ void WindowInspector::Level_Arrangement() {
                                 newPart
                             ));
 
-                            appState.clearSelectedParts();
-                            appState.setPartSelected(n, true);
+                            selectionState.clearSelectedParts();
+                            selectionState.setPartSelected(n, true);
                         }
 
                         if (ImGui::MenuItem("..region")) {
@@ -692,8 +691,8 @@ void WindowInspector::Level_Arrangement() {
                                 newPart
                             ));
 
-                            appState.clearSelectedParts();
-                            appState.setPartSelected(n, true);
+                            selectionState.clearSelectedParts();
+                            selectionState.setPartSelected(n, true);
                         }
 
                         ImGui::EndMenu();
@@ -705,8 +704,8 @@ void WindowInspector::Level_Arrangement() {
                         snprintf(
                             label, sizeof(label),
                             "Copy %zu part%s",
-                            appState.selectedParts.size(),
-                            appState.selectedParts.size() == 1 ? "" : "s"
+                            selectionState.selectedParts.size(),
+                            selectionState.selectedParts.size() == 1 ? "" : "s"
                         );
                     }
                     else
@@ -714,17 +713,17 @@ void WindowInspector::Level_Arrangement() {
 
                     if (ImGui::Selectable(label)) {
                         if (isPartSelected) {
-                            copyParts.resize(appState.selectedParts.size());
-                            for (unsigned i = 0; i < appState.selectedParts.size(); i++) {
+                            copyParts.resize(selectionState.selectedParts.size());
+                            for (unsigned i = 0; i < selectionState.selectedParts.size(); i++) {
                                 std::sort(
-                                    appState.selectedParts.begin(), appState.selectedParts.end(),
-                                    [](const AppState::SelectedPart& a, const AppState::SelectedPart& b) {
+                                    selectionState.selectedParts.begin(), selectionState.selectedParts.end(),
+                                    [](const SelectionState::SelectedPart& a, const SelectionState::SelectedPart& b) {
                                         return a.index < b.index;
                                     }
                                 );
 
                                 copyParts[i] = arrangement.parts.at(
-                                    appState.selectedParts[i].index
+                                    selectionState.selectedParts[i].index
                                 );
                             }
                         }
@@ -740,8 +739,8 @@ void WindowInspector::Level_Arrangement() {
                         snprintf(
                             label, sizeof(label),
                             "Delete %zu part%s",
-                            appState.selectedParts.size(),
-                            appState.selectedParts.size() == 1 ? "" : "s"
+                            selectionState.selectedParts.size(),
+                            selectionState.selectedParts.size() == 1 ? "" : "s"
                         );
                     }
                     else
@@ -750,8 +749,9 @@ void WindowInspector::Level_Arrangement() {
                     if (ImGui::Selectable(label)) {
                         if (isPartSelected) {
                             wantDeleteSelected = true;
-                            itemCurrentIndexToFocus =
-                                appState.getNextPartIndexAfterDeletion(msIo, arrangement.parts.size());
+                            itemCurrentIndexToFocus = selectionState.getNextPartIndexAfterDeletion(
+                                msIo, arrangement.parts.size()
+                            );
                         }
                         else
                             selDeleteSingle = n;
@@ -767,7 +767,7 @@ void WindowInspector::Level_Arrangement() {
                     if (!isPartSelected)
                         part.editorVisible ^= true;
                     else {
-                        for (const auto& [index, _] : appState.selectedParts)
+                        for (const auto& [index, _] : selectionState.selectedParts)
                             arrangement.parts.at(index).editorVisible ^= true;
                     }
                 }
@@ -777,7 +777,7 @@ void WindowInspector::Level_Arrangement() {
                     if (!isPartSelected)
                         part.editorLocked ^= true;
                     else {
-                        for (const auto& [index, _] : appState.selectedParts)
+                        for (const auto& [index, _] : selectionState.selectedParts)
                             arrangement.parts.at(index).editorLocked ^= true;
                     }
                 }
@@ -835,13 +835,13 @@ void WindowInspector::Level_Arrangement() {
             }
 
             msIo = ImGui::EndMultiSelect();
-            appState.processMultiSelectRequests(msIo);
+            selectionState.processMultiSelectRequests(msIo);
 
             ImGui::EndChild();
 
             if (wantDeleteSelected) {
                 auto newArrangement = arrangement;
-                appState.deleteSelectedParts(msIo, newArrangement.parts, itemCurrentIndexToFocus);
+                selectionState.deleteSelectedParts(msIo, newArrangement.parts, itemCurrentIndexToFocus);
 
                 sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandModifyArrangement>(
@@ -876,8 +876,8 @@ void WindowInspector::Level_Arrangement() {
                 CellAnim::ArrangementPart {}
             ));
 
-            appState.clearSelectedParts();
-            appState.setPartSelected(insertNewPart, true);
+            selectionState.clearSelectedParts();
+            selectionState.setPartSelected(insertNewPart, true);
         }
     }
     ImGui::EndChild();

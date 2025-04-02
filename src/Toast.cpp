@@ -661,16 +661,24 @@ void Toast::Menubar() {
             ImGui::EndMenu();
         }
 
+        bool singlePartSelected = false;
+        if (sessionAvaliable) {
+            const auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+            singlePartSelected = selectionState.singlePartSelected();
+        }
+
         if (ImGui::BeginMenu("Part",
             sessionAvaliable &&
-            appState.singlePartSelected() &&
+            singlePartSelected &&
             !playerManager.playing
         )) {
-            auto& part = playerManager.getArrangement().parts.at(appState.selectedParts[0].index);
+            const auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+
+            auto& part = playerManager.getArrangement().parts.at(selectionState.selectedParts[0].index);
 
             ImGui::Text(
                 "Selected part (no. %u)",
-                appState.selectedParts[0].index + 1
+                selectionState.selectedParts[0].index + 1
             );
 
             ImGui::Separator();
@@ -692,7 +700,7 @@ void Toast::Menubar() {
             if (ImGui::MenuItem("Set editor name ..")) {
                 Popups::_editPartNameArrangeIdx =
                     playerManager.getArrangementIndex();
-                Popups::_editPartNamePartIdx = appState.selectedParts[0].index;
+                Popups::_editPartNamePartIdx = selectionState.selectedParts[0].index;
 
                 OPEN_GLOBAL_POPUP("###EditPartName");
             }
@@ -704,7 +712,7 @@ void Toast::Menubar() {
                 std::make_shared<CommandDeleteArrangementPart>(
                     sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                     playerManager.getArrangementIndex(),
-                    appState.selectedParts[0].index
+                    selectionState.selectedParts[0].index
                 ));
             }
 

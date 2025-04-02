@@ -14,13 +14,15 @@ static void Popup_MPadRegion() {
     static bool lateOpen { false };
     const bool active = ImGui::BeginPopup("MPadRegion");
 
-    AppState& appState = AppState::getInstance();
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    const bool openConditions =
-        sessionManager.getCurrentSessionIndex() >= 0 &&
-        appState.singlePartSelected();
+    bool openConditions = sessionManager.getCurrentSessionIndex() >= 0;
+
+    if (openConditions) {
+        SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+        openConditions &= selectionState.singlePartSelected();
+    }
 
     static unsigned origOffset[2] { 8, 8 };
     static unsigned origSize[2] { 32, 32 };
@@ -28,7 +30,9 @@ static void Popup_MPadRegion() {
     static unsigned origPosition[2] { 0, 0 };
 
     if (!active && lateOpen && openConditions) {
-        auto& part = playerManager.getArrangement().parts.at(appState.selectedParts[0].index);
+        SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+
+        auto& part = playerManager.getArrangement().parts.at(selectionState.selectedParts[0].index);
 
         part.regionX = origOffset[0];
         part.regionY = origOffset[1];
@@ -43,7 +47,9 @@ static void Popup_MPadRegion() {
     }
 
     if (active && openConditions) {
-        auto& part = playerManager.getArrangement().parts.at(appState.selectedParts[0].index);
+        SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+
+        auto& part = playerManager.getArrangement().parts.at(selectionState.selectedParts[0].index);
 
         if (!lateOpen) {
             origOffset[0] = part.regionX;
@@ -92,13 +98,13 @@ static void Popup_MPadRegion() {
             part.transform.positionX = origPosition[0];
             part.transform.positionY = origPosition[1];
 
-            SessionManager& sessionManager = SessionManager::getInstance();
+            SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
                 sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                 playerManager.getArrangementIndex(),
-                appState.selectedParts[0].index,
+                selectionState.selectedParts[0].index,
                 newPart
             ));
 

@@ -54,6 +54,8 @@ public:
     struct CellanimData {
         std::shared_ptr<CellAnim::CellAnimObject> object;
         std::string name;
+
+        SelectionState selectionState;
     };
 
 public:
@@ -78,6 +80,10 @@ public:
         return this->sheets->getTextureByIndex(
             this->cellanims.at(this->currentCellanim).object->sheetIndex
         );
+    }
+
+    SelectionState& getCurrentSelectionState() {
+        return this->cellanims.at(this->currentCellanim).selectionState;
     }
 
 public:
