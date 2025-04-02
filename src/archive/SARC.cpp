@@ -262,10 +262,12 @@ std::vector<unsigned char> SARCObject::Serialize() {
     }
 
     // SARC nodes are always sorted by their hashes.
-    std::sort(entries.begin(), entries.end(),
-    [](const FileEntry& a, const FileEntry& b) {
-        return a.pathHash < b.pathHash;
-    });
+    std::sort(
+        entries.begin(), entries.end(),
+        [](const FileEntry& a, const FileEntry& b) {
+            return a.pathHash < b.pathHash;
+        }
+    );
 
     unsigned fullSize = sizeof(SarcFileHeader) + sizeof(SfatSection) +
         sizeof(SfntSection) + (sizeof(SfatNode) * entries.size());
