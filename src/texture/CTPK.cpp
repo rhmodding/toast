@@ -312,10 +312,12 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     }
 
     // Sort lookup entries by hash.
-    std::sort(lookupEntriesStart, lookupEntriesEnd,
-    [](const CtpkLookupEntry& a, const CtpkLookupEntry& b) {
-        return a.sourcePathHash < b.sourcePathHash;
-    });
+    std::sort(
+        lookupEntriesStart, lookupEntriesEnd,
+        [](const CtpkLookupEntry& a, const CtpkLookupEntry& b) {
+            return a.sourcePathHash < b.sourcePathHash;
+        }
+    );
 
     // Info entries follow the lookup entries.
     CtpkInfoEntry* infoEntriesStart = reinterpret_cast<CtpkInfoEntry*>(

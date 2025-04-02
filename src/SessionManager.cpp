@@ -152,9 +152,12 @@ static SessionManager::Error InitRvlSession(
     }
 
     // Sort cellanim files alphabetically for consistency when exporting.
-    std::sort(brcadFiles.begin(), brcadFiles.end(), [](const U8Archive::File*& a, const U8Archive::File*& b) {
-        return a->name < b->name;
-    });
+    std::sort(
+        brcadFiles.begin(), brcadFiles.end(),
+        [](const U8Archive::File*& a, const U8Archive::File*& b) {
+            return a->name < b->name;
+        }
+    );
 
     session.cellanims.resize(brcadFiles.size());
 
