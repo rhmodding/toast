@@ -10,6 +10,8 @@
 
 #include "command/BaseCommand.hpp"
 
+#include "SelectionState.hpp"
+
 #include <string>
 
 #include <deque>
@@ -51,7 +53,7 @@ public:
     }
 
 public:
-    struct CellanimData {
+    struct CellanimGroup {
         std::shared_ptr<CellAnim::CellAnimObject> object;
         std::string name;
 
@@ -72,7 +74,7 @@ public:
     unsigned getCurrentCellanimIndex() const { return this->currentCellanim; }
     void setCurrentCellanimIndex(unsigned index);
 
-    CellanimData& getCurrentCellanim() {
+    CellanimGroup& getCurrentCellanim() {
         return this->cellanims.at(this->currentCellanim);
     }
 
@@ -89,7 +91,7 @@ public:
 public:
     static constexpr unsigned int COMMANDS_MAX = 512;
 
-    std::vector<CellanimData> cellanims;
+    std::vector<CellanimGroup> cellanims;
     std::shared_ptr<TextureGroup> sheets { std::make_shared<TextureGroup>() };
 
     std::string resourcePath;
