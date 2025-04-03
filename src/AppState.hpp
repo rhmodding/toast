@@ -18,9 +18,11 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+static constexpr ImGuiID GLOBAL_POPUP_ID = 0xBEEFAB1E;
+
 #define BEGIN_GLOBAL_POPUP() \
     do { \
-        ImGui::PushOverrideID(AppState::getInstance().globalPopupID); \
+        ImGui::PushOverrideID(GLOBAL_POPUP_ID); \
     } while (0)
 
 #define END_GLOBAL_POPUP() \
@@ -30,7 +32,7 @@
 
 #define OPEN_GLOBAL_POPUP(popupId) \
     do { \
-        ImGui::PushOverrideID(AppState::getInstance().globalPopupID); \
+        ImGui::PushOverrideID(GLOBAL_POPUP_ID); \
         ImGui::OpenPopup(popupId); \
         ImGui::PopID(); \
     } while (0)
@@ -47,8 +49,6 @@ public:
     unsigned getUpdateRate() const {
         return ConfigManager::getInstance().getConfig().updateRate;
     }
-
-    ImGuiID globalPopupID { 0xBEEFAB1E };
 
     bool getArrangementMode() const {
         SessionManager& sessionManager = SessionManager::getInstance();
