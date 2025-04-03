@@ -126,14 +126,14 @@ static SessionManager::Error InitRvlSession(
         return SessionManager::OpenError_LayoutArchive;
     }
 
+    rootDirIt->SortAlphabetically();
+
     U8Archive::File* __tplSearch = U8Archive::findFile("cellanim.tpl", *rootDirIt);
     if (!__tplSearch) {
         return SessionManager::OpenError_FailFindTPL;
     }
 
-    TPL::TPLObject tplObject =
-        TPL::TPLObject(__tplSearch->data.data(), __tplSearch->data.size());
-
+    TPL::TPLObject tplObject (__tplSearch->data.data(), __tplSearch->data.size());
     if (!tplObject.ok) {
         return SessionManager::OpenError_FailOpenTPL;
     }
