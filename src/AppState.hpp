@@ -46,10 +46,6 @@ public:
     ~AppState() = default;
 
 public:
-    unsigned getUpdateRate() const {
-        return ConfigManager::getInstance().getConfig().updateRate;
-    }
-
     bool getArrangementMode() const {
         SessionManager& sessionManager = SessionManager::getInstance();
 
