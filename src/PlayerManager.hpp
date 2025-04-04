@@ -9,9 +9,12 @@
 
 #include <memory>
 
+#include "OnionSkinState.hpp"
+
 #include "cellanim/CellAnim.hpp"
 
 #include "SessionManager.hpp"
+
 
 class PlayerManager : public Singleton<PlayerManager> {
     friend class Singleton<PlayerManager>; // Allow access to base class constructor
@@ -24,6 +27,8 @@ private:
 
     std::chrono::steady_clock::time_point tickPrev;
     float timeLeft { 0.f };
+
+    OnionSkinState onionSkinState;
 
 public:
     bool playing { false };
@@ -100,6 +105,8 @@ public:
 
     void setArrangementModeIdx(unsigned index);
     unsigned getArrangementModeIdx() const;
+
+    OnionSkinState& getOnionSkinState() { return onionSkinState; }
 
 private:
     const std::shared_ptr<CellAnim::CellAnimObject>& getCellanim() const {

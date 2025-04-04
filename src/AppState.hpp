@@ -60,17 +60,6 @@ public:
     }
 
     bool focusOnSelectedPart { false };
-
-    struct OnionSkinState {
-        bool enabled { false };
-        bool drawUnder { false };
-        bool rollOver { false };
-
-        unsigned backCount { 3 };
-        unsigned frontCount { 2 };
-
-        uint8_t opacity { 50 };
-    } onionSkinState;
 };
 
 #endif // APPSTATE_HPP

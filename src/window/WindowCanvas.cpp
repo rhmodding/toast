@@ -979,17 +979,19 @@ void WindowCanvas::Update() {
                 this->cellanimRenderer.linkCellanim(currentSession->getCurrentCellanim().object);
                 this->cellanimRenderer.linkTextureGroup(currentSession->sheets);
 
-                bool drawOnionSkin = appState.onionSkinState.enabled;
-                bool drawUnder = appState.onionSkinState.drawUnder;
+                const auto& onionSkinState = playerManager.getOnionSkinState();
+
+                bool drawOnionSkin = onionSkinState.enabled;
+                bool drawUnder = onionSkinState.drawUnder;
 
                 if (drawOnionSkin && drawUnder) {
                     this->cellanimRenderer.DrawOnionSkin(
                         drawList,
                         playerManager.getAnimation(), playerManager.getKeyIndex(),
-                        appState.onionSkinState.backCount,
-                        appState.onionSkinState.frontCount,
-                        appState.onionSkinState.rollOver,
-                        appState.onionSkinState.opacity
+                        onionSkinState.backCount,
+                        onionSkinState.frontCount,
+                        onionSkinState.rollOver,
+                        onionSkinState.opacity
                     );
                 }
 
@@ -1003,10 +1005,10 @@ void WindowCanvas::Update() {
                     this->cellanimRenderer.DrawOnionSkin(
                         drawList,
                         playerManager.getAnimation(), playerManager.getKeyIndex(),
-                        appState.onionSkinState.backCount,
-                        appState.onionSkinState.frontCount,
-                        appState.onionSkinState.rollOver,
-                        appState.onionSkinState.opacity
+                        onionSkinState.backCount,
+                        onionSkinState.frontCount,
+                        onionSkinState.rollOver,
+                        onionSkinState.opacity
                     );
                 }
             }

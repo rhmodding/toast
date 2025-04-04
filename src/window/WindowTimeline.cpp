@@ -30,6 +30,8 @@ void WindowTimeline::Update() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
+    auto& onionSkinState = playerManager.getOnionSkinState();
+
     const ImGuiIO& io = ImGui::GetIO(); 
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
@@ -177,18 +179,18 @@ void WindowTimeline::Update() {
                 ImGui::OpenPopup("###OnionSkinOptions");
 
             if (ImGui::BeginPopup("###OnionSkinOptions")) {
-                ImGui::Checkbox("Enabled", &appState.onionSkinState.enabled);
+                ImGui::Checkbox("Enabled", &onionSkinState.enabled);
 
                 ImGui::Separator();
 
-                ImGui::InputScalar("Back count", ImGuiDataType_U32, &appState.onionSkinState.backCount, &u32_one);
-                ImGui::InputScalar("Front count", ImGuiDataType_U32, &appState.onionSkinState.frontCount, &u32_one);
+                ImGui::InputScalar("Back count", ImGuiDataType_U32, &onionSkinState.backCount, &u32_one);
+                ImGui::InputScalar("Front count", ImGuiDataType_U32, &onionSkinState.frontCount, &u32_one);
 
                 ImGui::Separator();
 
                 ImGui::DragScalar(
                     "Opacity",
-                    ImGuiDataType_U8, &appState.onionSkinState.opacity,
+                    ImGuiDataType_U8, &onionSkinState.opacity,
                     1.f, &u8_min, &u8_max,
                     "%u/255",
                     ImGuiSliderFlags_AlwaysClamp
@@ -196,9 +198,9 @@ void WindowTimeline::Update() {
 
                 ImGui::Separator();
 
-                ImGui::Checkbox("Draw behind", &appState.onionSkinState.drawUnder);
+                ImGui::Checkbox("Draw behind", &onionSkinState.drawUnder);
 
-                ImGui::Checkbox("Roll over (loop)", &appState.onionSkinState.rollOver);
+                ImGui::Checkbox("Roll over (loop)", &onionSkinState.rollOver);
 
                 ImGui::EndPopup();
             }
@@ -570,7 +572,7 @@ void WindowTimeline::Update() {
             }
 
             // Onion Skin
-            if (appState.onionSkinState.enabled) {
+            if (playerManager.getOnionSkinState().enabled) {
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
 
@@ -585,7 +587,7 @@ void WindowTimeline::Update() {
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 2.f, 4.f });
                     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f);
 
-                    for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
+                    for (int i = 0; i < playerManager.getKeyCount(); i++) {
                         ImGui::PushID(i);
 
                         char buffer[32];
@@ -593,11 +595,11 @@ void WindowTimeline::Update() {
 
                         int keyCount = playerManager.getKeyCount();
                         int currentKeyIndex = playerManager.getKeyIndex();
-                        int backStart = currentKeyIndex - appState.onionSkinState.backCount;
-                        int frontEnd = currentKeyIndex + appState.onionSkinState.frontCount;
+                        int backStart = currentKeyIndex - onionSkinState.backCount;
+                        int frontEnd = currentKeyIndex + onionSkinState.frontCount;
 
                         bool isOnionSkinFrame = false;
-                        if (appState.onionSkinState.rollOver) {
+                        if (onionSkinState.rollOver) {
                             unsigned wrappedBackStart = (backStart % keyCount + keyCount) % keyCount;
                             unsigned wrappedFrontEnd = frontEnd % keyCount;
 
@@ -610,9 +612,10 @@ void WindowTimeline::Update() {
                         }
                         // Check regular bounds
                         else {
-                            isOnionSkinFrame =
-                                (i >= std::max<unsigned>(0, backStart) &&
-                                i <= std::min<unsigned>(frontEnd, keyCount - 1));
+                            isOnionSkinFrame = (
+                                i >= std::max<int>(0, backStart) &&
+                                i <= std::min<int>(frontEnd, keyCount - 1)
+                            );
                         }
 
                         ImGui::BeginDisabled();
