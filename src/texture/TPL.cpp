@@ -11,7 +11,7 @@
 
 // 14 Feb 2000
 // Pre-byteswapped to BE.
-constexpr uint32_t TPL_VERSION_NUMBER = __builtin_bswap32(2142000);
+constexpr uint32_t TPL_VERSION_NUMBER = BYTESWAP_32(2142000);
 
 struct TPLPalette {
     // Compare to TPL_VERSION_NUMBER

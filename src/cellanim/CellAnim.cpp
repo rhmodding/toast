@@ -10,7 +10,7 @@
 
 // 12 Mar 2010
 // Pre-byteswapped to BE.
-constexpr uint32_t RCAD_REVISION_DATE = __builtin_bswap32(20100312);
+constexpr uint32_t RCAD_REVISION_DATE = BYTESWAP_32(20100312);
 
 // 7 Oct 2013
 constexpr uint32_t CCAD_REVISION_DATE = 20131007;
