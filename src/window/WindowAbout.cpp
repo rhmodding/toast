@@ -3,7 +3,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <thread>
