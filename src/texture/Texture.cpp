@@ -103,14 +103,8 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
 
 unsigned char* Texture::GetRGBA32() {
     unsigned char* imageData = new unsigned char[this->width * this->height * 4];
-    if (imageData == nullptr) {
-        Logging::err << "[Texture::GetRGBA32] Failed to download image data: allocation failed" << std::endl;
-        return nullptr;
-    }
 
-    bool succeeded = Texture::GetRGBA32(imageData);
-
-    if (succeeded)
+    if (Texture::GetRGBA32(imageData))
         return imageData;
     else {
         delete[] imageData;
