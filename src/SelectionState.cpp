@@ -112,7 +112,7 @@ void SelectionState::processMultiSelectRequests(ImGuiMultiSelectIO* msIo) {
             this->clearSelectedParts();
             if (req.Selected) {
                 this->selectedParts.reserve(msIo->ItemsCount);
-                for (unsigned i = 0; i < static_cast<unsigned>(msIo->ItemsCount); i++, nextSelectionOrder++) // TODO: fnuy
+                for (unsigned i = 0; i < static_cast<unsigned>(msIo->ItemsCount); i++)
                     this->setBatchPartSelection(i, req.Selected);
             }
         }
