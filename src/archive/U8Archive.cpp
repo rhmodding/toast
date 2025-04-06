@@ -314,7 +314,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
 
     // Write nodes
     for (unsigned i = 0; i < flattenedArchive.size(); ++i) {
-        FlatEntry& entry = flattenedArchive[i];
+        const FlatEntry& entry = flattenedArchive[i];
         U8ArchiveNode* node = reinterpret_cast<U8ArchiveNode*>(
             result.data() + sizeof(U8ArchiveHeader) +
             (sizeof(U8ArchiveNode) * i)
@@ -323,36 +323,29 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
         node->setIsDirectory(entry.isDir);
         node->setNameOffset(stringOffsets[i]);
 
+        char* nameDest = reinterpret_cast<char*>(
+            result.data() + sizeof(U8ArchiveHeader) +
+            (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
+            stringOffsets[i]
+        );
+
         if (entry.isDir) {
             node->dir.nextOutOfDir = BYTESWAP_32(entry.nextOutOfDir);
             node->dir.parent = BYTESWAP_32(entry.parent);
 
-            strcpy(
-                reinterpret_cast<char*>(
-                    result.data() + sizeof(U8ArchiveHeader) +
-                    (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-                    stringOffsets[i]
-                ),
-                entry.dir->name.c_str()
-            );
+            // Copy name.
+            strcpy(nameDest, entry.dir->name.c_str());
         }
         else {
-            unsigned char* fileData = entry.file->data.data();
+            const unsigned char* fileData = entry.file->data.data();
             unsigned fileDataSize = entry.file->data.size();
 
             node->file.dataOffset = BYTESWAP_32(dataOffsets[i]);
             node->file.dataSize = BYTESWAP_32(fileDataSize);
 
-            // Copy file name
-            strcpy(
-                reinterpret_cast<char*>(
-                    result.data() + sizeof(U8ArchiveHeader) +
-                    (sizeof(U8ArchiveNode) * flattenedArchive.size()) +
-                    stringOffsets[i]
-                ),
-                entry.file->name.c_str()
-            );
-            // Copy file data
+            // Copy name.
+            strcpy(nameDest, entry.file->name.c_str());
+            // Copy data.
             memcpy(result.data() + dataOffsets[i], fileData, fileDataSize);
         }
     }
