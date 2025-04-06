@@ -421,9 +421,8 @@ void WindowCanvas::Update() {
         selectionState.clearSelectedParts();
         selectionState.selectedParts.reserve(arrangement.parts.size());
 
-        for (unsigned i = 0; i < arrangement.parts.size(); i++, selectionState.nextSelectionOrder++) {
+        for (unsigned i = 0; i < arrangement.parts.size(); i++)
             selectionState.setBatchPartSelection(i, true);
-        }
     }
 
     if (panningCanvas) {
