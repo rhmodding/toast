@@ -11,6 +11,8 @@
 #include <string>
 #include <sstream>
 
+#include <exception>
+
 #include <tinyfiledialogs.h>
 
 #include "cellanim/CellAnim.hpp"
@@ -78,12 +80,34 @@ static void syncToUpdateRate() {
     b = std::chrono::system_clock::now();
 }
 
+static void onTerminate() {
+    try {
+        std::exception_ptr exceptionPointer { std::current_exception() };
+        if (exceptionPointer)
+            std::rethrow_exception(exceptionPointer);
+        else {
+            Logging::err << "The terminate handler was invoked with no exception." << std::endl;
+        }
+    } catch (const std::exception& ex) {
+        Logging::err << "An exception was caught: " << ex.what() << std::endl;
+    } catch (...) {
+        Logging::err << "An unknown exception was thrown." << std::endl;
+    }
+
+    Logging::err << "This is a fatal error; toast will now be closed." << std::endl;
+    Logging::Close();
+
+    std::exit(1);
+}
+
 Toast::Toast(int argc, const char** argv) {
     globlToast = this;
 
     this->mainThreadId = std::this_thread::get_id();
 
     Logging::Open("toast.log");
+
+    std::set_terminate(onTerminate);
 
     glfwSetErrorCallback([](int code, const char* message) {
         Logging::err << "GLFW threw an error (code " << code << "): " << message << std::endl;
