@@ -14,21 +14,21 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, windows-latest, macos-13]
-        build_type: [Debug]
+        build_type: [Release]
         c_compiler: [gcc]
         include:
           - os: windows-latest
             c_compiler: gcc
             cpp_compiler: g++
-            build_type: Debug
+            build_type: Release
           - os: ubuntu-20.04
             c_compiler: gcc
             cpp_compiler: g++
-            build_type: Debug
+            build_type: Release
           - os: macos-13
             c_compiler: gcc
             cpp_compiler: g++
-            build_type: Debug
+            build_type: Release
 
     steps:
       - uses: actions/checkout@v4
