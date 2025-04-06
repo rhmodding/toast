@@ -175,10 +175,12 @@ public:
         OpenError_NoBXCADsFound,
         OpenError_FailOpenBXCAD,
         OpenError_FailOpenTPL,
-        OpenError_MissingCTPK,
+        OpenError_MissingCTPK, // The number of CTPKs is not equal to the number of BCCADs.
         OpenError_FailOpenCTPK,
-        OpenError_NoCTPKTextures,
+        OpenError_NoCTPKTextures, // A CTPK exists but contains no textures.
         OpenError_LayoutArchive, // The user selected a layout archive instead of a cellanim archive.
+        OpenError_EffectResource, // The user selected an effect file instead of a cellanim archive.
+        OpenError_BCRES, // The user selected a BCRES instead of a cellanim archive.
 
         OutError_FailOpenFile,
         OutError_FailBackupFile,

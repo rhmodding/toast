@@ -60,11 +60,26 @@ static void Popup_SessionErr() {
         break;
     case SessionManager::OpenError_LayoutArchive:
         strcpy(errorMessage,
-            "The selected archive is a layout archive. Please choose a\n"
-            "cellanim archive instead (those named cellanim.szs)."
+            "The selected file is a layout archive. Please choose a\n"
+            "cellanim archive instead."
         );
         errorType = 0;
         break;
+    case SessionManager::OpenError_EffectResource:
+        strcpy(errorMessage,
+            "The selected file is an effect file. Please choose a\n"
+            "cellanim archive instead."
+        );
+        errorType = 0;
+        break;
+    case SessionManager::OpenError_BCRES:
+        strcpy(errorMessage,
+            "The selected file is a BCRES. Please choose a\n"
+            "cellanim archive instead."
+        );
+        errorType = 0;
+        break;
+    
 
     case SessionManager::OutError_FailOpenFile:
         strcpy(errorMessage, "The destination file could not be opened for reading.");

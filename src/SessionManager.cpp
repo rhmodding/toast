@@ -270,6 +270,18 @@ static SessionManager::Error InitRvlSession(
 static SessionManager::Error InitCtrSession(
     Session& session, SARC::SARCObject& archive
 ) {
+    // Every layout archive has the directory "blyt". If this directory exists
+    // we should throw an error
+    auto blytDirIt = std::find_if(
+        archive.structure.subdirectories.begin(),
+        archive.structure.subdirectories.end(),
+        [](const SARC::Directory& dir) { return dir.name == "blyt"; }
+    );
+
+    if (blytDirIt != archive.structure.subdirectories.end()) {
+        return SessionManager::OpenError_LayoutArchive;
+    }
+
     auto rootDirIt = std::find_if(
         archive.structure.subdirectories.begin(),
         archive.structure.subdirectories.end(),
@@ -281,7 +293,8 @@ static SessionManager::Error InitCtrSession(
 
     std::vector<const SARC::File*> bccadFiles;
     for (const auto& file : rootDirIt->files) {
-        if (file.name.size() >= STR_LIT_LEN(".bccad") &&
+        if (
+            file.name.size() >= STR_LIT_LEN(".bccad") &&
             file.name.substr(file.name.size() - STR_LIT_LEN(".bccad")) == ".bccad"
         )
             bccadFiles.push_back(&file);
@@ -492,7 +505,20 @@ int SessionManager::CreateSession(const char* filePath) {
         SARC::SARCObject archive = SARC::SARCObject(data.data(), data.size());
 
         if (!archive.isInitialized()) {
-            initError = OpenError_FailOpenArchive;
+            const uint32_t observedMagic = *reinterpret_cast<const uint32_t*>(data.data());
+            switch (observedMagic) {
+            case IDENTIFIER_TO_U32('C','G','F','X'): // BCRES
+                initError = OpenError_BCRES;
+                break;
+            case IDENTIFIER_TO_U32('S','P','B','D'): // Effect
+                initError = OpenError_EffectResource;
+                break;
+            
+            default:
+                initError = OpenError_FailOpenArchive;
+                break;
+            }
+
             break;
         }
 
