@@ -119,10 +119,11 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
     std::vector<std::thread> threads;
 
     unsigned numThreads = std::thread::hardware_concurrency();
-    if (numThreads == 0)
+    if (numThreads == 0 || numThreads > 16)
         numThreads = 4;
 
-    unsigned chunkHeight = (srcHeight + numThreads - 1) / numThreads;
+    unsigned totalTiles = (srcHeight + 7) / 8;
+    unsigned tilesPerThread = (totalTiles + numThreads - 1) / numThreads;
 
     auto worker = [result, data, srcWidth, &packerParams](unsigned yStart, unsigned yEnd) {
         unsigned writeOffset = srcWidth * yStart;
@@ -170,10 +171,13 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
     };
 
     for (unsigned i = 0; i < numThreads; i++) {
-        unsigned yStart = i * chunkHeight;
-        unsigned yEnd = std::min(yStart + chunkHeight, srcHeight);
-        if (yStart >= srcHeight)
+        unsigned tileStart = i * tilesPerThread;
+        unsigned tileEnd = std::min(tileStart + tilesPerThread, totalTiles);
+        if (tileStart >= tileEnd)
             break;
+    
+        unsigned yStart = tileStart * 8;
+        unsigned yEnd = std::min(tileEnd * 8, srcHeight);
 
         threads.emplace_back(worker, yStart, yEnd);
     }
