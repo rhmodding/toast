@@ -92,7 +92,7 @@ void WindowInspector::Level_Key() {
         int holdFrames = animKey.holdFrames;
 
         if (ImGui::InputInt("Hold Frames", &holdFrames)) {
-            animKey.holdFrames = std::clamp<unsigned>(
+            animKey.holdFrames = std::clamp<int>(
                 holdFrames,
                 CellAnim::AnimationKey::MIN_HOLD_FRAMES,
                 CellAnim::AnimationKey::MAX_HOLD_FRAMES
@@ -103,12 +103,12 @@ void WindowInspector::Level_Key() {
             oldHoldFrames = originalKey.holdFrames;
 
         if (ImGui::IsItemDeactivated()) {
-            originalKey.holdFrames = std::clamp<unsigned>(
+            originalKey.holdFrames = std::clamp<int>(
                 oldHoldFrames,
                 CellAnim::AnimationKey::MIN_HOLD_FRAMES,
                 CellAnim::AnimationKey::MAX_HOLD_FRAMES
             );;
-            newKey.holdFrames = std::clamp<unsigned>(
+            newKey.holdFrames = std::clamp<int>(
                 holdFrames,
                 CellAnim::AnimationKey::MIN_HOLD_FRAMES,
                 CellAnim::AnimationKey::MAX_HOLD_FRAMES

@@ -336,13 +336,13 @@ void WindowTimeline::Update() {
 
                                     newKey.opacity = AVERAGE_UCHARS(keyA.opacity, keyB.opacity);
 
-                                    unsigned base = keyA.holdFrames - 1;
+                                    int base = keyA.holdFrames - 1;
 
-                                    unsigned first = base / 2;
-                                    unsigned second = base - first;
+                                    int first = base / 2;
+                                    int second = base - first;
 
-                                    modKey.holdFrames = std::max(first, 1u);
-                                    newKey.holdFrames = std::max(second, 1u);
+                                    modKey.holdFrames = std::max(first, 1);
+                                    newKey.holdFrames = std::max(second, 1);
                                 }
 
                                 sessionManager.getCurrentSession()->addCommand(

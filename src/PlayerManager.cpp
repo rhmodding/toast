@@ -133,26 +133,30 @@ void PlayerManager::Update() {
 
         const auto& currentAnimation = this->getCellanim()->animations.at(this->animationIndex);
 
-        // End of animation, stop or loop
-        if (this->keyIndex + 1 >= currentAnimation.keys.size()) {
-            if (!this->looping) {
-                this->playing = false;
-                break;
+        do {
+            // End of animation, stop or loop
+            if (this->keyIndex + 1 >= currentAnimation.keys.size()) {
+                if (!this->looping) {
+                    this->playing = false;
+                    break;
+                }
+        
+                // Loop to beginning
+                this->keyIndex = 0;
+                this->holdFramesLeft = currentAnimation.keys[0].holdFrames - 1;
+        
+                delta -= this->timeLeft;
+                this->timeLeft = 1.f / frameRate;
             }
-
-            this->keyIndex = 0;
-            this->holdFramesLeft = currentAnimation.keys[0].holdFrames - 1;
-
-            delta -= this->timeLeft;
-            this->timeLeft = 1.f / frameRate;
-        }
-        else {
-            this->keyIndex++;
-            this->holdFramesLeft = currentAnimation.keys.at(this->keyIndex).holdFrames - 1;
-
-            delta -= this->timeLeft;
-            this->timeLeft = 1.f / frameRate;
-        }
+            // There are still keys left; advance to next key
+            else {
+                this->keyIndex++;
+                this->holdFramesLeft = currentAnimation.keys.at(this->keyIndex).holdFrames - 1;
+        
+                delta -= this->timeLeft;
+                this->timeLeft = 1.f / frameRate;
+            }
+        } while (this->holdFramesLeft < 0);        
     }
 
     auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();

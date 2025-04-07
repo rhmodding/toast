@@ -213,7 +213,7 @@ struct AnimationsHeader {
 struct RvlAnimationKey {
     uint16_t arrangementIndex;
 
-    // Amount of frames the key is held for (0 is invalid).
+    // Amount of frames the key is held for (0 is allowed).
     uint16_t holdFrames;
 
     RvlTransformValues transform;
