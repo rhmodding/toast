@@ -34,25 +34,24 @@ struct TPLDescriptor {
 } __attribute__((packed));
 
 struct TPLHeader {
-    uint16_t height; // Texture height
-    uint16_t width; // Texture width
+    uint16_t height; // Height of the texture in pixels.
+    uint16_t width; // Width of the texture in pixels.
 
-    uint32_t format; // TPLImageFormat (big endian)
+    uint32_t dataFormat; // The format of the image data (TPLImageFormat).
+    uint32_t dataOffset; // File offset to the image data.
 
-    uint32_t dataOffset;
+    uint32_t wrapS; // Horizontal UV wrapping mode (TPLWrapMode).
+    uint32_t wrapT; // Vertical UV wrapping mode (TPLWrapMode).
 
-    uint32_t wrapS; // TPLWrapMode (big endian)
-    uint32_t wrapT; // TPLWrapMode (big endian)
-
-    uint32_t minFilter; // TPLTexFilter (big endian)
-    uint32_t magFilter; // TPLTexFilter (big endian)
+    uint32_t minFilter; // Minification filter (TPLTexFilter).
+    uint32_t magFilter; // Magnification filter (TPLTexFilter).
 
     float LODBias;
 
-    uint8_t edgeLODEnable; // Boolean value
+    uint8_t edgeLODEnable; // Not sure what this does.
 
-    uint8_t minLOD;
-    uint8_t maxLOD;
+    uint8_t minMipmap; // Index of minimum mipmap level. Usually zero.
+    uint8_t maxMipmap; // Index of maximum mipmap level.
 
     // Set by game.
     uint8_t _relocated { 0x00 };
@@ -66,9 +65,8 @@ struct TPLClutHeader {
 
     uint8_t _pad8 { 0x00 };
 
-    uint32_t format; // TPLClutFormat (big endian)
-
-    uint32_t dataOffset;
+    uint32_t dataFormat; // The format of the color entries (TPLClutFormat).
+    uint32_t dataOffset; // File offset to the color entries.
 } __attribute__((packed));
 
 // RGB5A3 is the only CLUT format with support for transparency & full color at
@@ -182,16 +180,16 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
                 tplData + BYTESWAP_32(clutHeader->dataOffset),
                 BYTESWAP_16(clutHeader->numEntries),
 
-                static_cast<TPLClutFormat>(BYTESWAP_32(clutHeader->format))
+                static_cast<TPLClutFormat>(BYTESWAP_32(clutHeader->dataFormat))
             );
         }
 
         textureData.width = BYTESWAP_16(header->width);
         textureData.height = BYTESWAP_16(header->height);
 
-        textureData.format = static_cast<TPLImageFormat>(BYTESWAP_32(header->format));
+        textureData.format = static_cast<TPLImageFormat>(BYTESWAP_32(header->dataFormat));
 
-        textureData.mipCount = header->maxLOD - header->minLOD + 1;
+        textureData.mipCount = header->maxMipmap - header->minMipmap + 1;
 
         textureData.wrapS = static_cast<TPLWrapMode>(BYTESWAP_32(header->wrapS));
         textureData.wrapT = static_cast<TPLWrapMode>(BYTESWAP_32(header->wrapT));
@@ -322,7 +320,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
     for (unsigned clutIndex = 0; clutIndex < paletteTextures.size(); clutIndex++) {
         TPLClutHeader* clutHeader = clutHeaders + clutIndex;
 
-        clutHeader->format = BYTESWAP_32(DEFAULT_CLUT_FORMAT);
+        clutHeader->dataFormat = BYTESWAP_32(DEFAULT_CLUT_FORMAT);
         clutHeader->dataOffset = BYTESWAP_32(nextClutOffset);
 
         unsigned colorCount = ALIGN_UP_16(paletteTextures[clutIndex].palette.size());
@@ -339,16 +337,15 @@ std::vector<unsigned char> TPLObject::Serialize() {
         TPLHeader* header = headers + i;
 
         if (texture.width > 1024 || texture.height > 1024) {
-            Logging::warn <<
-                "[TPLObject::Serialize] The dimensions of the texture exceed 1024x1024 "
-                "(" << texture.width << 'x' << texture.height << ")," << std::endl <<
-                "                       the game will most likely be unable to read it properly." << std::endl;
+            Logging::warn << "[TPLObject::Serialize] The dimensions of the texture exceed 1024x1024 (" <<
+                texture.width << 'x' << texture.height << ");" << std::endl;
+            Logging::warn << "                       the game will most likely be unable to read it properly." << std::endl;
         }
 
         header->width = BYTESWAP_16(static_cast<uint16_t>(texture.width));
         header->height = BYTESWAP_16(static_cast<uint16_t>(texture.height));
 
-        header->format = BYTESWAP_32(static_cast<uint32_t>(texture.format));
+        header->dataFormat = BYTESWAP_32(static_cast<uint32_t>(texture.format));
 
         // header->dataOffset gets set in the image data writing portion.
 
@@ -379,8 +376,8 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
         header->edgeLODEnable = 0;
 
-        header->maxLOD = 0;
-        header->minLOD = 0;
+        header->minMipmap = 0;
+        header->maxMipmap = 0;
     }
 
     // Image Data
