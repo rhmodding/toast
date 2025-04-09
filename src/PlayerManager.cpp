@@ -121,42 +121,51 @@ void PlayerManager::Update() {
 
     unsigned arrangementIdxBefore = keys.at(this->keyIndex).arrangementIndex;
 
+    const auto& currentAnimation = this->getCellanim()->animations.at(this->animationIndex);
+
     while (delta >= this->timeLeft) {
         if (this->holdFramesLeft > 0) {
             this->holdFramesLeft--;
 
             delta -= this->timeLeft;
             this->timeLeft = 1.f / frameRate;
-
             continue;
         }
 
-        const auto& currentAnimation = this->getCellanim()->animations.at(this->animationIndex);
+        bool foundValidKey = false;
 
-        do {
-            // End of animation, stop or loop
-            if (this->keyIndex + 1 >= currentAnimation.keys.size()) {
-                if (!this->looping) {
-                    this->playing = false;
-                    break;
-                }
-        
-                // Loop to beginning
-                this->keyIndex = 0;
-                this->holdFramesLeft = currentAnimation.keys[0].holdFrames - 1;
-        
-                delta -= this->timeLeft;
-                this->timeLeft = 1.f / frameRate;
+        while (this->keyIndex + 1 < currentAnimation.keys.size()) {
+            this->keyIndex++;
+            if (currentAnimation.keys[this->keyIndex].holdFrames > 0) {
+                foundValidKey = true;
+                break;
             }
-            // There are still keys left; advance to next key
-            else {
+        }
+
+        if (!foundValidKey) {
+            if (!this->looping) {
+                this->playing = false;
+                return;
+            }
+
+            this->keyIndex = 0;
+            while (
+                this->keyIndex < currentAnimation.keys.size() &&
+                currentAnimation.keys[this->keyIndex].holdFrames == 0
+            )
                 this->keyIndex++;
-                this->holdFramesLeft = currentAnimation.keys.at(this->keyIndex).holdFrames - 1;
-        
-                delta -= this->timeLeft;
-                this->timeLeft = 1.f / frameRate;
+
+            if (this->keyIndex >= currentAnimation.keys.size()) {
+                this->keyIndex = currentAnimation.keys.size() - 1;
+                this->playing = false;
+                return;
             }
-        } while (this->holdFramesLeft < 0);        
+        }
+
+        this->holdFramesLeft = currentAnimation.keys[this->keyIndex].holdFrames - 1;
+
+        delta -= this->timeLeft;
+        this->timeLeft = 1.f / frameRate;
     }
 
     auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
