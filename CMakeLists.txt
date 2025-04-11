@@ -37,6 +37,10 @@ set(SOURCES
 
     src/Logging.cpp
 
+    src/TerminateHandler.cpp
+
+    src/CxxDemangle.cpp
+
     src/App/Popups.cpp
 
     src/cellanim/CellanimRenderer.cpp
