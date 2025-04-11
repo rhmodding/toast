@@ -106,17 +106,6 @@
 
 #endif // !defined(NDEBUG)
 
-// Will cause a break / dump the process when a debugger is active,
-// otherwise the program will abort.
-#define TRAP() \
-    do { \
-        Logging::err << "TRAP at " << __FILE__ << ':' <<__LINE__ << std::endl; \
-        Logging::Close(); \
-        \
-        __builtin_trap(); \
-        __builtin_unreachable(); \
-    } while (0)
-
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
 
