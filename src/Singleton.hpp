@@ -6,7 +6,11 @@
 #include <memory>
 #include <mutex>
 
+#include <stdexcept>
+
 #include "Logging.hpp"
+
+#include "CxxDemangle.hpp"
 
 #include "common.hpp"
 
@@ -43,8 +47,9 @@ template<typename T>
 void Singleton<T>::createSingleton() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (instance_) {
-        Logging::err << "[Singleton<" << typeid(T).name() << ">::createSingleton] Singleton instance already exists!" << std::endl;
-        TRAP();
+        throw std::runtime_error(
+            "Singleton<" + CxxDemangle::Demangle(typeid(T).name()) + ">::createSingleton: Singleton instance already exists!"
+        );
     }
     instance_ = std::unique_ptr<T>(new T());
 }
@@ -59,8 +64,9 @@ template<typename T>
 T& Singleton<T>::getInstance() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!instance_) {
-        Logging::err << "[Singleton<" << typeid(T).name() << ">::getInstance] Singleton instance does not exist (anymore)!" << std::endl;
-        TRAP();
+        throw std::runtime_error(
+            "Singleton<" + CxxDemangle::Demangle(typeid(T).name()) + ">::getInstance: Singleton instance does not exist (anymore)!"
+        );
     }
     return *instance_;
 }

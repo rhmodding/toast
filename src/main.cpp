@@ -6,14 +6,19 @@
 
 #include "ConsoleSplash.hpp"
 
+#include "TerminateHandler.hpp"
+
 #include <iostream>
 
 #include <clocale>
 
 int main(int argc, const char** argv) {
+    // Attach our custom terminate (exception) handler.
+    TerminateHandler::Init();
+
     std::setlocale(LC_ALL, "C.UTF-8");
 
-    std::cout << consoleSplash << "\n" << std::endl;
+    std::cout << consoleSplash << '\n' << std::endl;
 
     Toast toast (argc, argv);
     while (LIKELY(toast.isRunning())) {

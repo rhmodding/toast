@@ -12,6 +12,8 @@
 
 #include <thread>
 
+#include <stdexcept>
+
 #include "window/BaseWindow.hpp"
 
 #include "window/WindowCanvas.hpp"
@@ -22,6 +24,8 @@
 #include "window/WindowConfig.hpp"
 #include "window/WindowAbout.hpp"
 #include "window/WindowImguiDemo.hpp"
+
+#include "CxxDemangle.hpp"
 
 #include "Logging.hpp"
 
@@ -46,10 +50,8 @@ public:
     std::thread::id getMainThreadId() const { return this->mainThreadId; }
 
     GLFWwindow* getGLFWWindowHandle() {
-        if (UNLIKELY(!this->glfwWindowHndl)) {
-            Logging::err << "[App::getGLFWWindowHandle] GLFW window handle does not exist (anymore)!" << std::endl;
-            TRAP();
-        }
+        if (UNLIKELY(!this->glfwWindowHndl))
+            throw std::runtime_error("App::getGLFWWindowHandle: GLFW window handle does not exist (anymore)!");
 
         return this->glfwWindowHndl;
     }
@@ -83,8 +85,9 @@ private:
                 return;
 
             if (UNLIKELY(!this->windowInstance)) {
-                Logging::err << "[ToastWindow<" << typeid(T).name() << ">::Update] Window instance does not exist (anymore)!" << std::endl;
-                TRAP();
+                throw std::runtime_error(
+                    "ToastWindow<" + CxxDemangle::Demangle(typeid(T).name()) + ">::Update: Window instance does not exist (anymore)!"
+                );
             }
 
             this->windowInstance->Update();

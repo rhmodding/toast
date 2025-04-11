@@ -9,6 +9,8 @@
 
 #include <string>
 
+#include <stdexcept>
+
 namespace Shortcuts {
 
 #if defined(__APPLE__)
@@ -46,8 +48,9 @@ inline const std::unordered_map<ShortcutAction, Shortcut> ShortcutMap = {
 [[nodiscard]] std::string getDisplayName(ShortcutAction action, const char8_t* icon = nullptr) {
     auto it = ShortcutMap.find(action);
     if (it == ShortcutMap.end()) {
-        Logging::err << "[Shortcuts::getDisplayName] Shortcut not found (" << static_cast<int>(action) << ")." << std::endl;
-        TRAP();
+        throw std::runtime_error(
+            "Shortcuts::getDisplayName: Shortcut not found (" + std::to_string(static_cast<int>(action)) + ")."
+        );
     }
 
     const Shortcut& shortcut = it->second;
@@ -61,8 +64,9 @@ inline const std::unordered_map<ShortcutAction, Shortcut> ShortcutMap = {
 [[nodiscard]] const std::string& getDisplayChord(ShortcutAction action) {
     auto it = ShortcutMap.find(action);
     if (it == ShortcutMap.end()) {
-        Logging::err << "[Shortcuts::getDisplayChord] Shortcut not found (" << static_cast<int>(action) << ")." << std::endl;
-        TRAP();
+        throw std::runtime_error(
+            "Shortcuts::getDisplayChord: Shortcut not found (" + std::to_string(static_cast<int>(action)) + ")."
+        );
     }
 
     const Shortcut& shortcut = it->second;

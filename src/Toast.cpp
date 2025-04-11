@@ -89,10 +89,8 @@ Toast::Toast(int argc, const char** argv) {
         Logging::err << "GLFW threw an error (code " << code << "): " << message << std::endl;
     });
 
-    if (!glfwInit()) {
-        Logging::err << "[Toast:Toast] Failed to init GLFW!" << std::endl;
-        TRAP();
-    }
+    if (!glfwInit())
+        throw std::runtime_error("Toast:Toast: Failed to init GLFW!");
 
     MainThreadTaskManager::createSingleton();
     AsyncTaskManager::createSingleton();
@@ -144,10 +142,8 @@ Toast::Toast(int argc, const char** argv) {
     );
 
     if (!this->glfwWindowHndl) {
-        Logging::err << "[Toast::Toast] glfwCreateWindow failed!" << std::endl;
-
         glfwTerminate();
-        TRAP();
+        throw std::runtime_error("Toast::Toast: glfwCreateWindow failed!");
     }
 
     glfwSetWindowCloseCallback(this->glfwWindowHndl, [](GLFWwindow*) {
@@ -168,11 +164,10 @@ Toast::Toast(int argc, const char** argv) {
 
 #if defined(USING_GLEW)
     if (glewInit() != GLEW_OK) {
-        Logging::err << "[Toast:Toast] Failed to init GLEW!" << std::endl;
-
         glfwDestroyWindow(this->glfwWindowHndl);
         glfwTerminate();
-        TRAP();
+
+        throw std::runtime_error("Toast::Toast: Failed to init GLFW!");
     }
 #endif
 
@@ -925,8 +920,7 @@ void Toast::Draw() {
 
     ImDrawData* drawData = ImGui::GetDrawData();
     if (drawData == nullptr) {
-        Logging::err << "[Toast:Draw] ImGui::GetDrawData returned NULL!" << std::endl;
-        TRAP();
+        throw std::runtime_error("Toast::Draw: ImGui::GetDrawData returned NULL!");
     }
 
     ImGui_ImplOpenGL3_RenderDrawData(drawData);
