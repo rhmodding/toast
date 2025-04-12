@@ -19,6 +19,7 @@
 #include "../command/CommandInsertArrangement.hpp"
 #include "../command/CommandModifyArrangement.hpp"
 #include "../command/CommandModifyAnimation.hpp"
+#include "../command/CommandModifyAnimationName.hpp"
 #include "../command/CommandDeleteAnimation.hpp"
 
 void WindowHybridList::FlashWindow() {
@@ -114,6 +115,7 @@ void WindowHybridList::Update() {
                     ImGui::Separator();
 
                     if (ImGui::Selectable("Paste animation..", allowPasteAnimation)) {
+                        copyAnimation.name = animations[n].name;
                         command = std::make_shared<CommandModifyAnimation>(
                             sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                             n,
@@ -137,6 +139,14 @@ void WindowHybridList::Update() {
                                 sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
                                 n,
                                 newAnimation
+                            );
+                        }
+
+                        if (ImGui::MenuItem("..name")) {
+                            command = std::make_shared<CommandModifyAnimationName>(
+                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                n,
+                                copyAnimation.name
                             );
                         }
 
