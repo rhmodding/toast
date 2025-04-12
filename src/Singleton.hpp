@@ -48,7 +48,7 @@ void Singleton<T>::createSingleton() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (instance_) {
         throw std::runtime_error(
-            "Singleton<" + CxxDemangle::Demangle(typeid(T).name()) + ">::createSingleton: Singleton instance already exists!"
+            "Singleton<" + CxxDemangle::Demangle<T>() + ">::createSingleton: Singleton instance already exists!"
         );
     }
     instance_ = std::unique_ptr<T>(new T());
@@ -65,7 +65,7 @@ T& Singleton<T>::getInstance() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!instance_) {
         throw std::runtime_error(
-            "Singleton<" + CxxDemangle::Demangle(typeid(T).name()) + ">::getInstance: Singleton instance does not exist (anymore)!"
+            "Singleton<" + CxxDemangle::Demangle<T>() + ">::getInstance: Singleton instance does not exist (anymore)!"
         );
     }
     return *instance_;

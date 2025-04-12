@@ -86,7 +86,7 @@ private:
 
             if (UNLIKELY(!this->windowInstance)) {
                 throw std::runtime_error(
-                    "ToastWindow<" + CxxDemangle::Demangle(typeid(T).name()) + ">::Update: Window instance does not exist (anymore)!"
+                    "ToastWindow<" + CxxDemangle::Demangle<T>() + ">::Update: Window instance does not exist (anymore)!"
                 );
             }
 

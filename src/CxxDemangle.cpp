@@ -5,15 +5,23 @@
 #include <cxxabi.h>
 
 std::string CxxDemangle::Demangle(const char* mangledName) {
-    int demangleStatus = 0;
+    std::string result {};
+
+    int demangleStatus;
+    /*  abi::__cxa_demangle status codes
+
+        +0: success
+        -1: allocation fail
+        -2: invalid mangled name
+        -3: invalid args
+    */
+
     char* demangledName = abi::__cxa_demangle(mangledName, nullptr, nullptr, &demangleStatus);
-
-    if (demangledName) {
-        std::string result (demangledName);
-        std::free(demangledName);
-
+    if (!demangledName)
         return result;
-    }
-    else
-        return std::string();
+
+    result.assign(demangledName);
+    std::free(demangledName);
+
+    return result;
 }
