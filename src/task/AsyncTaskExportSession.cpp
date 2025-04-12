@@ -44,5 +44,7 @@ void AsyncTaskExportSession::Effect() {
     if (!this->useSessionPath)
         session.resourcePath = this->filePath;
 
-    ConfigManager::getInstance().addRecentlyOpened(this->filePath);
+    ConfigManager::getInstance().addRecentlyOpened(
+        this->useSessionPath ? session.resourcePath : this->filePath
+    );
 }
