@@ -286,12 +286,16 @@ static void _ApplyInterpolation(
 
         float t = _Bezier::BezierValueY((((i+1) * interval)) / (float)backKey->holdFrames, curve.data(), addKeys.size()*2);
 
+        newKey.holdFrames = interval;
+
         newKey.transform = newKey.transform.lerp(frontKey->transform, t);
         newKey.opacity = std::clamp<int>(
             LERP_INTS(backKey->opacity, frontKey->opacity, t),
             0x00, 0xFF
         );
-        newKey.holdFrames = interval;
+
+        newKey.foreColor = newKey.foreColor.lerp(frontKey->foreColor, t);
+        newKey.backColor = newKey.backColor.lerp(frontKey->backColor, t);
 
         // Create new interpolated arrangement if not equal
         if (backKey->arrangementIndex != frontKey->arrangementIndex) {
@@ -301,15 +305,16 @@ static void _ApplyInterpolation(
                 auto& part = newArrangement.parts.at(j);
 
                 unsigned jClamp = std::min<unsigned>(j, endArrangement->parts.size() - 1);
-                int mnpi = SelectionState::getMatchingNamePartIndex(part, *endArrangement);
+                int nameMatcher = SelectionState::getMatchingNamePartIndex(part, *endArrangement);
 
-                const auto* endPart = &endArrangement->parts.at(mnpi >= 0 ? mnpi : jClamp);
+                const auto* endPart = &endArrangement->parts.at(nameMatcher >= 0 ? nameMatcher : jClamp);
 
-                if (mnpi < 0 && (endPart->regionX != part.regionX ||
-                                endPart->regionY != part.regionY ||
-                                endPart->regionW != part.regionW ||
-                                endPart->regionH != part.regionH)
-                ) {
+                if (nameMatcher < 0 && (
+                    endPart->regionX != part.regionX ||
+                    endPart->regionY != part.regionY ||
+                    endPart->regionW != part.regionW ||
+                    endPart->regionH != part.regionH
+                )) {
                     int mrpi = SelectionState::getMatchingRegionPartIndex(part, *endArrangement);
 
                     if (mrpi >= 0)
@@ -332,6 +337,9 @@ static void _ApplyInterpolation(
                     LERP_INTS(part.opacity, endPart->opacity, t),
                     0x00, 0xFF
                 );
+
+                part.foreColor = part.foreColor.lerp(endPart->foreColor, t);
+                part.backColor = part.backColor.lerp(endPart->backColor, t);
             }
 
             newKey.arrangementIndex = arrangements.size();
