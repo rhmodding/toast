@@ -54,8 +54,8 @@ struct CtpkFileHeader {
     // Note: these entries are sorted by their hash.
     uint32_t lookupEntriesOffset; // Offset to the lookup entries (CtpkLookupEntry[textureCount]).
 
-    // Note: these entries is pretty much useless, the only unique data given
-    //       here is the compression method.
+    // Note: these entries are pretty much useless for us, the only unique data given
+    //       is the ETC1 compression method / quality.
     uint32_t infoEntriesOffset; // Offset to the info entries (CtpkInfoEntry[textureCount]).
 
     uint32_t _pad64[2] { 0x00000000, 0x00000000 };
@@ -236,9 +236,8 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         texEntry->dataFormat = static_cast<uint32_t>(texture.format);
 
         if (texture.width > 1024 || texture.height > 1024) {
-            Logging::err <<
-                "[CTPKObject::Serialize] Texture no. " << i+1 << " exceeds the dimensions limit of 1024x1024; the" << std::endl <<
-                "                        texture will be scaled down to fit within the bounds." << std::endl;
+            Logging::err << "[CTPKObject::Serialize] Texture no. " << i+1 << " exceeds the dimensions limit of 1024x1024; the" << std::endl;
+            Logging::err << "                        texture will be scaled down to fit within the bounds." << std::endl;
             
             float scale = std::min(
                 1024.f / texture.width,
