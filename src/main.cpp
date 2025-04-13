@@ -13,10 +13,10 @@
 #include <clocale>
 
 int main(int argc, const char** argv) {
+    std::setlocale(LC_ALL, "C.UTF-8");
+
     // Attach our custom terminate (exception) handler.
     TerminateHandler::Init();
-
-    std::setlocale(LC_ALL, "C.UTF-8");
 
     std::cout << consoleSplash << '\n' << std::endl;
 
