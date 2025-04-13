@@ -97,6 +97,11 @@ struct CTRColor {
             .b = std::lerp(this->b, other.b, t)
         };
 
+        // Make sure (channel * 255.f) is an exact integer in the range 0..255.
+        color.r = std::clamp(static_cast<float>(std::lroundf(color.r * 255.0f)) * (1.0f / 255.0f), 0.0f, 1.0f);
+        color.g = std::clamp(static_cast<float>(std::lroundf(color.g * 255.0f)) * (1.0f / 255.0f), 0.0f, 1.0f);
+        color.b = std::clamp(static_cast<float>(std::lroundf(color.b * 255.0f)) * (1.0f / 255.0f), 0.0f, 1.0f);
+
         return color;
     }
 
