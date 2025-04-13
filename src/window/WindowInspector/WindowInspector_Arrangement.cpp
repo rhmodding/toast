@@ -84,6 +84,25 @@ static bool textInputStdString(const char* label, std::string& str) {
     }, &str);
 }
 
+template <typename T>
+void valueEditor(
+    const char* label, T& currentValue,
+    std::function<T()> getOriginal,
+    std::function<void(const T& oldValue, const T& newValue)> setFinal,
+    std::function<bool(const char* label, T* value)> widgetCall
+) {
+    static T oldValue;
+    T tempValue = currentValue;
+
+    if (widgetCall(label, &tempValue))
+        currentValue = tempValue;
+
+    if (ImGui::IsItemActivated())
+        oldValue = getOriginal();
+    if (ImGui::IsItemDeactivated())
+        setFinal(oldValue, tempValue);
+}
+
 void WindowInspector::Level_Arrangement() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
@@ -233,84 +252,62 @@ void WindowInspector::Level_Arrangement() {
                 }
             }
 
-            // Angle Z slider
-            {
-                static float oldAngle { 0.f };
-                float newAngle = part.transform.angle;
-
-                if (ImGui::SliderFloat("Angle Z", &newAngle, -360.f, 360.f, "%.1f deg"))
-                    part.transform.angle = newAngle;
-
-                if (ImGui::IsItemActivated())
-                    oldAngle = originalPart.transform.angle;
-
-                if (ImGui::IsItemDeactivated()) {
-                    originalPart.transform.angle = oldAngle;
-                    newPart.transform.angle = newAngle;
+            valueEditor<float>("Angle Z", part.transform.angle,
+                [&]() { return originalPart.transform.angle; },
+                [&](const float& oldValue, const float& newValue) {
+                    originalPart.transform.angle = oldValue;
+                    newPart.transform.angle = newValue;
+                },
+                [](const char* label, float* value) {
+                    return ImGui::SliderFloat(label, value, -360.f, 360.f, "%.1f deg");
                 }
-            }
+            );
 
             ImGui::Checkbox("Flip X", &newPart.flipX);
             ImGui::Checkbox("Flip Y", &newPart.flipY);
 
             ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Rendering");
 
-            // Opacity slider
-            {
-                static const uint8_t min { 0 };
-                static const uint8_t max { 0xFF };
+            valueEditor<uint8_t>("Opacity", part.opacity,
+                [&]() { return originalPart.opacity; },
+                [&](const uint8_t& oldValue, const uint8_t& newValue) {
+                    originalPart.opacity = oldValue;
+                    newPart.opacity = newValue;
+                },
+                [](const char* label, uint8_t* value) {
+                    static const uint8_t min { 0 };
+                    static const uint8_t max { 0xFF };
 
-                static uint8_t oldOpacity { 0 };
-                uint8_t newOpacity = part.opacity;
-
-                if (ImGui::SliderScalar("Opacity", ImGuiDataType_U8, &newOpacity, &min, &max, "%u"))
-                    part.opacity = newOpacity;
-
-                if (ImGui::IsItemActivated())
-                    oldOpacity = originalPart.opacity;
-
-                if (ImGui::IsItemDeactivated()) {
-                    originalPart.opacity = oldOpacity;
-                    newPart.opacity = newOpacity;
+                    return ImGui::SliderScalar(label, ImGuiDataType_U8, value, &min, &max, "%u");
                 }
-            }
+            );
 
-            // Fore Color
+            // Fore & Back Color
             if (isCtr) {
-                static CellAnim::CTRColor oldForeColor { 0.f, 0.f, 0.f };
+                valueEditor<CellAnim::CTRColor>("Fore Color", part.foreColor,
+                    [&]() { return originalPart.foreColor; },
+                    [&](const CellAnim::CTRColor& oldValue, const CellAnim::CTRColor& newValue) {
+                        originalPart.foreColor = oldValue;
+                        newPart.foreColor = newValue;
+                    },
+                    [](const char* label, CellAnim::CTRColor* value) {
+                        return ImGui::ColorEdit3(label, &value->r);
+                    }
+                );
 
-                CellAnim::CTRColor newForeColor = part.foreColor;
-
-                if (ImGui::ColorEdit3("Fore Color", &newForeColor.r))
-                    part.foreColor = newForeColor;
-
-                if (ImGui::IsItemActivated())
-                    oldForeColor = originalPart.foreColor;
-
-                if (ImGui::IsItemDeactivated()) {
-                    originalPart.foreColor = oldForeColor;
-                    newPart.foreColor = newForeColor;
-                }
+                valueEditor<CellAnim::CTRColor>("Back Color", part.backColor,
+                    [&]() { return originalPart.backColor; },
+                    [&](const CellAnim::CTRColor& oldValue, const CellAnim::CTRColor& newValue) {
+                        originalPart.backColor = oldValue;
+                        newPart.backColor = newValue;
+                    },
+                    [](const char* label, CellAnim::CTRColor* value) {
+                        return ImGui::ColorEdit3(label, &value->r);
+                    }
+                );
             }
 
-            // Back Color
-            if (isCtr) {
-                static CellAnim::CTRColor oldBackColor { 0.f, 0.f, 0.f };
-
-                CellAnim::CTRColor newBackColor = part.backColor;
-
-                if (ImGui::ColorEdit3("Back Color", &newBackColor.r))
-                    part.backColor = newBackColor;
-
-                if (ImGui::IsItemActivated())
-                    oldBackColor = originalPart.backColor;
-
-                if (ImGui::IsItemDeactivated()) {
-                    originalPart.backColor = oldBackColor;
-                    newPart.backColor = newBackColor;
-                }
-            }
-
+            // TODO C++ify
             ImGui::SeparatorText((const char*)ICON_FA_BORDER_TOP_LEFT " Region");
             {
                 // Position XY
@@ -378,39 +375,35 @@ void WindowInspector::Level_Arrangement() {
             if (isCtr) {
                 ImGui::SeparatorText((const char*)ICON_FA_PENCIL " ID");
 
-                static int oldID { 0 };
-                int newID = part.id;
-
-                if (ImGui::InputInt("ID", &newID))
-                    part.id = std::clamp<int>(newID, 0, CellAnim::ArrangementPart::MAX_ID);
-
-                if (ImGui::IsItemActivated())
-                    oldID = originalPart.id;
-
-                if (ImGui::IsItemDeactivated()) {
-                    originalPart.id = oldID;
-                    newPart.id = std::clamp<int>(newID, 0, CellAnim::ArrangementPart::MAX_ID);
-                }
+                valueEditor<unsigned>("ID", part.id,
+                    [&]() { return originalPart.id; },
+                    [&](const unsigned& oldValue, const unsigned& newValue) {
+                        originalPart.id = oldValue;
+                        newPart.id = std::clamp<int>(static_cast<int>(newValue), 0, CellAnim::ArrangementPart::MAX_ID);
+                    },
+                    [](const char* label, unsigned* value) {
+                        bool changed = ImGui::InputInt(label, reinterpret_cast<int*>(value));
+                        if (changed)
+                            *value = std::clamp<int>(static_cast<int>(*value), 0, CellAnim::ArrangementPart::MAX_ID);
+                        return changed;
+                    }
+                );
             }
 
             // Emitter Name
             if (isCtr) {
                 ImGui::SeparatorText((const char*)ICON_FA_WAND_MAGIC_SPARKLES " Effects");
 
-                static std::string oldEmitterName {};
-
-                std::string newEmitterName = part.emitterName;
-
-                if (textInputStdString("Emitter Name", newEmitterName))
-                    part.emitterName = newEmitterName;
-
-                if (ImGui::IsItemActivated())
-                    oldEmitterName = originalPart.emitterName;
-
-                if (ImGui::IsItemDeactivated()) {
-                    originalPart.emitterName = oldEmitterName;
-                    newPart.emitterName = newEmitterName;
-                }
+                valueEditor<std::string>("Emitter Name", part.emitterName,
+                    [&]() { return originalPart.emitterName; },
+                    [&](const std::string& oldValue, const std::string& newValue) {
+                        originalPart.emitterName = oldValue;
+                        newPart.emitterName = newValue;
+                    },
+                    [](const char* label, std::string* value) {
+                        return textInputStdString(label, *value);
+                    }
+                );
             }
 
             if (newPart != originalPart) {
