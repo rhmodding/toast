@@ -3,6 +3,8 @@
 
 #include "BaseCommand.hpp"
 
+#include <string_view>
+
 #include "../SessionManager.hpp"
 
 class CommandModifyAnimationName : public BaseCommand {
@@ -10,7 +12,7 @@ public:
     // Constructor: Modify animation name from cellanimIndex, animationIndex and name.
     CommandModifyAnimationName(
         unsigned cellanimIndex, unsigned animationIndex,
-        char* name
+        std::string_view name
     ) :
         cellanimIndex(cellanimIndex), animationIndex(animationIndex),
         newName(name)
