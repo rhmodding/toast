@@ -215,7 +215,7 @@ void WindowHybridList::Update() {
                             );
 
                             playerManager.setArrangementModeIdx(n + 1);
-                        };
+                        }
                         if (ImGui::MenuItem("..below")) {
                             command = std::make_shared<CommandInsertArrangement>(
                                 sessionManager.getCurrentSession()->getCurrentCellanimIndex(),

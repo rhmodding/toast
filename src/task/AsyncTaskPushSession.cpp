@@ -24,5 +24,5 @@ void AsyncTaskPushSession::Effect() {
 
     SessionManager::getInstance().setCurrentSessionIndex(this->result);
 
-    ConfigManager::getInstance().addRecentlyOpened(filePath);
+    ConfigManager::getInstance().addRecentlyOpened(this->filePath);
 }
