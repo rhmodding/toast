@@ -25,6 +25,7 @@ static const uint32_t u32_one = 1;
 static const uint8_t  u8_min  = 0;
 static const uint8_t  u8_max  = 0xFFu;
 
+// TODO: this whole thing is in desperate need of a refactor ...
 void WindowTimeline::Update() {
     AppState& appState = AppState::getInstance();
     SessionManager& sessionManager = SessionManager::getInstance();
@@ -256,11 +257,18 @@ void WindowTimeline::Update() {
                         "%u##KeyButton", i+1
                     );
 
-                    if (ImGui::Button(buffer, buttonDimensions)) {
-                        playerManager.setKeyIndex(i);
+                    const CellAnim::AnimationKey& key = playerManager.getAnimation().keys.at(i);
+
+                    if (key.holdFrames == 0) {
+                        const auto* imContext = ImGui::GetCurrentContext();
+                        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, imContext->Style.Alpha * imContext->Style.DisabledAlpha);
                     }
 
-                    CellAnim::AnimationKey& key = playerManager.getAnimation().keys.at(i);
+                    if (ImGui::Button(buffer, buttonDimensions))
+                        playerManager.setKeyIndex(i);
+
+                    if (key.holdFrames == 0)
+                        ImGui::PopStyleVar();
 
                     enum DeleteKeyMode {
                         DeleteKeyMode_None,
@@ -450,7 +458,10 @@ void WindowTimeline::Update() {
                         ImGui::Text((const char*)ICON_FA_KEY "  Key no. %u", i+1);
                         ImGui::TextUnformatted("Right-click for options");
 
-                        ImGui::Separator();
+                        if (key.holdFrames == 0) {
+                            ImGui::BulletText("This key will be skipped during\nplayback (held for 0 frames).");
+                            ImGui::Dummy({ 0.f, 5.f });
+                        }
 
                         ImGui::BulletText("Arrangement Index: %u", key.arrangementIndex);
                         ImGui::Dummy({ 0.f, 10.f });
