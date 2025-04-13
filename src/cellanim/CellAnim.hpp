@@ -219,12 +219,11 @@ struct Arrangement {
 
 struct AnimationKey {
     static constexpr unsigned MAX_ARRANGEMENT_IDX = 65535;
-
-    static constexpr unsigned MIN_HOLD_FRAMES = 0;
     static constexpr unsigned MAX_HOLD_FRAMES = 65535;
 
     unsigned arrangementIndex { 0 };
 
+    // If holdFrames is zero then the key is skipped.
     unsigned holdFrames { 1 };
 
     TransformValues transform;
