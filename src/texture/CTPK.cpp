@@ -260,7 +260,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
 
         // mipSizesOffset is in 4byte increments.
         texEntry->mipSizesOffset = static_cast<uint32_t>(
-            currentMipSize - (uint32_t*)result.data()
+            currentMipSize - reinterpret_cast<uint32_t*>(result.data())
         );
 
         unsigned currentWidth = texture.width;
@@ -286,7 +286,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         CtpkTextureEntry* texEntry = header->textureEntries + i;
 
         texEntry->sourcePathOffset = static_cast<uint32_t>(
-            currentTexFilename - (char*)result.data()
+            currentTexFilename - reinterpret_cast<char*>(result.data())
         );
 
         strcpy(currentTexFilename, texture.sourcePath.c_str());
@@ -300,7 +300,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     CtpkLookupEntry* lookupEntriesEnd = lookupEntriesStart + this->textures.size();
 
     header->lookupEntriesOffset = static_cast<uint32_t>(
-        (unsigned char*)lookupEntriesStart - result.data()
+        reinterpret_cast<unsigned char*>(lookupEntriesStart) - result.data()
     );
 
     // Write lookup entries.
@@ -326,7 +326,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     CtpkInfoEntry* infoEntriesEnd = infoEntriesStart + this->textures.size();
 
     header->infoEntriesOffset = static_cast<uint32_t>(
-        (unsigned char*)infoEntriesStart - result.data()
+        reinterpret_cast<unsigned char*>(infoEntriesStart) - result.data()
     );
 
     // Write info entries.

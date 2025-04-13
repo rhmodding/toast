@@ -136,10 +136,10 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
 
                     uint32_t pixels[4 * 4];
 
-                    uint64_t* alphaData = (uint64_t*)(result + writeOffset);
+                    uint64_t* alphaData = reinterpret_cast<uint64_t*>(result + writeOffset);
                     writeOffset += 8;
 
-                    uint64_t* blockData = (uint64_t*)(result + writeOffset);
+                    uint64_t* blockData = reinterpret_cast<uint64_t*>(result + writeOffset);
                     writeOffset += 8;
 
                     // Fill pixels for packing.

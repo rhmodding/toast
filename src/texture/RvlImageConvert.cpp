@@ -191,7 +191,7 @@ static void IMPLEMENTATION_FROM_RGB5A3(unsigned char* result, unsigned srcWidth,
                         data + readOffset + (y * 2 * 4) + (x * 2)
                     ));
 
-                    if ((sourcePixel & 0x8000) != 0) { // RGB555
+                    if ((sourcePixel & (1 << 15)) != 0) { // RGB555
                         result[writeOffset + 0] = (((sourcePixel >> 10) & 0x1f) << 3) | (((sourcePixel >> 10) & 0x1f) >> 2);
                         result[writeOffset + 1] = (((sourcePixel >> 5) & 0x1f) << 3) | (((sourcePixel >> 5) & 0x1f) >> 2);
                         result[writeOffset + 2] = (((sourcePixel) & 0x1f) << 3) | (((sourcePixel) & 0x1f) >> 2);

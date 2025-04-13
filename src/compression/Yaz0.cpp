@@ -154,7 +154,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
             // Copy 8 bytes directly.
             if ((srcEnd - currentSrc) >= 8) {
-                *(uint64_t*)currentDst = *(uint64_t*)currentSrc;
+                *reinterpret_cast<uint64_t*>(currentDst) = *reinterpret_cast<const uint64_t*>(currentSrc);
                 currentSrc += 8; currentDst += 8;
             }
             // Copy less than 8 bytes.

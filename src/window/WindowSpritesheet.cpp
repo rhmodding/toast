@@ -734,13 +734,13 @@ void WindowSpritesheet::Update() {
                         gridType = GridType_Custom;
                     else
                         gridType = ThemeManager::getInstance().getThemeIsLight() ? GridType_Light : GridType_Dark;
-                };
+                }
 
                 ImGui::SeparatorText("Color Picker");
 
                 if (ImGui::ColorPicker4(
                     "##ColorPicker",
-                    (float*)&customGridColor,
+                    &customGridColor.x,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
                 ))

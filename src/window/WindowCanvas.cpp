@@ -217,7 +217,7 @@ void WindowCanvas::Menubar() {
 
                 ImGui::ColorPicker4(
                     "##ColorPicker",
-                    (float*)&customGridColor,
+                    &customGridColor.x,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
                 );
@@ -260,7 +260,7 @@ void WindowCanvas::Menubar() {
 
                 ImGui::ColorPicker4(
                     "##ColorPicker",
-                    (float*)&partBoundingDrawColor,
+                    &partBoundingDrawColor.x,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
                 );

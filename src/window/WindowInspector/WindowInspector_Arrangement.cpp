@@ -68,7 +68,7 @@ static bool textInputStdString(const char* label, std::string& str) {
     constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
 
     return ImGui::InputText(label, const_cast<char*>(str.c_str()), str.capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
-        std::string* str = (std::string*)data->UserData;
+        std::string* str = reinterpret_cast<std::string*>(data->UserData);
         if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
             // Resize string callback
             //
@@ -77,7 +77,7 @@ static bool textInputStdString(const char* label, std::string& str) {
             IM_ASSERT(data->Buf == str->c_str());
 
             str->resize(data->BufTextLen);
-            data->Buf = (char*)str->c_str();
+            data->Buf = const_cast<char*>(str->c_str());
         }
 
         return 0;
