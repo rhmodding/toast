@@ -2,6 +2,8 @@
 
 #include <exception>
 
+#include <typeinfo>
+
 #include "CxxDemangle.hpp"
 
 #include "Logging.hpp"
