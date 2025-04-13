@@ -54,7 +54,7 @@ void ConfigManager::LoadDefaults() {
     this->config = Config {};
 }
 
-void ConfigManager::addRecentlyOpened(const std::string& path) {
+void ConfigManager::addRecentlyOpened(const std::string_view path) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
     auto& recentlyOpened = this->config.recentlyOpened;
@@ -65,7 +65,7 @@ void ConfigManager::addRecentlyOpened(const std::string& path) {
         recentlyOpened.end()
     );
 
-    recentlyOpened.push_back(path);
+    recentlyOpened.push_back(std::string(path));
 
     clampRecentlyOpened(recentlyOpened);
 }

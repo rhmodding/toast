@@ -147,7 +147,7 @@ public:
 
     void LoadDefaults();
 
-    void addRecentlyOpened(const std::string& path);
+    void addRecentlyOpened(const std::string_view path);
 
 private:
     Config config {};
