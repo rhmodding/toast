@@ -3,111 +3,11 @@
 
 #include "Singleton.hpp"
 
-#include "texture/Texture.hpp"
-#include "texture/TextureGroup.hpp"
-
-#include "cellanim/CellAnim.hpp"
-
-#include "command/BaseCommand.hpp"
-
-#include "SelectionState.hpp"
-
-#include <string>
-
-#include <deque>
-
-#include <memory>
+#include <vector>
 
 #include <mutex>
 
-class Session {
-public:
-    Session() = default;
-    ~Session() = default;
-
-    Session(Session&& other) noexcept :
-        cellanims(std::move(other.cellanims)),
-        sheets(std::move(other.sheets)),
-        resourcePath(std::move(other.resourcePath)),
-        arrangementMode(other.arrangementMode),
-        modified(other.modified),
-        type(other.type),
-        undoQueue(std::move(other.undoQueue)),
-        redoQueue(std::move(other.redoQueue)),
-        currentCellanim(other.currentCellanim)
-    {}
-
-    Session& operator=(Session&& other) noexcept {
-        if (this != &other) {
-            this->cellanims = std::move(other.cellanims);
-            this->sheets = std::move(other.sheets);
-            this->resourcePath = std::move(other.resourcePath);
-            this->arrangementMode = other.arrangementMode;
-            this->modified = other.modified;
-            this->type = other.type;
-            this->undoQueue = std::move(other.undoQueue);
-            this->redoQueue = std::move(other.redoQueue);
-            this->currentCellanim = other.currentCellanim;
-        }
-        return *this;
-    }
-
-public:
-    struct CellanimGroup {
-        std::shared_ptr<CellAnim::CellAnimObject> object;
-        std::string name;
-
-        SelectionState selectionState;
-    };
-
-public:
-    void addCommand(std::shared_ptr<BaseCommand> command);
-
-    void undo();
-    void redo();
-
-    bool canUndo() const { return !this->undoQueue.empty(); }
-    bool canRedo() const { return !this->redoQueue.empty(); }
-
-    void clearUndoRedo() { this->undoQueue.clear(); this->redoQueue.clear(); };
-
-    unsigned getCurrentCellanimIndex() const { return this->currentCellanim; }
-    void setCurrentCellanimIndex(unsigned index);
-
-    CellanimGroup& getCurrentCellanim() {
-        return this->cellanims.at(this->currentCellanim);
-    }
-
-    std::shared_ptr<Texture>& getCurrentCellanimSheet() {
-        return this->sheets->getTextureByIndex(
-            this->cellanims.at(this->currentCellanim).object->sheetIndex
-        );
-    }
-
-    SelectionState& getCurrentSelectionState() {
-        return this->cellanims.at(this->currentCellanim).selectionState;
-    }
-
-public:
-    static constexpr unsigned int COMMANDS_MAX = 512;
-
-    std::vector<CellanimGroup> cellanims;
-    std::shared_ptr<TextureGroup> sheets { std::make_shared<TextureGroup>() };
-
-    std::string resourcePath;
-
-    bool arrangementMode { false };
-
-    bool modified { false };
-
-    CellAnim::CellAnimType type;
-
-private:
-    std::deque<std::shared_ptr<BaseCommand>> undoQueue;
-    std::deque<std::shared_ptr<BaseCommand>> redoQueue;
-
-    unsigned currentCellanim { 0 };
-};
+#include "Session.hpp"
 
 class SessionManager : public Singleton<SessionManager> {
     friend class Singleton<SessionManager>; // Allow access to base class constructor

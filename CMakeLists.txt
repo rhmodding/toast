@@ -94,6 +94,7 @@ set(SOURCES
 
     src/SelectionState.cpp
 
+    src/Session.cpp
     src/SessionManager.cpp
 
     src/PlayerManager.cpp
