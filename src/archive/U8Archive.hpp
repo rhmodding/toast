@@ -61,7 +61,7 @@ public:
 
     bool isInitialized() const { return this->initialized; }
 
-    std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> Serialize();
 
 public:
     Directory structure { "" };
@@ -70,7 +70,7 @@ private:
     bool initialized { false };
 };
 
-std::optional<U8ArchiveObject> readYaz0U8Archive(std::string_view filePath);
+[[nodiscard]] std::optional<U8ArchiveObject> readYaz0U8Archive(std::string_view filePath);
 
 File* findFile(std::string_view path, Directory& directory);
 

@@ -278,7 +278,7 @@ public:
     CellAnimType getType() const { return this->type; }
     void setType(CellAnimType type) { this->type = type; }
 
-    std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> Serialize();
 
 public:
     int sheetIndex { -1 };

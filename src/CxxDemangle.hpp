@@ -8,10 +8,10 @@
 namespace CxxDemangle {
     
 // Returns an empty string if the demangle failed.
-std::string Demangle(const char* mangledName);
+[[nodiscard]] std::string Demangle(const char* mangledName);
 
 template <typename T>
-std::string Demangle() {
+[[nodiscard]] std::string Demangle() {
     return Demangle(typeid(T).name());
 }
 

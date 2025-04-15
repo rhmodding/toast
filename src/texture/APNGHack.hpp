@@ -19,7 +19,7 @@ struct BuildData {
     unsigned frameRate { 60 };
 };
 
-std::vector<unsigned char> build(const BuildData& buildData);
+[[nodiscard]] std::vector<unsigned char> build(const BuildData& buildData);
 
 } // namespace APNGHack
 

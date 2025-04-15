@@ -10,7 +10,7 @@
 
 namespace RvlPalette {
 
-std::set<uint32_t> generate(const unsigned char* rgbaImage, unsigned pixelCount);
+[[nodiscard]] std::set<uint32_t> generate(const unsigned char* rgbaImage, unsigned pixelCount);
 
 void readCLUT(
     std::vector<uint32_t>& colorsOut,

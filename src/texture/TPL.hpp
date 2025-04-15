@@ -122,7 +122,7 @@ struct TPLTexture {
     std::vector<unsigned char> data; // In RGBA32 format.
     std::vector<uint32_t> palette; // In RGBA32 format.
 
-    GLuint createGPUTexture() const;
+    [[nodiscard]] GLuint createGPUTexture() const;
 };
 
 class TPLObject {
@@ -131,7 +131,7 @@ public:
 
     std::vector<TPLTexture> textures;
 
-    std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> Serialize();
 
     TPLObject(const unsigned char* tplData, const size_t dataSize);
     TPLObject() = default;

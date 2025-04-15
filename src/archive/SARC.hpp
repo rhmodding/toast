@@ -53,7 +53,7 @@ public:
 
     bool isInitialized() const { return this->initialized; }
 
-    std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> Serialize();
 
 public:
     Directory structure { "" };
@@ -62,7 +62,7 @@ private:
     bool initialized { false };
 };
 
-std::optional<SARCObject> readNZlibSARC(std::string_view filePath);
+[[nodiscard]] std::optional<SARCObject> readNZlibSARC(std::string_view filePath);
 
 File* findFile(std::string_view path, Directory& directory);
 

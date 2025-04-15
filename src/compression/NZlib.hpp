@@ -7,9 +7,9 @@
 
 namespace NZlib {
 
-std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel);
+[[nodiscard]] std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel);
 
-std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, const size_t dataSize);
+[[nodiscard]] std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, const size_t dataSize);
 
 bool checkDataValid(const unsigned char* data, const size_t dataSize);
 

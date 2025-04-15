@@ -97,7 +97,7 @@ struct CTPKTexture {
     void rotateCCW();
     void rotateCW();
 
-    GLuint createGPUTexture() const;
+    [[nodiscard]] GLuint createGPUTexture() const;
 };
 
 class CTPKObject {
@@ -106,7 +106,7 @@ public:
 
     std::vector<CTPKTexture> textures;
 
-    std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> Serialize();
 
     CTPKObject(const unsigned char* ctpkData, const size_t dataSize);
     CTPKObject() = default;
