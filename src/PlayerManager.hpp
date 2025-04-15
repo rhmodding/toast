@@ -20,6 +20,8 @@ class PlayerManager : public Singleton<PlayerManager> {
     friend class Singleton<PlayerManager>; // Allow access to base class constructor
 
 private:
+    bool playing { false };
+
     int holdFramesLeft { 0 };
 
     unsigned animationIndex { 0 };
@@ -29,10 +31,7 @@ private:
     float timeLeft { 0.f };
 
     OnionSkinState onionSkinState;
-
 public:
-    bool playing { false };
-
     bool looping { false };
 
     unsigned frameRate { 60 };

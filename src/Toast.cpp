@@ -495,7 +495,7 @@ void Toast::Menubar() {
         if (ImGui::BeginMenu("Key",
             sessionAvaliable &&
             !sessionManager.getInstance().getCurrentSession()->arrangementMode &&
-            !playerManager.playing
+            !playerManager.getPlaying()
         )) {
             const unsigned keyIndex = playerManager.getKeyIndex();
             const auto& key = playerManager.getKey();
@@ -594,7 +594,7 @@ void Toast::Menubar() {
 
         if (ImGui::BeginMenu("Arrangement",
             sessionAvaliable &&
-            !playerManager.playing
+            !playerManager.getPlaying()
         )) {
             const unsigned arrangementIndex = playerManager.getArrangementIndex();
 
@@ -665,7 +665,7 @@ void Toast::Menubar() {
         if (ImGui::BeginMenu("Part",
             sessionAvaliable &&
             singlePartSelected &&
-            !playerManager.playing
+            !playerManager.getPlaying()
         )) {
             const auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 

@@ -63,7 +63,7 @@ void WindowTimeline::Update() {
             ImGui::TableSetColumnIndex(0);
 
             char playPauseButtonLabel[24] { '\0' };
-            const char* playPauseIcon = playerManager.playing ? (const char*)ICON_FA_PAUSE : (const char*)ICON_FA_PLAY;
+            const char* playPauseIcon = playerManager.getPlaying() ? (const char*)ICON_FA_PAUSE : (const char*)ICON_FA_PLAY;
 
             snprintf(
                 playPauseButtonLabel, sizeof(playPauseButtonLabel),
@@ -81,7 +81,7 @@ void WindowTimeline::Update() {
                     playerManager.setKeyIndex(0);
 
                 playerManager.ResetTimer();
-                playerManager.setPlaying(!playerManager.playing);
+                playerManager.setPlaying(!playerManager.getPlaying());
             }
             ImGui::SameLine();
 
