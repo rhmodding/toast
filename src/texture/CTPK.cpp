@@ -197,10 +197,17 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
         CtrImageConvert::toRGBA32(textureOut, imageData);
     }
 
-    this->ok = true;
+    this->initialized = true;
 }
 
 std::vector<unsigned char> CTPKObject::Serialize() {
+    std::vector<unsigned char> result;
+
+    if (!this->initialized) {
+        Logging::err << "[CTPKObject::Serialize] Unable to serialize: not initialized!" << std::endl;
+        return result;
+    }
+
     unsigned fullSize = sizeof(CtpkFileHeader) + ((
         sizeof(CtpkTextureEntry) +
         sizeof(CtpkLookupEntry) +
@@ -216,7 +223,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         fullSize += ALIGN_UP_32(CtrImageConvert::getImageByteSize(texture));
     }
 
-    std::vector<unsigned char> result(fullSize);
+    result.resize(fullSize);
 
     CtpkFileHeader* header = reinterpret_cast<CtpkFileHeader*>(result.data());
     *header = CtpkFileHeader {

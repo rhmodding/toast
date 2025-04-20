@@ -102,14 +102,19 @@ struct CTPKTexture {
 
 class CTPKObject {
 public:
-    bool ok { false };
+    CTPKObject(const unsigned char* ctpkData, const size_t dataSize);
+    CTPKObject() :
+        initialized(true)
+    {};
 
-    std::vector<CTPKTexture> textures;
+    bool isInitialized() const { return this->initialized; }
 
     [[nodiscard]] std::vector<unsigned char> Serialize();
 
-    CTPKObject(const unsigned char* ctpkData, const size_t dataSize);
-    CTPKObject() = default;
+public:
+    bool initialized { false };
+
+    std::vector<CTPKTexture> textures;
 };
 
 } // namespace CTPK

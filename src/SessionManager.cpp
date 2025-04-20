@@ -322,7 +322,7 @@ static SessionManager::Error InitCtrSession(
             CTPK::CTPKObject ctpkObject = CTPK::CTPKObject(
                 file->data.data(), file->data.size()
             );
-            if (!ctpkObject.ok) {
+            if (!ctpkObject.isInitialized()) {
                 sheetsError = SessionManager::OpenError_FailOpenCTPK;
                 return;
             }
@@ -664,8 +664,6 @@ static SessionManager::Error SerializeCtrSession(
         ctpkTex.sourcePath = "data/" + texture->getName() + "_rot.tga";
 
         CTPK::CTPKObject ctpkObject;
-        ctpkObject.ok = true;
-
         ctpkObject.textures.assign(1, std::move(ctpkTex));
 
         Logging::info << "[SerializeCtrSession] Serializing texture \"" << texture->getName() << "\".." << std::endl;
