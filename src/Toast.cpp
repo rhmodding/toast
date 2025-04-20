@@ -151,7 +151,8 @@ Toast::Toast(int argc, const char** argv) {
         globlToast->AttemptExit();
     });
 
-    if (configManager.getConfig().lastWindowMaximized)
+    globlToast->isWindowMaximized = configManager.getConfig().lastWindowMaximized;
+    if (globlToast->isWindowMaximized)
         glfwMaximizeWindow(this->glfwWindowHndl);
 
     glfwSetWindowMaximizeCallback(this->glfwWindowHndl, [](GLFWwindow*, int maximized) {
