@@ -127,14 +127,19 @@ struct TPLTexture {
 
 class TPLObject {
 public:
-    bool ok { false };
+    TPLObject(const unsigned char* tplData, const size_t dataSize);
+    TPLObject() :
+        initialized(true)
+    {};
 
-    std::vector<TPLTexture> textures;
+    bool isInitialized() const { return this->initialized; }
 
     [[nodiscard]] std::vector<unsigned char> Serialize();
 
-    TPLObject(const unsigned char* tplData, const size_t dataSize);
-    TPLObject() = default;
+public:
+    bool initialized { false };
+
+    std::vector<TPLTexture> textures;
 };
 
 } // namespace TPL

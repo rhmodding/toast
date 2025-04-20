@@ -203,11 +203,16 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         RvlImageConvert::toRGBA32(textureData, imageData);
     }
 
-    this->ok = true;
+    this->initialized = true;
 }
 
 std::vector<unsigned char> TPLObject::Serialize() {
     std::vector<unsigned char> result;
+
+    if (!this->initialized) {
+        Logging::err << "[TPLObject::Serialize] Unable to serialize: not initialized!" << std::endl;
+        return result;
+    }
 
     const unsigned textureCount = this->textures.size();
 

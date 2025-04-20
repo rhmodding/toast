@@ -77,7 +77,7 @@ static SessionManager::Error InitRvlSession(
     }
 
     TPL::TPLObject tplObject (__tplSearch->data.data(), __tplSearch->data.size());
-    if (!tplObject.ok) {
+    if (!tplObject.isInitialized()) {
         return SessionManager::OpenError_FailOpenTPL;
     }
 
