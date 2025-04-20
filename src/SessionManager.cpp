@@ -557,6 +557,7 @@ static SessionManager::Error SerializeRvlSession(
 
         SessionManager::Error error { SessionManager::Error_None };
         MainThreadTaskManager::getInstance().QueueTask([&session, &tplObject, &error]() {
+            tplObject.textures.resize(session.sheets->getTextureCount());
             for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
                 auto tplTexture = session.sheets->getTextureByIndex(i)->TPLTexture();
                 if (!tplTexture.has_value()) {
@@ -564,7 +565,7 @@ static SessionManager::Error SerializeRvlSession(
                     return;
                 }
 
-                tplObject.textures.push_back(std::move(*tplTexture));
+                tplObject.textures[i] = std::move(*tplTexture);
             }
         }).get();
 
@@ -639,6 +640,7 @@ static SessionManager::Error SerializeCtrSession(
 
     SessionManager::Error getTexturesError { SessionManager::Error_None };
     MainThreadTaskManager::getInstance().QueueTask([&session, &ctpkTextures, &getTexturesError]() {
+        ctpkTextures.resize(session.sheets->getTextureCount());
         for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
             auto ctpkTexture = session.sheets->getTextureByIndex(i)->CTPKTexture();
             if (!ctpkTexture.has_value()) {
@@ -646,7 +648,7 @@ static SessionManager::Error SerializeCtrSession(
                 return;
             }
 
-            ctpkTextures.push_back(std::move(*ctpkTexture));
+            ctpkTextures[i] = std::move(*ctpkTexture);
         }
     }).get();
 
