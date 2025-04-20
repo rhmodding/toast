@@ -37,14 +37,17 @@ void WindowInspector::drawPreview() {
     this->previewRenderer.linkCellanim(currentSession->getCurrentCellanim().object);
     this->previewRenderer.linkTextureGroup(currentSession->sheets);
 
+    this->previewRenderer.scaleX = 1.f;
+    this->previewRenderer.scaleY = 1.f;
+
     ImRect keyRect = this->previewRenderer.getKeyWorldRect(playerManager.getKey());
 
-    float scaleX = canvasSize.x / (keyRect.GetWidth() * (1.f / this->previewRenderer.scaleX));
-    float scaleY = canvasSize.y / (keyRect.GetHeight() * (1.f / this->previewRenderer.scaleY));
+    float scaleX = canvasSize.x / keyRect.GetWidth();
+    float scaleY = canvasSize.y / keyRect.GetHeight();
 
     this->previewRenderer.offset = { 0.f, 0.f };
     this->previewRenderer.scaleX = std::min(scaleX, scaleY);
-    this->previewRenderer.scaleY = std::min(scaleX, scaleY);
+    this->previewRenderer.scaleY = this->previewRenderer.scaleX;
 
     // Recalculate
     ImVec2 keyCenter = this->previewRenderer.getKeyWorldRect(playerManager.getKey()).GetCenter();
