@@ -6,19 +6,19 @@
 #include "Logging.hpp"
 
 // Apparently, the fastest way to do this is with fopen
-bool Files::doesFileExist(const char* filePath) {
-    if (filePath == nullptr)
+bool Files::doesFileExist(std::string_view filePath) {
+    if (filePath.empty())
         return false;
 
-    FILE* file = fopen(filePath, "r");
-    if (file == nullptr)
+    FILE* file = fopen(filePath.data(), "r");
+    if (!file)
         return false;
 
     fclose(file);
     return true;
 }
 
-bool Files::copyFile(const char* filePathSrc, const char* filePathDst, bool overwrite) {
+bool Files::copyFile(std::string_view filePathSrc, std::string_view filePathDst, bool overwrite) {
     if (doesFileExist(filePathDst))
         return true;
 
