@@ -691,7 +691,7 @@ bool RvlImageConvert::toRGBA32(
 
     case ImageFormat::TPL_IMAGE_FORMAT_C8:
         if (!palette) {
-            Logging::err << "[RvlImageConvert::toRGBA32] Cannot convert C8 texture: palette is nullptr" << std::endl;
+            Logging::err << "[RvlImageConvert::toRGBA32] Cannot convert C8 texture: palette is NULL" << std::endl;
             return false;
         }
 
@@ -699,7 +699,7 @@ bool RvlImageConvert::toRGBA32(
         break;
     case ImageFormat::TPL_IMAGE_FORMAT_C14X2:
         if (!palette) {
-            Logging::err << "[RvlImageConvert::toRGBA32] Cannot convert C14X2 texture: palette is nullptr" << std::endl;
+            Logging::err << "[RvlImageConvert::toRGBA32] Cannot convert C14X2 texture: palette is NULL" << std::endl;
             return false;
         }
 

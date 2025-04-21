@@ -65,7 +65,7 @@ void WindowInspector::Level_Key() {
     }
     ImGui::EndChild();
 
-    CellAnim::AnimationKey& animKey = playerManager.getKey();
+    CellAnim::AnimationKey& key = playerManager.getKey();
 
     ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Arrangement");
 
@@ -106,7 +106,7 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((const char*)ICON_FA_PAUSE " Hold");
 
-    valueEditor<unsigned>("Hold Frames", animKey.holdFrames,
+    valueEditor<unsigned>("Hold Frames", key.holdFrames,
         [&]() { return originalKey.holdFrames; },
         [&](const unsigned& oldValue, const unsigned& newValue) {
             originalKey.holdFrames = oldValue;
@@ -134,8 +134,8 @@ void WindowInspector::Level_Key() {
     {
         static int oldPosition[2] { 0, 0 };
         int positionValues[2] {
-            animKey.transform.positionX,
-            animKey.transform.positionY
+            key.transform.positionX,
+            key.transform.positionY
         };
 
         if (ImGui::DragInt2(
@@ -144,8 +144,8 @@ void WindowInspector::Level_Key() {
             CellAnim::TransformValues::MIN_POSITION,
             CellAnim::TransformValues::MAX_POSITION
         )) {
-            animKey.transform.positionX = positionValues[0];
-            animKey.transform.positionY = positionValues[1];
+            key.transform.positionX = positionValues[0];
+            key.transform.positionY = positionValues[1];
         }
 
         if (ImGui::IsItemActivated()) {
@@ -165,11 +165,11 @@ void WindowInspector::Level_Key() {
     // Scale XY
     {
         static float oldScale[2] { 0.f, 0.f };
-        float scaleValues[2] { animKey.transform.scaleX, animKey.transform.scaleY };
+        float scaleValues[2] { key.transform.scaleX, key.transform.scaleY };
 
         if (ImGui::DragFloat2("Scale XY", scaleValues, .01f)) {
-            animKey.transform.scaleX = scaleValues[0];
-            animKey.transform.scaleY = scaleValues[1];
+            key.transform.scaleX = scaleValues[0];
+            key.transform.scaleY = scaleValues[1];
         }
 
         if (ImGui::IsItemActivated()) {
@@ -186,7 +186,7 @@ void WindowInspector::Level_Key() {
         }
     }
 
-    valueEditor<float>("Angle Z", animKey.transform.angle,
+    valueEditor<float>("Angle Z", key.transform.angle,
         [&]() { return originalKey.transform.angle; },
         [&](const float& oldValue, const float& newValue) {
             originalKey.transform.angle = oldValue;
@@ -201,7 +201,7 @@ void WindowInspector::Level_Key() {
     if (isCtr) {
         ImGui::Dummy({ 0.f, 3.f });
 
-        valueEditor<float>("Position Z", animKey.translateZ,
+        valueEditor<float>("Position Z", key.translateZ,
             [&]() { return originalKey.translateZ; },
             [&](const float& oldValue, const float& newValue) {
                 originalKey.translateZ = oldValue;
@@ -215,7 +215,7 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Rendering");
 
-    valueEditor<uint8_t>("Opacity", animKey.opacity,
+    valueEditor<uint8_t>("Opacity", key.opacity,
         [&]() { return originalKey.opacity; },
         [&](const uint8_t& oldValue, const uint8_t& newValue) {
             originalKey.opacity = oldValue;
@@ -231,7 +231,7 @@ void WindowInspector::Level_Key() {
 
     // Fore & Back Color
     if (isCtr) {
-        valueEditor<CellAnim::CTRColor>("Fore Color", animKey.foreColor,
+        valueEditor<CellAnim::CTRColor>("Fore Color", key.foreColor,
             [&]() { return originalKey.foreColor; },
             [&](const CellAnim::CTRColor& oldValue, const CellAnim::CTRColor& newValue) {
                 originalKey.foreColor = oldValue;
@@ -242,7 +242,7 @@ void WindowInspector::Level_Key() {
             }
         );
 
-        valueEditor<CellAnim::CTRColor>("Back Color", animKey.backColor,
+        valueEditor<CellAnim::CTRColor>("Back Color", key.backColor,
             [&]() { return originalKey.backColor; },
             [&](const CellAnim::CTRColor& oldValue, const CellAnim::CTRColor& newValue) {
                 originalKey.backColor = oldValue;

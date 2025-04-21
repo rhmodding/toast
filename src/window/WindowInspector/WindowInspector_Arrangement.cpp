@@ -32,9 +32,7 @@ static bool partToggleButton(const char* label, bool toggled) {
         pos.y += window->DC.CurrLineTextBaseOffset;
 
     const ImVec2 size = ImGui::CalcItemSize(
-        { 0.f, 0.f },
-        labelSize.x,
-        labelSize.y
+        { 0.f, 0.f }, labelSize.x, labelSize.y
     );
 
     const ImRect bb(pos, { pos.x + size.x, pos.y + size.y });

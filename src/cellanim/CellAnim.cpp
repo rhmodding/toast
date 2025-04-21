@@ -399,8 +399,12 @@ static bool InitCtrCellAnim(
 
     const CtrCellAnimHeader* header = reinterpret_cast<const CtrCellAnimHeader*>(data);
 
+    object.sheetIndex = -1;
+
     object.sheetW = header->sheetW;
     object.sheetH = header->sheetH;
+
+    object.usePalette = false;
 
     const unsigned char* currentData = data + sizeof(CtrCellAnimHeader);
 

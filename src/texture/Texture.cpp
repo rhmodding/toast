@@ -13,7 +13,7 @@ Texture::~Texture() {
 
 void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned height) {
     if (data == nullptr) {
-        Logging::err << "[Texture::LoadRGBA32] Failed to load image data: data is nullptr" << std::endl;
+        Logging::err << "[Texture::LoadRGBA32] Failed to load image data: data is NULL" << std::endl;
         return;
     }
 
@@ -39,7 +39,7 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
 
 bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
     if (data == nullptr) {
-        Logging::err << "[Texture::LoadSTBFile] Failed to load image data: data is nullptr" << std::endl;
+        Logging::err << "[Texture::LoadSTBFile] Failed to load image data: data is NULL" << std::endl;
         return false;
     }
 
@@ -60,7 +60,7 @@ bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
 
 bool Texture::LoadSTBFile(const char* filename) {
     if (filename == nullptr) {
-        Logging::err << "[Texture::LoadSTBFile] Failed to export to file \"" << filename << "\": filename is nullptr" << std::endl;
+        Logging::err << "[Texture::LoadSTBFile] Failed to export to file \"" << filename << "\": filename is NULL" << std::endl;
         return false;
     }
 
@@ -81,7 +81,7 @@ bool Texture::LoadSTBFile(const char* filename) {
 
 bool Texture::GetRGBA32(unsigned char* buffer) {
     if (buffer == nullptr) {
-        Logging::err << "[Texture::GetRGBA32] Failed to download image data: buffer is nullptr" << std::endl;
+        Logging::err << "[Texture::GetRGBA32] Failed to download image data: buffer is NULL" << std::endl;
         return false;
     }
 
@@ -114,7 +114,7 @@ unsigned char* Texture::GetRGBA32() {
 
 bool Texture::ExportToFile(const char* filename) {
     if (filename == nullptr) {
-        Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": filename is nullptr" << std::endl;
+        Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": filename is NULL" << std::endl;
         return false;
     }
 

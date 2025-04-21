@@ -28,16 +28,16 @@ std::string Logging::LogStream::getTimestamp() {
     auto now = std::chrono::system_clock::now();
     std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
 
-    std::tm local_tm {};
+    std::tm localTm {};
 
 #ifdef _WIN32
     localtime_s(&local_tm, &nowTime);
 #else
-    localtime_r(&nowTime, &local_tm);
+    localtime_r(&nowTime, &localTm);
 #endif
 
     std::ostringstream oss;
-    oss << std::put_time(&local_tm, "[%Y-%m-%d %H:%M:%S]");
+    oss << std::put_time(&localTm, "[%Y-%m-%d %H:%M:%S]");
 
     return oss.str();
 }
