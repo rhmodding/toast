@@ -102,7 +102,7 @@ static void Popup_MPadRegion() {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 playerManager.getArrangementIndex(),
                 selectionState.selectedParts[0].index,
                 newPart

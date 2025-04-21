@@ -55,7 +55,7 @@ static void Popup_MTransformCellanim() {
 
         if (ImGui::Button("Apply")) {
             auto newAnimations = sessionManager.getCurrentSession()
-                ->getCurrentCellanim().object->animations;
+                ->getCurrentCellAnim().object->animations;
 
             for (auto& animation : newAnimations) {
                 for (auto& key : animation.keys) {
@@ -69,7 +69,7 @@ static void Popup_MTransformCellanim() {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyAnimations>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 newAnimations
             ));
 

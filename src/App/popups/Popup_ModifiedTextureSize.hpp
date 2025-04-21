@@ -40,13 +40,13 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
             Session* currentSession = sessionManager.getCurrentSession();
 
             std::vector<CellAnim::Arrangement> newArrangements =
-                currentSession->getCurrentCellanim().object->arrangements;
+                currentSession->getCurrentCellAnim().object->arrangements;
 
             float scaleX =
-                static_cast<float>(currentSession->getCurrentCellanimSheet()->getWidth()) /
+                static_cast<float>(currentSession->getCurrentCellAnimSheet()->getWidth()) /
                 oldTextureSizeX;
             float scaleY =
-                static_cast<float>(currentSession->getCurrentCellanimSheet()->getHeight()) /
+                static_cast<float>(currentSession->getCurrentCellAnimSheet()->getHeight()) /
                 oldTextureSizeY;
 
             for (auto& arrangement : newArrangements)
@@ -62,7 +62,7 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangements>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 newArrangements
             ));
 

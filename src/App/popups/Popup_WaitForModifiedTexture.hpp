@@ -47,7 +47,7 @@ static void Popup_WaitForModifiedTexture() {
 
             if (ok) {
                 auto& cellanimSheet = sessionManager.getCurrentSession()
-                    ->getCurrentCellanimSheet();
+                    ->getCurrentCellAnimSheet();
                 switch (selectedFormatIndex) {
                 default:
                 case 0:
@@ -70,7 +70,7 @@ static void Popup_WaitForModifiedTexture() {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifySpritesheet>(
                     sessionManager.getCurrentSession()
-                        ->getCurrentCellanim().object
+                        ->getCurrentCellAnim().object
                         ->sheetIndex,
                     newTexture
                 ));

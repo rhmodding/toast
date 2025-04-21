@@ -51,7 +51,7 @@ void WindowInspector::Level_Animation() {
 
             currentSession->addCommand(
             std::make_shared<CommandSetAnimationInterpolated>(
-                currentSession->getCurrentCellanimIndex(),
+                currentSession->getCurrentCellAnimIndex(),
                 animationIndex,
                 isInterpolated
             ));

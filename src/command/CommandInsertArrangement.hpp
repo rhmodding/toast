@@ -24,7 +24,7 @@ public:
     ~CommandInsertArrangement() = default;
 
     void Execute() override {
-        auto& arrangements = this->getCellanim()->arrangements;
+        auto& arrangements = this->getCellAnim()->arrangements;
 
         auto it = arrangements.begin() + this->arrangementIndex;
         arrangements.insert(it, this->arrangement);
@@ -35,12 +35,12 @@ public:
     }
 
     void Rollback() override {
-        auto& arrangements = this->getCellanim()->arrangements;
+        auto& arrangements = this->getCellAnim()->arrangements;
 
         auto it = arrangements.begin() + this->arrangementIndex;
         arrangements.erase(it);
 
-        for (auto& animation : this->getCellanim()->animations)
+        for (auto& animation : this->getCellAnim()->animations)
             for (auto& key : animation.keys) {
                 if (key.arrangementIndex >= arrangements.size())
                     key.arrangementIndex = 0;
@@ -58,7 +58,7 @@ private:
 
     CellAnim::Arrangement arrangement;
 
-    std::shared_ptr<CellAnim::CellAnimObject> getCellanim() {
+    std::shared_ptr<CellAnim::CellAnimObject> getCellAnim() {
         return
             SessionManager::getInstance().getCurrentSession()
             ->cellanims.at(this->cellanimIndex).object;

@@ -301,7 +301,7 @@ void WindowTimeline::Update() {
 
                             auto& arrangements =
                                 sessionManager.getCurrentSession()
-                                    ->getCurrentCellanim().object->arrangements;
+                                    ->getCurrentCellAnim().object->arrangements;
 
                             if (i+1 < playerManager.getKeyCount()) {
                                 arrangementA = &arrangements.at(key.arrangementIndex);
@@ -355,7 +355,7 @@ void WindowTimeline::Update() {
 
                                 sessionManager.getCurrentSession()->addCommand(
                                 std::make_shared<CommandModifyAnimationKey>(
-                                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                     playerManager.getAnimationIndex(),
                                     i,
                                     modKey
@@ -365,7 +365,7 @@ void WindowTimeline::Update() {
 
                                 sessionManager.getCurrentSession()->addCommand(
                                 std::make_shared<CommandInsertAnimationKey>(
-                                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                     playerManager.getAnimationIndex(),
                                     i + 1,
                                     newKey
@@ -379,7 +379,7 @@ void WindowTimeline::Update() {
                         if (ImGui::Selectable(!io.KeyAlt ? "Push key after" : "Duplicate key after")) {
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandInsertAnimationKey>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getAnimationIndex(),
                                 i + 1,
                                 io.KeyAlt ? key : CellAnim::AnimationKey()
@@ -391,7 +391,7 @@ void WindowTimeline::Update() {
                         if (ImGui::Selectable(!io.KeyAlt ? "Push key before" : "Duplicate key before")) {
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandInsertAnimationKey>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getAnimationIndex(),
                                 i,
                                 io.KeyAlt ? key : CellAnim::AnimationKey()
@@ -406,7 +406,7 @@ void WindowTimeline::Update() {
                         if (ImGui::Selectable(!io.KeyAlt ? "Move up" : "Move up (without hold frames)")) {
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandMoveAnimationKey>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getAnimationIndex(),
                                 i,
                                 false,
@@ -421,7 +421,7 @@ void WindowTimeline::Update() {
                         if (ImGui::Selectable(!io.KeyAlt ? "Move back" : "Move back (without hold frames)")) {
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandMoveAnimationKey>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getAnimationIndex(),
                                 i,
                                 true,
@@ -494,7 +494,7 @@ void WindowTimeline::Update() {
                         case DeleteKeyMode_Current: {
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandDeleteAnimationKey>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getAnimationIndex(),
                                 i
                             ));
@@ -507,7 +507,7 @@ void WindowTimeline::Update() {
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getAnimationIndex(),
                                 newAnimation
                             ));
@@ -519,7 +519,7 @@ void WindowTimeline::Update() {
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getAnimationIndex(),
                                 newAnimation
                             ));

@@ -34,7 +34,7 @@ public:
         type(other.type),
         undoQueue(std::move(other.undoQueue)),
         redoQueue(std::move(other.redoQueue)),
-        currentCellanim(other.currentCellanim)
+        currentCellAnim(other.currentCellAnim)
     {}
 
     Session& operator=(Session&& other) noexcept {
@@ -47,13 +47,13 @@ public:
             this->type = other.type;
             this->undoQueue = std::move(other.undoQueue);
             this->redoQueue = std::move(other.redoQueue);
-            this->currentCellanim = other.currentCellanim;
+            this->currentCellAnim = other.currentCellAnim;
         }
         return *this;
     }
 
 public:
-    struct CellanimGroup {
+    struct CellAnimGroup {
         std::shared_ptr<CellAnim::CellAnimObject> object;
         std::string name;
 
@@ -74,27 +74,27 @@ public:
         this->redoQueue.clear();
     };
 
-    unsigned getCurrentCellanimIndex() const { return this->currentCellanim; }
-    void setCurrentCellanimIndex(unsigned index);
+    unsigned getCurrentCellAnimIndex() const { return this->currentCellAnim; }
+    void setCurrentCellAnimIndex(unsigned index);
 
-    CellanimGroup& getCurrentCellanim() {
-        return this->cellanims.at(this->currentCellanim);
+    CellAnimGroup& getCurrentCellAnim() {
+        return this->cellanims.at(this->currentCellAnim);
     }
 
-    std::shared_ptr<Texture>& getCurrentCellanimSheet() {
+    std::shared_ptr<Texture>& getCurrentCellAnimSheet() {
         return this->sheets->getTextureByIndex(
-            this->cellanims.at(this->currentCellanim).object->sheetIndex
+            this->cellanims.at(this->currentCellAnim).object->sheetIndex
         );
     }
 
     SelectionState& getCurrentSelectionState() {
-        return this->cellanims.at(this->currentCellanim).selectionState;
+        return this->cellanims.at(this->currentCellAnim).selectionState;
     }
 
 public:
     static constexpr unsigned int COMMANDS_MAX = 512;
 
-    std::vector<CellanimGroup> cellanims;
+    std::vector<CellAnimGroup> cellanims;
     std::shared_ptr<TextureGroup> sheets { std::make_shared<TextureGroup>() };
 
     std::string resourcePath;
@@ -109,7 +109,7 @@ private:
     std::deque<std::shared_ptr<BaseCommand>> undoQueue;
     std::deque<std::shared_ptr<BaseCommand>> redoQueue;
 
-    unsigned currentCellanim { 0 };
+    unsigned currentCellAnim { 0 };
 };
 
 #endif // SESSION_HPP

@@ -28,7 +28,7 @@ static void Popup_EditAnimationName(int animationIndex) {
 
     if (!lateOpen && open) {
         const auto& animation =
-            sessionManager.getCurrentSession()->getCurrentCellanim().object
+            sessionManager.getCurrentSession()->getCurrentCellAnim().object
                 ->animations.at(animationIndex);
 
         strncpy(newName, animation.name.c_str(), sizeof(newName) - 1);
@@ -79,7 +79,7 @@ static void Popup_EditAnimationName(int animationIndex) {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyAnimationName>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 animationIndex,
                 newName
             ));

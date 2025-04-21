@@ -39,7 +39,7 @@ public:
     CellAnimRenderer() = default;
     ~CellAnimRenderer() = default;
 
-    void linkCellanim(std::shared_ptr<CellAnim::CellAnimObject> cellanim_) {
+    void linkCellAnim(std::shared_ptr<CellAnim::CellAnimObject> cellanim_) {
         this->cellanim = cellanim_;
     }
     void linkTextureGroup(std::shared_ptr<TextureGroup> textureGroup_) {

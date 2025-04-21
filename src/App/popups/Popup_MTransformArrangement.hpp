@@ -90,7 +90,7 @@ static void Popup_MTransformArrangement() {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 playerManager.getArrangementIndex(),
                 newArrangement
             ));

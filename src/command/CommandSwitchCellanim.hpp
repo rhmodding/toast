@@ -17,8 +17,8 @@ public:
         sessionIndex(sessionIndex),
         cellanimIndex(cellanimIndex)
     {
-        this->previousCellanim =
-            SessionManager::getInstance().sessions.at(this->sessionIndex).getCurrentCellanimIndex();
+        this->previousCellAnim =
+            SessionManager::getInstance().sessions.at(this->sessionIndex).getCurrentCellAnimIndex();
     }
     ~CommandSwitchCellanim() = default;
 
@@ -26,7 +26,7 @@ public:
         SessionManager& sessionManager = SessionManager::getInstance();
 
         auto& session = sessionManager.sessions.at(this->sessionIndex);
-        session.setCurrentCellanimIndex(this->cellanimIndex);
+        session.setCurrentCellAnimIndex(this->cellanimIndex);
 
         PlayerManager::getInstance().correctState();
     }
@@ -35,7 +35,7 @@ public:
         SessionManager& sessionManager = SessionManager::getInstance();
 
         auto& session = sessionManager.sessions.at(this->sessionIndex);
-        session.setCurrentCellanimIndex(this->previousCellanim);
+        session.setCurrentCellAnimIndex(this->previousCellAnim);
 
         PlayerManager::getInstance().correctState();
     }
@@ -44,7 +44,7 @@ private:
     unsigned sessionIndex;
 
     unsigned cellanimIndex;
-    unsigned previousCellanim;
+    unsigned previousCellAnim;
 };
 
 #endif // COMMANDSWITCHCELLANIM_HPP

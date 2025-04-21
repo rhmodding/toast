@@ -6,6 +6,8 @@
 
 #include <algorithm>
 
+#include <string_view>
+
 #include "../glInclude.hpp"
 
 #include "../Logging.hpp"
@@ -84,7 +86,7 @@ GLint CellAnimRenderer::colorAttrib { -1 };
 
 GLuint CellAnimRenderer::texDrawFramebuffer { 0 };
 
-static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, const std::string& errorMessage) {
+static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, std::string_view errorMessage) {
     GLint success { 0 };
     GLchar error[1024] { '\0' };
 

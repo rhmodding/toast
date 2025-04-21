@@ -23,7 +23,7 @@ CellAnim::Animation& PlayerManager::getAnimation() const {
     if (this->arrangementModeEnabled())
         return arrangementModeAnim;
 
-    return this->getCellanim()->animations.at(this->animationIndex);
+    return this->getCellAnim()->animations.at(this->animationIndex);
 }
 
 static void matchSelectedParts(const CellAnim::Arrangement& before, const CellAnim::Arrangement& after) {
@@ -51,8 +51,8 @@ void PlayerManager::setAnimationIndex(unsigned index) {
 }
 
 void PlayerManager::setKeyIndex(unsigned index) {
-    const auto& keys = this->getCellanim()->animations.at(this->animationIndex).keys;
-    const auto& arrangements = this->getCellanim()->arrangements;
+    const auto& keys = this->getCellAnim()->animations.at(this->animationIndex).keys;
+    const auto& arrangements = this->getCellAnim()->arrangements;
 
     if (keys.at(this->keyIndex).arrangementIndex != keys.at(index).arrangementIndex) {
         matchSelectedParts(
@@ -79,7 +79,7 @@ void PlayerManager::setPlaying(bool playing) {
 }
 
 unsigned PlayerManager::getTotalFrames() const {
-    const auto& animation = this->getCellanim()->animations.at(this->animationIndex);
+    const auto& animation = this->getCellAnim()->animations.at(this->animationIndex);
 
     return std::accumulate(
         animation.keys.begin(), animation.keys.end(), 0u,
@@ -93,7 +93,7 @@ unsigned PlayerManager::getElapsedFrames() const {
     if (!this->playing && this->keyIndex == 0 && this->holdFramesLeft < 1)
         return 0;
 
-    const auto& animation = this->getCellanim()->animations.at(this->animationIndex);
+    const auto& animation = this->getCellAnim()->animations.at(this->animationIndex);
 
     unsigned result = std::accumulate(
         animation.keys.begin(), animation.keys.begin() + this->keyIndex, 0u,
@@ -116,12 +116,12 @@ void PlayerManager::Update() {
 
     this->tickPrev = tickNow;
 
-    const auto& keys = this->getCellanim()->animations.at(this->animationIndex).keys;
-    const auto& arrangements = this->getCellanim()->arrangements;
+    const auto& keys = this->getCellAnim()->animations.at(this->animationIndex).keys;
+    const auto& arrangements = this->getCellAnim()->arrangements;
 
     unsigned arrangementIdxBefore = keys.at(this->keyIndex).arrangementIndex;
 
-    const auto& currentAnimation = this->getCellanim()->animations.at(this->animationIndex);
+    const auto& currentAnimation = this->getCellAnim()->animations.at(this->animationIndex);
 
     while (delta >= this->timeLeft) {
         if (this->holdFramesLeft > 0) {

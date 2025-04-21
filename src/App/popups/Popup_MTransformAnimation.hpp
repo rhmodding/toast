@@ -66,7 +66,7 @@ static void Popup_MTransformAnimation() {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyAnimation>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 playerManager.getAnimationIndex(),
                 animation
             ));

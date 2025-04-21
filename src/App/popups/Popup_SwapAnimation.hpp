@@ -69,7 +69,7 @@ static void Popup_SwapAnimation(int animationIndex) {
             if (ImGui::Button("Apply")) {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandSwapAnimations>(
-                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                     animationIndex,
                     swapAnim,
                     swapNames
@@ -98,7 +98,7 @@ static void Popup_SwapAnimation(int animationIndex) {
             float beginCursorY = ImGui::GetCursorPosY();
 
             const auto& animations = sessionManager.getCurrentSession()
-                ->getCurrentCellanim().object->animations;
+                ->getCurrentCellAnim().object->animations;
 
             for (int n = 0; n < static_cast<int>(animations.size()); n++) {
                 std::ostringstream fmtStream;

@@ -58,7 +58,7 @@ public:
     }
 
     CellAnim::Arrangement& getArrangement() const {
-        return this->getCellanim()->arrangements.at(this->getArrangementIndex());
+        return this->getCellAnim()->arrangements.at(this->getArrangementIndex());
     }
 
     unsigned getKeyCount() const {
@@ -83,11 +83,11 @@ public:
     // the new circumstances.
     void correctState() {
         if (SessionManager::getInstance().getCurrentSessionIndex() >= 0) {
-            unsigned arrangementCount = this->getCellanim()->arrangements.size();
+            unsigned arrangementCount = this->getCellAnim()->arrangements.size();
             if (this->getArrangementModeIdx() >= arrangementCount)
                 this->setArrangementModeIdx(arrangementCount - 1);
 
-            unsigned animCount = this->getCellanim()->animations.size();
+            unsigned animCount = this->getCellAnim()->animations.size();
             unsigned animIndex = std::min(
                 animCount - 1,
                 this->animationIndex
@@ -108,9 +108,9 @@ public:
     OnionSkinState& getOnionSkinState() { return onionSkinState; }
 
 private:
-    const std::shared_ptr<CellAnim::CellAnimObject>& getCellanim() const {
+    const std::shared_ptr<CellAnim::CellAnimObject>& getCellAnim() const {
         return SessionManager::getInstance().getCurrentSession()
-            ->getCurrentCellanim().object;
+            ->getCurrentCellAnim().object;
     }
 
     bool arrangementModeEnabled() const {

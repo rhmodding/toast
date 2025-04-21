@@ -16,7 +16,7 @@ AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
 {}
 
 static void removeAnimationNames(Session* session) {
-    auto& animations = session->getCurrentCellanim().object->animations;
+    auto& animations = session->getCurrentCellAnim().object->animations;
 
     MainThreadTaskManager::getInstance().QueueTask([&animations]() {
         for (auto& animation : animations)
@@ -25,7 +25,7 @@ static void removeAnimationNames(Session* session) {
 }
 
 static void removeUnusedArrangements(Session* session) {
-    std::shared_ptr cellanim = session->getCurrentCellanim().object;
+    std::shared_ptr cellanim = session->getCurrentCellAnim().object;
 
     std::unordered_set<unsigned> usedIndices;
     std::vector<unsigned> toErase;
@@ -67,7 +67,7 @@ static void removeUnusedArrangements(Session* session) {
 }
 
 static void downscaleSpritesheet(Session* session, const OptimizeCellanimOptions& options) {
-    std::shared_ptr sheet = session->getCurrentCellanimSheet();
+    std::shared_ptr sheet = session->getCurrentCellAnimSheet();
 
     unsigned newWidth = sheet->getWidth();
     unsigned newHeight = sheet->getHeight();

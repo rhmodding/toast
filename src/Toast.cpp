@@ -432,9 +432,9 @@ void Toast::Menubar() {
 
                     if (ImGui::MenuItem(
                         fmtStream.str().c_str(), nullptr,
-                        currentSession->getCurrentCellanimIndex() == i
+                        currentSession->getCurrentCellAnimIndex() == i
                     )) {
-                        if (currentSession->getCurrentCellanimIndex() != i) {
+                        if (currentSession->getCurrentCellAnimIndex() != i) {
                             currentSession->addCommand(
                             std::make_shared<CommandSwitchCellanim>(
                                 sessionManager.getCurrentSessionIndex(), i
@@ -522,7 +522,7 @@ void Toast::Menubar() {
                 if (ImGui::MenuItem(".. up")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandMoveAnimationKey>(
-                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getAnimationIndex(),
                         keyIndex,
                         false,
@@ -537,7 +537,7 @@ void Toast::Menubar() {
                 if (ImGui::MenuItem(".. down")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandMoveAnimationKey>(
-                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getAnimationIndex(),
                         keyIndex,
                         true,
@@ -555,7 +555,7 @@ void Toast::Menubar() {
                 if (ImGui::MenuItem(".. after")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandInsertAnimationKey>(
-                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getAnimationIndex(),
                         keyIndex + 1,
                         key
@@ -567,7 +567,7 @@ void Toast::Menubar() {
                 if (ImGui::MenuItem(".. before")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandInsertAnimationKey>(
-                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getAnimationIndex(),
                         keyIndex,
                         key
@@ -584,7 +584,7 @@ void Toast::Menubar() {
             if (ImGui::MenuItem("Delete selected key")) {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteAnimationKey>(
-                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                     playerManager.getAnimationIndex(),
                     playerManager.getKeyIndex()
                 ));
@@ -623,7 +623,7 @@ void Toast::Menubar() {
 
                         sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyAnimationKey>(
-                            sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                             playerManager.getAnimationIndex(),
                             keyIndex,
                             newKey
@@ -649,7 +649,7 @@ void Toast::Menubar() {
             if (ImGui::MenuItem("Delete")) {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteArrangement>(
-                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                     arrangementIndex
                 ));
             }
@@ -706,7 +706,7 @@ void Toast::Menubar() {
             if (ImGui::MenuItem("Delete")) {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteArrangementPart>(
-                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                     playerManager.getArrangementIndex(),
                     selectionState.selectedParts[0].index
                 ));
@@ -781,11 +781,11 @@ void Toast::Menubar() {
 
                         if (ImGui::MenuItem(
                             fmtStream.str().c_str(), nullptr,
-                            session.getCurrentCellanimIndex() == i
+                            session.getCurrentCellAnimIndex() == i
                         )) {
                             ImGui::CloseCurrentPopup();
 
-                            if (session.getCurrentCellanimIndex() != i) {
+                            if (session.getCurrentCellAnimIndex() != i) {
                                 sessionManager.setCurrentSessionIndex(n);
 
                                 session.addCommand(
@@ -802,7 +802,7 @@ void Toast::Menubar() {
                 ImGui::SetItemTooltip(
                     "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
                     session.resourcePath.c_str(),
-                    session.getCurrentCellanim().name.c_str()
+                    session.getCurrentCellAnim().name.c_str()
                 );
 
                 if (!sessionOpen) {

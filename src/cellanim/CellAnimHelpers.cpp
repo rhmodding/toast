@@ -9,11 +9,11 @@
 unsigned CellAnimHelpers::duplicateArrangement(unsigned arrangementIndex) {
     SessionManager& sessionManager = SessionManager::getInstance();
 
-    std::shared_ptr object = sessionManager.getCurrentSession()->getCurrentCellanim().object;
+    std::shared_ptr object = sessionManager.getCurrentSession()->getCurrentCellAnim().object;
 
     sessionManager.getCurrentSession()->addCommand(
     std::make_shared<CommandInsertArrangement>(
-        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
         object->arrangements.size(),
         object->arrangements.at(arrangementIndex)
     ));
@@ -26,7 +26,7 @@ bool CellAnimHelpers::getArrangementUnique(unsigned arrangementIndex) {
 
     const auto& animations =
         SessionManager::getInstance().getCurrentSession()
-            ->getCurrentCellanim().object->animations;
+            ->getCurrentCellAnim().object->animations;
 
     for (const auto& animation : animations) {
         for (const auto& key : animation.keys) {

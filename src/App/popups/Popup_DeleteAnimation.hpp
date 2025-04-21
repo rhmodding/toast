@@ -38,7 +38,7 @@ static void Popup_DeleteAnimation(int animationIndex) {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandDeleteAnimation>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 animationIndex
             ));
         }

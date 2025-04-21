@@ -85,9 +85,9 @@ void WindowHybridList::Update() {
         PlayerManager& playerManager = PlayerManager::getInstance();
 
         const auto& animations = sessionManager.getCurrentSession()
-            ->getCurrentCellanim().object->animations;
+            ->getCurrentCellAnim().object->animations;
         const auto& arrangements = sessionManager.getCurrentSession()
-            ->getCurrentCellanim().object->arrangements;
+            ->getCurrentCellAnim().object->arrangements;
 
         if (!appState.getArrangementMode())
             for (unsigned n = 0; n < animations.size(); n++) {
@@ -117,7 +117,7 @@ void WindowHybridList::Update() {
                     if (ImGui::Selectable("Paste animation..", allowPasteAnimation)) {
                         copyAnimation.name = animations[n].name;
                         command = std::make_shared<CommandModifyAnimation>(
-                            sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                             n,
                             copyAnimation
                         );
@@ -136,7 +136,7 @@ void WindowHybridList::Update() {
                             }
 
                             command = std::make_shared<CommandModifyAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 n,
                                 newAnimation
                             );
@@ -144,7 +144,7 @@ void WindowHybridList::Update() {
 
                         if (ImGui::MenuItem("..name")) {
                             command = std::make_shared<CommandModifyAnimationName>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 n,
                                 copyAnimation.name
                             );
@@ -187,7 +187,7 @@ void WindowHybridList::Update() {
 
                     if (ImGui::Selectable("Insert new arrangement above")) {
                         command = std::make_shared<CommandInsertArrangement>(
-                            sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                             n+1,
                             CellAnim::Arrangement()
                         );
@@ -196,7 +196,7 @@ void WindowHybridList::Update() {
                     }
                     if (ImGui::Selectable("Insert new arrangement below")) {
                         command = std::make_shared<CommandInsertArrangement>(
-                            sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                             n,
                             CellAnim::Arrangement()
                         );
@@ -209,7 +209,7 @@ void WindowHybridList::Update() {
                     if (ImGui::BeginMenu("Paste arrangement..", allowPasteArrangement)) {
                         if (ImGui::MenuItem("..above")) {
                             command = std::make_shared<CommandInsertArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 n+1,
                                 copyArrangement
                             );
@@ -218,7 +218,7 @@ void WindowHybridList::Update() {
                         }
                         if (ImGui::MenuItem("..below")) {
                             command = std::make_shared<CommandInsertArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 n,
                                 copyArrangement
                             );
@@ -230,7 +230,7 @@ void WindowHybridList::Update() {
 
                         if (ImGui::MenuItem("..here (replace)")) {
                             command = std::make_shared<CommandModifyArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 n,
                                 copyArrangement
                             );
@@ -248,7 +248,7 @@ void WindowHybridList::Update() {
 
                     if (ImGui::Selectable("Delete arrangement")) {
                         command = std::make_shared<CommandDeleteArrangement>(
-                            sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                             n
                         );
                     }

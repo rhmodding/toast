@@ -34,7 +34,7 @@ void WindowInspector::drawPreview() {
 
     const auto& currentSession = SessionManager::getInstance().getCurrentSession();
 
-    this->previewRenderer.linkCellanim(currentSession->getCurrentCellanim().object);
+    this->previewRenderer.linkCellAnim(currentSession->getCurrentCellAnim().object);
     this->previewRenderer.linkTextureGroup(currentSession->sheets);
 
     this->previewRenderer.scaleX = 1.f;

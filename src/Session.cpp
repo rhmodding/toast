@@ -44,11 +44,11 @@ void Session::redo() {
     this->modified = true;
 }
 
-void Session::setCurrentCellanimIndex(unsigned index) {
+void Session::setCurrentCellAnimIndex(unsigned index) {
     if (index >= this->cellanims.size())
         return;
 
-    this->currentCellanim = index;
+    this->currentCellAnim = index;
     const auto& cellanim = this->cellanims.at(index);
 
     this->sheets->setBaseTextureIndex(cellanim.object->sheetIndex);
@@ -57,5 +57,5 @@ void Session::setCurrentCellanimIndex(unsigned index) {
     PlayerManager::getInstance().correctState();
 
     Logging::info <<
-        "[Session::setCurrentCellanimIndex] Selected cellanim no. " << index+1 << " (\"" << cellanim.name << "\")." << std::endl;
+        "[Session::setCurrentCellAnimIndex] Selected cellanim no. " << index+1 << " (\"" << cellanim.name << "\")." << std::endl;
 }

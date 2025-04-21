@@ -487,7 +487,7 @@ int SessionManager::CreateSession(const char* filePath) {
     newSession.type = type;
 
     newSession.resourcePath = filePath;
-    newSession.setCurrentCellanimIndex(0);
+    newSession.setCurrentCellAnimIndex(0);
 
     std::lock_guard<std::mutex> lock(this->mtx);
 

@@ -274,7 +274,7 @@ static void _ApplyInterpolation(
     AppState& appState = AppState::getInstance();
 
     auto& arrangements = SessionManager::getInstance().getCurrentSession()
-        ->getCurrentCellanim().object->arrangements;
+        ->getCurrentCellAnim().object->arrangements;
 
     const CellAnim::Arrangement* endArrangement = &arrangements.at(backKey->arrangementIndex);
 
@@ -360,7 +360,7 @@ static void _ApplyInterpolation(
 
     sessionManager.getCurrentSession()->addCommand(
     std::make_shared<CommandModifyAnimation>(
-        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
         animationIndex,
         newAnim
     ));

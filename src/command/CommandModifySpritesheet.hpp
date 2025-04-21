@@ -23,8 +23,8 @@ public:
 
         Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
-        currentSession->getCurrentCellanim().object->sheetW = this->newSheet->getWidth();
-        currentSession->getCurrentCellanim().object->sheetH = this->newSheet->getHeight();
+        currentSession->getCurrentCellAnim().object->sheetW = this->newSheet->getWidth();
+        currentSession->getCurrentCellAnim().object->sheetH = this->newSheet->getHeight();
         currentSession->modified = true;
     }
 
@@ -33,8 +33,8 @@ public:
         
         Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
-        currentSession->getCurrentCellanim().object->sheetW = this->oldSheet->getWidth();
-        currentSession->getCurrentCellanim().object->sheetH = this->oldSheet->getHeight();
+        currentSession->getCurrentCellAnim().object->sheetW = this->oldSheet->getWidth();
+        currentSession->getCurrentCellAnim().object->sheetH = this->oldSheet->getHeight();
 
         currentSession->modified = true;
     }

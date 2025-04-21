@@ -102,7 +102,7 @@ void WindowSpritesheet::FormatPopup() {
         SessionManager& sessionManager = SessionManager::getInstance();
 
         std::shared_ptr cellanimSheet =
-            sessionManager.getCurrentSession()->getCurrentCellanimSheet();
+            sessionManager.getCurrentSession()->getCurrentCellAnimSheet();
 
         const bool isRVL = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL;
 
@@ -454,7 +454,7 @@ void WindowSpritesheet::FormatPopup() {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifySpritesheet>(
                     sessionManager.getCurrentSession()
-                        ->getCurrentCellanim().object->sheetIndex,
+                        ->getCurrentCellAnim().object->sheetIndex,
                     this->formattingNewTex
                 ));
 
@@ -529,8 +529,8 @@ bool RepackSheet() {
     SessionManager& sessionManager = SessionManager::getInstance();
 
     auto& session = *sessionManager.getCurrentSession();
-    std::shared_ptr cellanimSheet = session.getCurrentCellanimSheet();
-    std::shared_ptr cellanimObject = session.getCurrentCellanim().object;
+    std::shared_ptr cellanimSheet = session.getCurrentCellAnimSheet();
+    std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
 
     auto arrangements = cellanimObject->arrangements; // Copy
 
@@ -627,7 +627,7 @@ bool RepackSheet() {
         cellanimObject->sheetIndex, newTexture
     ));
     session.addCommand(std::make_shared<CommandModifyArrangements>(
-        session.getCurrentCellanimIndex(), std::move(arrangements)
+        session.getCurrentCellAnimIndex(), std::move(arrangements)
     ));
 
     return true;
@@ -639,8 +639,8 @@ bool FixSheetEdgePixels() {
 
     auto& session = *sessionManager.getCurrentSession();
 
-    std::shared_ptr cellanimObject = session.getCurrentCellanim().object;
-    std::shared_ptr cellanimSheet = session.getCurrentCellanimSheet();
+    std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
+    std::shared_ptr cellanimSheet = session.getCurrentCellAnimSheet();
 
     const unsigned width = cellanimSheet->getWidth();
     const unsigned height = cellanimSheet->getHeight();
@@ -704,7 +704,7 @@ void WindowSpritesheet::Update() {
 
     SessionManager& sessionManager = SessionManager::getInstance();
 
-    std::shared_ptr cellanimSheet = sessionManager.getCurrentSession()->getCurrentCellanimSheet();
+    std::shared_ptr cellanimSheet = sessionManager.getCurrentSession()->getCurrentCellAnimSheet();
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
     ImGui::Begin("Spritesheet", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar);
@@ -802,7 +802,7 @@ void WindowSpritesheet::Update() {
                         sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifySpritesheet>(
                             sessionManager.getCurrentSession()
-                                ->getCurrentCellanim().object->sheetIndex,
+                                ->getCurrentCellAnim().object->sheetIndex,
                             newTexture
                         ));
 
@@ -1006,7 +1006,7 @@ void WindowSpritesheet::Update() {
         const auto& session = sessionManager.getCurrentSession();
 
         const auto& textureGroup = session->sheets;
-        const std::shared_ptr cellanimObject = session->getCurrentCellanim().object;
+        const std::shared_ptr cellanimObject = session->getCurrentCellAnim().object;
 
         const auto& arrangement = playerManager.getArrangement();
 

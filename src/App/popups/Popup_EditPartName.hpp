@@ -47,7 +47,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
     if (!lateOpen && open) {
         const CellAnim::ArrangementPart& part =
             sessionManager.getCurrentSession()
-                ->getCurrentCellanim().object
+                ->getCurrentCellAnim().object
                 ->arrangements.at(arrangementIndex).parts.at(partIndex);
 
         if (!part.editorName.empty())
@@ -68,14 +68,14 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
         if (ImGui::Button("OK", { 120.f, 0.f })) {
             CellAnim::ArrangementPart newPart =
                 sessionManager.getCurrentSession()
-                ->getCurrentCellanim().object
+                ->getCurrentCellAnim().object
                 ->arrangements.at(arrangementIndex).parts.at(partIndex);
 
             newPart.editorName = newName;
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 arrangementIndex, partIndex,
                 newPart
             ));

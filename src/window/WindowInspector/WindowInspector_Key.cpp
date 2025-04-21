@@ -41,7 +41,7 @@ void WindowInspector::Level_Key() {
     ImGui::SameLine();
 
     const auto& arrangements = sessionManager.getCurrentSession()
-        ->getCurrentCellanim().object->arrangements;
+        ->getCurrentCellAnim().object->arrangements;
 
     unsigned animationIndex = playerManager.getAnimationIndex();
     const char* animationName = playerManager.getAnimation().name.c_str();
@@ -259,7 +259,7 @@ void WindowInspector::Level_Key() {
 
         sessionManager.getCurrentSession()->addCommand(
         std::make_shared<CommandModifyAnimationKey>(
-            sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
             playerManager.getAnimationIndex(),
             playerManager.getKeyIndex(),
             newKey

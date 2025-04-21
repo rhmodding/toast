@@ -112,7 +112,7 @@ void WindowInspector::Level_Arrangement() {
     static std::vector<CellAnim::ArrangementPart> copyParts;
 
     const auto& arrangements = sessionManager.getCurrentSession()
-        ->getCurrentCellanim().object->arrangements;
+        ->getCurrentCellAnim().object->arrangements;
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
@@ -167,7 +167,7 @@ void WindowInspector::Level_Arrangement() {
 
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandModifyAnimationKey>(
-                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getAnimationIndex(),
                         playerManager.getKeyIndex(),
                         newKey
@@ -411,7 +411,7 @@ void WindowInspector::Level_Arrangement() {
 
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifyArrangementPart>(
-                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                     playerManager.getArrangementIndex(),
                     selectionState.selectedParts.at(0).index,
                     newPart
@@ -558,7 +558,7 @@ void WindowInspector::Level_Arrangement() {
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getArrangementIndex(),
                                 newArrangement
                             ));
@@ -578,7 +578,7 @@ void WindowInspector::Level_Arrangement() {
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getArrangementIndex(),
                                 newArrangement
                             ));
@@ -615,7 +615,7 @@ void WindowInspector::Level_Arrangement() {
 
                             sessionManager.getCurrentSession()->addCommand(
                                 std::make_shared<CommandModifyArrangement>(
-                                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                     playerManager.getArrangementIndex(),
                                     newArrangement
                                 )
@@ -641,7 +641,7 @@ void WindowInspector::Level_Arrangement() {
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyArrangementPart>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getArrangementIndex(),
                                 n,
                                 newPart
@@ -657,7 +657,7 @@ void WindowInspector::Level_Arrangement() {
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyArrangementPart>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getArrangementIndex(),
                                 n,
                                 newPart
@@ -678,7 +678,7 @@ void WindowInspector::Level_Arrangement() {
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyArrangementPart>(
-                                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 playerManager.getArrangementIndex(),
                                 n,
                                 newPart
@@ -797,7 +797,7 @@ void WindowInspector::Level_Arrangement() {
                 if (ImGui::SmallButton((const char*)ICON_FA_ARROW_UP "")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandMoveArrangementPart>(
-                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getArrangementIndex(),
                         n,
                         false
@@ -812,7 +812,7 @@ void WindowInspector::Level_Arrangement() {
                 if (ImGui::SmallButton((const char*)ICON_FA_ARROW_DOWN "")) {
                     sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandMoveArrangementPart>(
-                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getArrangementIndex(),
                         n,
                         true
@@ -838,7 +838,7 @@ void WindowInspector::Level_Arrangement() {
 
                 sessionManager.getCurrentSession()->addCommand(
                     std::make_shared<CommandModifyArrangement>(
-                        sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getArrangementIndex(),
                         newArrangement
                     )
@@ -853,7 +853,7 @@ void WindowInspector::Level_Arrangement() {
         if (selDeleteSingle >= 0) {
             sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandDeleteArrangementPart>(
-                    sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                     playerManager.getArrangementIndex(),
                     selDeleteSingle
                 )
@@ -863,7 +863,7 @@ void WindowInspector::Level_Arrangement() {
         if (insertNewPart >= 0) {
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandInsertArrangementPart>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 playerManager.getArrangementIndex(),
                 insertNewPart,
                 CellAnim::ArrangementPart {}

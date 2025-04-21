@@ -20,7 +20,7 @@ static void Popup_SpritesheetManager() {
     if (ImGui::BeginPopupModal("Spritesheet Manager###SpritesheetManager", &shouldStayOpen)) {
         if (ImGui::IsWindowAppearing())
             selectedSheet = sessionManager.getCurrentSession()
-                ->getCurrentCellanim().object->sheetIndex;
+                ->getCurrentCellAnim().object->sheetIndex;
 
         if (shouldStayOpen == false)
             ImGui::CloseCurrentPopup();
