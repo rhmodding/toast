@@ -204,7 +204,7 @@ Toast::Toast(int argc, const char** argv) {
 
     themeManager.applyTheming();
 
-    CellanimRenderer::InitShader();
+    CellAnimRenderer::InitShader();
 
     glfwSetDropCallback(this->glfwWindowHndl, [](GLFWwindow*, int pathCount, const char** paths) {
         for (int i = 0; i < pathCount; i++) {
@@ -242,7 +242,7 @@ Toast::~Toast() {
     SessionManager::getInstance().RemoveAllSessions();
     SessionManager::destroySingleton();
 
-    CellanimRenderer::DestroyShader();
+    CellAnimRenderer::DestroyShader();
 
     AppState::destroySingleton();
     ConfigManager::destroySingleton();

@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "../cellanim/CellanimRenderer.hpp"
+#include "../cellanim/CellAnimRenderer.hpp"
 
 class WindowCanvas : public BaseWindow {
 public:
@@ -37,7 +37,7 @@ public:
     uint8_t safeAreaAlpha { 255 };
 
 private:
-    CellanimRenderer cellanimRenderer;
+    CellAnimRenderer cellanimRenderer;
 
     ImVec2 canvasTopLeft;
     ImVec2 canvasSize;

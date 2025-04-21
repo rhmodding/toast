@@ -43,7 +43,7 @@ set(SOURCES
 
     src/App/Popups.cpp
 
-    src/cellanim/CellanimRenderer.cpp
+    src/cellanim/CellAnimRenderer.cpp
     src/cellanim/CellAnim.cpp
 
     src/cellanim/CellAnimHelpers.cpp

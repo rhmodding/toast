@@ -12,7 +12,7 @@
 
 #include "../texture/TextureGroup.hpp"
 
-class CellanimRenderer {
+class CellAnimRenderer {
 public:
     static void InitShader();
     static void DestroyShader();
@@ -36,8 +36,8 @@ private:
     static GLuint texDrawFramebuffer;
 
 public:
-    CellanimRenderer() = default;
-    ~CellanimRenderer() = default;
+    CellAnimRenderer() = default;
+    ~CellAnimRenderer() = default;
 
     void linkCellanim(std::shared_ptr<CellAnim::CellAnimObject> cellanim_) {
         this->cellanim = cellanim_;

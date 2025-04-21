@@ -5,7 +5,7 @@
 
 #include <imgui.h>
 
-#include "../cellanim/CellanimRenderer.hpp"
+#include "../cellanim/CellAnimRenderer.hpp"
 
 class WindowInspector : public BaseWindow {
 public:
@@ -26,7 +26,7 @@ private:
     void Level_Key();
     void Level_Arrangement();
 
-    CellanimRenderer previewRenderer;
+    CellAnimRenderer previewRenderer;
 
     ImVec2 windowSize;
 };

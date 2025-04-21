@@ -72,7 +72,7 @@ static bool pointInPolygon(const ImVec2& point, const ImVec2* vertices, unsigned
 constexpr float BOUNDING_INVALID = std::numeric_limits<float>::max();
 
 // Calculate quad bounding of all selected parts
-static std::array<ImVec2, 4> calculatePartsBounding(const CellanimRenderer& renderer, const CellAnim::Arrangement& arrangement, float& quadRotation) {
+static std::array<ImVec2, 4> calculatePartsBounding(const CellAnimRenderer& renderer, const CellAnim::Arrangement& arrangement, float& quadRotation) {
     std::array<ImVec2, 4> partsBounding ({
         ImVec2(BOUNDING_INVALID, BOUNDING_INVALID),
         ImVec2(BOUNDING_INVALID, BOUNDING_INVALID),
