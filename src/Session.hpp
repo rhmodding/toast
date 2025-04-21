@@ -63,13 +63,16 @@ public:
 public:
     void addCommand(std::shared_ptr<BaseCommand> command);
 
+    bool canUndo() const { return !this->undoQueue.empty(); }
     void undo();
+
+    bool canRedo() const { return !this->redoQueue.empty(); }
     void redo();
 
-    bool canUndo() const { return !this->undoQueue.empty(); }
-    bool canRedo() const { return !this->redoQueue.empty(); }
-
-    void clearUndoRedo() { this->undoQueue.clear(); this->redoQueue.clear(); };
+    void clearUndoRedo() {
+        this->undoQueue.clear();
+        this->redoQueue.clear();
+    };
 
     unsigned getCurrentCellanimIndex() const { return this->currentCellanim; }
     void setCurrentCellanimIndex(unsigned index);
@@ -100,7 +103,7 @@ public:
 
     bool modified { false };
 
-    CellAnim::CellAnimType type;
+    CellAnim::CellAnimType type { CellAnim::CELLANIM_TYPE_INVALID };
 
 private:
     std::deque<std::shared_ptr<BaseCommand>> undoQueue;
