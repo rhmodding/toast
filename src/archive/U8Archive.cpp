@@ -76,15 +76,15 @@ public:
 
 namespace U8Archive {
 
-File::File(const std::string& n) :
-    name(n)
+File::File(std::string n) :
+    name(std::move(n))
 {}
 
-Directory::Directory(const std::string& n) :
-    name(n)
+Directory::Directory(std::string n) :
+    name(std::move(n))
 {}
-Directory::Directory(const std::string& n, Directory* parentDir) :
-    name(n), parent(parentDir)
+Directory::Directory(std::string n, Directory* parentDir) :
+    name(std::move(n)), parent(parentDir)
 {}
 
 void Directory::AddFile(File& file) {
@@ -112,10 +112,6 @@ void Directory::SortAlphabetically() {
     this->subdirectories.sort([](const Directory& a, const Directory& b) {
         return a.name < b.name;
     });
-}
-
-Directory* Directory::GetParent() const {
-    return this->parent;
 }
 
 U8ArchiveObject::U8ArchiveObject(const unsigned char* data, const size_t dataSize) {

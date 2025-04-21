@@ -23,22 +23,20 @@ class Directory;
 
 class File {
 public:
+    File(std::string n);
+
+public:
     std::string name;
 
     std::vector<unsigned char> data;
 
     Directory* parent { nullptr };
-
-    File(const std::string& n);
 };
 
 class Directory {
 public:
-    std::string name;
-    std::list<File> files;
-    std::list<Directory> subdirectories;
-
-    Directory* parent { nullptr };
+    Directory(std::string n);
+    Directory(std::string n, Directory* parentDir);
 
     void AddFile(File& file);
     void AddFile(File&& file);
@@ -48,10 +46,14 @@ public:
 
     void SortAlphabetically();
 
-    Directory(const std::string& n);
-    Directory(const std::string& n, Directory* parentDir);
+public:
+    std::string name;
 
-    Directory* GetParent() const;
+    // We use a linked list since files and directories hold pointers to their parent.
+    std::list<File> files;
+    std::list<Directory> subdirectories;
+
+    Directory* parent { nullptr };
 };
 
 class U8ArchiveObject {
