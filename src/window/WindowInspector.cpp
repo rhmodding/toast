@@ -6,7 +6,7 @@
 
 #include "../ThemeManager.hpp"
 
-#include "../cellanim/CellanimHelpers.hpp"
+#include "../cellanim/CellAnimHelpers.hpp"
 
 #include "../command/CommandSetArrangementMode.hpp"
 
@@ -63,12 +63,12 @@ void WindowInspector::drawPreview() {
 void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey, const CellAnim::AnimationKey& originalKey) {
     const PlayerManager& playerManager = PlayerManager::getInstance();
 
-    bool arrangementUnique = CellanimHelpers::getArrangementUnique(playerManager.getArrangementIndex());
+    bool arrangementUnique = CellAnimHelpers::getArrangementUnique(playerManager.getArrangementIndex());
     ImGui::BeginDisabled(arrangementUnique);
 
     if (ImGui::Button("Make arrangement unique (duplicate)"))
         newKey.arrangementIndex =
-            CellanimHelpers::duplicateArrangement(originalKey.arrangementIndex);
+            CellAnimHelpers::duplicateArrangement(originalKey.arrangementIndex);
 
     ImGui::EndDisabled();
 
@@ -85,7 +85,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
 
         if (ImGui::Selectable("Ok"))
             newKey.arrangementIndex =
-                CellanimHelpers::duplicateArrangement(originalKey.arrangementIndex);
+                CellAnimHelpers::duplicateArrangement(originalKey.arrangementIndex);
         ImGui::Selectable("Nevermind");
 
         ImGui::EndPopup();

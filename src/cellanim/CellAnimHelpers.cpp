@@ -1,4 +1,4 @@
-#include "CellanimHelpers.hpp"
+#include "CellAnimHelpers.hpp"
 
 #include <memory>
 
@@ -6,7 +6,7 @@
 
 #include "../command/CommandInsertArrangement.hpp"
 
-unsigned CellanimHelpers::duplicateArrangement(unsigned arrangementIndex) {
+unsigned CellAnimHelpers::duplicateArrangement(unsigned arrangementIndex) {
     SessionManager& sessionManager = SessionManager::getInstance();
 
     std::shared_ptr object = sessionManager.getCurrentSession()->getCurrentCellanim().object;
@@ -21,7 +21,7 @@ unsigned CellanimHelpers::duplicateArrangement(unsigned arrangementIndex) {
     return object->arrangements.size() - 1;
 }
 
-bool CellanimHelpers::getArrangementUnique(unsigned arrangementIndex) {
+bool CellAnimHelpers::getArrangementUnique(unsigned arrangementIndex) {
     unsigned timesUsed { 0 };
 
     const auto& animations =

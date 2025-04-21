@@ -32,7 +32,7 @@
 #include "command/CommandMoveAnimationKey.hpp"
 #include "command/CommandInsertAnimationKey.hpp"
 
-#include "cellanim/CellanimHelpers.hpp"
+#include "cellanim/CellAnimHelpers.hpp"
 
 #include "task/AsyncTaskManager.hpp"
 
@@ -611,11 +611,11 @@ void Toast::Menubar() {
                 const unsigned keyIndex = playerManager.getKeyIndex();
                 auto& key = playerManager.getKey();
 
-                bool arrangementUnique = CellanimHelpers::getArrangementUnique(key.arrangementIndex);
+                bool arrangementUnique = CellAnimHelpers::getArrangementUnique(key.arrangementIndex);
                 ImGui::BeginDisabled(arrangementUnique);
 
                 if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
-                    unsigned newIndex = CellanimHelpers::duplicateArrangement(key.arrangementIndex);
+                    unsigned newIndex = CellAnimHelpers::duplicateArrangement(key.arrangementIndex);
 
                     if (!appState.getArrangementMode()) {
                         auto newKey = key;

@@ -46,7 +46,7 @@ set(SOURCES
     src/cellanim/CellanimRenderer.cpp
     src/cellanim/CellAnim.cpp
 
-    src/cellanim/CellanimHelpers.cpp
+    src/cellanim/CellAnimHelpers.cpp
 
     src/archive/SARC.cpp
     src/archive/U8Archive.cpp
