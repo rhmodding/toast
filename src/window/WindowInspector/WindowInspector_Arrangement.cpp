@@ -259,7 +259,14 @@ void WindowInspector::Level_Arrangement() {
                     newPart.transform.angle = newValue;
                 },
                 [](const char* label, float* value) {
-                    return ImGui::SliderFloat(label, value, -360.f, 360.f, "%.1f deg");
+                    bool changed = ImGui::SliderFloat(label, value, -360.f, 360.f, "%.1f deg");
+                #if defined(__APPLE__)
+                    ImGui::SetItemTooltip("Command+Click to input a rotation value.");
+                #else
+                    ImGui::SetItemTooltip("Ctrl+Click to input a rotation value.");
+                #endif
+
+                    return changed;
                 }
             );
 
