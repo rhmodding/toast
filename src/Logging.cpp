@@ -25,13 +25,12 @@ Logging::LogStream& Logging::LogStream::operator<<(
 }
 
 std::string Logging::LogStream::getTimestamp() {
-    auto now = std::chrono::system_clock::now();
-    std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
 
-    std::tm localTm {};
-
-#ifdef _WIN32
-    localtime_s(&local_tm, &nowTime);
+    std::tm localTm;
+#if defined(_WIN32)
+    localtime_s(&localTm, &nowTime);
 #else
     localtime_r(&nowTime, &localTm);
 #endif
@@ -43,19 +42,20 @@ std::string Logging::LogStream::getTimestamp() {
 }
 
 void Logging::LogStream::flush() {
-    std::string timestamp = getTimestamp();
+    const std::string timestamp = getTimestamp();
+    const std::string finalMessage = timestamp + " " + logPrefix + buffer.str();
 
-    std::string finalMessage = timestamp + " " + logPrefix + buffer.str();
-    outStream << finalMessage << std::endl;
-    outStream.flush();
+    if (outStream) {
+        outStream << finalMessage << '\n';
+        outStream.flush();
+    }
 
     if (logFile.is_open()) {
-        logFile << finalMessage << std::endl;
+        logFile << finalMessage << '\n';
         logFile.flush();
     }
 
-    // Clear buffer.
-    buffer.str("");
+    buffer.str({});
     buffer.clear();
 }
 
