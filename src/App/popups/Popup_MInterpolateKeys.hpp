@@ -20,70 +20,83 @@
 
 namespace _Bezier {
 
-static void EvalBezier(const float P[4], ImVec2* results, unsigned stepCount) {
+// results must be ImVec2[stepCount + 1]
+static void EvalBezierSteps(const float P[4], ImVec2* results, unsigned stepCount) {
+    if (stepCount == 0)
+        return;
+
     const float step = 1.f / stepCount;
-
     float t = step;
-    for (unsigned i = 1; i <= stepCount; i++, t += step) {
+
+    for (unsigned i = 1; i <= stepCount; ++i, t += step) {
         float u = 1.f - t;
-
         float t2 = t * t;
-
         float t3 = t2 * t;
-        float b1 = 3.f * u * u * t;
-        float b2 = 3.f * u * t2;
+        float u2 = u * u;
 
-        results[i] = {
-            b1 * P[0] + b2 * P[2] + t3,
-            b1 * P[1] + b2 * P[3] + t3
-        };
+        float b0 = u2 * u;
+        float b1 = 3.f * u2 * t;
+        float b2 = 3.f * u * t2;
+        float b3 = t3;
+
+        results[i] = ImVec2(
+            b0 * 0.f + b1 * P[0] + b2 * P[2] + b3 * 1.f,
+            b0 * 0.f + b1 * P[1] + b2 * P[3] + b3 * 1.f
+        );
     }
 }
 
-static ImVec2 BezierValue(const float x, const float P[4], unsigned steps = 256) {
-    ImVec2 closestPoint { 0.f, 0.f };
-    float closestDistance = fabsf(x);
-
-    const float step = 1.f / steps;
-
-    float t = step;
-    for (unsigned i = 1; i <= steps; i++, t += step) {
+// Newton-Raphson
+// Results in a tiny X error (usually not more than about +- 0.0000006 on 10 iterations).
+static ImVec2 BezierValue(const float x, const float P[4], unsigned maxIterations = 10) {
+    float t = x; // Initial guess for t
+    
+    for (unsigned i = 0; i < maxIterations; ++i) {
         float u = 1.f - t;
 
-        float t2 = t * t;
+        float tt = t * t;
+        float uu = u * u;
 
-        float t3 = t2 * t;
-        float b1 = 3.f * u * u * t;
-        float b2 = 3.f * u * t2;
+        float bezX = 3.f * uu * t * P[0] + 3.f * u * tt * P[2] + tt * t;
 
-        ImVec2 point = {
-            b1 * P[0] + b2 * P[2] + t3,
-            b1 * P[1] + b2 * P[3] + t3
-        };
+        float dBezX = 3.f * uu * P[0]
+                    + 6.f * u * t * (P[2] - P[0])
+                    + 3.f * tt * (1.f - P[2]);
 
-        float distance = fabsf(x - point.x);
-        if (distance < closestDistance) {
-            closestDistance = distance;
-            closestPoint = point;
-        }
-        else
+        if (fabsf(dBezX) < 1e-5f)
             break;
+
+        float delta = bezX - x;
+        t -= delta / dBezX;
+
+        t = std::clamp<float>(t, 0.f, 1.f);
     }
 
-    return closestPoint;
+    float u = 1.f - t;
+    float tt = t * t;
+    float uu = u * u;
+
+    float b1 = 3.f * uu * t;
+    float b2 = 3.f * u * tt;
+    float t3 = tt * t;
+
+    return ImVec2(
+        b1 * P[0] + b2 * P[2] + t3,
+        b1 * P[1] + b2 * P[3] + t3
+    );
 }
 
-static float BezierValueY(const float x, const float P[4], unsigned steps = 256) {
-    return BezierValue(x, P, steps).y;
+static float BezierValueY(const float x, const float P[4], unsigned maxIterations = 10) {
+    return BezierValue(x, P, maxIterations).y;
 }
 
 static bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
-    const int LINE_SEGMENTS = 32; // Line segments in rendered curve
-    const int CURVE_WIDTH = 4; // Curve line width
+    constexpr int LINE_SEGMENTS = 32; // Line segments in rendered curve
+    constexpr int CURVE_WIDTH = 4; // Curve line width
 
-    const int LINE_WIDTH = 1; // Handles: connecting line width
-    const int GRAB_RADIUS = 6; // Handles: circle radius
-    const int GRAB_BORDER = 2; // Handles: circle border width
+    constexpr int LINE_WIDTH = 1; // Handles: connecting line width
+    constexpr int GRAB_RADIUS = 6; // Handles: circle radius
+    constexpr int GRAB_BORDER = 2; // Handles: circle border width
 
     const ImGuiStyle& style = ImGui::GetStyle();
     const ImGuiIO& IO = ImGui::GetIO();
@@ -157,7 +170,7 @@ static bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 
     // Evaluate curve
     std::array<ImVec2, LINE_SEGMENTS + 1> results;
-    EvalBezier(P, results.data(), LINE_SEGMENTS);
+    EvalBezierSteps(P, results.data(), LINE_SEGMENTS);
 
     // Drawing & handle drag behaviour
     {
@@ -267,8 +280,8 @@ static bool Widget(const char* label, float P[4], bool handlesEnabled = true) {
 
 static void _ApplyInterpolation(
     const std::array<float, 4>& curve,
-    int interval,
-    const CellAnim::AnimationKey* backKey, const CellAnim::AnimationKey* frontKey,
+    int interval, // Spacing between frames.
+    const CellAnim::AnimationKey& backKey, const CellAnim::AnimationKey& frontKey,
     const CellAnim::Animation& animation, unsigned animationIndex
 ) {
     AppState& appState = AppState::getInstance();
@@ -276,38 +289,44 @@ static void _ApplyInterpolation(
     auto& arrangements = SessionManager::getInstance().getCurrentSession()
         ->getCurrentCellAnim().object->arrangements;
 
-    const CellAnim::Arrangement* endArrangement = &arrangements.at(backKey->arrangementIndex);
+    int addKeysCount = (backKey.holdFrames / interval) - 1;
+    if (addKeysCount <= 0)
+        return;
 
-    std::vector<CellAnim::AnimationKey> addKeys((backKey->holdFrames / interval) - 1);
+    std::vector<CellAnim::AnimationKey> addKeys(addKeysCount);
 
-    for (unsigned i = 0; i < addKeys.size(); i++) {
+    unsigned totalFrames = interval;
+    for (unsigned i = 0; i < addKeysCount; i++) {
         CellAnim::AnimationKey& newKey = addKeys[i];
-        newKey = *backKey;
+        newKey = backKey;
 
-        float t = _Bezier::BezierValueY((((i+1) * interval)) / (float)backKey->holdFrames, curve.data(), addKeys.size()*2);
+        float t = _Bezier::BezierValueY((((i+1) * interval)) / (float)backKey.holdFrames, curve.data());
 
         newKey.holdFrames = interval;
+        totalFrames += interval;
 
-        newKey.transform = newKey.transform.lerp(frontKey->transform, t);
-        newKey.opacity = std::clamp<int>(
-            LERP_INTS(backKey->opacity, frontKey->opacity, t),
+        newKey.transform = newKey.transform.lerp(frontKey.transform, t);
+        newKey.opacity = static_cast<uint8_t>(std::clamp<int>(
+            LERP_INTS(backKey.opacity, frontKey.opacity, t),
             0x00, 0xFF
-        );
+        ));
 
-        newKey.foreColor = newKey.foreColor.lerp(frontKey->foreColor, t);
-        newKey.backColor = newKey.backColor.lerp(frontKey->backColor, t);
+        newKey.foreColor = newKey.foreColor.lerp(frontKey.foreColor, t);
+        newKey.backColor = newKey.backColor.lerp(frontKey.backColor, t);
 
         // Create new interpolated arrangement if not equal
-        if (backKey->arrangementIndex != frontKey->arrangementIndex) {
-            CellAnim::Arrangement newArrangement = arrangements.at(backKey->arrangementIndex);
+        if (backKey.arrangementIndex != frontKey.arrangementIndex) {
+            CellAnim::Arrangement newArrangement = arrangements.at(backKey.arrangementIndex);
 
             for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
+                const CellAnim::Arrangement& endArrangement = arrangements.at(frontKey.arrangementIndex);
+                
                 auto& part = newArrangement.parts.at(j);
 
-                unsigned jClamp = std::min<unsigned>(j, endArrangement->parts.size() - 1);
-                int nameMatcher = SelectionState::getMatchingNamePartIndex(part, *endArrangement);
+                unsigned jClamp = std::min<unsigned>(j, endArrangement.parts.size() - 1);
+                int nameMatcher = SelectionState::getMatchingNamePartIndex(part, endArrangement);
 
-                const auto* endPart = &endArrangement->parts.at(nameMatcher >= 0 ? nameMatcher : jClamp);
+                const auto* endPart = &endArrangement.parts.at(nameMatcher >= 0 ? nameMatcher : jClamp);
 
                 if (nameMatcher < 0 && (
                     endPart->regionX != part.regionX ||
@@ -315,10 +334,10 @@ static void _ApplyInterpolation(
                     endPart->regionW != part.regionW ||
                     endPart->regionH != part.regionH
                 )) {
-                    int mrpi = SelectionState::getMatchingRegionPartIndex(part, *endArrangement);
+                    int mrpi = SelectionState::getMatchingRegionPartIndex(part, endArrangement);
 
                     if (mrpi >= 0)
-                        endPart = &endArrangement->parts.at(mrpi);
+                        endPart = &endArrangement.parts.at(mrpi);
                 }
                 part.transform = part.transform.lerp(endPart->transform, t);
 
@@ -344,8 +363,6 @@ static void _ApplyInterpolation(
 
             newKey.arrangementIndex = arrangements.size();
             arrangements.push_back(newArrangement);
-
-            endArrangement = &arrangements.at(frontKey->arrangementIndex);
         }
     }
 
@@ -529,7 +546,7 @@ static void Popup_MInterpolateKeys() {
         if (ImGui::Button("Apply")) {
             _ApplyInterpolation(
                 v, interval,
-                currentKey, nextKey,
+                *currentKey, *nextKey,
                 *currentAnimation, animationIndex
             );
 
