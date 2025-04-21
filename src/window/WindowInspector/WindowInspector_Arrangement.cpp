@@ -180,7 +180,9 @@ void WindowInspector::Level_Arrangement() {
         ImGui::EndChild();
 
         if (selectionState.singlePartSelected()) {
-            auto& part = playerManager.getArrangement().parts.at(selectionState.selectedParts[0].index);
+            CellAnim::ArrangementPart& part = playerManager.getArrangement().parts.at(
+                selectionState.selectedParts[0].index
+            );
 
             CellAnim::ArrangementPart newPart = part;
             CellAnim::ArrangementPart originalPart = part;

@@ -43,9 +43,6 @@ void WindowInspector::Level_Key() {
     const auto& arrangements = sessionManager.getCurrentSession()
         ->getCurrentCellanim().object->arrangements;
 
-    CellAnim::AnimationKey newKey = playerManager.getKey();
-    CellAnim::AnimationKey originalKey = playerManager.getKey();
-
     unsigned animationIndex = playerManager.getAnimationIndex();
     const char* animationName = playerManager.getAnimation().name.c_str();
     if (animationName[0] == '\0')
@@ -66,6 +63,9 @@ void WindowInspector::Level_Key() {
     ImGui::EndChild();
 
     CellAnim::AnimationKey& key = playerManager.getKey();
+
+    CellAnim::AnimationKey newKey = playerManager.getKey();
+    CellAnim::AnimationKey originalKey = playerManager.getKey();
 
     ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Arrangement");
 
@@ -255,7 +255,7 @@ void WindowInspector::Level_Key() {
     }
 
     if (newKey != originalKey) {
-        playerManager.getKey() = originalKey;
+        key = originalKey;
 
         sessionManager.getCurrentSession()->addCommand(
         std::make_shared<CommandModifyAnimationKey>(
