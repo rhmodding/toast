@@ -358,7 +358,7 @@ static SessionManager::Error InitCtrSession(
     return SessionManager::Error_None;
 }
 
-int SessionManager::CreateSession(const char* filePath) {
+int SessionManager::CreateSession(std::string_view filePath) {
     if (!Files::doesFileExist(filePath)) {
         std::lock_guard<std::mutex> lock(this->mtx);
         this->currentError = OpenError_FileDoesNotExist;
@@ -709,7 +709,7 @@ static SessionManager::Error SerializeCtrSession(
     return SessionManager::Error_None;
 }
 
-bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePath) {
+bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFilePath) {
     std::lock_guard<std::mutex> lock(this->mtx);
 
     if (sessionIndex >= this->sessions.size())
@@ -717,8 +717,8 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
 
     auto& session = this->sessions[sessionIndex];
 
-    if (dstFilePath == nullptr)
-        dstFilePath = session.resourcePath.c_str();
+    if (dstFilePath.empty())
+        dstFilePath = session.resourcePath;
 
     Logging::info <<
         "[SessionManager::ExportSession] Exporting session no. " << sessionIndex+1 <<
@@ -748,28 +748,22 @@ bool SessionManager::ExportSession(unsigned sessionIndex, const char* dstFilePat
 
     const ConfigManager& configManager = ConfigManager::getInstance();
 
-    bool alreadyExists = Files::doesFileExist(dstFilePath);
-    if (alreadyExists && configManager.getConfig().backupBehaviour != BackupBehaviour_None) {
-        unsigned dstFilePathLen = strlen(dstFilePath);
-        char* backupPath = new char[dstFilePathLen + STR_LIT_LEN(".bak") + 1];
+    if (
+        Files::doesFileExist(dstFilePath) && 
+        configManager.getConfig().backupBehaviour != BackupBehaviour_None
+    ) {
+        std::string backupPath = std::string(dstFilePath) + ".bak";
 
-        memcpy(backupPath, dstFilePath, dstFilePathLen);
-        memcpy(backupPath + dstFilePathLen, ".bak", STR_LIT_LEN(".bak") + 1);
-
-        Logging::info <<
-            "[SessionManager::ExportSession] Backing up file at \"" << dstFilePath <<
-            "\" to \"" << backupPath << "\".." << std::endl;
+        Logging::info << "[SessionManager::ExportSession] Backing up file at \"" 
+                    << dstFilePath << "\" to \"" << backupPath << "\".." << std::endl;
 
         bool success = Files::copyFile(
             dstFilePath, backupPath,
             configManager.getConfig().backupBehaviour == BackupBehaviour_SaveOverwrite
         );
 
-        delete[] backupPath;
-
         if (!success) {
             Logging::err << "[SessionManager::ExportSession] Failed to save backup of file! Aborting.." << std::endl;
-
             this->currentError = OutError_FailBackupFile;
             return false;
         }

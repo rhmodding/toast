@@ -7,6 +7,8 @@
 
 #include <mutex>
 
+#include <string_view>
+
 #include "Session.hpp"
 
 class SessionManager : public Singleton<SessionManager> {
@@ -49,13 +51,13 @@ public:
     // Create a new session from the path of a cellanim archive (.szs).
     //
     // Returns: index of new session if succeeded, -1 if failed
-    int CreateSession(const char* filePath);
+    int CreateSession(std::string_view filePath);
 
     // Export a session as a cellanim archive (.szs) to the specified path.
-    // Note: if dstFilePath is NULL, then the session's resourcePath is used.
+    // Note: if dstFilePath is empty, then the session's resourcePath is used.
     //
     // Returns: true if succeeded, false if failed
-    bool ExportSession(unsigned sessionIndex, const char* dstFilePath = nullptr);
+    bool ExportSession(unsigned sessionIndex, std::string_view dstFilePath = {});
 
     // Remove a session by it's index.
     void RemoveSession(unsigned sessionIndex);
