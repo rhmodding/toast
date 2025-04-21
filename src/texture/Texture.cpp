@@ -58,14 +58,14 @@ bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
     return true;
 }
 
-bool Texture::LoadSTBFile(const char* filename) {
-    if (filename == nullptr) {
-        Logging::err << "[Texture::LoadSTBFile] Failed to export to file \"" << filename << "\": filename is NULL" << std::endl;
+bool Texture::LoadSTBFile(std::string_view filename) {
+    if (filename.empty()) {
+        Logging::err << "[Texture::LoadSTBFile] Failed to export to file: filename is empty" << std::endl;
         return false;
     }
 
     int imageWidth, imageHeight;
-    unsigned char* imageData = stbi_load(filename, &imageWidth, &imageHeight, nullptr, 4);
+    unsigned char* imageData = stbi_load(filename.data(), &imageWidth, &imageHeight, nullptr, 4);
 
     if (imageData == nullptr) {
         Logging::err << "[Texture::LoadSTBFile] Failed to load image data from file path \"" << filename << "\"!" << std::endl;
@@ -112,9 +112,9 @@ unsigned char* Texture::GetRGBA32() {
     }
 }
 
-bool Texture::ExportToFile(const char* filename) {
-    if (filename == nullptr) {
-        Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": filename is NULL" << std::endl;
+bool Texture::ExportToFile(std::string_view filename) {
+    if (filename.empty()) {
+        Logging::err << "[Texture::ExportToFile] Failed to export to file: filename is empty" << std::endl;
         return false;
     }
 
@@ -125,7 +125,7 @@ bool Texture::ExportToFile(const char* filename) {
     }
 
     int write = stbi_write_png(
-        filename, // filename
+        filename.data(), // filename
         this->width, this->height, // x, y
         4, // comp
         imageData, // data

@@ -8,6 +8,8 @@
 
 #include <optional>
 
+#include <string_view>
+
 #include <imgui.h> // for ImTextureID
 
 class Texture {
@@ -69,7 +71,7 @@ public:
     // Note: if a GPU texture already exists, this will overwrite it's data.
     //
     // Returns: true if succeeded, false if failed
-    bool LoadSTBFile(const char* filename);
+    bool LoadSTBFile(std::string_view filename);
     
     // Download the texture from the GPU into a RGBA32 image buffer.
     // Note: the size of the buffer must be this->getPixelCount() * 4
@@ -87,7 +89,7 @@ public:
     // Export the texture to the filesystem using stb_image_write.
     //
     // Returns: true if succeeded, false if failed
-    bool ExportToFile(const char* filename);
+    bool ExportToFile(std::string_view filename);
 
     // Construct a TPLTexture from this texture.
     //
