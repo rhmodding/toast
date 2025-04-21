@@ -104,10 +104,16 @@ static uint32_t sarcComputeHash(std::string_view string, uint32_t key) {
 
 namespace SARC {
 
-File::File(const std::string& n) : name(n) {}
+File::File(std::string n) :
+    name(std::move(n))
+{}
 
-Directory::Directory(const std::string& n) : name(n) {}
-Directory::Directory(const std::string& n, Directory* parentDir) : name(n), parent(parentDir) {}
+Directory::Directory(std::string n) :
+    name(std::move(n))
+{}
+Directory::Directory(std::string n, Directory* parentDir) :
+    name(std::move(n)), parent(parentDir)
+{}
 
 void Directory::AddFile(File& file) {
     file.parent = this;
