@@ -110,56 +110,46 @@ void WindowInspector::Update() {
     this->windowSize = ImGui::GetContentRegionAvail();
 
     if (ImGui::BeginMenuBar()) {
-        if (ImGui::BeginMenu("Level")) {
-            if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation)) {
-                inspectorLevel = InspectorLevel_Animation;
+        if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation)) {
+            inspectorLevel = InspectorLevel_Animation;
 
-                if (appState.getArrangementMode())
-                    SessionManager::getInstance().getCurrentSession()->addCommand(
-                        std::make_shared<CommandSetArrangementMode>(false)
-                    );
+            if (appState.getArrangementMode())
+                SessionManager::getInstance().getCurrentSession()->addCommand(
+                    std::make_shared<CommandSetArrangementMode>(false)
+                );
 
-                appState.focusOnSelectedPart = false;
-            }
-            if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key)) {
-                inspectorLevel = InspectorLevel_Key;
-
-                if (appState.getArrangementMode())
-                    SessionManager::getInstance().getCurrentSession()->addCommand(
-                        std::make_shared<CommandSetArrangementMode>(false)
-                    );
-
-                appState.focusOnSelectedPart = false;
-            }
-            if (ImGui::MenuItem("Arrangement (Immediate)", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
-                inspectorLevel = InspectorLevel_Arrangement_Im;
-
-                if (appState.getArrangementMode())
-                    SessionManager::getInstance().getCurrentSession()->addCommand(
-                        std::make_shared<CommandSetArrangementMode>(false)
-                    );
-
-                appState.focusOnSelectedPart = true;
-            }
-            if (ImGui::MenuItem("Arrangement (Outside Anim)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
-                inspectorLevel = InspectorLevel_Arrangement;
-
-                if (!appState.getArrangementMode())
-                    SessionManager::getInstance().getCurrentSession()->addCommand(
-                        std::make_shared<CommandSetArrangementMode>(true)
-                    );
-
-                appState.focusOnSelectedPart = true;
-            }
-
-            ImGui::EndMenu();
+            appState.focusOnSelectedPart = false;
         }
+        if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key)) {
+            inspectorLevel = InspectorLevel_Key;
 
-        /*
-        if (ImGui::BeginMenu("Options")) {
-            ImGui::EndMenu();
+            if (appState.getArrangementMode())
+                SessionManager::getInstance().getCurrentSession()->addCommand(
+                    std::make_shared<CommandSetArrangementMode>(false)
+                );
+
+            appState.focusOnSelectedPart = false;
         }
-        */
+        if (ImGui::MenuItem("Arrangement", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
+            inspectorLevel = InspectorLevel_Arrangement_Im;
+
+            if (appState.getArrangementMode())
+                SessionManager::getInstance().getCurrentSession()->addCommand(
+                    std::make_shared<CommandSetArrangementMode>(false)
+                );
+
+            appState.focusOnSelectedPart = true;
+        }
+        if (ImGui::MenuItem("Arrangement (All)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
+            inspectorLevel = InspectorLevel_Arrangement;
+
+            if (!appState.getArrangementMode())
+                SessionManager::getInstance().getCurrentSession()->addCommand(
+                    std::make_shared<CommandSetArrangementMode>(true)
+                );
+
+            appState.focusOnSelectedPart = true;
+        }
 
         ImGui::EndMenuBar();
     }
