@@ -59,7 +59,7 @@ void Logging::LogStream::flush() {
     buffer.clear();
 }
 
-void Logging::Open(const std::string& filename) {
+void Logging::Open(std::string_view filename) {
     std::lock_guard<std::mutex> lock(mtx);
 
     logFile.open(filename, std::ios::out | std::ios::app);

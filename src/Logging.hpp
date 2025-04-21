@@ -8,6 +8,7 @@
 #include <ostream>
 
 #include <string>
+#include <string_view>
 
 #include <mutex>
 
@@ -19,7 +20,7 @@ public:
 
     class LogStream {
     public:
-        LogStream(std::ostream& out, const std::string& prefix) :
+        LogStream(std::ostream& out, std::string_view prefix) :
             outStream(out), logPrefix(prefix)
         {}
 
@@ -33,19 +34,20 @@ public:
         LogStream& operator<<(std::ostream& (*manip)(std::ostream&));
 
     private:
+        static std::string getTimestamp();
+
+        void flush();
+
+    private:
+        static std::mutex mtx;
+
         std::ostream& outStream;
         std::ostringstream buffer;
 
         std::string logPrefix;
-
-        static std::mutex mtx;
-
-        void flush();
-
-        static std::string getTimestamp();
     };
 
-    static void Open(const std::string& filename);
+    static void Open(std::string_view filename);
     static void Close();
 
     static LogStream info;
