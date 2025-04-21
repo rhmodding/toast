@@ -831,12 +831,10 @@ void Toast::Update() {
 
     glfwPollEvents();
 
-    // Start frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-
     ImGui::SetCurrentContext(this->guiContext);
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     // Begin main window
