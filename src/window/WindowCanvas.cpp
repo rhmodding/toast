@@ -897,7 +897,7 @@ void WindowCanvas::Update() {
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(
-                sessionManager.getCurrentSession()->getCurrentCellanimIndex(),
+                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 playerManager.getArrangementIndex(),
                 arrangementBeforeMutation // Used as the new arrangement
             ));
@@ -975,7 +975,7 @@ void WindowCanvas::Update() {
             {
                 const auto& currentSession = SessionManager::getInstance().getCurrentSession();
 
-                this->cellanimRenderer.linkCellanim(currentSession->getCurrentCellanim().object);
+                this->cellanimRenderer.linkCellAnim(currentSession->getCurrentCellAnim().object);
                 this->cellanimRenderer.linkTextureGroup(currentSession->sheets);
 
                 const auto& onionSkinState = playerManager.getOnionSkinState();
