@@ -96,6 +96,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
 }
 
 void WindowInspector::Update() {
+    SessionManager& sessionManager = SessionManager::getInstance();
     AppState& appState = AppState::getInstance();
 
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar | (
@@ -109,72 +110,69 @@ void WindowInspector::Update() {
 
     this->windowSize = ImGui::GetContentRegionAvail();
 
+    auto session = SessionManager::getInstance().getCurrentSession();
+    const bool arrangementMode = session->arrangementMode;
+
+    // Sync inspectorLevel with arrangementMode if needed
+    if (inspectorLevel == InspectorLevel_Arrangement && !arrangementMode)
+        inspectorLevel = InspectorLevel_Arrangement_Im;
+    else if (inspectorLevel != InspectorLevel_Arrangement && arrangementMode)
+        inspectorLevel = InspectorLevel_Arrangement;
+
     if (ImGui::BeginMenuBar()) {
+        InspectorLevel newLevel = inspectorLevel;
+        bool newFocus = appState.focusOnSelectedPart;
+    
         if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation)) {
-            inspectorLevel = InspectorLevel_Animation;
-
-            if (appState.getArrangementMode())
-                SessionManager::getInstance().getCurrentSession()->addCommand(
-                    std::make_shared<CommandSetArrangementMode>(false)
-                );
-
-            appState.focusOnSelectedPart = false;
+            newLevel = InspectorLevel_Animation;
+            newFocus = false;
         }
         if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key)) {
-            inspectorLevel = InspectorLevel_Key;
-
-            if (appState.getArrangementMode())
-                SessionManager::getInstance().getCurrentSession()->addCommand(
-                    std::make_shared<CommandSetArrangementMode>(false)
-                );
-
-            appState.focusOnSelectedPart = false;
+            newLevel = InspectorLevel_Key;
+            newFocus = false;
         }
         if (ImGui::MenuItem("Arrangement", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
-            inspectorLevel = InspectorLevel_Arrangement_Im;
-
-            if (appState.getArrangementMode())
-                SessionManager::getInstance().getCurrentSession()->addCommand(
-                    std::make_shared<CommandSetArrangementMode>(false)
-                );
-
-            appState.focusOnSelectedPart = true;
+            newLevel = InspectorLevel_Arrangement_Im;
+            newFocus = true;
         }
         if (ImGui::MenuItem("Arrangement (All)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
-            inspectorLevel = InspectorLevel_Arrangement;
-
-            if (!appState.getArrangementMode())
-                SessionManager::getInstance().getCurrentSession()->addCommand(
-                    std::make_shared<CommandSetArrangementMode>(true)
-                );
-
-            appState.focusOnSelectedPart = true;
+            newLevel = InspectorLevel_Arrangement;
+            newFocus = true;
         }
-
+    
+        if (newLevel != inspectorLevel) {
+            bool changingToArrangementMode = (newLevel == InspectorLevel_Arrangement);
+            if (arrangementMode != changingToArrangementMode) {
+                session->addCommand(
+                    std::make_shared<CommandSetArrangementMode>(changingToArrangementMode)
+                );
+            }
+    
+            inspectorLevel = newLevel;
+            appState.focusOnSelectedPart = newFocus;
+        }
+    
         ImGui::EndMenuBar();
     }
 
-    switch (!appState.getArrangementMode() ? inspectorLevel : InspectorLevel_Arrangement) {
-    case InspectorLevel_Animation:
-        this->Level_Animation();
-        break;
-
-    case InspectorLevel_Key:
-        this->Level_Key();
-        break;
-
-    case InspectorLevel_Arrangement:
-        this->Level_Arrangement();
-        break;
-
-    case InspectorLevel_Arrangement_Im:
-        this->Level_Arrangement();
-        break;
-
-    default:
-        ImGui::TextUnformatted("Inspector level not implemented.");
-        break;
+    if (arrangementMode || inspectorLevel == InspectorLevel_Arrangement_Im) {
+        Level_Arrangement();
     }
+    else {
+        switch (inspectorLevel) {
+        case InspectorLevel_Animation:
+            Level_Animation();
+            break;
+        case InspectorLevel_Key:
+            Level_Key();
+            break;
+
+        default:
+            ImGui::TextUnformatted("Inspector level not implemented.");
+            break;
+        }
+    }
+
 
     ImGui::End();
 }
