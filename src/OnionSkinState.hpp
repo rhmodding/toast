@@ -7,11 +7,10 @@ struct OnionSkinState {
     bool enabled { false };
     bool drawUnder { false };
     bool rollOver { false };
+    uint8_t opacity { 50 };
 
     unsigned backCount { 3 };
     unsigned frontCount { 2 };
-
-    uint8_t opacity { 50 };
 };
 
 #endif // ONIONSKINSTATE_HPP
