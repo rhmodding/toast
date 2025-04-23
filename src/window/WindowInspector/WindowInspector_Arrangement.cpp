@@ -378,7 +378,7 @@ void WindowInspector::Level_Arrangement() {
                 }
             }
 
-            // ID
+            // ID, Emitter Name, & Quad Depth
             if (isCtr) {
                 ImGui::SeparatorText((const char*)ICON_FA_PENCIL " ID");
 
@@ -395,10 +395,40 @@ void WindowInspector::Level_Arrangement() {
                         return changed;
                     }
                 );
-            }
 
-            // Emitter Name
-            if (isCtr) {
+                ImGui::SeparatorText((const char*)ICON_FA_WAND_MAGIC_SPARKLES " 3D Depth");
+
+                valueEditor<CellAnim::CTRQuadDepth>("Quad Depth", part.quadDepth,
+                    [&]() { return originalPart.quadDepth; },
+                    [&](const CellAnim::CTRQuadDepth& oldValue, const CellAnim::CTRQuadDepth& newValue) {
+                        originalPart.quadDepth = oldValue;
+                        newPart.quadDepth = newValue;
+                    },
+                    [](const char* label, CellAnim::CTRQuadDepth* value) {
+                        bool changed = false;
+
+                        ImGui::BeginGroup();
+
+                        float topValues[2] { value->topLeft, value->topRight };
+                        if (ImGui::DragFloat2("Top Left, Right", topValues)) {
+                            changed = true;
+                            value->topLeft = topValues[0];
+                            value->topRight = topValues[1];
+                        }
+
+                        float bottomValues[2] { value->bottomLeft, value->bottomRight };
+                        if (ImGui::DragFloat2("Bottom Left, Right", bottomValues)) {
+                            changed = true;
+                            value->bottomLeft = bottomValues[0];
+                            value->bottomRight = bottomValues[1];
+                        }
+
+                        ImGui::EndGroup();
+
+                        return changed;
+                    }
+                );
+
                 ImGui::SeparatorText((const char*)ICON_FA_WAND_MAGIC_SPARKLES " Effects");
 
                 valueEditor<std::string>("Emitter Name", part.emitterName,
