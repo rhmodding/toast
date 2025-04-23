@@ -198,7 +198,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
         {
             .dir = &this->structure,
             .isDir = true,
-            
+
             .parent = 0,
             // .nextOutOfDir = 0,
             // nextOutOfDir is set later.
@@ -216,7 +216,7 @@ std::vector<unsigned char> U8ArchiveObject::Serialize() {
 
     while (!fileItStack.empty()) {
         const Directory* currentDir = fileItStack.top().first;
-    
+
         auto& fileIt = fileItStack.top().second;
         auto& dirIt = directoryItStack.top().second;
 

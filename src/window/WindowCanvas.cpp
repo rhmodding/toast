@@ -83,7 +83,7 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellAnimRenderer& rend
     quadRotation = 0.f;
 
     PlayerManager& playerManager = PlayerManager::getInstance();
-    
+
     const auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
 
     if (!selectionState.anyPartsSelected())
@@ -211,7 +211,7 @@ void WindowCanvas::Menubar() {
                         gridType = GridType_Custom;
                     else
                         gridType = ThemeManager::getInstance().getThemeIsLight() ? GridType_Light : GridType_Dark;
-                };
+                }
 
                 ImGui::SeparatorText("Color Picker");
 

@@ -30,7 +30,7 @@ public:
 
     void Rollback() override {
         this->getSheet() = this->oldSheet;
-        
+
         Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
         currentSession->getCurrentCellAnim().object->sheetW = this->oldSheet->getWidth();

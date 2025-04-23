@@ -542,13 +542,13 @@ static bool InitCtrCellAnim(
 
         for (unsigned i = 0; i < header->arrangementCount; i++) {
             currentData += sizeof(CtrArrangement);
-    
+
             CellAnim::Arrangement& arrangement = object.arrangements[i];
-    
+
             for (unsigned j = 0; j < arrangement.parts.size(); j++) {
                 const CtrArrangementPart* arrangementPartIn = reinterpret_cast<const CtrArrangementPart*>(currentData);
                 currentData += sizeof(CtrArrangementPart);
-    
+
                 if (arrangementPartIn->emitterId != 0xFF)
                     arrangement.parts[j].emitterName = emitterNames[arrangementPartIn->emitterId];
             }

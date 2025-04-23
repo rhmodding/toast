@@ -50,7 +50,7 @@ static void EvalBezierSteps(const float P[4], ImVec2* results, unsigned stepCoun
 // Results in a tiny X error (usually not more than about +- 0.0000006 on 10 iterations).
 static ImVec2 BezierValue(const float x, const float P[4], unsigned maxIterations = 10) {
     float t = x; // Initial guess for t
-    
+
     for (unsigned i = 0; i < maxIterations; ++i) {
         float u = 1.f - t;
 
@@ -320,7 +320,7 @@ static void _ApplyInterpolation(
 
             for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
                 const CellAnim::Arrangement& endArrangement = arrangements.at(frontKey.arrangementIndex);
-                
+
                 auto& part = newArrangement.parts.at(j);
 
                 unsigned jClamp = std::min<unsigned>(j, endArrangement.parts.size() - 1);

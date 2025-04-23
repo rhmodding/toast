@@ -250,7 +250,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 bool checkDataValid(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(Yaz0Header))
         return false;
-    
+
     const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(data);
     if (header->magic != YAZ0_MAGIC)
         return false;
@@ -258,7 +258,7 @@ bool checkDataValid(const unsigned char* data, const size_t dataSize) {
     // Endianness doesn't matter here
     if (header->decompressedSize == 0)
         return false;
-    
+
     return true;
 }
 

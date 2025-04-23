@@ -122,7 +122,7 @@ void WindowInspector::Update() {
     if (ImGui::BeginMenuBar()) {
         InspectorLevel newLevel = inspectorLevel;
         bool newFocus = appState.focusOnSelectedPart;
-    
+
         if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation)) {
             newLevel = InspectorLevel_Animation;
             newFocus = false;
@@ -139,7 +139,7 @@ void WindowInspector::Update() {
             newLevel = InspectorLevel_Arrangement;
             newFocus = true;
         }
-    
+
         if (newLevel != inspectorLevel) {
             bool changingToArrangementMode = (newLevel == InspectorLevel_Arrangement);
             if (arrangementMode != changingToArrangementMode) {
@@ -147,11 +147,11 @@ void WindowInspector::Update() {
                     std::make_shared<CommandSetArrangementMode>(changingToArrangementMode)
                 );
             }
-    
+
             inspectorLevel = newLevel;
             appState.focusOnSelectedPart = newFocus;
         }
-    
+
         ImGui::EndMenuBar();
     }
 

@@ -171,7 +171,7 @@ void WindowTimeline::Update() {
 
             ImGui::SetNextItemWidth(52.f);
             ImGui::InputScalar("FPS", ImGuiDataType_U32, &playerManager.frameRate, nullptr, nullptr, "%u");
-            
+
             // Onion skin options
             ImGui::TableSetColumnIndex(2);
 
@@ -234,7 +234,7 @@ void WindowTimeline::Update() {
             ImGui::Dummy({ 5.f, 0.f });
             ImGui::SameLine();
             ImGui::TextUnformatted("Keys");
-            
+
             ImGui::TableSetColumnIndex(1);
 
             {

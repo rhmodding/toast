@@ -79,7 +79,7 @@ static void Popup_SessionErr() {
         );
         errorType = 0;
         break;
-    
+
 
     case SessionManager::OutError_FailOpenFile:
         strcpy(errorMessage, "The destination file could not be opened for reading.");

@@ -197,7 +197,7 @@ struct ArrangementPart {
             this->quadDepth == other.quadDepth &&
 
             this->id == other.id &&
-            
+
             this->emitterName == other.emitterName;
     }
 

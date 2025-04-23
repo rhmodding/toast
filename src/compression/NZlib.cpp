@@ -23,7 +23,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
     *reinterpret_cast<NZLibHeader*>(deflated.data()) = NZLibHeader {
         .inflateSize = BYTESWAP_32(dataSize)
     };
-    
+
     zng_stream strm {};
     strm.next_in = data;
     strm.avail_in = dataSize;
@@ -106,7 +106,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 bool checkDataValid(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(NZLibHeader))
         return false;
-    
+
     const NZLibHeader* header = reinterpret_cast<const NZLibHeader*>(data);
 
     // Endianness doesn't matter here
@@ -125,7 +125,7 @@ bool checkDataValid(const unsigned char* data, const size_t dataSize) {
 
     if (cmf != 0x78 || (checkv % 31) != 0)
         return false;
-    
+
     return true;
 }
 

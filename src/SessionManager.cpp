@@ -460,7 +460,7 @@ int SessionManager::CreateSession(std::string_view filePath) {
             case IDENTIFIER_TO_U32('S','P','B','D'): // Effect
                 initError = OpenError_EffectResource;
                 break;
-            
+
             default:
                 initError = OpenError_FailOpenArchive;
                 break;

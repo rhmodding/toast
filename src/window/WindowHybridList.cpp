@@ -68,7 +68,7 @@ void WindowHybridList::Update() {
     const char* windowLabel = appState.getArrangementMode() ?
         "Arrangements" "###HybridList" :
         "Animations"   "###HybridList";
-    
+
     ImGui::Begin(windowLabel);
 
     ImGui::BeginChild("List", { 0.f, 0.f }, ImGuiChildFlags_Borders);

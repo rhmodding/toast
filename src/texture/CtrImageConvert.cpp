@@ -175,7 +175,7 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
         unsigned tileEnd = std::min(tileStart + tilesPerThread, totalTiles);
         if (tileStart >= tileEnd)
             break;
-    
+
         unsigned yStart = tileStart * 8;
         unsigned yEnd = std::min(tileEnd * 8, srcHeight);
 

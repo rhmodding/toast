@@ -138,7 +138,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: data size smaller than header size!" << std::endl;
         return;
     }
-    
+
     const SarcFileHeader* header = reinterpret_cast<const SarcFileHeader*>(data);
     if (header->magic != SARC_MAGIC) {
         Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: header magic is nonmatching!" << std::endl;
@@ -188,7 +188,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
 
         std::stringstream stream(name);
         std::string currentSegment;
-        
+
         Directory* currentDir = &this->structure;
 
         // Traverse.
@@ -196,7 +196,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
             // Last segment is the file name; add it!
             if (stream.peek() == EOF) {
                 File newFile(currentSegment);
-                
+
                 newFile.parent = currentDir;
                 newFile.data = std::vector<unsigned char>(nodeDataStart, nodeDataEnd);
 

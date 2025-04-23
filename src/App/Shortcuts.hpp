@@ -84,7 +84,7 @@ inline void Handle() {
         ImGuiInputFlags flags = ImGuiInputFlags_RouteAlways;
         if (action == ShortcutAction::Undo || action == ShortcutAction::Redo)
             flags |= ImGuiInputFlags_Repeat;
-        
+
         if (ImGui::Shortcut(shortcut.chord, flags)) {
             switch (action) {
                 case ShortcutAction::Open:

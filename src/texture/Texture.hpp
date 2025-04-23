@@ -72,7 +72,7 @@ public:
     //
     // Returns: true if succeeded, false if failed
     bool LoadSTBFile(std::string_view filename);
-    
+
     // Download the texture from the GPU into a RGBA32 image buffer.
     // Note: the size of the buffer must be this->getPixelCount() * 4
     // 

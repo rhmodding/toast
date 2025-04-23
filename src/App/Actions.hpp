@@ -88,13 +88,13 @@ void ExportSession() {
 void ExportSessionAsOther() {
     SessionManager& sessionManager = SessionManager::getInstance();
     AsyncTaskManager& asyncTaskManager = AsyncTaskManager::getInstance();
-    
+
     if (
         !sessionManager.getSessionAvaliable() ||
         asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>()
     )
     return;
-    
+
     const bool isRvl = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL;
     const char* filterDesc = isRvl ? "CTR Cellanim Archive files" : "RVL Cellanim Archive files";
 
@@ -112,7 +112,7 @@ void ExportSessionAsOther() {
         auto* currentSession = sessionManager.getCurrentSession();
 
         auto& sheets = currentSession->sheets->getVector();
-        
+
         for (unsigned i = 0; i < sheets.size(); i++) {
             const auto& sheet = sheets[i];
 
@@ -146,7 +146,7 @@ void ExportSessionAsOther() {
                 case CTPK::CTPK_IMAGE_FORMAT_L8:
                     tplFormat = TPL::TPL_IMAGE_FORMAT_I8;
                     break;
-                
+
                 default:
                     tplFormat = TPL::TPL_IMAGE_FORMAT_RGB5A3;
                     break;
@@ -162,7 +162,7 @@ void ExportSessionAsOther() {
                 case TPL::TPL_IMAGE_FORMAT_RGBA32:
                     ctpkFormat = CTPK::CTPK_IMAGE_FORMAT_RGBA8888;
                     break;
-                
+
                 case TPL::TPL_IMAGE_FORMAT_IA8:
                     ctpkFormat = CTPK::CTPK_IMAGE_FORMAT_LA88;
                     break;
@@ -207,7 +207,7 @@ void ExportSessionAsOther() {
             if (!isRvl) {
                 for (auto& animation : cellanim.object->animations) {
                     animation.isInterpolated = false;
-                    
+
                     for (auto& key : animation.keys) {
                         key.translateZ = 0.f;
 

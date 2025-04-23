@@ -9,7 +9,7 @@ struct BuildFrame {
     std::vector<unsigned char> rgbaData; // Expected to be (width * height * 4) bytes in size.
     unsigned width, height; // Must not be larger than the canvas size.
     unsigned offsetX { 0 }, offsetY { 0 }; // Originates from top-left.
-    
+
     unsigned holdFrames { 30 };
 };
 

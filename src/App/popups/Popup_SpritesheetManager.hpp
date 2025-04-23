@@ -24,7 +24,7 @@ static void Popup_SpritesheetManager() {
 
         if (shouldStayOpen == false)
             ImGui::CloseCurrentPopup();
-        
+
         auto& sheets = sessionManager.getCurrentSession()->sheets;
 
         // Left

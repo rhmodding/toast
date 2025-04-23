@@ -6,7 +6,7 @@
 #include <typeinfo>
 
 namespace CxxDemangle {
-    
+
 // Returns an empty string if the demangle failed.
 [[nodiscard]] std::string Demangle(const char* mangledName);
 

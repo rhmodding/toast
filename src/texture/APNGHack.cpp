@@ -123,7 +123,7 @@ static const PNGDummyChunk* FindPNGChunk(const void* pngDataStart, const void* p
     const PNGFileHeader* fileHeader = reinterpret_cast<const PNGFileHeader*>(pngDataStart);
     if (fileHeader->magic0 != PNG_MAGIC_0 || fileHeader->magic1 != PNG_MAGIC_1)
         return nullptr;
-    
+
     const PNGDummyChunk* currentChunk = fileHeader->firstChunk;
     while (reinterpret_cast<const void*>(currentChunk) < pngDataEnd) {
         if (currentChunk->chunkIdentifier == targetIdentifier)
@@ -242,7 +242,7 @@ std::vector<unsigned char> APNGHack::build(const BuildData& buildData) {
 
         destIdat->chunkDataSize = BYTESWAP_32(dstDataSize);
         destIdat->chunkIdentifier = isFirstFrame ? PNG_IDAT_ID : PNG_FDAT_ID;
-        
+
         uint8_t* dstImageDataStart = destIdat->chunkData + (isFirstFrame ? 0 : 4);
         memcpy(dstImageDataStart, dataList[i].data(), srcDataSize);
 
@@ -269,6 +269,6 @@ std::vector<unsigned char> APNGHack::build(const BuildData& buildData) {
     currentChunk->chunkDataSize = 0;
     currentChunk->chunkIdentifier = PNG_IEND_ID;
     *reinterpret_cast<uint32_t*>(currentChunk->chunkData) = BYTESWAP_32(CRC32::compute("IEND"));
-    
+
     return finalData;
 }

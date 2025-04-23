@@ -239,14 +239,14 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     for (unsigned i = 0; i < this->textures.size(); i++) {
         const auto& texture = this->textures[i];
         CtpkTextureEntry* texEntry = header->textureEntries + i;
-        
+
         texEntry->dataSize = CtrImageConvert::getImageByteSize(texture);
         texEntry->dataFormat = static_cast<uint32_t>(texture.format);
 
         if (texture.width > 1024 || texture.height > 1024) {
             Logging::err << "[CTPKObject::Serialize] Texture no. " << i+1 << " exceeds the dimensions limit of 1024x1024; the" << std::endl;
             Logging::err << "                        texture will be scaled down to fit within the bounds." << std::endl;
-            
+
             float scale = std::min(
                 1024.f / texture.width,
                 1024.f / texture.height
