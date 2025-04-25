@@ -67,9 +67,14 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         return std::nullopt; // return nothing (std::optional)
     }
 
+    Logging::info << "[NZlib::decompress] <> Stage: start" << std::endl;
+
     const NZLibHeader* header = reinterpret_cast<const NZLibHeader*>(data);
 
     const uint32_t deflateSize = dataSize - sizeof(NZLibHeader);
+
+    Logging::info << "[NZlib::decompress] <> Stage: dereference inflateSize" << std::endl;
+
     const uint32_t inflateSize = BYTESWAP_32(header->inflateSize);
 
     if (inflateSize == 0) {
@@ -77,7 +82,11 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         return std::nullopt; // return nothing (std::optional)
     }
 
+    Logging::info << "[NZlib::decompress] <> Stage: make inflated vec" << std::endl;
+
     std::vector<unsigned char> inflated(inflateSize);
+
+    Logging::info << "[NZlib::decompress] <> Stage: construct strm" << std::endl;
 
     zng_stream strm {};
     strm.next_in = header->deflatedData;
@@ -85,11 +94,15 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
     strm.next_out = inflated.data();
     strm.avail_out = inflateSize;
 
+    Logging::info << "[NZlib::decompress] <> Stage: zng init" << std::endl;
+
     const int init = zng_inflateInit2(&strm, 15);
     if (init != Z_OK) {
         Logging::err << "[NZlib::decompress] zng_inflateInit failed!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
+
+    Logging::info << "[NZlib::decompress] <> Stage: zng inflate call" << std::endl;
 
     const int ret = zng_inflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
@@ -98,6 +111,8 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         zng_inflateEnd(&strm);
         return std::nullopt; // return nothing (std::optional)
     }
+
+    Logging::info << "[NZlib::decompress] <> Stage: end inflate" << std::endl;
 
     zng_inflateEnd(&strm);
     return inflated;
