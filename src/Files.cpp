@@ -10,7 +10,7 @@ bool Files::doesFileExist(std::string_view filePath) {
     if (filePath.empty())
         return false;
 
-    FILE* file = fopen(filePath.data(), "r");
+    FILE* file = fopen(filePath.data(), "rb");
     if (!file)
         return false;
 

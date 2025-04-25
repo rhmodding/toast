@@ -213,6 +213,8 @@ static SessionManager::Error InitRvlSession(
 static SessionManager::Error InitCtrSession(
     Session& session, SARC::SARCObject& archive
 ) {
+    Logging::info << "[InitCtrSession] <> Stage: find lyt dir" << std::endl;
+
     // Every layout archive has the directory "blyt". If this directory exists
     // we should throw an error
     auto blytDirIt = std::find_if(
@@ -225,6 +227,8 @@ static SessionManager::Error InitCtrSession(
         return SessionManager::OpenError_LayoutArchive;
     }
 
+    Logging::info << "[InitCtrSession] <> Stage: find arc dir" << std::endl;
+
     auto rootDirIt = std::find_if(
         archive.structure.subdirectories.begin(),
         archive.structure.subdirectories.end(),
@@ -233,6 +237,8 @@ static SessionManager::Error InitCtrSession(
 
     if (rootDirIt == archive.structure.subdirectories.end())
         return SessionManager::OpenError_RootDirNotFound;
+
+    Logging::info << "[InitCtrSession] <> Stage: collect bccad" << std::endl;
 
     std::vector<const SARC::File*> bccadFiles;
     for (const auto& file : rootDirIt->files) {
@@ -245,6 +251,8 @@ static SessionManager::Error InitCtrSession(
 
     if (bccadFiles.empty())
         return SessionManager::OpenError_NoBXCADsFound;
+
+    Logging::info << "[InitCtrSession] <> Stage: collect & match ctpk" << std::endl;
 
     std::vector<const SARC::File*> ctpkFiles;
 
@@ -283,15 +291,21 @@ static SessionManager::Error InitCtrSession(
             return SessionManager::OpenError_MissingCTPK;
     }
 
+    Logging::info << "[InitCtrSession] <> Stage: start init cellanim" << std::endl;
+
     session.cellanims.resize(bccadFiles.size());
     session.sheets->getVector().reserve(ctpkFiles.size());
 
     // Cellanims
     for (unsigned i = 0; i < bccadFiles.size(); i++) {
+        Logging::info << "[InitCtrSession] <> Stage: i=" << i << std::endl;
+
         auto& cellanim = session.cellanims[i];
         const auto* file = bccadFiles[i];
 
         cellanim.name = file->name.substr(0, file->name.size() - STR_LIT_LEN(".bccad"));
+
+        Logging::info << "[InitCtrSession] <> Stage: init cellanim object" << std::endl;
         cellanim.object = std::make_shared<CellAnim::CellAnimObject>(
             file->data.data(), file->data.size()
         );
@@ -303,10 +317,6 @@ static SessionManager::Error InitCtrSession(
             return SessionManager::OpenError_FailOpenBXCAD;
 
         cellanim.object->sheetIndex = i;
-
-        FILE* fp = fopen(file->name.c_str(), "wb");
-        fwrite(file->data.data(), file->data.size(), 1, fp);
-        fclose(fp);
     }
 
     // Sheets
@@ -315,9 +325,15 @@ static SessionManager::Error InitCtrSession(
     //       but then it would use multiple MainThreadTasks instead of just one.
     SessionManager::Error sheetsError { SessionManager::Error_None };
 
+    Logging::info << "[InitCtrSession] <> Stage: queue & wait for texture init task" << std::endl;
+
     MainThreadTaskManager::getInstance().QueueTask([&sheetsError, &ctpkFiles, &session]() {
         for (unsigned i = 0; i < ctpkFiles.size(); i++) {
+            Logging::info << "[texture init task] <> Stage: i=" << i << std::endl;
+
             const auto* file = ctpkFiles[i];
+
+            Logging::info << "[texture init task] <> Stage: init CTPK object" << std::endl;
 
             CTPK::CTPKObject ctpkObject = CTPK::CTPKObject(
                 file->data.data(), file->data.size()
@@ -332,8 +348,12 @@ static SessionManager::Error InitCtrSession(
                 return;
             }
 
+            Logging::info << "[texture init task] <> Stage: rotate tex" << std::endl;
+
             auto& texture = ctpkObject.textures[0];
             texture.rotateCCW();
+
+            Logging::info << "[texture init task] <> Stage: make GPU texture" << std::endl;
 
             std::shared_ptr<Texture> sheet = std::make_shared<Texture>(
                 texture.width, texture.height,
@@ -342,6 +362,8 @@ static SessionManager::Error InitCtrSession(
             sheet->setCTPKOutputFormat(texture.format);
             sheet->setOutputMipCount(texture.mipCount);
             sheet->setName(file->name.substr(0, file->name.size() - STR_LIT_LEN(".ctpk")));
+
+            Logging::info << "[texture init task] <> Stage: move into sheets" << std::endl;
 
             session.sheets->addTexture(std::move(sheet));
         }
@@ -369,6 +391,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
     Logging::info <<
         "[SessionManager::CreateSession] Creating session from path \"" << filePath << "\".." << std::endl;
 
+    Logging::info << "[SessionManager::CreateSession] <> Stage: read file data" << std::endl;
+
     std::vector<unsigned char> data;
     {
         std::ifstream file(filePath, std::ios::binary | std::ios::ate);
@@ -388,6 +412,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
 
         file.close();
     }
+
+    Logging::info << "[SessionManager::CreateSession] <> Stage: check data valid" << std::endl;
 
     CellAnim::CellAnimType type { CellAnim::CELLANIM_TYPE_INVALID };
 
@@ -410,6 +436,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
     else if (NZlib::checkDataValid(data.data(), data.size())) {
         type = CellAnim::CELLANIM_TYPE_CTR;
 
+        Logging::info << "[SessionManager::CreateSession] <> Stage: NZlib decomp" << std::endl;
+
         const auto decompressedData = NZlib::decompress(data.data(), data.size());
         if (!decompressedData.has_value()) {
             Logging::err << "[SessionManager::CreateSession] Failed to decompress NZlib data!" << std::endl;
@@ -419,6 +447,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
 
             return -1;
         }
+
+        Logging::info << "[SessionManager::CreateSession] <> Stage: move decomped data" << std::endl;
 
         data = std::move(*decompressedData);
     }
@@ -449,6 +479,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
         initError = InitRvlSession(newSession, archive);
     } break;
     case CellAnim::CELLANIM_TYPE_CTR: {
+        Logging::info << "[SessionManager::CreateSession] <> Stage: construct SARC" << std::endl;
+
         SARC::SARCObject archive = SARC::SARCObject(data.data(), data.size());
 
         if (!archive.isInitialized()) {
@@ -468,6 +500,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
 
             break;
         }
+
+        Logging::info << "[SessionManager::CreateSession] <> Stage: start CTR init" << std::endl;
 
         initError = InitCtrSession(newSession, archive);
     } break;
