@@ -803,7 +803,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         }
     }
 
-    std::ofstream file(dstFilePath, std::ios::binary);
+    std::ofstream file(dstFilePath.data(), std::ios::binary);
     if (file.is_open()) {
         file.write(
             reinterpret_cast<const char*>(result.data()),
