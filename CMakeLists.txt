@@ -203,7 +203,7 @@ IF (APPLE)
 ENDIF()
 
 # zeldamods zlib for Yaz0 & NZlib
-option(ZLIB_ENABLE_TESTS "" OFF)
+set(WITH_AVX2 OFF CACHE BOOL "Disable AVX2 support" FORCE)
 
 add_subdirectory(ext/zeldamods.zlib-ng)
 
@@ -215,7 +215,7 @@ add_subdirectory(ext/nlohmann.json)
 target_link_libraries(toast PRIVATE nlohmann_json::nlohmann_json)
 
 # Flags
-target_compile_options(toast PRIVATE -O3 -DZLIB_COMPAT=ON -Wno-address-of-packed-member -Wno-cast-align)
+target_compile_options(toast PRIVATE -O3 -Wno-address-of-packed-member -Wno-cast-align)
 
 # Apple "deprecated" OpenGL but never removed it lol
 IF (APPLE)
