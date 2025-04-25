@@ -133,7 +133,7 @@ void WindowSpritesheet::FormatPopup() {
                 names[i] = CTPK::getImageFormatName(ctrFormats[i]);
             return names;
         }();
-        
+
         static int selectedFormatIndex { 0 };
         static int mipCount { 1 };
 
@@ -171,7 +171,7 @@ void WindowSpritesheet::FormatPopup() {
                 case TPL::TPL_IMAGE_FORMAT_C4:
                     colorPalette = std::vector<uint32_t>(16);
                     break;
-                
+
                 default:
                     break;
                 }
@@ -185,7 +185,7 @@ void WindowSpritesheet::FormatPopup() {
 
                 // colorPaletteCount * sizeof CLUT entry
                 colorPaletteSize = colorPaletteCount * 2;
-    
+
                 // Swap buffers.
                 RvlImageConvert::toRGBA32(
                     imageData, rvlFormats[selectedFormatIndex],
@@ -208,7 +208,7 @@ void WindowSpritesheet::FormatPopup() {
                     cellanimSheet->getWidth(), cellanimSheet->getHeight(),
                     imageData
                 );
-    
+
                 // Swap buffers.
                 CtrImageConvert::toRGBA32(
                     imageData, ctrFormats[selectedFormatIndex],
@@ -223,7 +223,7 @@ void WindowSpritesheet::FormatPopup() {
                 imageData,
                 cellanimSheet->getWidth(), cellanimSheet->getHeight()
             );
-            
+
             if (isRVL)
                 this->formattingNewTex->setTPLOutputFormat(rvlFormats[selectedFormatIndex]);
             else
@@ -315,7 +315,7 @@ void WindowSpritesheet::FormatPopup() {
                             ctrFormats[selectedFormatIndex], imageWidth, imageHeight, mipCount
                         );
                     }
-                        
+
 
                     char formattedStr[32];
                     {
@@ -431,7 +431,7 @@ void WindowSpritesheet::FormatPopup() {
                 unsigned selectedMax = isRVL ? rvlFormats.size() - 1 : ctrFormats.size() - 1;
                 if (selectedFormatIndex > selectedMax)
                     selectedFormatIndex = selectedMax;
-                
+
                 updateTextureData();
             }
 

@@ -516,7 +516,7 @@ static std::vector<PartDrawCommand> constructDrawData(
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex >= 0 && partIndex != static_cast<int>(i))
             continue;
-        
+
         const CellAnim::ArrangementPart& part = arrangement.parts.at(i);
 
         // Skip invisible parts
@@ -609,7 +609,7 @@ void CellAnimRenderer::InternDraw(
         for (auto& cmd : drawData) {
             // ImGui will copy the userdata.
             this->currentDrawList->AddCallback(CellAnimRenderer::renderPartCallback, &cmd.callbackData, sizeof(cmd.callbackData));
-    
+
             this->currentDrawList->AddImageQuad(
                 static_cast<ImTextureID>(cmd.textureId),
                 cmd.quad[0], cmd.quad[1], cmd.quad[2], cmd.quad[3],
@@ -617,7 +617,7 @@ void CellAnimRenderer::InternDraw(
                 cmd.vertexColor
             );
         }
-    
+
         this->currentDrawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr, 0);
     } break;
 
@@ -725,12 +725,12 @@ void CellAnimRenderer::InternDraw(
             glBindTexture(GL_TEXTURE_2D, cmd.textureId);
             glDrawArrays(GL_TRIANGLES, i * 6, 6);
         }
-    
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteBuffers(1, &VBO);
         glDeleteVertexArrays(1, &VAO);
     } break;
-    
+
     default:
         break;
     }
