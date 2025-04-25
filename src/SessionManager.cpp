@@ -395,7 +395,7 @@ int SessionManager::CreateSession(std::string_view filePath) {
 
     std::vector<unsigned char> data;
     {
-        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+        std::ifstream file(filePath.data(), std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
             Logging::err << "[SessionManager::CreateSession] Error opening file at path: " << filePath << std::endl;
 

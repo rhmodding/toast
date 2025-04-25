@@ -22,13 +22,13 @@ bool Files::copyFile(std::string_view filePathSrc, std::string_view filePathDst,
     if (doesFileExist(filePathDst))
         return true;
 
-    std::ifstream src(filePathSrc, std::ios::binary);
+    std::ifstream src(filePathSrc.data(), std::ios::binary);
     if (!src) {
         Logging::err << "[Files::copyFile] Unable to open source file at path \"" << filePathSrc << "\"!" << std::endl;
         return false;
     }
 
-    std::ofstream dst(filePathDst, std::ios::binary);
+    std::ofstream dst(filePathDst.data(), std::ios::binary);
     if (!dst) {
         Logging::err << "[Files::copyFile] Unable to open destination file at path \"" << filePathDst << "\"!" << std::endl;
         return false;
