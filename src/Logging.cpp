@@ -62,7 +62,7 @@ void Logging::LogStream::flush() {
 void Logging::Open(std::string_view filename) {
     std::lock_guard<std::mutex> lock(mtx);
 
-    logFile.open(filename, std::ios::out | std::ios::app);
+    logFile.open(filename.data(), std::ios::out | std::ios::app);
     if (!logFile.is_open())
         std::cerr << "[Logging::Open] Failed to open logfile at path \"" << filename << "\"!" << std::endl;
 }
