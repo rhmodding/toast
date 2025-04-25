@@ -27,9 +27,12 @@ AsyncTaskExportSession::AsyncTaskExportSession(
 {}
 
 void AsyncTaskExportSession::Run() {
+    std::string_view dstFilePath = "";
+    if (!this->useSessionPath)
+        dstFilePath = this->filePath;
+
     bool exportResult = SessionManager::getInstance().ExportSession(
-        this->sessionIndex,
-        this->useSessionPath ? nullptr : this->filePath.c_str()
+        this->sessionIndex, dstFilePath
     );
     this->result.store(exportResult);
 }
