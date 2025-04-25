@@ -203,7 +203,11 @@ IF (APPLE)
 ENDIF()
 
 # zeldamods zlib for Yaz0 & NZlib
+set(ZLIB_ENABLE_TESTS OFF CACHE BOOL "Disable zlib-ng tests" FORCE)
+set(ZLIBNG_ENABLE_TESTS OFF CACHE BOOL "Disable zlib-ng specific tests" FORCE)
 set(WITH_AVX2 OFF CACHE BOOL "Disable AVX2 support" FORCE)
+set(WITH_AVX512 OFF CACHE BOOL "Disable AVX512 support" FORCE)
+set(WITH_AVX512VNNI OFF CACHE BOOL "Disable AVX512VNNI support" FORCE)
 
 add_subdirectory(ext/zeldamods.zlib-ng)
 
