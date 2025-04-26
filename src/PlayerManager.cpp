@@ -107,6 +107,27 @@ unsigned PlayerManager::getElapsedFrames() const {
     return result;
 }
 
+void PlayerManager::correctState() {
+    if (SessionManager::getInstance().getCurrentSessionIndex() >= 0) {
+        unsigned arrangementCount = this->getCellAnim()->arrangements.size();
+        if (this->getArrangementModeIdx() >= arrangementCount)
+            this->setArrangementModeIdx(arrangementCount - 1);
+
+        unsigned animCount = this->getCellAnim()->animations.size();
+        unsigned animIndex = std::min(
+            animCount - 1,
+            this->animationIndex
+        );
+
+        // setAnimationIndex clamps the key index & corrects the part selection.
+        this->setAnimationIndex(animIndex);
+    }
+    else {
+        this->animationIndex = 0;
+        this->keyIndex = 0;
+    }
+}
+
 void PlayerManager::Update() {
     if (!this->playing || this->arrangementModeEnabled())
         return;

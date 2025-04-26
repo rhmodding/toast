@@ -15,7 +15,6 @@
 
 #include "SessionManager.hpp"
 
-
 class PlayerManager : public Singleton<PlayerManager> {
     friend class Singleton<PlayerManager>; // Allow access to base class constructor
 
@@ -81,26 +80,7 @@ public:
     // After for example a session switch or another change that can reduce the amount
     // of animations, keys, or parts, the state needs to be 'corrected' to align with
     // the new circumstances.
-    void correctState() {
-        if (SessionManager::getInstance().getCurrentSessionIndex() >= 0) {
-            unsigned arrangementCount = this->getCellAnim()->arrangements.size();
-            if (this->getArrangementModeIdx() >= arrangementCount)
-                this->setArrangementModeIdx(arrangementCount - 1);
-
-            unsigned animCount = this->getCellAnim()->animations.size();
-            unsigned animIndex = std::min(
-                animCount - 1,
-                this->animationIndex
-            );
-
-            // setAnimationIndex clamps the key index & corrects the part selection.
-            this->setAnimationIndex(animIndex);
-        }
-        else {
-            this->animationIndex = 0;
-            this->keyIndex = 0;
-        }
-    }
+    void correctState();
 
     void setArrangementModeIdx(unsigned index);
     unsigned getArrangementModeIdx() const;
