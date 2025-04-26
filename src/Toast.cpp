@@ -43,10 +43,6 @@
 
 #include "App/Popups.hpp"
 
-#include "common.hpp"
-
-#include "texture/APNGHack.hpp"
-
 // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
 #include "stb/stb_image.h"
