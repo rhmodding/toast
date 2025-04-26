@@ -56,7 +56,8 @@
 
 #define WINDOW_TITLE "toast"
 
-Toast* globlToast { nullptr };
+Toast* Toast::gInstance { nullptr };
+Toast* Toast::getInstance() { return gInstance; }
 
 static void syncToUpdateRate() {
     static std::chrono::system_clock::time_point a { std::chrono::system_clock::now() };
@@ -79,7 +80,9 @@ static void syncToUpdateRate() {
 }
 
 Toast::Toast(int argc, const char** argv) {
-    globlToast = this;
+    if (gInstance != nullptr)
+        throw std::runtime_error("Toast:Toast: Instance of Toast already exists!");
+    gInstance = this;
 
     this->mainThreadId = std::this_thread::get_id();
 
@@ -147,17 +150,15 @@ Toast::Toast(int argc, const char** argv) {
     }
 
     glfwSetWindowCloseCallback(this->glfwWindowHndl, [](GLFWwindow*) {
-        extern Toast* globlToast;
-        globlToast->AttemptExit();
+        Toast::getInstance()->AttemptExit();
     });
 
-    globlToast->isWindowMaximized = configManager.getConfig().lastWindowMaximized;
-    if (globlToast->isWindowMaximized)
+    this->isWindowMaximized = configManager.getConfig().lastWindowMaximized;
+    if (this->isWindowMaximized)
         glfwMaximizeWindow(this->glfwWindowHndl);
 
     glfwSetWindowMaximizeCallback(this->glfwWindowHndl, [](GLFWwindow*, int maximized) {
-        extern Toast* globlToast;
-        globlToast->isWindowMaximized = maximized;
+        Toast::getInstance()->isWindowMaximized = maximized;
     });
 
     glfwMakeContextCurrent(this->glfwWindowHndl);
@@ -261,6 +262,8 @@ Toast::~Toast() {
     Logging::info << "[Toast::Toast] Finished deinitializing." << std::endl;
 
     Logging::Close();
+
+    gInstance = nullptr;
 }
 
 void Toast::AttemptExit(bool force) {

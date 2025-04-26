@@ -27,7 +27,7 @@ static void Popup_ExitWithChanges() {
         if (ImGui::Button("Exit without saving")) {
             ImGui::CloseCurrentPopup();
 
-            globlToast->AttemptExit(true);
+            Toast::getInstance()->AttemptExit(true);
         }
 
         ImGui::EndPopup();

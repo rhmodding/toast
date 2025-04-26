@@ -31,14 +31,18 @@
 
 #include "common.hpp"
 
-class Toast;
-
-extern Toast* globlToast;
-
 class Toast {
+private:
+    static Toast* gInstance;
+public:
+    static Toast* getInstance();
+
 public:
     Toast(int argc, const char** argv);
     ~Toast();
+
+    Toast(const Toast&) = delete;
+    Toast& operator=(const Toast&) = delete;
 
 public:
     void Update();
