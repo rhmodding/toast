@@ -53,7 +53,11 @@
 #define WINDOW_TITLE "toast"
 
 Toast* Toast::gInstance { nullptr };
-Toast* Toast::getInstance() { return gInstance; }
+Toast* Toast::getInstance() {
+    if (gInstance == nullptr)
+        throw std::runtime_error("Toast:getInstance: Instance of Toast does not exist!");
+    return gInstance;
+}
 
 static void syncToUpdateRate() {
     static std::chrono::system_clock::time_point a { std::chrono::system_clock::now() };
