@@ -81,7 +81,14 @@ constexpr const char* getImageFormatName(CTPKImageFormat format) {
     return strings[format];
 }
 
+constexpr bool getImageFormatCompressed(CTPKImageFormat format) {
+    return
+        format == CTPK_IMAGE_FORMAT_ETC1 ||
+        format == CTPK_IMAGE_FORMAT_ETC1A4;
+}
+
 struct CTPKTexture {
+public:
     unsigned width;
     unsigned height;
 
@@ -94,6 +101,7 @@ struct CTPKTexture {
 
     std::vector<unsigned char> data; // In RGBA32 format.
 
+public:
     void rotateCCW();
     void rotateCW();
 
