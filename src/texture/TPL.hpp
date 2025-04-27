@@ -105,7 +105,12 @@ constexpr const char* getImageFormatName(TPLImageFormat format) {
     return strings[format];
 }
 
+constexpr bool getImageFormatCompressed(TPLImageFormat format) {
+    return format == TPL_IMAGE_FORMAT_CMPR;
+}
+
 struct TPLTexture {
+public:
     unsigned width;
     unsigned height;
 
@@ -122,6 +127,7 @@ struct TPLTexture {
     std::vector<unsigned char> data; // In RGBA32 format.
     std::vector<uint32_t> palette; // In RGBA32 format.
 
+public:
     [[nodiscard]] GLuint createGPUTexture() const;
 };
 
