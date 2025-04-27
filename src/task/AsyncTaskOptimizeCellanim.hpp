@@ -5,7 +5,7 @@
 
 #include "../glInclude.hpp"
 
-#include "../SessionManager.hpp"
+#include "../Session.hpp"
 
 struct OptimizeCellanimOptions {
     bool removeAnimationNames { false };

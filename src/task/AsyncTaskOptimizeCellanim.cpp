@@ -133,6 +133,6 @@ void AsyncTaskOptimizeCellanim::Run() {
 
 void AsyncTaskOptimizeCellanim::Effect() {
     // TODO: make this whole thing undo-able
-    SessionManager::getInstance().getCurrentSession()->clearUndoRedo();
+    this->session->clearUndoRedo();
     //SessionManager::getInstance().SessionChanged();
 }
