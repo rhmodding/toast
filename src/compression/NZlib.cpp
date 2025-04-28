@@ -65,15 +65,11 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         return std::nullopt;
     }
 
-    Logging::info << "[NZlib::decompress] <> Stage: start" << std::endl;
-
     const uint32_t deflateSize = dataSize - sizeof(uint32_t);
     if (deflateSize < MIN_ZLIB_DATA_SIZE || deflateSize > dataSize) {
         Logging::err << "[NZlib::decompress] The length of the compressed data is invalid!" << std::endl;
         return std::nullopt;
     }
-
-    Logging::info << "[NZlib::decompress] <> Stage: dereference inflateSize" << std::endl;
 
     const uint32_t inflateSize = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(data));
     if (inflateSize == 0) {
@@ -81,10 +77,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         return std::nullopt;
     }
 
-    Logging::info << "[NZlib::decompress] <> Stage: make inflated vec (size: " << inflateSize << ')' << std::endl;
     std::vector<unsigned char> inflated(inflateSize);
-
-    Logging::info << "[NZlib::decompress] <> Stage: construct strm" << std::endl;
 
     zng_stream strm {};
     strm.next_in = data + sizeof(uint32_t);
@@ -95,15 +88,11 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
 
-    Logging::info << "[NZlib::decompress] <> Stage: zng init" << std::endl;
-
     const int init = zng_inflateInit2(&strm, 15);
     if (init != Z_OK) {
         Logging::err << "[NZlib::decompress] zng_inflateInit failed!" << std::endl;
         return std::nullopt;
     }
-
-    Logging::info << "[NZlib::decompress] <> Stage: zng inflate call" << std::endl;
 
     const int ret = zng_inflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
@@ -111,8 +100,6 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         zng_inflateEnd(&strm);
         return std::nullopt;
     }
-
-    Logging::info << "[NZlib::decompress] <> Stage: end inflate" << std::endl;
 
     zng_inflateEnd(&strm);
     return inflated;
