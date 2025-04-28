@@ -7,35 +7,15 @@
 
 #include <cstdint>
 
+#include "../CanvasState.hpp"
+
 #include "../cellanim/CellAnimRenderer.hpp"
 
 class WindowCanvas : public BaseWindow {
 public:
     void Update() override;
 
-    ImVec2 canvasOffset { 0.f, 0.f };
-
-    bool   drawAllBounding { false };
-    ImVec4 partBoundingDrawColor { 1.f, 1.f, 1.f, 1.f };
-    float  partOriginDrawRadius { 5.f };
-
-    bool   allowOpacity { true };
-
-    float  canvasZoom { 1.f };
-
-    enum GridType {
-        GridType_None,
-        GridType_Dark,
-        GridType_Light,
-
-        GridType_Custom
-    } gridType;
-    ImVec4 customGridColor { 1.f, 1.f, 1.f, 1.f };
-    bool   enableGridLines { true };
-
-    bool    showSafeArea { false };
-    uint8_t safeAreaAlpha { 255 };
-
+    CanvasState state;
 private:
     CellAnimRenderer cellanimRenderer;
 
