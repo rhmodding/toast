@@ -45,7 +45,7 @@ void SessionManager::setCurrentSessionIndex(int sessionIndex) {
 }
 
 static SessionManager::Error InitRvlSession(
-    Session& session, U8Archive::U8ArchiveObject& archive
+    Session& session, const U8Archive::U8ArchiveObject& archive
 ) {
     auto rootDirIt = std::find_if(
         archive.structure.subdirectories.begin(),
@@ -69,9 +69,7 @@ static SessionManager::Error InitRvlSession(
         return SessionManager::OpenError_LayoutArchive;
     }
 
-    rootDirIt->SortAlphabetically();
-
-    U8Archive::File* __tplSearch = U8Archive::findFile("cellanim.tpl", *rootDirIt);
+    const U8Archive::File* __tplSearch = U8Archive::findFile("cellanim.tpl", *rootDirIt);
     if (!__tplSearch) {
         return SessionManager::OpenError_FailFindTPL;
     }
@@ -108,8 +106,8 @@ static SessionManager::Error InitRvlSession(
 
     // Cellanims
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
-        auto& cellanim = session.cellanims[i];
-        const auto* file = brcadFiles[i];
+        Session::CellAnimGroup& cellanim = session.cellanims[i];
+        const U8Archive::File* file = brcadFiles[i];
 
         cellanim.name = file->name.substr(0, file->name.size() - STR_LIT_LEN(".brcad"));
         cellanim.object =
@@ -197,11 +195,11 @@ static SessionManager::Error InitRvlSession(
 
     // Editor data
     {
-        U8Archive::File* tedSearch = U8Archive::findFile(TED_ARC_FILENAME, *rootDirIt);
+        const U8Archive::File* tedSearch = U8Archive::findFile(TED_ARC_FILENAME, *rootDirIt);
         if (tedSearch)
             TedApply(tedSearch->data.data(), session);
         else {
-            U8Archive::File* datSearch = U8Archive::findFile(TED_ARC_FILENAME_OLD, *rootDirIt);
+            const U8Archive::File* datSearch = U8Archive::findFile(TED_ARC_FILENAME_OLD, *rootDirIt);
             if (datSearch)
                 TedApply(datSearch->data.data(), session);
         }
@@ -211,7 +209,7 @@ static SessionManager::Error InitRvlSession(
 }
 
 static SessionManager::Error InitCtrSession(
-    Session& session, SARC::SARCObject& archive
+    Session& session, const SARC::SARCObject& archive
 ) {
     // Every layout archive has the directory "blyt". If this directory exists
     // we should throw an error
@@ -347,7 +345,7 @@ static SessionManager::Error InitCtrSession(
         return sheetsError;
 
     // Editor data
-    SARC::File* tedSearch = SARC::findFile(TED_ARC_FILENAME, *rootDirIt);
+    const SARC::File* tedSearch = SARC::findFile(TED_ARC_FILENAME, *rootDirIt);
     if (tedSearch)
         TedApply(tedSearch->data.data(), session);
 

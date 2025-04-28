@@ -74,7 +74,10 @@ private:
 
 [[nodiscard]] std::optional<U8ArchiveObject> readYaz0U8Archive(std::string_view filePath);
 
-File* findFile(std::string_view path, Directory& directory);
+const File* findFile(std::string_view path, const Directory& directory);
+inline File* findFile(std::string_view path, Directory& directory) {
+    return const_cast<File*>(findFile(path, static_cast<const Directory&>(directory)));
+}
 
 } // namespace U8
 
