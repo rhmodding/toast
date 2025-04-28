@@ -78,14 +78,11 @@ namespace TPL {
 GLuint TPLTexture::createGPUTexture() const {
     GLuint textureId { 0 };
 
-    GLint minFilter { GL_LINEAR };
-    GLint magFilter { GL_LINEAR };
+    GLint minFilter, magFilter;
 
     switch (this->minFilter) {
     case TPL::TPL_TEX_FILTER_NEAR:
         minFilter = GL_NEAREST;
-        break;
-    case TPL::TPL_TEX_FILTER_LINEAR:
         break;
     case TPL::TPL_TEX_FILTER_NEAR_MIP_NEAR:
         minFilter = GL_NEAREST_MIPMAP_NEAREST;
@@ -99,7 +96,9 @@ GLuint TPLTexture::createGPUTexture() const {
     case TPL::TPL_TEX_FILTER_LIN_MIP_LIN:
         minFilter = GL_LINEAR_MIPMAP_LINEAR;
         break;
+    case TPL::TPL_TEX_FILTER_LINEAR:
     default:
+        minFilter = GL_LINEAR;
         break;
     }
 
@@ -108,8 +107,8 @@ GLuint TPLTexture::createGPUTexture() const {
         magFilter = GL_NEAREST;
         break;
     case TPL::TPL_TEX_FILTER_LINEAR:
-        break;
     default:
+        magFilter = GL_LINEAR;
         break;
     }
 
@@ -129,6 +128,8 @@ GLuint TPLTexture::createGPUTexture() const {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data.data());
+
+        glGenerateMipmap(GL_TEXTURE_2D);
 
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
