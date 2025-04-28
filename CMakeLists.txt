@@ -48,8 +48,10 @@ set(SOURCES
 
     src/cellanim/CellAnimHelpers.cpp
 
+    src/archive/Archive.cpp
+
+    src/archive/DARCH.cpp
     src/archive/SARC.cpp
-    src/archive/U8Archive.cpp
 
     src/compression/NZlib.cpp
     src/compression/Yaz0.cpp

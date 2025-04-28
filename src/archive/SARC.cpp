@@ -104,35 +104,6 @@ static uint32_t sarcComputeHash(std::string_view string, uint32_t key) {
 
 namespace SARC {
 
-File::File(std::string n) :
-    name(std::move(n))
-{}
-
-Directory::Directory(std::string n) :
-    name(std::move(n))
-{}
-Directory::Directory(std::string n, Directory* parentDir) :
-    name(std::move(n)), parent(parentDir)
-{}
-
-void Directory::AddFile(File& file) {
-    file.parent = this;
-    this->files.push_back(file);
-}
-void Directory::AddFile(File&& file) {
-    file.parent = this;
-    this->files.push_back(std::move(file));
-}
-
-void Directory::AddDirectory(Directory& directory) {
-    directory.parent = this;
-    this->subdirectories.push_back(directory);
-}
-void Directory::AddDirectory(Directory&& directory) {
-    directory.parent = this;
-    this->subdirectories.push_back(std::move(directory));
-}
-
 SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(SarcFileHeader)) {
         Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: data size smaller than header size!" << std::endl;
@@ -189,13 +160,13 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         std::stringstream stream(name);
         std::string currentSegment;
 
-        Directory* currentDir = &this->structure;
+        Archive::Directory* currentDir = &this->structure;
 
         // Traverse.
         while (std::getline(stream, currentSegment, '/')) {
             // Last segment is the file name; add it!
             if (stream.peek() == EOF) {
-                File newFile(currentSegment);
+                Archive::File newFile(currentSegment);
 
                 newFile.parent = currentDir;
                 newFile.data = std::vector<unsigned char>(nodeDataStart, nodeDataEnd);
@@ -208,14 +179,14 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
             // Find or create the subdirectory.
             auto it = std::find_if(
                 currentDir->subdirectories.begin(), currentDir->subdirectories.end(),
-                [&currentSegment](const Directory& dir) {
+                [&currentSegment](const Archive::Directory& dir) {
                     return dir.name == currentSegment;
                 }
             );
 
             // Directory doesn't exist; create and add it.
             if (it == currentDir->subdirectories.end()) {
-                Directory newDir(currentSegment, currentDir);
+                Archive::Directory newDir(currentSegment, currentDir);
                 currentDir->AddDirectory(std::move(newDir));
 
                 currentDir = &currentDir->subdirectories.back();
@@ -231,27 +202,27 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
 
 std::vector<unsigned char> SARCObject::Serialize() {
     struct FileEntry {
-        const File* file;
+        const Archive::File* file;
         std::string path;
         uint32_t pathHash;
     };
     std::vector<FileEntry> entries;
 
-    std::stack<const Directory*> dirStack;
+    std::stack<const Archive::Directory*> dirStack;
     dirStack.push(&this->structure);
 
     // TODO: it's naively assumed that there are no hash collisions; we should
     //       probably be checking
 
     while (!dirStack.empty()) {
-        const Directory* currentDir = dirStack.top();
+        const Archive::Directory* currentDir = dirStack.top();
         dirStack.pop();
 
         for (const auto& file : currentDir->files) {
             // Build file path.
             std::string path = file.name;
 
-            const Directory* dir = file.parent;
+            const Archive::Directory* dir = file.parent;
             while (dir && dir->parent) {
                 path = dir->name + "/" + path;
                 dir = dir->parent;
@@ -337,63 +308,6 @@ std::vector<unsigned char> SARCObject::Serialize() {
     }
 
     return result;
-}
-
-std::optional<SARCObject> readNZlibSARC(std::string_view filePath) {
-    std::ifstream file(filePath.data(), std::ios::binary | std::ios::ate);
-    if (!file.is_open()) {
-        Logging::err << "[SARC::readNZlibSARC] Error opening file at path: " << filePath << std::endl;
-        return std::nullopt;
-    }
-
-    const std::streampos fileSize = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    unsigned char* buffer = new unsigned char[fileSize];
-    file.read(reinterpret_cast<char*>(buffer), fileSize);
-
-    file.close();
-
-    // yaz0 decompress
-    const auto decompressedData = NZlib::decompress(
-        buffer,
-        fileSize
-    );
-
-    delete[] buffer;
-
-    if (!decompressedData.has_value()) {
-        Logging::err << "[SARC::readNZlibSARC] Error decompressing file at path: " << filePath << std::endl;
-        return std::nullopt;
-    }
-
-    SARCObject archive(
-        decompressedData->data(),
-        decompressedData->size()
-    );
-
-    return archive;
-}
-
-const File* findFile(std::string_view path, const Directory& directory) {
-    const size_t slashOffset = path.find('/');
-
-    // Slash not found: it's a file, search for it
-    if (slashOffset == std::string_view::npos) {
-        for (const File& file : directory.files)
-            if (file.name == path)
-                return &file;
-
-        return nullptr;
-    }
-    // Slash found: it's a subdirectory, recursive search
-    else {
-        for (const Directory& subDir : directory.subdirectories)
-            if (strncmp(subDir.name.data(), path.data(), slashOffset) == 0)
-                return findFile(path.substr(slashOffset + 1), subDir);
-
-        return nullptr;
-    }
 }
 
 }
