@@ -27,13 +27,16 @@ private:
     TPL::TPLImageFormat tplOutputFormat { TPL::TPL_IMAGE_FORMAT_RGBA32 };
     CTPK::CTPKImageFormat ctpkOutputFormat { CTPK::CTPK_IMAGE_FORMAT_ETC1A4 };
 
+    GLint wrapS { GL_REPEAT }, wrapT { GL_REPEAT };
+    GLint minFilter { GL_LINEAR }, magFilter { GL_LINEAR };
+
     std::string name;
 
 public:
+    // NOTE: once you construct a Texture with a textureId, you grant it
+    // ownership of that GPU texture
     Texture() = default;
-    Texture(unsigned width, unsigned height, GLuint textureId) :
-        width(width), height(height), textureId(textureId)
-    {}
+    Texture(unsigned width, unsigned height, GLuint textureId);
 
     ~Texture();
 
@@ -47,6 +50,18 @@ public:
 
     GLuint getTextureId() const { return this->textureId; }
     ImTextureID getImTextureId() const { return static_cast<ImTextureID>(this->textureId); }
+
+    GLint getWrapS() const { return this->wrapS; }
+    void setWrapS(GLint wrapS);
+
+    GLint getWrapT() const { return this->wrapT; }
+    void setWrapT(GLint wrapT);
+
+    GLint getMinFilter() const { return this->minFilter; }
+    void setMinFilter(GLint minFilter);
+
+    GLint getMagFilter() const { return this->magFilter; }
+    void setMagFilter(GLint magFilter);
 
     TPL::TPLImageFormat getTPLOutputFormat() const { return this->tplOutputFormat; }
     void setTPLOutputFormat(TPL::TPLImageFormat format) { this->tplOutputFormat = format; }

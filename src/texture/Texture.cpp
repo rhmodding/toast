@@ -7,8 +7,45 @@
 
 #include "../Logging.hpp"
 
+Texture::Texture(unsigned width, unsigned height, GLuint textureId) :
+    width(width), height(height), textureId(textureId)
+{
+    MainThreadTaskManager::getInstance().QueueTask([this]() {
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &this->wrapS);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &this->wrapT);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &this->minFilter);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &this->magFilter);
+    }).get();
+}
+
 Texture::~Texture() {
     this->DestroyTexture();
+}
+
+void Texture::setWrapS(GLint wrapS) {
+    MainThreadTaskManager::getInstance().QueueTask([this, wrapS]() {
+        this->wrapS = wrapS;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    }).get();
+}
+void Texture::setWrapT(GLint wrapT) {
+    MainThreadTaskManager::getInstance().QueueTask([this, wrapT]() {
+        this->wrapT = wrapT;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+    }).get();
+}
+
+void Texture::setMinFilter(GLint minFilter) {
+    MainThreadTaskManager::getInstance().QueueTask([this, minFilter]() {
+        this->minFilter = minFilter;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+    }).get();
+}
+void Texture::setMagFilter(GLint magFilter) {
+    MainThreadTaskManager::getInstance().QueueTask([this, magFilter]() {
+        this->magFilter = magFilter;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, magFilter);
+    }).get();
 }
 
 void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned height) {
@@ -154,33 +191,30 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
 
         .mipCount = 1, // TODO use true mip count
 
-        .minFilter = TPL::TPL_TEX_FILTER_LINEAR,
-        .magFilter = TPL::TPL_TEX_FILTER_LINEAR,
-
         .format = this->tplOutputFormat,
 
         .data = std::vector<unsigned char>(this->width * this->height * 4)
     };
 
-    GLint wrapS, wrapT;
+    tplTexture.minFilter = this->minFilter == GL_NEAREST ?
+        TPL::TPL_TEX_FILTER_NEAR :
+        TPL::TPL_TEX_FILTER_LINEAR;
+    tplTexture.magFilter = this->magFilter == GL_NEAREST ?
+        TPL::TPL_TEX_FILTER_NEAR :
+        TPL::TPL_TEX_FILTER_LINEAR;
 
-    MainThreadTaskManager::getInstance().QueueTask([this, &tplTexture, &wrapS, &wrapT]() {
+    tplTexture.wrapS = this->wrapS == GL_REPEAT ?
+        TPL::TPL_WRAP_MODE_REPEAT :
+        TPL::TPL_WRAP_MODE_CLAMP;
+    tplTexture.wrapT = this->wrapT == GL_REPEAT ?
+        TPL::TPL_WRAP_MODE_REPEAT :
+        TPL::TPL_WRAP_MODE_CLAMP;
+
+    MainThreadTaskManager::getInstance().QueueTask([this, &tplTexture]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
-
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
-
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapS);
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapT);
-
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
-
-    tplTexture.wrapS = wrapS == GL_REPEAT ?
-        TPL::TPL_WRAP_MODE_REPEAT :
-        TPL::TPL_WRAP_MODE_CLAMP;
-    tplTexture.wrapT = wrapT == GL_REPEAT ?
-        TPL::TPL_WRAP_MODE_REPEAT :
-        TPL::TPL_WRAP_MODE_CLAMP;
 
     return tplTexture;
 }
@@ -206,9 +240,7 @@ std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
 
     MainThreadTaskManager::getInstance().QueueTask([this, &ctpkTexture]() {
         glBindTexture(GL_TEXTURE_2D, this->textureId);
-
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, ctpkTexture.data.data());
-
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
 
