@@ -142,6 +142,8 @@ GLuint CTPKTexture::createGPUTexture() const {
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data.data());
 
+        glGenerateMipmap(GL_TEXTURE_2D);
+
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
 
