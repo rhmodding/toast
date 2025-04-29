@@ -42,7 +42,7 @@ static void onTerminate() {
 
 void TerminateHandler::Init() {
     // In debug builds we want the exception to stay unhandled, otherwise the debugger won't catch it.
-#ifndef NDEBUG
+#ifdef NDEBUG
     std::set_terminate(onTerminate);
 #endif
 }
