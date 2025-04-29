@@ -78,18 +78,22 @@ public:
 
     ETC1Quality etc1Quality { ETC1Quality_Medium };
 
+    bool allowNewAnimCreate { false };
+
     bool operator==(const Config& other) const {
         return
             this->theme == other.theme &&
             this->imageEditorPath == other.imageEditorPath &&
             this->textureEditPath == other.textureEditPath &&
+            // this->recentlyOpened == other.recentlyOpened &&
             this->lastWindowWidth == other.lastWindowWidth &&
             this->lastWindowHeight == other.lastWindowHeight &&
             this->canvasLMBPanEnabled == other.canvasLMBPanEnabled &&
             this->updateRate == other.updateRate &&
             this->backupBehaviour == other.backupBehaviour &&
             this->compressionLevel == other.compressionLevel &&
-            this->etc1Quality == other.etc1Quality;
+            this->etc1Quality == other.etc1Quality &&
+            this->allowNewAnimCreate == other.allowNewAnimCreate;
     }
 
     // Friend functions for JSON (de-)serialization
@@ -106,7 +110,8 @@ public:
             { "updateRate", _config.updateRate },
             { "backupBehaviour", _config.backupBehaviour },
             { "compressionLevel", _config.compressionLevel },
-            { "etc1Quality", _config.etc1Quality }
+            { "etc1Quality", _config.etc1Quality },
+            { "allowNewAnimCreate", _config.allowNewAnimCreate }
         };
     }
     friend void from_json(const nlohmann::ordered_json& j, Config& _config) {
@@ -122,6 +127,7 @@ public:
         _config.backupBehaviour =     j.value("backupBehaviour", _config.backupBehaviour);
         _config.compressionLevel =    j.value("compressionLevel", _config.compressionLevel);
         _config.etc1Quality =         j.value("etc1Quality", _config.etc1Quality);
+        _config.allowNewAnimCreate =  j.value("allowNewAnimCreate", _config.allowNewAnimCreate);
     }
 };
 

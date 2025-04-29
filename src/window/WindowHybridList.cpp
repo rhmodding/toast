@@ -4,7 +4,10 @@
 #include <imgui_internal.h>
 
 #include <sstream>
+
 #include <string>
+
+#include <set>
 
 #include <cmath>
 
@@ -13,11 +16,14 @@
 #include "../SessionManager.hpp"
 #include "../PlayerManager.hpp"
 
+#include "../ConfigManager.hpp"
+
 #include "../App/Popups.hpp"
 
 #include "../command/CommandDeleteArrangement.hpp"
 #include "../command/CommandInsertArrangement.hpp"
 #include "../command/CommandModifyArrangement.hpp"
+#include "../command/CommandInsertAnimation.hpp"
 #include "../command/CommandModifyAnimation.hpp"
 #include "../command/CommandModifyAnimationName.hpp"
 #include "../command/CommandDeleteAnimation.hpp"
@@ -33,6 +39,36 @@ void WindowHybridList::ResetFlash() {
 }
 
 constexpr float WINDOW_FLASH_TIME = .3f; // seconds
+
+static CellAnim::Animation createNewAnimation() {
+    constexpr std::string namePrefix = "CellAnim";
+
+    SessionManager& sessionManager = SessionManager::getInstance();
+    const auto& animations = sessionManager.getCurrentSession()
+        ->getCurrentCellAnim().object->animations;
+
+    std::set<unsigned> usedNumbers;
+    for (const auto& animation : animations) {
+        if (animation.name.compare(0, namePrefix.size(), namePrefix) == 0) {
+            std::string suffix = animation.name.substr(namePrefix.size());
+            bool isNumber = !suffix.empty() && std::all_of(suffix.begin(), suffix.end(), isdigit);
+            if (isNumber)
+                usedNumbers.insert(std::stoi(suffix));
+        }
+    }
+
+    unsigned nextNumber = 0;
+    while (usedNumbers.count(nextNumber))
+        ++nextNumber;
+
+    CellAnim::Animation newAnimation {
+        .name = namePrefix + std::to_string(nextNumber),
+        .keys = {
+            CellAnim::AnimationKey {}
+        }
+    };
+    return newAnimation;
+}
 
 void WindowHybridList::Update() {
     AppState& appState = AppState::getInstance();
@@ -84,6 +120,8 @@ void WindowHybridList::Update() {
         SessionManager& sessionManager = SessionManager::getInstance();
         PlayerManager& playerManager = PlayerManager::getInstance();
 
+        const auto& config = ConfigManager::getInstance().getConfig();
+
         const auto& animations = sessionManager.getCurrentSession()
             ->getCurrentCellAnim().object->animations;
         const auto& arrangements = sessionManager.getCurrentSession()
@@ -113,6 +151,27 @@ void WindowHybridList::Update() {
                     ImGui::Text("\"%s\"", animName);
 
                     ImGui::Separator();
+
+                    if (config.allowNewAnimCreate) {
+                        if (ImGui::Selectable("Insert new animation above")) {
+                            command = std::make_shared<CommandInsertAnimation>(
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                n,
+                                createNewAnimation()
+                            );
+                            playerManager.setAnimationIndex(n);
+                        }
+                        if (ImGui::Selectable("Insert new animation below")) {
+                            command = std::make_shared<CommandInsertAnimation>(
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                n+1,
+                                createNewAnimation()
+                            );
+                            playerManager.setAnimationIndex(n + 1);
+                        }
+
+                        ImGui::Separator();
+                    }
 
                     if (ImGui::Selectable("Paste animation..", allowPasteAnimation)) {
                         copyAnimation.name = animations[n].name;
