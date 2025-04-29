@@ -63,10 +63,10 @@ static CellAnim::Animation createNewAnimation() {
         ++nextNumber;
 
     CellAnim::Animation newAnimation {
-        .name = std::string(namePrefix) + std::to_string(nextNumber),
         .keys = {
             CellAnim::AnimationKey {}
-        }
+        },
+        .name = std::string(namePrefix) + std::to_string(nextNumber)
     };
     return newAnimation;
 }
