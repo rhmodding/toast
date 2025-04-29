@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include <string>
+#include <string_view>
 
 #include <set>
 
@@ -41,7 +42,7 @@ void WindowHybridList::ResetFlash() {
 constexpr float WINDOW_FLASH_TIME = .3f; // seconds
 
 static CellAnim::Animation createNewAnimation() {
-    constexpr std::string namePrefix = "CellAnim";
+    constexpr std::string_view namePrefix = "CellAnim";
 
     SessionManager& sessionManager = SessionManager::getInstance();
     const auto& animations = sessionManager.getCurrentSession()
@@ -49,7 +50,7 @@ static CellAnim::Animation createNewAnimation() {
 
     std::set<unsigned> usedNumbers;
     for (const auto& animation : animations) {
-        if (animation.name.compare(0, namePrefix.size(), namePrefix) == 0) {
+        if (animation.name.compare(0, namePrefix.size(), namePrefix.data()) == 0) {
             std::string suffix = animation.name.substr(namePrefix.size());
             bool isNumber = !suffix.empty() && std::all_of(suffix.begin(), suffix.end(), isdigit);
             if (isNumber)
@@ -62,7 +63,7 @@ static CellAnim::Animation createNewAnimation() {
         ++nextNumber;
 
     CellAnim::Animation newAnimation {
-        .name = namePrefix + std::to_string(nextNumber),
+        .name = std::string(namePrefix) + std::to_string(nextNumber),
         .keys = {
             CellAnim::AnimationKey {}
         }
