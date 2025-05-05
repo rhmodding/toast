@@ -47,6 +47,10 @@ void PlayerManager::setAnimationIndex(unsigned index) {
         this->getKeyCount() - 1
     );
 
+    this->holdFramesLeft = std::min(
+        this->holdFramesLeft, static_cast<int>(this->getKey().holdFrames)
+    );
+
     selectionState.correctSelectedParts();
 }
 
@@ -81,12 +85,12 @@ void PlayerManager::setPlaying(bool playing) {
 unsigned PlayerManager::getTotalFrames() const {
     const auto& animation = this->getCellAnim()->animations.at(this->animationIndex);
 
-    return std::accumulate(
-        animation.keys.begin(), animation.keys.end(), 0u,
-        [](unsigned sum, const CellAnim::AnimationKey& key) {
-            return sum + key.holdFrames;
-        }
-    );
+    unsigned totalFrames = 0;
+    for (const auto& key : animation.keys) {
+        totalFrames += key.holdFrames;
+    }
+
+    return totalFrames;
 }
 
 unsigned PlayerManager::getElapsedFrames() const {
@@ -95,16 +99,13 @@ unsigned PlayerManager::getElapsedFrames() const {
 
     const auto& animation = this->getCellAnim()->animations.at(this->animationIndex);
 
-    unsigned result = std::accumulate(
-        animation.keys.begin(), animation.keys.begin() + this->keyIndex, 0u,
-        [](unsigned sum, const CellAnim::AnimationKey& key) {
-            return sum + key.holdFrames;
-        }
-    );
+    unsigned elapsedFrames = 0;
+    for (unsigned i = 0; i < this->keyIndex + 1; i++) {
+        elapsedFrames += animation.keys[i].holdFrames;
+    }
+    elapsedFrames -= this->holdFramesLeft;
 
-    result += animation.keys.at(this->keyIndex).holdFrames - this->holdFramesLeft;
-
-    return result;
+    return elapsedFrames;
 }
 
 void PlayerManager::correctState() {
@@ -115,8 +116,8 @@ void PlayerManager::correctState() {
 
         unsigned animCount = this->getCellAnim()->animations.size();
         unsigned animIndex = std::min(
-            animCount - 1,
-            this->animationIndex
+            this->animationIndex,
+            animCount - 1
         );
 
         // setAnimationIndex clamps the key index & corrects the part selection.
