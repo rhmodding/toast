@@ -210,9 +210,9 @@ set(ZLIBNG_ENABLE_TESTS OFF CACHE BOOL "Disable zlib-ng specific tests" FORCE)
 
 # these optimizations are not supported on some CPUs and cause crashes when
 # initializing zlib-ng
-set(WITH_AVX2 OFF CACHE BOOL "Disable AVX2 support" FORCE)
-set(WITH_AVX512 OFF CACHE BOOL "Disable AVX512 support" FORCE)
-set(WITH_AVX512VNNI OFF CACHE BOOL "Disable AVX512VNNI support" FORCE)
+set(WITH_AVX2 OFF CACHE BOOL "Disable zlib-ng AVX2 optimizations" FORCE)
+set(WITH_AVX512 OFF CACHE BOOL "Disable zlib-ng AVX512 optimizations" FORCE)
+set(WITH_AVX512VNNI OFF CACHE BOOL "Disable zlig-ng AVX512VNNI optimizations" FORCE)
 
 add_subdirectory(ext/zeldamods.zlib-ng)
 
@@ -224,7 +224,7 @@ add_subdirectory(ext/nlohmann.json)
 target_link_libraries(toast PRIVATE nlohmann_json::nlohmann_json)
 
 # Flags
-target_compile_options(toast PRIVATE -O3 -Wno-address-of-packed-member -Wno-cast-align)
+target_compile_options(toast PRIVATE -O3)
 
 # Apple "deprecated" OpenGL but never removed it lol
 IF (APPLE)
