@@ -284,8 +284,6 @@ static void _ApplyInterpolation(
     const CellAnim::AnimationKey& backKey, const CellAnim::AnimationKey& frontKey,
     const CellAnim::Animation& animation, unsigned animationIndex
 ) {
-    AppState& appState = AppState::getInstance();
-
     auto& arrangements = SessionManager::getInstance().getCurrentSession()
         ->getCurrentCellAnim().object->arrangements;
 

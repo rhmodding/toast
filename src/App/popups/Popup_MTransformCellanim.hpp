@@ -9,7 +9,6 @@
 
 static void Popup_MTransformCellanim() {
     SessionManager& sessionManager = SessionManager::getInstance();
-    PlayerManager& playerManager = PlayerManager::getInstance();
 
     if (!sessionManager.getSessionAvaliable())
         return;

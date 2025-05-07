@@ -421,8 +421,6 @@ void WindowCanvas::Update() {
     static float pivotBeforeMoveLocal[2] { 0.f, 0.f };
     static float pivotBeforeMoveWorld[2] { 0.f, 0.f };
 
-    AppState& appState = AppState::getInstance(); // TODO: eradicate
-
     PlayerManager& playerManager = PlayerManager::getInstance();
 
     auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
@@ -702,7 +700,7 @@ void WindowCanvas::Update() {
                 point = rotateVec2(point, keyCompensateRot, origin);
             }
 
-            const uint32_t colorLine = IM_COL32_WHITE;
+            // const uint32_t colorLine = IM_COL32_WHITE;
 
             // drawList->AddQuad(myPartsBounding[0], myPartsBounding[1], myPartsBounding[2], myPartsBounding[3], colorLine, 1.5f);
 

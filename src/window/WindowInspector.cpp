@@ -96,7 +96,6 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
 }
 
 void WindowInspector::Update() {
-    SessionManager& sessionManager = SessionManager::getInstance();
     AppState& appState = AppState::getInstance();
 
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar | (
