@@ -442,20 +442,13 @@ void WindowCanvas::Update() {
     }
 
     // Canvas zooming
-    {
-        constexpr float maxZoom = 10.f;
-        constexpr float minZoom = .1f;
+    if (interactionHovered && io.MouseWheel != 0.f) {
+        if (io.KeyShift)
+            this->state.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
+        else
+            this->state.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED;
 
-        if (interactionHovered) {
-            if (io.MouseWheel != 0) {
-                if (io.KeyShift)
-                    this->state.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
-                else
-                    this->state.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED;
-            }
-
-            this->state.clampZoomFactor();
-        }
+        this->state.clampZoomFactor();
     }
 
     this->cellanimRenderer.offset = origin;
