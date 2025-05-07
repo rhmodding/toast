@@ -82,8 +82,8 @@ public:
     // the new circumstances.
     void correctState();
 
-    void setArrangementModeIdx(unsigned index);
     unsigned getArrangementModeIdx() const;
+    void setArrangementModeIdx(unsigned index);
 
     OnionSkinState& getOnionSkinState() { return onionSkinState; }
 
