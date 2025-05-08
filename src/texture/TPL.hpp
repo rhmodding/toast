@@ -109,6 +109,13 @@ constexpr bool getImageFormatCompressed(TPLImageFormat format) {
     return format == TPL_IMAGE_FORMAT_CMPR;
 }
 
+constexpr bool getImageFormatPaletted(TPLImageFormat format) {
+    return
+        format == TPL_IMAGE_FORMAT_C4 ||
+        format == TPL_IMAGE_FORMAT_C8 ||
+        format == TPL_IMAGE_FORMAT_C14X2;
+}
+
 struct TPLTexture {
 public:
     unsigned width;
