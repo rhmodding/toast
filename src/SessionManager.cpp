@@ -504,10 +504,17 @@ static SessionManager::Error SerializeRvlSession(
 
     // BRCAD files
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
-        Archive::File file(session.cellanims[i].name + ".brcad");
+        const auto& cellanim = session.cellanims[i];
+
+        Archive::File file(cellanim.name + ".brcad");
 
         Logging::info <<
-            "[SerializeRvlSession] Serializing cellanim \"" << session.cellanims[i].name << "\".." << std::endl;
+            "[SerializeRvlSession] Serializing cellanim \"" << cellanim.name << "\".." << std::endl;
+
+        const auto& sheet = session.sheets->getTextureByIndex(session.cellanims[i].object->sheetIndex);
+
+        // Make sure usePalette is synced.
+        session.cellanims[i].object->usePalette = TPL::getImageFormatPaletted(sheet->getTPLOutputFormat());
 
         file.data = session.cellanims[i].object->Serialize();
 

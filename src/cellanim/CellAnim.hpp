@@ -284,6 +284,10 @@ public:
     int sheetIndex { -1 };
     unsigned sheetW { 0 }, sheetH { 0 };
 
+    // This flag loads the selected sheet as a paletted texture in-game.
+    //     - If the sheet is non-paletted and usePalette is true, the texture
+    //       will not appear.
+    //     - This also applies if usePalette is false and the texture is paletted.
     bool usePalette { false };
 
     std::vector<Arrangement> arrangements;

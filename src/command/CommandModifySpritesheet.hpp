@@ -25,6 +25,10 @@ public:
 
         currentSession->getCurrentCellAnim().object->sheetW = this->newSheet->getWidth();
         currentSession->getCurrentCellAnim().object->sheetH = this->newSheet->getHeight();
+        currentSession->getCurrentCellAnim().object->usePalette = TPL::getImageFormatPaletted(
+            this->newSheet->getTPLOutputFormat()
+        );
+
         currentSession->modified = true;
     }
 
@@ -35,6 +39,9 @@ public:
 
         currentSession->getCurrentCellAnim().object->sheetW = this->oldSheet->getWidth();
         currentSession->getCurrentCellAnim().object->sheetH = this->oldSheet->getHeight();
+        currentSession->getCurrentCellAnim().object->usePalette = TPL::getImageFormatPaletted(
+            this->newSheet->getTPLOutputFormat()
+        );
 
         currentSession->modified = true;
     }
