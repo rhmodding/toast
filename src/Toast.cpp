@@ -32,8 +32,6 @@
 #include "command/CommandMoveAnimationKey.hpp"
 #include "command/CommandInsertAnimationKey.hpp"
 
-#include "cellanim/CellAnimHelpers.hpp"
-
 #include "task/AsyncTaskManager.hpp"
 
 #include "MainThreadTaskManager.hpp"
@@ -611,18 +609,23 @@ void Toast::Menubar() {
 
             // Duplicate option
             {
+                auto& cellAnim = *sessionManager.getCurrentSession()->getCurrentCellAnim().object;
+
                 const unsigned keyIndex = playerManager.getKeyIndex();
                 auto& key = playerManager.getKey();
 
-                bool arrangementUnique = CellAnimHelpers::getArrangementUnique(key.arrangementIndex);
+                bool arrangementUnique = cellAnim.isArrangementUnique(arrangementIndex);
                 ImGui::BeginDisabled(arrangementUnique);
 
                 if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
-                    unsigned newIndex = CellAnimHelpers::duplicateArrangement(key.arrangementIndex);
+                    unsigned index = std::distance(
+                        cellAnim.arrangements.begin(),
+                        cellAnim.duplicateArrangement(key.arrangementIndex)
+                    );
 
                     if (!appState.getArrangementMode()) {
                         auto newKey = key;
-                        newKey.arrangementIndex = newIndex;
+                        newKey.arrangementIndex = index;
 
                         sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifyAnimationKey>(
@@ -633,7 +636,7 @@ void Toast::Menubar() {
                         ));
                     }
                     else
-                        key.arrangementIndex = newIndex;
+                        key.arrangementIndex = index;
                 }
 
                 ImGui::EndDisabled();

@@ -113,6 +113,9 @@ void WindowHybridList::Update() {
         static CellAnim::Arrangement copyArrangement;
         static bool allowPasteArrangement { false };
 
+        static int copyAnimationSrcSession { -1 }; // Index of session where copied animation originates.
+        static int copyAnimationSrcCellAnim { -1 }; // Index of cellanim where copied animation originates.
+        static std::vector<CellAnim::Arrangement> copyAnimationArrangements;
         static CellAnim::Animation copyAnimation;
         static bool allowPasteAnimation { false };
 
@@ -153,8 +156,31 @@ void WindowHybridList::Update() {
 
                     ImGui::Separator();
 
+                    if (ImGui::Selectable("Clear keys")) {
+                        CellAnim::Animation newAnimation;
+                        newAnimation.keys.emplace_back(); // Add one defaulted key.
+                        newAnimation.name = animations[n].name;
+                        newAnimation.isInterpolated = animations[n].isInterpolated;
+                        
+                        command = std::make_shared<CommandModifyAnimation>(
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                            n,
+                            newAnimation
+                        );
+                    }
+
+                    ImGui::Separator();
+
                     if (config.allowNewAnimCreate) {
                         if (ImGui::Selectable("Insert new animation above")) {
+                            command = std::make_shared<CommandInsertAnimation>(
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                n+1,
+                                createNewAnimation()
+                            );
+                            playerManager.setAnimationIndex(n+1);
+                        }
+                        if (ImGui::Selectable("Insert new animation below")) {
                             command = std::make_shared<CommandInsertAnimation>(
                                 sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                 n,
@@ -162,24 +188,34 @@ void WindowHybridList::Update() {
                             );
                             playerManager.setAnimationIndex(n);
                         }
-                        if (ImGui::Selectable("Insert new animation below")) {
-                            command = std::make_shared<CommandInsertAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                                n+1,
-                                createNewAnimation()
-                            );
-                            playerManager.setAnimationIndex(n + 1);
-                        }
 
                         ImGui::Separator();
                     }
 
                     if (ImGui::Selectable("Paste animation..", allowPasteAnimation)) {
-                        copyAnimation.name = animations[n].name;
+                        CellAnim::Animation newAnimation = copyAnimation;
+                        newAnimation.name = animations[n].name;
+
+                        if (
+                            sessionManager.getCurrentSessionIndex() != copyAnimationSrcSession ||
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex() != copyAnimationSrcCellAnim
+                        ) {
+                            auto& cellAnim = *sessionManager.getCurrentSession()->getCurrentCellAnim().object;
+
+                            auto insertPos = cellAnim.arrangements.end();
+                            cellAnim.arrangements.insert(insertPos, copyAnimationArrangements.begin(), copyAnimationArrangements.end());
+
+                            auto baseIndex = std::distance(cellAnim.arrangements.begin(), insertPos);
+
+                            for (unsigned i = 0; i < newAnimation.keys.size(); i++) {
+                                newAnimation.keys[i].arrangementIndex = baseIndex + i;
+                            }
+                        }
+
                         command = std::make_shared<CommandModifyAnimation>(
                             sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                             n,
-                            copyAnimation
+                            newAnimation
                         );
                     }
                     if (ImGui::BeginMenu("Paste animation (special)..", allowPasteAnimation)) {
@@ -217,6 +253,14 @@ void WindowHybridList::Update() {
 
                     if (ImGui::Selectable("Copy animation")) {
                         copyAnimation = animations[n];
+                        copyAnimationArrangements.resize(copyAnimation.keys.size());
+                        for (unsigned i = 0; i < copyAnimation.keys.size(); i++) {
+                            copyAnimationArrangements[i] = arrangements.at(copyAnimation.keys[i].arrangementIndex);
+                        }
+
+                        copyAnimationSrcSession = sessionManager.getCurrentSessionIndex();
+                        copyAnimationSrcCellAnim = sessionManager.getCurrentSession()->getCurrentCellAnimIndex();
+
                         allowPasteAnimation = true;
                     }
 

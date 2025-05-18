@@ -209,6 +209,7 @@ struct ArrangementPart {
 struct Arrangement {
     std::vector<ArrangementPart> parts;
 
+    // Temporary & editor-specific: used for arrangement scale preview.
     int tempOffset[2] { 0, 0 };
     float tempScale[2] { 1.f, 1.f };
 
@@ -279,6 +280,16 @@ public:
     void setType(CellAnimType type) { this->type = type; }
 
     [[nodiscard]] std::vector<unsigned char> Serialize();
+
+    std::vector<Arrangement>::iterator duplicateArrangement(const Arrangement& arrangement);
+    std::vector<Arrangement>::iterator duplicateArrangement(unsigned arrangementIndex) {
+        return this->duplicateArrangement(this->arrangements.at(arrangementIndex));
+    }
+
+    bool isArrangementUnique(const Arrangement& arrangement) const;
+    bool isArrangementUnique(unsigned arrangementIndex) const {
+        return this->isArrangementUnique(this->arrangements.at(arrangementIndex));
+    }
 
 public:
     int sheetIndex { -1 };

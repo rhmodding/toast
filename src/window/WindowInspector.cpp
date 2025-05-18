@@ -6,8 +6,6 @@
 
 #include "../ThemeManager.hpp"
 
-#include "../cellanim/CellAnimHelpers.hpp"
-
 #include "../command/CommandSetArrangementMode.hpp"
 
 void WindowInspector::drawPreview() {
@@ -62,13 +60,19 @@ void WindowInspector::drawPreview() {
 
 void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey, const CellAnim::AnimationKey& originalKey) {
     const PlayerManager& playerManager = PlayerManager::getInstance();
+    SessionManager& sessionManager = SessionManager::getInstance();
 
-    bool arrangementUnique = CellAnimHelpers::getArrangementUnique(playerManager.getArrangementIndex());
+    auto& cellAnim = *sessionManager.getCurrentSession()->getCurrentCellAnim().object;
+
+    bool arrangementUnique = cellAnim.isArrangementUnique(playerManager.getArrangementIndex());
     ImGui::BeginDisabled(arrangementUnique);
 
-    if (ImGui::Button("Make arrangement unique (duplicate)"))
-        newKey.arrangementIndex =
-            CellAnimHelpers::duplicateArrangement(originalKey.arrangementIndex);
+    if (ImGui::Button("Make arrangement unique (duplicate)")) {
+        newKey.arrangementIndex = std::distance(
+            cellAnim.arrangements.begin(),
+            cellAnim.duplicateArrangement(originalKey.arrangementIndex)
+        );
+    }
 
     ImGui::EndDisabled();
 
@@ -83,9 +87,12 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
         ImGui::TextUnformatted("Would you like to duplicate this\narrangement anyway?");
         ImGui::Separator();
 
-        if (ImGui::Selectable("Ok"))
-            newKey.arrangementIndex =
-                CellAnimHelpers::duplicateArrangement(originalKey.arrangementIndex);
+        if (ImGui::Selectable("Ok")) {
+            newKey.arrangementIndex = std::distance(
+                cellAnim.arrangements.begin(),
+                cellAnim.duplicateArrangement(originalKey.arrangementIndex)
+            );
+        }
         ImGui::Selectable("Nevermind");
 
         ImGui::EndPopup();

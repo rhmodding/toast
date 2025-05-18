@@ -769,4 +769,16 @@ std::vector<unsigned char> CellAnimObject::Serialize() {
     }
 }
 
+bool CellAnimObject::isArrangementUnique(const Arrangement& arrangement) const {
+    return std::none_of(
+        this->arrangements.begin(), this->arrangements.end(),
+        [&](const Arrangement& a) { return a == arrangement; }
+    );
+}
+
+std::vector<Arrangement>::iterator CellAnimObject::duplicateArrangement(const Arrangement& arrangement) {
+    arrangements.push_back(arrangement);
+    return std::prev(arrangements.end());
+}
+
 } // namespace CellAnim

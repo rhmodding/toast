@@ -46,8 +46,6 @@ set(SOURCES
     src/cellanim/CellAnimRenderer.cpp
     src/cellanim/CellAnim.cpp
 
-    src/cellanim/CellAnimHelpers.cpp
-
     src/archive/Archive.cpp
 
     src/archive/DARCH.cpp
