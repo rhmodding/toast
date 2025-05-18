@@ -120,6 +120,9 @@ void WindowHybridList::Update() {
         static bool allowPasteAnimation { false };
 
         std::shared_ptr<BaseCommand> command;
+        int newAnimationSelect = -1;
+        int newAnimKeySet = -1;
+        int newArrangementSelect = -1;
 
         SessionManager& sessionManager = SessionManager::getInstance();
         PlayerManager& playerManager = PlayerManager::getInstance();
@@ -146,8 +149,8 @@ void WindowHybridList::Update() {
                     playerManager.getAnimationIndex() == n,
                     ImGuiSelectableFlags_SelectOnNav
                 )) {
-                    playerManager.setAnimationIndex(n);
-                    playerManager.setKeyIndex(0);
+                    newAnimationSelect = n;
+                    newAnimKeySet = 0;
                 }
 
                 if (ImGui::BeginPopupContextItem()) {
@@ -178,7 +181,7 @@ void WindowHybridList::Update() {
                                 n+1,
                                 createNewAnimation()
                             );
-                            playerManager.setAnimationIndex(n+1);
+                            newAnimationSelect = n+1;
                         }
                         if (ImGui::Selectable("Insert new animation below")) {
                             command = std::make_shared<CommandInsertAnimation>(
@@ -186,7 +189,7 @@ void WindowHybridList::Update() {
                                 n,
                                 createNewAnimation()
                             );
-                            playerManager.setAnimationIndex(n);
+                            newAnimationSelect = n;
                         }
 
                         ImGui::Separator();
@@ -280,9 +283,7 @@ void WindowHybridList::Update() {
                 snprintf(buffer, sizeof(buffer), "Arrangement no. %d", n+1);
 
                 if (ImGui::Selectable(buffer, playerManager.getArrangementModeIdx() == n, ImGuiSelectableFlags_SelectOnNav)) {
-                    playerManager.setArrangementModeIdx(n);
-
-                    PlayerManager::getInstance().correctState();
+                    newArrangementSelect = n;
                 }
 
                 if (ImGui::BeginPopupContextItem()) {
@@ -295,8 +296,7 @@ void WindowHybridList::Update() {
                             n+1,
                             CellAnim::Arrangement()
                         );
-
-                        playerManager.setArrangementModeIdx(n + 1);
+                        newArrangementSelect = n+1;
                     }
                     if (ImGui::Selectable("Insert new arrangement below")) {
                         command = std::make_shared<CommandInsertArrangement>(
@@ -304,8 +304,7 @@ void WindowHybridList::Update() {
                             n,
                             CellAnim::Arrangement()
                         );
-
-                        playerManager.setArrangementModeIdx(n);
+                        newArrangementSelect = n;
                     }
 
                     ImGui::Separator();
@@ -317,8 +316,7 @@ void WindowHybridList::Update() {
                                 n+1,
                                 copyArrangement
                             );
-
-                            playerManager.setArrangementModeIdx(n + 1);
+                            newArrangementSelect = n+1;
                         }
                         if (ImGui::MenuItem("..below")) {
                             command = std::make_shared<CommandInsertArrangement>(
@@ -326,8 +324,7 @@ void WindowHybridList::Update() {
                                 n,
                                 copyArrangement
                             );
-
-                            playerManager.setArrangementModeIdx(n);
+                            newArrangementSelect = n;
                         }
 
                         ImGui::Separator();
@@ -363,6 +360,18 @@ void WindowHybridList::Update() {
 
         if (command)
             sessionManager.getCurrentSession()->addCommand(command);
+        if (newAnimationSelect >= 0) {
+            playerManager.setAnimationIndex(newAnimationSelect);
+            playerManager.correctState();
+        }
+        if (newAnimKeySet >= 0) {
+            playerManager.setKeyIndex(newAnimKeySet);
+            playerManager.correctState();
+        }
+        if (newArrangementSelect >= 0) {
+            playerManager.setArrangementModeIdx(newArrangementSelect);
+            playerManager.correctState();
+        }
     }
     ImGui::EndChild();
 
