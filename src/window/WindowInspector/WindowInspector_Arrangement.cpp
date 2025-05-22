@@ -112,7 +112,7 @@ void WindowInspector::Level_Arrangement() {
     static std::vector<CellAnim::ArrangementPart> copyParts;
 
     const auto& arrangements = sessionManager.getCurrentSession()
-        ->getCurrentCellAnim().object->arrangements;
+        ->getCurrentCellAnim().object->getArrangements();
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
 
@@ -181,7 +181,7 @@ void WindowInspector::Level_Arrangement() {
 
         if (selectionState.singlePartSelected()) {
             CellAnim::ArrangementPart& part = playerManager.getArrangement().parts.at(
-                selectionState.selectedParts[0].index
+                selectionState.mSelectedParts[0].index
             );
 
             CellAnim::ArrangementPart newPart = part;
@@ -450,7 +450,7 @@ void WindowInspector::Level_Arrangement() {
                 std::make_shared<CommandModifyArrangementPart>(
                     sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                     playerManager.getArrangementIndex(),
-                    selectionState.selectedParts.at(0).index,
+                    selectionState.mSelectedParts.at(0).index,
                     newPart
                 ));
             }
@@ -486,7 +486,7 @@ void WindowInspector::Level_Arrangement() {
             ImGuiMultiSelectFlags msFlags =
                 ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_ClearOnClickVoid |
                 ImGuiMultiSelectFlags_BoxSelect1d;
-            ImGuiMultiSelectIO* msIo = ImGui::BeginMultiSelect(msFlags, selectionState.selectedParts.size(), arrangement.parts.size());
+            ImGuiMultiSelectIO* msIo = ImGui::BeginMultiSelect(msFlags, selectionState.mSelectedParts.size(), arrangement.parts.size());
 
             selectionState.processMultiSelectRequests(msIo);
 
@@ -533,7 +533,7 @@ void WindowInspector::Level_Arrangement() {
                         snprintf(
                             label, sizeof(label),
                             "%zu selected parts",
-                            selectionState.selectedParts.size()
+                            selectionState.mSelectedParts.size()
                         );
                     }
                     else
@@ -546,7 +546,7 @@ void WindowInspector::Level_Arrangement() {
                     int locked = -1;
 
                     if (isPartSelected) {
-                        for (const auto& [index, _] : selectionState.selectedParts) {
+                        for (const auto& [index, _] : selectionState.mSelectedParts) {
                             const auto& part = arrangement.parts.at(index);
 
                             if (visible == -1)
@@ -632,12 +632,12 @@ void WindowInspector::Level_Arrangement() {
                             auto newArrangement = playerManager.getArrangement();
 
                             std::sort(
-                                selectionState.selectedParts.begin(), selectionState.selectedParts.end(),
+                                selectionState.mSelectedParts.begin(), selectionState.mSelectedParts.end(),
                                 [](const SelectionState::SelectedPart& a, const SelectionState::SelectedPart& b) {
                                     return a.index > b.index;
                                 }
                             );
-                            for (const auto& [index, _] : selectionState.selectedParts) {
+                            for (const auto& [index, _] : selectionState.mSelectedParts) {
                                 if (index < newArrangement.parts.size())
                                     newArrangement.parts.erase(newArrangement.parts.begin() + index);
                             }
@@ -734,8 +734,8 @@ void WindowInspector::Level_Arrangement() {
                         snprintf(
                             label, sizeof(label),
                             "Copy %zu part%s",
-                            selectionState.selectedParts.size(),
-                            selectionState.selectedParts.size() == 1 ? "" : "s"
+                            selectionState.mSelectedParts.size(),
+                            selectionState.mSelectedParts.size() == 1 ? "" : "s"
                         );
                     }
                     else
@@ -743,17 +743,17 @@ void WindowInspector::Level_Arrangement() {
 
                     if (ImGui::Selectable(label)) {
                         if (isPartSelected) {
-                            copyParts.resize(selectionState.selectedParts.size());
-                            for (unsigned i = 0; i < selectionState.selectedParts.size(); i++) {
+                            copyParts.resize(selectionState.mSelectedParts.size());
+                            for (unsigned i = 0; i < selectionState.mSelectedParts.size(); i++) {
                                 std::sort(
-                                    selectionState.selectedParts.begin(), selectionState.selectedParts.end(),
+                                    selectionState.mSelectedParts.begin(), selectionState.mSelectedParts.end(),
                                     [](const SelectionState::SelectedPart& a, const SelectionState::SelectedPart& b) {
                                         return a.index < b.index;
                                     }
                                 );
 
                                 copyParts[i] = arrangement.parts.at(
-                                    selectionState.selectedParts[i].index
+                                    selectionState.mSelectedParts[i].index
                                 );
                             }
                         }
@@ -769,8 +769,8 @@ void WindowInspector::Level_Arrangement() {
                         snprintf(
                             label, sizeof(label),
                             "Delete %zu part%s",
-                            selectionState.selectedParts.size(),
-                            selectionState.selectedParts.size() == 1 ? "" : "s"
+                            selectionState.mSelectedParts.size(),
+                            selectionState.mSelectedParts.size() == 1 ? "" : "s"
                         );
                     }
                     else
@@ -797,7 +797,7 @@ void WindowInspector::Level_Arrangement() {
                     if (!isPartSelected)
                         part.editorVisible ^= true;
                     else {
-                        for (const auto& [index, _] : selectionState.selectedParts)
+                        for (const auto& [index, _] : selectionState.mSelectedParts)
                             arrangement.parts.at(index).editorVisible ^= true;
                     }
                 }
@@ -807,7 +807,7 @@ void WindowInspector::Level_Arrangement() {
                     if (!isPartSelected)
                         part.editorLocked ^= true;
                     else {
-                        for (const auto& [index, _] : selectionState.selectedParts)
+                        for (const auto& [index, _] : selectionState.mSelectedParts)
                             arrangement.parts.at(index).editorLocked ^= true;
                     }
                 }

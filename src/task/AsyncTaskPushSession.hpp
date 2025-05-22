@@ -14,9 +14,9 @@ protected:
     void Effect() override;
 
 private:
-    std::string filePath;
+    std::string mFilePath;
 
-    std::atomic<int> result { 0 };
+    std::atomic<int> mResult { 0 };
 };
 
 #endif // ASYNCTASK_PUSHSESSION_HPP

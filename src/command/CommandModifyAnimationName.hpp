@@ -14,36 +14,36 @@ public:
         unsigned cellanimIndex, unsigned animationIndex,
         std::string_view name
     ) :
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex),
-        newName(name)
+        mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex),
+        mNewName(name)
     {
-        this->oldName = this->getAnimation().name;
+        mOldName = getAnimation().name;
     }
     ~CommandModifyAnimationName() = default;
 
     void Execute() override {
-        this->getAnimation().name = this->newName;
+        getAnimation().name = mNewName;
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
-        this->getAnimation().name = this->oldName;
+        getAnimation().name = mOldName;
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned animationIndex;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndex;
 
-    std::string oldName;
-    std::string newName;
+    std::string mOldName;
+    std::string mNewName;
 
     CellAnim::Animation& getAnimation() {
         return SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(cellanimIndex).object
-            ->animations.at(animationIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimation(mAnimationIndex);
     }
 };
 

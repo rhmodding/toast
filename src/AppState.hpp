@@ -38,7 +38,7 @@ static constexpr ImGuiID GLOBAL_POPUP_ID = 0xBEEFAB1E;
     } while (0)
 
 class AppState : public Singleton<AppState> {
-    friend class Singleton<AppState>; // Allow access to base class constructor
+    friend class Singleton<AppState>;
 
 private:
     AppState() = default;
@@ -55,7 +55,7 @@ public:
             return false;
     }
 
-    bool focusOnSelectedPart { false };
+    bool mFocusOnSelectedPart { false };
 };
 
 #endif // APPSTATE_HPP

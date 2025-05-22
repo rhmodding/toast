@@ -17,15 +17,15 @@ public:
         unsigned cellanimIndex, unsigned arrangementIndex,
         CellAnim::Arrangement newArrangement
     ) :
-        cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex),
-        newArrangement(newArrangement)
+        mCellAnimIndex(cellanimIndex), mArrangementIndex(arrangementIndex),
+        mNewArrangement(newArrangement)
     {
-        this->oldArrangement = this->getArrangement();
+        mOldArrangement = getArrangement();
     }
     ~CommandModifyArrangement() = default;
 
     void Execute() override {
-        this->getArrangement() = this->newArrangement;
+        getArrangement() = mNewArrangement;
 
         PlayerManager::getInstance().correctState();
 
@@ -33,7 +33,7 @@ public:
     }
 
     void Rollback() override {
-        this->getArrangement() = this->oldArrangement;
+        getArrangement() = mOldArrangement;
 
         PlayerManager::getInstance().correctState();
 
@@ -41,17 +41,17 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned arrangementIndex;
+    unsigned mCellAnimIndex;
+    unsigned mArrangementIndex;
 
-    CellAnim::Arrangement oldArrangement;
-    CellAnim::Arrangement newArrangement;
+    CellAnim::Arrangement mOldArrangement;
+    CellAnim::Arrangement mNewArrangement;
 
     CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->arrangements.at(this->arrangementIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getArrangement(mArrangementIndex);
     }
 };
 

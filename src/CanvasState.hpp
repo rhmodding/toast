@@ -7,12 +7,12 @@
 
 #include "ThemeManager.hpp"
 
-enum CanvasGridType {
-    CANVAS_GRID_TYPE_NONE,
-    CANVAS_GRID_TYPE_DARK,
-    CANVAS_GRID_TYPE_LIGHT,
+enum class CanvasGridType {
+    None,
+    Dark,
+    Light,
 
-    CANVAS_GRID_TYPE_USER
+    User
 };
 
 struct CanvasState {
@@ -45,7 +45,7 @@ public:
 
     void setDefaultGridType() {
         this->gridType = ThemeManager::getInstance().getThemeIsLight() ?
-            CANVAS_GRID_TYPE_LIGHT : CANVAS_GRID_TYPE_DARK;
+            CanvasGridType::Light : CanvasGridType::Dark;
     }
 
     float getUserGridColorLumi() const {

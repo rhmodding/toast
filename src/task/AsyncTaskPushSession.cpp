@@ -8,21 +8,21 @@
 AsyncTaskPushSession::AsyncTaskPushSession(uint32_t id, std::string filePath) :
     AsyncTask(id, "Opening session.."),
 
-    filePath(std::move(filePath))
+    mFilePath(std::move(filePath))
 {}
 
 void AsyncTaskPushSession::Run() {
-    int pushResult = SessionManager::getInstance().CreateSession(this->filePath.c_str());
-    this->result.store(pushResult);
+    int pushResult = SessionManager::getInstance().CreateSession(mFilePath.c_str());
+    mResult.store(pushResult);
 }
 
 void AsyncTaskPushSession::Effect() {
-    if (this->result < 0) {
+    if (mResult < 0) {
         OPEN_GLOBAL_POPUP("###SessionErr");
         return;
     }
 
-    SessionManager::getInstance().setCurrentSessionIndex(this->result);
+    SessionManager::getInstance().setCurrentSessionIndex(mResult);
 
-    ConfigManager::getInstance().addRecentlyOpened(this->filePath);
+    ConfigManager::getInstance().addRecentlyOpened(mFilePath);
 }

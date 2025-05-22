@@ -16,40 +16,28 @@
 #include "SessionManager.hpp"
 
 class PlayerManager : public Singleton<PlayerManager> {
-    friend class Singleton<PlayerManager>; // Allow access to base class constructor
+    friend class Singleton<PlayerManager>;
 
 private:
-    bool playing { false };
-
-    int holdFramesLeft { 0 };
-
-    unsigned animationIndex { 0 };
-    unsigned keyIndex { 0 };
-
-    std::chrono::steady_clock::time_point tickPrev;
-    float timeLeft { 0.f };
-
-    OnionSkinState onionSkinState;
+    PlayerManager() = default;
 public:
-    bool looping { false };
-
-    unsigned frameRate { 60 };
+    ~PlayerManager() = default;
 
 public:
     void Update();
 
     void ResetTimer();
 
-    unsigned getAnimationIndex() const { return this->animationIndex; }
+    unsigned getAnimationIndex() const { return mAnimationIndex; }
     void setAnimationIndex(unsigned index);
 
     CellAnim::Animation& getAnimation() const;
 
-    unsigned getKeyIndex() const { return this->keyIndex; }
+    unsigned getKeyIndex() const { return mKeyIndex; }
     void setKeyIndex(unsigned index);
 
     CellAnim::AnimationKey& getKey() const {
-        return this->getAnimation().keys.at(this->keyIndex);
+        return this->getAnimation().keys.at(mKeyIndex);
     }
 
     unsigned getArrangementIndex() const {
@@ -57,15 +45,15 @@ public:
     }
 
     CellAnim::Arrangement& getArrangement() const {
-        return this->getCellAnim()->arrangements.at(this->getArrangementIndex());
+        return this->getCellAnim()->getArrangement(this->getArrangementIndex());
     }
 
     unsigned getKeyCount() const {
         return this->getAnimation().keys.size();
     }
-    int getHoldFramesLeft() const { return this->holdFramesLeft; }
+    int getHoldFramesLeft() const { return mHoldFramesLeft; }
 
-    bool getPlaying() const { return this->playing; }
+    bool getPlaying() const { return mPlaying; }
     void setPlaying(bool playing);
 
     unsigned getTotalFrames() const;
@@ -73,8 +61,7 @@ public:
 
     // 0.f - 1.f
     float getAnimationProgression() const {
-        return
-            static_cast<float>(this->getTotalFrames()) / this->getElapsedFrames();
+        return static_cast<float>(this->getTotalFrames()) / this->getElapsedFrames();
     }
 
     // After for example a session switch or another change that can reduce the amount
@@ -85,7 +72,7 @@ public:
     unsigned getArrangementModeIdx() const;
     void setArrangementModeIdx(unsigned index);
 
-    OnionSkinState& getOnionSkinState() { return onionSkinState; }
+    OnionSkinState& getOnionSkinState() { return mOnionSkinState; }
 
 private:
     const std::shared_ptr<CellAnim::CellAnimObject>& getCellAnim() const {
@@ -97,7 +84,23 @@ private:
         return SessionManager::getInstance().getCurrentSession()->arrangementMode;
     }
 
-    PlayerManager() = default; // Private constructor to prevent instantiation
+private:
+    bool mPlaying { false };
+
+    int mHoldFramesLeft { 0 };
+
+    unsigned mAnimationIndex { 0 };
+    unsigned mKeyIndex { 0 };
+
+    std::chrono::steady_clock::time_point mTickPrev;
+    float mTimeLeft { 0.f };
+
+    OnionSkinState mOnionSkinState;
+
+public: // TODO: hack; this should be private .. make accessor methods
+    bool mLooping { false };
+
+    unsigned mFrameRate { 60 };
 };
 
 #endif // PLAYERMANAGER_HPP

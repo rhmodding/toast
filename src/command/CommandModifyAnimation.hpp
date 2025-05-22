@@ -17,15 +17,15 @@ public:
         unsigned cellanimIndex, unsigned animationIndex,
         CellAnim::Animation newAnimation
     ) :
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex),
-        newAnimation(newAnimation)
+        mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex),
+        mNewAnimation(newAnimation)
     {
-        this->oldAnimation = this->getAnimation();
+        mOldAnimation = getAnimation();
     }
     ~CommandModifyAnimation() = default;
 
     void Execute() override {
-        this->getAnimation() = this->newAnimation;
+        getAnimation() = mNewAnimation;
 
         PlayerManager::getInstance().correctState();
 
@@ -33,7 +33,7 @@ public:
     }
 
     void Rollback() override {
-        this->getAnimation() = this->oldAnimation;
+        getAnimation() = mOldAnimation;
 
         PlayerManager::getInstance().correctState();
 
@@ -41,17 +41,17 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned animationIndex;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndex;
 
-    CellAnim::Animation oldAnimation;
-    CellAnim::Animation newAnimation;
+    CellAnim::Animation mOldAnimation;
+    CellAnim::Animation mNewAnimation;
 
     CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->animations.at(this->animationIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimation(mAnimationIndex);
     }
 };
 

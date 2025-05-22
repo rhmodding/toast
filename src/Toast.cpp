@@ -82,7 +82,7 @@ Toast::Toast(int argc, const char** argv) {
         throw std::runtime_error("Toast:Toast: Instance of Toast already exists!");
     gInstance = this;
 
-    this->mainThreadId = std::this_thread::get_id();
+    mMainThreadId = std::this_thread::get_id();
 
     Logging::Open("toast.log");
 
@@ -136,35 +136,35 @@ Toast::Toast(int argc, const char** argv) {
     if (windowHeight < 1)
         windowHeight = Config::DEFAULT_WINDOW_HEIGHT;
 
-    this->glfwWindowHndl = glfwCreateWindow(
+    mGlfwWindowHndl = glfwCreateWindow(
         windowWidth, windowHeight,
         WINDOW_TITLE,
         nullptr, nullptr
     );
 
-    if (!this->glfwWindowHndl) {
+    if (!mGlfwWindowHndl) {
         glfwTerminate();
         throw std::runtime_error("Toast::Toast: glfwCreateWindow failed!");
     }
 
-    glfwSetWindowCloseCallback(this->glfwWindowHndl, [](GLFWwindow*) {
+    glfwSetWindowCloseCallback(mGlfwWindowHndl, [](GLFWwindow*) {
         Toast::getInstance()->AttemptExit();
     });
 
-    this->isWindowMaximized = configManager.getConfig().lastWindowMaximized;
-    if (this->isWindowMaximized)
-        glfwMaximizeWindow(this->glfwWindowHndl);
+    mIsWindowMaximized = configManager.getConfig().lastWindowMaximized;
+    if (mIsWindowMaximized)
+        glfwMaximizeWindow(mGlfwWindowHndl);
 
-    glfwSetWindowMaximizeCallback(this->glfwWindowHndl, [](GLFWwindow*, int maximized) {
-        Toast::getInstance()->isWindowMaximized = maximized;
+    glfwSetWindowMaximizeCallback(mGlfwWindowHndl, [](GLFWwindow*, int maximized) {
+        Toast::getInstance()->mIsWindowMaximized = maximized;
     });
 
-    glfwMakeContextCurrent(this->glfwWindowHndl);
+    glfwMakeContextCurrent(mGlfwWindowHndl);
     glfwSwapInterval(1); // Enable VSync.
 
 #if defined(USING_GLEW)
     if (glewInit() != GLEW_OK) {
-        glfwDestroyWindow(this->glfwWindowHndl);
+        glfwDestroyWindow(mGlfwWindowHndl);
         glfwTerminate();
 
         throw std::runtime_error("Toast::Toast: Failed to init GLFW!");
@@ -177,7 +177,7 @@ Toast::Toast(int argc, const char** argv) {
     windowIcon.pixels = stbi_load_from_memory(toastIcon_png, toastIcon_png_size, &windowIcon.width, &windowIcon.height, nullptr, 4);
 
     // glfwSetWindowIcon copies the image data.
-    glfwSetWindowIcon(this->glfwWindowHndl, 1, &windowIcon);
+    glfwSetWindowIcon(mGlfwWindowHndl, 1, &windowIcon);
 
     stbi_image_free(windowIcon.pixels);
 #endif // !defined(__APPLE__)
@@ -186,7 +186,7 @@ Toast::Toast(int argc, const char** argv) {
     IMGUI_CHECKVERSION();
 #endif // !defined(NDEBUG)
 
-    this->guiContext = ImGui::CreateContext();
+    mGuiContext = ImGui::CreateContext();
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags =
@@ -194,7 +194,7 @@ Toast::Toast(int argc, const char** argv) {
         ImGuiConfigFlags_DockingEnable |     // Enable Docking
         ImGuiConfigFlags_ViewportsEnable;    // Enable Multi-Viewport / Platform Windows
 
-    ImGui_ImplGlfw_InitForOpenGL(this->glfwWindowHndl, true);
+    ImGui_ImplGlfw_InitForOpenGL(mGlfwWindowHndl, true);
     ImGui_ImplOpenGL3_Init(glslVersion);
 
     ThemeManager& themeManager = ThemeManager::getInstance();
@@ -205,7 +205,7 @@ Toast::Toast(int argc, const char** argv) {
 
     CellAnimRenderer::InitShader();
 
-    glfwSetDropCallback(this->glfwWindowHndl, [](GLFWwindow*, int pathCount, const char** paths) {
+    glfwSetDropCallback(mGlfwWindowHndl, [](GLFWwindow*, int pathCount, const char** paths) {
         for (int i = 0; i < pathCount; i++) {
             AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(
                 std::string(paths[i])
@@ -225,18 +225,18 @@ Toast::Toast(int argc, const char** argv) {
 }
 
 Toast::~Toast() {
-    glfwMakeContextCurrent(this->glfwWindowHndl);
+    glfwMakeContextCurrent(mGlfwWindowHndl);
 
-    windowCanvas.Destroy();
-    windowHybridList.Destroy();
-    windowInspector.Destroy();
-    windowTimeline.Destroy();
-    windowSpritesheet.Destroy();
+    mWindowCanvas.Destroy();
+    mWindowHybridList.Destroy();
+    mWindowInspector.Destroy();
+    mWindowTimeline.Destroy();
+    mWindowSpritesheet.Destroy();
 
-    windowConfig.Destroy();
-    windowAbout.Destroy();
+    mWindowConfig.Destroy();
+    mWindowAbout.Destroy();
 
-    windowDemo.Destroy();
+    mWindowDemo.Destroy();
 
     SessionManager::getInstance().RemoveAllSessions();
     SessionManager::destroySingleton();
@@ -254,7 +254,7 @@ Toast::~Toast() {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow(this->glfwWindowHndl);
+    glfwDestroyWindow(mGlfwWindowHndl);
     glfwTerminate();
 
     Logging::info << "[Toast::Toast] Finished deinitializing." << std::endl;
@@ -266,7 +266,7 @@ Toast::~Toast() {
 
 void Toast::AttemptExit(bool force) {
     if (!force) {
-        for (const auto& session : SessionManager::getInstance().sessions) {
+        for (const auto& session : SessionManager::getInstance().getSessions()) {
             if (session.modified) {
                 Popups::_openExitWithChangesPopup = true;
                 return; // Cancel
@@ -278,13 +278,13 @@ void Toast::AttemptExit(bool force) {
 
     Config config = configManager.getConfig();
 
-    glfwGetWindowSize(this->glfwWindowHndl, &config.lastWindowWidth, &config.lastWindowHeight);
-    config.lastWindowMaximized = this->isWindowMaximized;
+    glfwGetWindowSize(mGlfwWindowHndl, &config.lastWindowWidth, &config.lastWindowHeight);
+    config.lastWindowMaximized = mIsWindowMaximized;
 
     configManager.setConfig(config);
     configManager.SaveConfig();
 
-    this->running = false;
+    mRunning = false;
 }
 
 void Toast::Menubar() {
@@ -296,14 +296,14 @@ void Toast::Menubar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
             if (ImGui::MenuItem((const char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
-                this->windowAbout.windowInstance->open = true;
+                mWindowAbout.mWindowInstance->mOpen = true;
                 ImGui::SetWindowFocus("About");
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem((const char*)ICON_FA_WRENCH " Config", "", nullptr)) {
-                this->windowConfig.windowInstance->open = true;
+                mWindowConfig.mWindowInstance->mOpen = true;
                 ImGui::SetWindowFocus("Config");
             }
 
@@ -619,7 +619,7 @@ void Toast::Menubar() {
 
                 if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
                     unsigned index = std::distance(
-                        cellAnim.arrangements.begin(),
+                        cellAnim.getArrangements().begin(),
                         cellAnim.duplicateArrangement(key.arrangementIndex)
                     );
 
@@ -676,11 +676,11 @@ void Toast::Menubar() {
         )) {
             const auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
-            auto& part = playerManager.getArrangement().parts.at(selectionState.selectedParts[0].index);
+            auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
 
             ImGui::Text(
                 "Selected part (no. %u)",
-                selectionState.selectedParts[0].index + 1
+                selectionState.mSelectedParts[0].index + 1
             );
 
             ImGui::Separator();
@@ -702,7 +702,7 @@ void Toast::Menubar() {
             if (ImGui::MenuItem("Set editor name ..")) {
                 Popups::_editPartNameArrangeIdx =
                     playerManager.getArrangementIndex();
-                Popups::_editPartNamePartIdx = selectionState.selectedParts[0].index;
+                Popups::_editPartNamePartIdx = selectionState.mSelectedParts[0].index;
 
                 OPEN_GLOBAL_POPUP("###EditPartName");
             }
@@ -714,7 +714,7 @@ void Toast::Menubar() {
                 std::make_shared<CommandDeleteArrangementPart>(
                     sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                     playerManager.getArrangementIndex(),
-                    selectionState.selectedParts[0].index
+                    selectionState.mSelectedParts[0].index
                 ));
             }
 
@@ -722,25 +722,25 @@ void Toast::Menubar() {
         }
 
         if (ImGui::BeginMenu("Windows")) {
-            if (ImGui::MenuItem("Canvas", "", !this->windowCanvas.shy))
-                this->windowCanvas.shy ^= true;
+            if (ImGui::MenuItem("Canvas", "", !mWindowCanvas.mShy))
+                mWindowCanvas.mShy ^= true;
 
-            if (ImGui::MenuItem("Animation- / Arrangement List", "", !this->windowHybridList.shy))
-                this->windowHybridList.shy ^= true;
+            if (ImGui::MenuItem("Animation- / Arrangement List", "", !mWindowHybridList.mShy))
+                mWindowHybridList.mShy ^= true;
 
-            if (ImGui::MenuItem("Inspector", "", !this->windowInspector.shy))
-                this->windowInspector.shy ^= true;
+            if (ImGui::MenuItem("Inspector", "", !mWindowInspector.mShy))
+                mWindowInspector.mShy ^= true;
 
-            if (ImGui::MenuItem("Spritesheet", "", !this->windowSpritesheet.shy))
-                this->windowSpritesheet.shy ^= true;
+            if (ImGui::MenuItem("Spritesheet", "", !mWindowSpritesheet.mShy))
+                mWindowSpritesheet.mShy ^= true;
 
-            if (ImGui::MenuItem("Timeline", "", !this->windowTimeline.shy))
-                this->windowTimeline.shy ^= true;
+            if (ImGui::MenuItem("Timeline", "", !mWindowTimeline.mShy))
+                mWindowTimeline.mShy ^= true;
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Dear ImGui demo window", "", this->windowDemo.windowInstance->open))
-                this->windowDemo.windowInstance->open ^= true;
+            if (ImGui::MenuItem("Dear ImGui demo window", "", mWindowDemo.mWindowInstance->mOpen))
+                mWindowDemo.mWindowInstance->mOpen ^= true;
 
             ImGui::EndMenu();
         }
@@ -757,10 +757,10 @@ void Toast::Menubar() {
         SessionManager& sessionManager = SessionManager::getInstance();
 
         if (ImGui::BeginTabBar("SessionTabs", tabBarFlags)) {
-            for (int n = 0; n < sessionManager.sessions.size(); n++) {
+            for (int n = 0; n < static_cast<int>(sessionManager.getSessionCount()); n++) {
                 ImGui::PushID(n);
 
-                auto& session = sessionManager.sessions[n];
+                auto& session = sessionManager.getSession(n);
 
                 bool sessionOpen { true };
                 bool tabVisible = ImGui::BeginTabItem(
@@ -794,6 +794,7 @@ void Toast::Menubar() {
                             if (session.getCurrentCellAnimIndex() != i) {
                                 sessionManager.setCurrentSessionIndex(n);
 
+                                // HEY: bug here probably
                                 session.addCommand(
                                 std::make_shared<CommandSwitchCellanim>(
                                     n, i
@@ -812,7 +813,7 @@ void Toast::Menubar() {
                 );
 
                 if (!sessionOpen) {
-                    sessionManager.sessionClosingIndex = n;
+                    sessionManager.setSessionClosingIndex(n);
 
                     if (session.modified)
                         OPEN_GLOBAL_POPUP("###CloseModifiedSession");
@@ -833,11 +834,11 @@ void Toast::Menubar() {
 void Toast::Update() {
     syncToUpdateRate();
 
-    glfwMakeContextCurrent(this->glfwWindowHndl);
+    glfwMakeContextCurrent(mGlfwWindowHndl);
 
     glfwPollEvents();
 
-    ImGui::SetCurrentContext(this->guiContext);
+    ImGui::SetCurrentContext(mGuiContext);
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -881,17 +882,17 @@ void Toast::Update() {
     if (SessionManager::getInstance().getSessionAvaliable()) {
         PlayerManager::getInstance().Update();
 
-        this->windowCanvas.Update();
-        this->windowHybridList.Update();
-        this->windowInspector.Update();
-        this->windowTimeline.Update();
-        this->windowSpritesheet.Update();
+        mWindowCanvas.Update();
+        mWindowHybridList.Update();
+        mWindowInspector.Update();
+        mWindowTimeline.Update();
+        mWindowSpritesheet.Update();
     }
 
-    this->windowConfig.Update();
-    this->windowAbout.Update();
+    mWindowConfig.Update();
+    mWindowAbout.Update();
 
-    this->windowDemo.Update();
+    mWindowDemo.Update();
 
     Popups::Update();
 
@@ -906,12 +907,12 @@ void Toast::Update() {
 void Toast::Draw() {
     ImGui::Render();
 
-    glfwMakeContextCurrent(this->glfwWindowHndl);
+    glfwMakeContextCurrent(mGlfwWindowHndl);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     int framebufferWidth, framebufferHeight;
-    glfwGetFramebufferSize(this->glfwWindowHndl, &framebufferWidth, &framebufferHeight);
+    glfwGetFramebufferSize(mGlfwWindowHndl, &framebufferWidth, &framebufferHeight);
 
     glViewport(0, 0, framebufferWidth, framebufferHeight);
 
@@ -936,8 +937,8 @@ void Toast::Draw() {
         ImGui::RenderPlatformWindowsDefault();
 
         // Restore GLFW context.
-        glfwMakeContextCurrent(this->glfwWindowHndl);
+        glfwMakeContextCurrent(mGlfwWindowHndl);
     }
 
-    glfwSwapBuffers(this->glfwWindowHndl);
+    glfwSwapBuffers(mGlfwWindowHndl);
 }

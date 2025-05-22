@@ -54,7 +54,7 @@ static void Popup_MTransformCellanim() {
 
         if (ImGui::Button("Apply")) {
             auto newAnimations = sessionManager.getCurrentSession()
-                ->getCurrentCellAnim().object->animations;
+                ->getCurrentCellAnim().object->getAnimations();
 
             for (auto& animation : newAnimations) {
                 for (auto& key : animation.keys) {

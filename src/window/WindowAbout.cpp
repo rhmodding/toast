@@ -187,16 +187,16 @@ static void drawHeader(ImVec2& position, ImGuiWindow* window) {
 }
 
 void WindowAbout::Update() {
-    if (!this->open)
+    if (!mOpen)
         return;
 
-    if (this->image.getTextureId() == Texture::INVALID_TEXTURE_ID)
-        image.LoadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
+    if (mImage.getTextureId() == Texture::INVALID_TEXTURE_ID)
+        mImage.LoadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
 
     CENTER_NEXT_WINDOW();
     ImGui::SetNextWindowSize(windowSize);
 
-    ImGui::Begin("About", &this->open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking);
+    ImGui::Begin("About", &mOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking);
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImDrawList* drawList = window->DrawList;
@@ -222,7 +222,7 @@ void WindowAbout::Update() {
     };
 
     drawList->AddImage(
-        this->image.getImTextureId(),
+        mImage.getImTextureId(),
         imageTopLeft, imageBottomRight
     );
 

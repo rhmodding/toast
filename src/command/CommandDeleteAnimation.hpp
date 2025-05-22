@@ -14,15 +14,15 @@ public:
     CommandDeleteAnimation(
         unsigned cellanimIndex, unsigned animationIndex
     ) :
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex)
+        mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex)
     {
-        this->animation = this->getAnimation();
+        mAnimation = getAnimation();
     }
     ~CommandDeleteAnimation() = default;
 
     void Execute() override {
-        auto it = this->getAnimations().begin() + this->animationIndex;
-        this->getAnimations().erase(it);
+        auto it = getAnimations().begin() + mAnimationIndex;
+        getAnimations().erase(it);
 
         PlayerManager::getInstance().correctState();
 
@@ -30,8 +30,8 @@ public:
     }
 
     void Rollback() override {
-        auto it = this->getAnimations().begin() + this->animationIndex;
-        this->getAnimations().insert(it, this->animation);
+        auto it = getAnimations().begin() + mAnimationIndex;
+        getAnimations().insert(it, mAnimation);
 
         PlayerManager::getInstance().correctState();
 
@@ -39,23 +39,23 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned animationIndex;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndex;
 
-    CellAnim::Animation animation;
+    CellAnim::Animation mAnimation;
 
     std::vector<CellAnim::Animation>& getAnimations() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->animations;
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimations();
     }
 
     CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->animations.at(this->animationIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimation(mAnimationIndex);
     }
 };
 

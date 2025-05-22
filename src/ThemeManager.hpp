@@ -8,7 +8,7 @@
 #include <imgui.h>
 
 class ThemeManager : public Singleton<ThemeManager> {
-    friend class Singleton<ThemeManager>; // Allow access to base class constructor
+    friend class Singleton<ThemeManager>;
 
 private:
     ThemeManager() = default;
@@ -27,18 +27,18 @@ public:
     void applyTheming();
 
     const std::array<float, 4>& getWindowClearColor() const {
-        return this->windowClearColor;
+        return mWindowClearColor;
     }
     const FontCollection& getFonts() const {
-        return this->fonts;
+        return mFonts;
     }
 
     bool getThemeIsLight() const;
 
 private:
-    FontCollection fonts;
+    FontCollection mFonts;
 
-    std::array<float, 4> windowClearColor;
+    std::array<float, 4> mWindowClearColor;
 };
 
 #endif // THEMEMANAGER_HPP

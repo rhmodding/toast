@@ -39,12 +39,21 @@ public:
     CellAnimRenderer() = default;
     ~CellAnimRenderer() = default;
 
-    void linkCellAnim(std::shared_ptr<CellAnim::CellAnimObject> cellanim_) {
-        this->cellanim = cellanim_;
+    void linkCellAnim(std::shared_ptr<CellAnim::CellAnimObject> cellAnim) {
+        mCellAnim = cellAnim;
     }
-    void linkTextureGroup(std::shared_ptr<TextureGroup> textureGroup_) {
-        this->textureGroup = textureGroup_;
+    void linkTextureGroup(std::shared_ptr<TextureGroup> textureGroup) {
+        mTextureGroup = textureGroup;
     }
+
+    ImVec2 getOffset() const { return mOffset; }
+    void setOffset(ImVec2 offset) { mOffset = offset; }
+
+    ImVec2 getScale() const { return mScale; }
+    void setScale(ImVec2 scale) { mScale = scale; }
+
+    bool getVisible() const { return mVisible; }
+    void setVisible(bool visible) { mVisible = visible; }
 
     void Draw(
         ImDrawList* drawList,
@@ -86,21 +95,19 @@ private:
         bool allowOpacity
     );
 
-public:
-    ImVec2 offset { 0.f, 0.f };
-
-    float scaleX { 1.f };
-    float scaleY { 1.f };
-
-    bool visible { true };
-
-    // These get set by InternDraw.
-    ImVec2 drawTexSize;
-    ImVec2 drawTexOffset;
-
 private:
-    std::shared_ptr<CellAnim::CellAnimObject> cellanim;
-    std::shared_ptr<TextureGroup> textureGroup;
+    std::shared_ptr<CellAnim::CellAnimObject> mCellAnim;
+    std::shared_ptr<TextureGroup> mTextureGroup;
+
+    ImVec2 mOffset { 0.f, 0.f };
+    ImVec2 mScale { 1.f, 1.f };
+
+    bool mVisible { true };
+
+public: // TODO: filthy HACK ..
+    // These get set by InternDraw.
+    ImVec2 mDrawTexSize;
+    ImVec2 mDrawTexOffset;
 };
 
 #endif // CELLANIMRENDERER_HPP

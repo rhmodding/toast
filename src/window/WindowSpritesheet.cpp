@@ -219,15 +219,15 @@ void WindowSpritesheet::FormatPopup() {
                 delete[] imageBuffer;
             }
 
-            this->formattingNewTex->LoadRGBA32(
+            mFormattingNewTex->LoadRGBA32(
                 imageData,
                 cellanimSheet->getWidth(), cellanimSheet->getHeight()
             );
 
             if (isRVL)
-                this->formattingNewTex->setTPLOutputFormat(rvlFormats[selectedFormatIndex]);
+                mFormattingNewTex->setTPLOutputFormat(rvlFormats[selectedFormatIndex]);
             else
-                this->formattingNewTex->setCTPKOutputFormat(ctrFormats[selectedFormatIndex]);
+                mFormattingNewTex->setCTPKOutputFormat(ctrFormats[selectedFormatIndex]);
 
             delete[] imageData;
         };
@@ -235,17 +235,17 @@ void WindowSpritesheet::FormatPopup() {
         if (!lateOpen) {
             mipCount = cellanimSheet->getOutputMipCount();
 
-            this->formattingNewTex = std::make_shared<Texture>();
+            mFormattingNewTex = std::make_shared<Texture>();
 
             unsigned char* imageData = cellanimSheet->GetRGBA32();
             if (imageData) {
-                this->formattingNewTex->LoadRGBA32(
+                mFormattingNewTex->LoadRGBA32(
                     imageData,
                     cellanimSheet->getWidth(), cellanimSheet->getHeight()
                 );
                 delete[] imageData;
 
-                this->formattingNewTex->setOutputMipCount(mipCount);
+                mFormattingNewTex->setOutputMipCount(mipCount);
 
                 if (isRVL) {
                     auto it = std::find(
@@ -439,7 +439,7 @@ void WindowSpritesheet::FormatPopup() {
                 if (mipCount < 1) mipCount = 1;
                 if (mipCount > 8) mipCount = 8;
 
-                this->formattingNewTex->setOutputMipCount(mipCount);
+                mFormattingNewTex->setOutputMipCount(mipCount);
             }
 
             ImGui::EndChild();
@@ -449,16 +449,16 @@ void WindowSpritesheet::FormatPopup() {
             ImGui::SameLine();
 
             if (ImGui::Button("Apply")) {
-                this->formattingNewTex->setName(cellanimSheet->getName());
+                mFormattingNewTex->setName(cellanimSheet->getName());
 
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandModifySpritesheet>(
                     sessionManager.getCurrentSession()
-                        ->getCurrentCellAnim().object->sheetIndex,
-                    this->formattingNewTex
+                        ->getCurrentCellAnim().object->getSheetIndex(),
+                    mFormattingNewTex
                 ));
 
-                this->formattingNewTex.reset();
+                mFormattingNewTex.reset();
 
                 ImGui::CloseCurrentPopup();
             }
@@ -502,9 +502,9 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::ColorConvertFloat4ToU32({ bgScale, bgScale, bgScale, 1.f })
             );
 
-            if (this->formattingNewTex)
+            if (mFormattingNewTex)
                 ImGui::GetWindowDrawList()->AddImage(
-                    this->formattingNewTex->getImTextureId(),
+                    mFormattingNewTex->getImTextureId(),
                     imagePosition,
                     { imagePosition.x + imageRect.x, imagePosition.y + imageRect.y, }
                 );
@@ -532,7 +532,8 @@ bool RepackSheet() {
     std::shared_ptr cellanimSheet = session.getCurrentCellAnimSheet();
     std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
 
-    auto arrangements = cellanimObject->arrangements; // Copy
+    // Copy
+    std::vector<CellAnim::Arrangement> arrangements = cellanimObject->getArrangements();
 
     struct RectComparator {
         bool operator()(const stbrp_rect& lhs, const stbrp_rect& rhs) const {
@@ -624,7 +625,7 @@ bool RepackSheet() {
     newTexture->setName(cellanimSheet->getName());
 
     session.addCommand(std::make_shared<CommandModifySpritesheet>(
-        cellanimObject->sheetIndex, newTexture
+        cellanimObject->getSheetIndex(), newTexture
     ));
     session.addCommand(std::make_shared<CommandModifyArrangements>(
         session.getCurrentCellAnimIndex(), std::move(arrangements)
@@ -687,7 +688,7 @@ bool FixSheetEdgePixels() {
     newTexture->setName(cellanimSheet->getName());
 
     session.addCommand(std::make_shared<CommandModifySpritesheet>(
-        cellanimObject->sheetIndex, newTexture
+        cellanimObject->getSheetIndex(), newTexture
     ));
 
     return true;
@@ -696,7 +697,7 @@ bool FixSheetEdgePixels() {
 void WindowSpritesheet::Update() {
     static bool firstOpen { true };
     if (firstOpen) {
-        this->gridType = ThemeManager::getInstance().getThemeIsLight() ?
+        mGridType = ThemeManager::getInstance().getThemeIsLight() ?
             GridType_Light : GridType_Dark;
 
         firstOpen = false;
@@ -718,33 +719,33 @@ void WindowSpritesheet::Update() {
 
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Grid")) {
-            if (ImGui::MenuItem("None", nullptr, gridType == GridType_None))
-                gridType = GridType_None;
+            if (ImGui::MenuItem("None", nullptr, mGridType == GridType_None))
+                mGridType = GridType_None;
 
-            if (ImGui::MenuItem("Dark", nullptr, gridType == GridType_Dark))
-                gridType = GridType_Dark;
+            if (ImGui::MenuItem("Dark", nullptr, mGridType == GridType_Dark))
+                mGridType = GridType_Dark;
 
-            if (ImGui::MenuItem("Light", nullptr, gridType == GridType_Light))
-                gridType = GridType_Light;
+            if (ImGui::MenuItem("Light", nullptr, mGridType == GridType_Light))
+                mGridType = GridType_Light;
 
             if (ImGui::BeginMenu("Custom")) {
-                bool enabled = gridType == GridType_Custom;
+                bool enabled = mGridType == GridType_Custom;
                 if (ImGui::Checkbox("Enabled", &enabled)) {
                     if (enabled)
-                        gridType = GridType_Custom;
+                        mGridType = GridType_Custom;
                     else
-                        gridType = ThemeManager::getInstance().getThemeIsLight() ? GridType_Light : GridType_Dark;
+                        mGridType = ThemeManager::getInstance().getThemeIsLight() ? GridType_Light : GridType_Dark;
                 }
 
                 ImGui::SeparatorText("Color Picker");
 
                 if (ImGui::ColorPicker4(
                     "##ColorPicker",
-                    &customGridColor.x,
+                    &mCustomGridColor.x,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
                 ))
-                    gridType = GridType_Custom;
+                    mGridType = GridType_Custom;
 
                 ImGui::EndMenu();
             }
@@ -753,8 +754,8 @@ void WindowSpritesheet::Update() {
         }
 
         if (ImGui::BeginMenu("View")) {
-            if (ImGui::MenuItem("Draw bounding boxes of active part(s)", nullptr, this->drawBounding))
-                this->drawBounding = !this->drawBounding;
+            if (ImGui::MenuItem("Draw bounding boxes of active part(s)", nullptr, mDrawBounding))
+                mDrawBounding ^= true;
 
             ImGui::EndMenu();
         }
@@ -767,7 +768,7 @@ void WindowSpritesheet::Update() {
 
                 if (cellanimSheet->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
                     OPEN_GLOBAL_POPUP("###WaitForModifiedTexture");
-                    this->RunEditor();
+                    RunEditor();
                 }
                 else {
                     OPEN_GLOBAL_POPUP("###TextureExportFailed");
@@ -802,7 +803,7 @@ void WindowSpritesheet::Update() {
                         sessionManager.getCurrentSession()->addCommand(
                         std::make_shared<CommandModifySpritesheet>(
                             sessionManager.getCurrentSession()
-                                ->getCurrentCellAnim().object->sheetIndex,
+                                ->getCurrentCellAnim().object->getSheetIndex(),
                             newTexture
                         ));
 
@@ -862,7 +863,7 @@ void WindowSpritesheet::Update() {
             char textBuffer[32];
             snprintf(
                 textBuffer, sizeof(textBuffer),
-                "Double-click to %s", this->sheetZoomEnabled ? "un-zoom" : "zoom"
+                "Double-click to %s", mSheetZoomEnabled ? "un-zoom" : "zoom"
             );
 
             ImGui::SetCursorPosX(
@@ -875,14 +876,14 @@ void WindowSpritesheet::Update() {
         ImGui::EndMenuBar();
     }
 
-    this->FormatPopup();
+    FormatPopup();
 
     ImVec2 canvasTopLeft = ImGui::GetCursorScreenPos();
     ImVec2 canvasSize = ImGui::GetContentRegionAvail();
     ImVec2 canvasBottomRight { canvasTopLeft.x + canvasSize.x, canvasTopLeft.y + canvasSize.y };
 
     uint32_t backgroundColor { IM_COL32(0,0,0,0xFF) };
-    switch (this->gridType) {
+    switch (mGridType) {
     case GridType_None:
         backgroundColor = IM_COL32(0,0,0,0);
         break;
@@ -897,10 +898,10 @@ void WindowSpritesheet::Update() {
 
     case GridType_Custom:
         backgroundColor = IM_COL32(
-            customGridColor.x * 255,
-            customGridColor.y * 255,
-            customGridColor.z * 255,
-            customGridColor.w * 255
+            mCustomGridColor.x * 255,
+            mCustomGridColor.y * 255,
+            mCustomGridColor.z * 255,
+            mCustomGridColor.w * 255
         );
         break;
 
@@ -923,24 +924,24 @@ void WindowSpritesheet::Update() {
 
     // Inital sheet zoom
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && interactionHovered) {
-        this->sheetZoomTriggered = true;
-        this->sheetZoomTimer = static_cast<float>(ImGui::GetTime());
+        mSheetZoomTriggered = true;
+        mSheetZoomTimer = static_cast<float>(ImGui::GetTime());
     }
 
     if (
-        this->sheetZoomTriggered &&
+        mSheetZoomTriggered &&
         (
             static_cast<float>(ImGui::GetTime()) -
-            this->sheetZoomTimer
+            mSheetZoomTimer
         ) > SHEET_ZOOM_TIME
     ) {
-        this->sheetZoomEnabled = !this->sheetZoomEnabled;
-        this->sheetZoomTriggered = false;
+        mSheetZoomEnabled = !mSheetZoomEnabled;
+        mSheetZoomTriggered = false;
     }
 
     // Dragging
     const float mousePanThreshold = -1.f;
-    bool draggingCanvas = this->sheetZoomEnabled && interactionActive && (
+    bool draggingCanvas = mSheetZoomEnabled && interactionActive && (
         ImGui::IsMouseDragging(ImGuiMouseButton_Right, mousePanThreshold) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Middle, mousePanThreshold) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Left, mousePanThreshold)
@@ -954,37 +955,37 @@ void WindowSpritesheet::Update() {
     float scale = fitRect(imageRect, canvasSize);
 
     if (draggingCanvas) {
-        this->sheetZoomedOffset.x += io.MouseDelta.x;
-        this->sheetZoomedOffset.y += io.MouseDelta.y;
+        mSheetZoomedOffset.x += io.MouseDelta.x;
+        mSheetZoomedOffset.y += io.MouseDelta.y;
 
-        this->sheetZoomedOffset.x = std::clamp<float>(this->sheetZoomedOffset.x, -(imageRect.x / 2), imageRect.x / 2);
-        this->sheetZoomedOffset.y = std::clamp<float>(this->sheetZoomedOffset.y, -(imageRect.y / 2), imageRect.y / 2);
+        mSheetZoomedOffset.x = std::clamp<float>(mSheetZoomedOffset.x, -(imageRect.x / 2), imageRect.x / 2);
+        mSheetZoomedOffset.y = std::clamp<float>(mSheetZoomedOffset.y, -(imageRect.y / 2), imageRect.y / 2);
     }
 
     ImVec2 canvasOffset;
 
-    if (this->sheetZoomTriggered) {
-        float rel = (ImGui::GetTime() - this->sheetZoomTimer) / SHEET_ZOOM_TIME;
-        float rScale = (this->sheetZoomEnabled ? Easings::In : Easings::Out)(
-            this->sheetZoomEnabled ? 1.f - rel : rel
+    if (mSheetZoomTriggered) {
+        float rel = (ImGui::GetTime() - mSheetZoomTimer) / SHEET_ZOOM_TIME;
+        float rScale = (mSheetZoomEnabled ? Easings::In : Easings::Out)(
+            mSheetZoomEnabled ? 1.f - rel : rel
         ) + 1.f;
 
         scale *= rScale;
         imageRect.x *= rScale;
         imageRect.y *= rScale;
 
-        canvasOffset.x = this->sheetZoomedOffset.x * (rScale - 1.f);
-        canvasOffset.y = this->sheetZoomedOffset.y * (rScale - 1.f);
+        canvasOffset.x = mSheetZoomedOffset.x * (rScale - 1.f);
+        canvasOffset.y = mSheetZoomedOffset.y * (rScale - 1.f);
     }
     else {
-        float rScale = this->sheetZoomEnabled ? 2.f : 1.f;
+        float rScale = mSheetZoomEnabled ? 2.f : 1.f;
 
         scale *= rScale;
         imageRect.x *= rScale;
         imageRect.y *= rScale;
 
-        canvasOffset.x = this->sheetZoomEnabled ? this->sheetZoomedOffset.x : 0.f;
-        canvasOffset.y = this->sheetZoomEnabled ? this->sheetZoomedOffset.y : 0.f;
+        canvasOffset.x = mSheetZoomEnabled ? mSheetZoomedOffset.x : 0.f;
+        canvasOffset.y = mSheetZoomEnabled ? mSheetZoomedOffset.y : 0.f;
     }
 
     ImVec2 imagePosition {
@@ -1000,7 +1001,7 @@ void WindowSpritesheet::Update() {
 
     AppState& appState = AppState::getInstance();
 
-    if (this->drawBounding) {
+    if (mDrawBounding) {
         PlayerManager& playerManager = PlayerManager::getInstance();
 
         const auto& session = sessionManager.getCurrentSession();
@@ -1013,23 +1014,23 @@ void WindowSpritesheet::Update() {
         for (unsigned i = 0; i < arrangement.parts.size(); i++) {
             const auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
-            if (appState.focusOnSelectedPart && !selectionState.isPartSelected(i))
+            if (appState.mFocusOnSelectedPart && !selectionState.isPartSelected(i))
                 continue;
 
             const auto& part = arrangement.parts[i];
 
             unsigned sourceRect[4] {
-                part.regionX % cellanimObject->sheetW,
-                part.regionY % cellanimObject->sheetH,
+                part.regionX % cellanimObject->getSheetWidth(),
+                part.regionY % cellanimObject->getSheetHeight(),
                 part.regionW, part.regionH
             };
 
             const auto& associatedTex = textureGroup->getTextureByVarying(part.textureVarying);
 
             float mismatchScaleX =
-                static_cast<float>(associatedTex->getWidth()) / cellanimObject->sheetW;
+                static_cast<float>(associatedTex->getWidth()) / cellanimObject->getSheetWidth();
             float mismatchScaleY =
-                static_cast<float>(associatedTex->getHeight()) / cellanimObject->sheetH;
+                static_cast<float>(associatedTex->getHeight()) / cellanimObject->getSheetHeight();
 
             ImVec2 topLeftOffset {
                 (sourceRect[0] * scale * mismatchScaleX) + imagePosition.x,

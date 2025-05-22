@@ -29,7 +29,7 @@ static void Popup_EditAnimationName(int animationIndex) {
     if (!lateOpen && open) {
         const auto& animation =
             sessionManager.getCurrentSession()->getCurrentCellAnim().object
-                ->animations.at(animationIndex);
+                ->getAnimation(animationIndex);
 
         strncpy(newName, animation.name.c_str(), sizeof(newName) - 1);
         newName[sizeof(newName) - 1] = '\0';

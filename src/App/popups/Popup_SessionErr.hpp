@@ -8,7 +8,7 @@
 #include "../../common.hpp"
 
 static void Popup_SessionErr() {
-    auto error = SessionManager::getInstance().currentError;
+    SessionManager::Error error = SessionManager::getInstance().getCurrentError();
 
     char errorMessage[256];
     unsigned errorType { 2 }; // 0 = open, 1 = export, 2 = unknown

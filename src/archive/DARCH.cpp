@@ -99,7 +99,7 @@ DARCHObject::DARCHObject(const unsigned char* data, const size_t dataSize) {
 
     //                   ptr         nextOutOfDir
     std::stack<std::pair<Archive::Directory*, unsigned>> dirStack;
-    Archive::Directory* currentDirectory { &this->structure };
+    Archive::Directory* currentDirectory { &mStructure };
 
     dirStack.push({ currentDirectory, 0 });
 
@@ -133,7 +133,7 @@ DARCHObject::DARCHObject(const unsigned char* data, const size_t dataSize) {
         }
     }
 
-    this->initialized = true;
+    mInitialized = true;
 }
 
 std::vector<unsigned char> DARCHObject::Serialize() {
@@ -158,7 +158,7 @@ std::vector<unsigned char> DARCHObject::Serialize() {
     // Initialize the root directory entry.
     std::vector<FlatEntry> flattenedArchive = {
         {
-            .dir = &this->structure,
+            .dir = &mStructure,
             .isDir = true,
 
             .parent = 0,
@@ -171,8 +171,8 @@ std::vector<unsigned char> DARCHObject::Serialize() {
     std::stack<std::pair<Archive::Directory*, std::list<Archive::Directory>::iterator>> directoryItStack;
 
     // Push the root directory.
-    fileItStack.push({ &this->structure, this->structure.files.begin() });
-    directoryItStack.push({ &this->structure, this->structure.subdirectories.begin() });
+    fileItStack.push({ &mStructure, mStructure.files.begin() });
+    directoryItStack.push({ &mStructure, mStructure.subdirectories.begin() });
 
     std::vector<unsigned> parentList = { 0 };
 

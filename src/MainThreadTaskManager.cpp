@@ -13,7 +13,7 @@ std::future<void> MainThreadTaskManager::QueueTask(std::function<void()> func) {
         return promise.get_future();
     }
 
-    std::lock_guard<std::mutex> lock(this->mtx);
+    std::lock_guard<std::mutex> lock(mMtx);
 
     MainThreadTask task {
         .func = func,
@@ -21,19 +21,19 @@ std::future<void> MainThreadTaskManager::QueueTask(std::function<void()> func) {
     };
     std::future<void> future = task.promise.get_future();
 
-    this->taskQueue.push(std::move(task));
+    mTaskQueue.push(std::move(task));
 
-    this->queueCondition.notify_one();
+    mQueueCondition.notify_one();
 
     return future;
 }
 
 void MainThreadTaskManager::Update() {
-    std::unique_lock<std::mutex> lock(this->mtx);
+    std::unique_lock<std::mutex> lock(mMtx);
 
-    while (!this->taskQueue.empty()) {
-        MainThreadTask task = std::move(this->taskQueue.front());
-        this->taskQueue.pop();
+    while (!mTaskQueue.empty()) {
+        MainThreadTask task = std::move(mTaskQueue.front());
+        mTaskQueue.pop();
 
         lock.unlock();
             task.func();

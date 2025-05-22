@@ -71,7 +71,7 @@ static void Popup_WaitForModifiedTexture() {
                 std::make_shared<CommandModifySpritesheet>(
                     sessionManager.getCurrentSession()
                         ->getCurrentCellAnim().object
-                        ->sheetIndex,
+                        ->getSheetIndex(),
                     newTexture
                 ));
 

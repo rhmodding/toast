@@ -21,24 +21,23 @@ public:
 
     void ShowPopup() const;
 
-    AsyncTaskId getId() const { return this->id; }
-
-    bool getComplete() const { return this->isComplete; }
-    bool getEffectRun() const { return this->hasEffectRun; }
+    AsyncTaskId getId() const { return mId; }
+    bool getIsComplete() const { return mIsComplete; }
+    bool getHasEffectRun() const { return mHasEffectRun; }
 
 protected:
     virtual void Run() = 0;
     virtual void Effect() = 0;
 
 private:
-    AsyncTaskId id;
+    AsyncTaskId mId;
 
-    std::atomic<bool> isComplete { false };
-    std::atomic<bool> hasEffectRun { false };
+    std::atomic<bool> mIsComplete { false };
+    std::atomic<bool> mHasEffectRun { false };
 
-    const char* message;
+    const char* mMessage;
 
-    float startTime;
+    float mStartTime;
 };
 
 #endif // ASYNCTASK_HPP

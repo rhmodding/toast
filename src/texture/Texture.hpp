@@ -17,20 +17,20 @@ public:
     static constexpr GLuint INVALID_TEXTURE_ID = 0;
 
 private:
-    unsigned width { 0 };
-    unsigned height { 0 };
+    unsigned mWidth { 0 };
+    unsigned mHeight { 0 };
 
-    GLuint textureId { INVALID_TEXTURE_ID };
+    GLuint mTextureId { INVALID_TEXTURE_ID };
 
-    unsigned outputMipCount { 1 };
+    unsigned mOutputMipCount { 1 };
 
-    TPL::TPLImageFormat tplOutputFormat { TPL::TPL_IMAGE_FORMAT_RGBA32 };
-    CTPK::CTPKImageFormat ctpkOutputFormat { CTPK::CTPK_IMAGE_FORMAT_ETC1A4 };
+    TPL::TPLImageFormat mTPLOutputFormat { TPL::TPL_IMAGE_FORMAT_RGBA32 };
+    CTPK::CTPKImageFormat mCTPKOutputFormat { CTPK::CTPK_IMAGE_FORMAT_ETC1A4 };
 
-    GLint wrapS { GL_REPEAT }, wrapT { GL_REPEAT };
-    GLint minFilter { GL_LINEAR }, magFilter { GL_LINEAR };
+    GLint mWrapS { GL_REPEAT }, mWrapT { GL_REPEAT };
+    GLint mMinFilter { GL_LINEAR }, mMagFilter { GL_LINEAR };
 
-    std::string name;
+    std::string mName;
 
 public:
     // NOTE: once you construct a Texture with a textureId, you grant it
@@ -40,37 +40,37 @@ public:
 
     ~Texture();
 
-    const std::string& getName() const { return this->name; }
-    void setName(std::string name) { this->name = name; }
+    const std::string& getName() const { return mName; }
+    void setName(std::string name) { mName = name; }
 
-    unsigned getWidth() const { return this->width; }
-    unsigned getHeight() const { return this->height; }
+    unsigned getWidth() const { return mWidth; }
+    unsigned getHeight() const { return mHeight; }
 
-    unsigned getPixelCount() const { return this->width * this->height; }
+    unsigned getPixelCount() const { return mWidth * mHeight; }
 
-    GLuint getTextureId() const { return this->textureId; }
-    ImTextureID getImTextureId() const { return static_cast<ImTextureID>(this->textureId); }
+    GLuint getTextureId() const { return mTextureId; }
+    ImTextureID getImTextureId() const { return static_cast<ImTextureID>(mTextureId); }
 
-    GLint getWrapS() const { return this->wrapS; }
+    GLint getWrapS() const { return mWrapS; }
     void setWrapS(GLint wrapS);
 
-    GLint getWrapT() const { return this->wrapT; }
+    GLint getWrapT() const { return mWrapT; }
     void setWrapT(GLint wrapT);
 
-    GLint getMinFilter() const { return this->minFilter; }
+    GLint getMinFilter() const { return mMinFilter; }
     void setMinFilter(GLint minFilter);
 
-    GLint getMagFilter() const { return this->magFilter; }
+    GLint getMagFilter() const { return mMagFilter; }
     void setMagFilter(GLint magFilter);
 
-    TPL::TPLImageFormat getTPLOutputFormat() const { return this->tplOutputFormat; }
-    void setTPLOutputFormat(TPL::TPLImageFormat format) { this->tplOutputFormat = format; }
+    TPL::TPLImageFormat getTPLOutputFormat() const { return mTPLOutputFormat; }
+    void setTPLOutputFormat(TPL::TPLImageFormat format) { mTPLOutputFormat = format; }
 
-    CTPK::CTPKImageFormat getCTPKOutputFormat() const { return this->ctpkOutputFormat; }
-    void setCTPKOutputFormat(CTPK::CTPKImageFormat format) { this->ctpkOutputFormat = format; }
+    CTPK::CTPKImageFormat getCTPKOutputFormat() const { return mCTPKOutputFormat; }
+    void setCTPKOutputFormat(CTPK::CTPKImageFormat format) { mCTPKOutputFormat = format; }
 
-    unsigned getOutputMipCount() const { return this->outputMipCount; }
-    void setOutputMipCount(unsigned mipCount) { this->outputMipCount = mipCount; }
+    unsigned getOutputMipCount() const { return mOutputMipCount; }
+    void setOutputMipCount(unsigned mipCount) { mOutputMipCount = mipCount; }
 
     // Generate a texture & upload the RGBA32 data to it.
     // Note: if a GPU texture already exists, this will overwrite it's data.
@@ -89,14 +89,14 @@ public:
     bool LoadSTBFile(std::string_view filename);
 
     // Download the texture from the GPU into a RGBA32 image buffer.
-    // Note: the size of the buffer must be this->getPixelCount() * 4
+    // Note: the size of the buffer must be getPixelCount() * 4
     // 
     // Returns: true if succeeded, false if failed
     bool GetRGBA32(unsigned char* buffer);
 
     // Download the texture from the GPU as RGBA32 image data.
     // Note A: the resulting pointer is dynamically allocated and must be freed by the caller.
-    // Note B: the size of the data is this->getPixelCount() * 4
+    // Note B: the size of the data is getPixelCount() * 4
     //
     // Returns: pointer to linear RGBA32 image data if succeeded, nullptr if failed
     [[nodiscard]] unsigned char* GetRGBA32();

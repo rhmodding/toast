@@ -16,16 +16,16 @@ public:
         unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex,
         CellAnim::ArrangementPart part
     ) :
-        cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex),
-        part(part)
+        mCellAnimIndex(cellanimIndex), mArrangementIndex(arrangementIndex), mPartIndex(partIndex),
+        mPart(part)
     {}
     ~CommandInsertArrangementPart() = default;
 
     void Execute() override {
-        CellAnim::Arrangement& arrangement = this->getArrangement();
+        CellAnim::Arrangement& arrangement = getArrangement();
 
-        auto it = arrangement.parts.begin() + this->partIndex;
-        arrangement.parts.insert(it, this->part);
+        auto it = arrangement.parts.begin() + mPartIndex;
+        arrangement.parts.insert(it, mPart);
 
         PlayerManager::getInstance().correctState();
 
@@ -33,9 +33,9 @@ public:
     }
 
     void Rollback() override {
-        CellAnim::Arrangement& arrangement = this->getArrangement();
+        CellAnim::Arrangement& arrangement = getArrangement();
 
-        auto it = arrangement.parts.begin() + this->partIndex;
+        auto it = arrangement.parts.begin() + mPartIndex;
         arrangement.parts.erase(it);
 
         PlayerManager::getInstance().correctState();
@@ -44,17 +44,17 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned arrangementIndex;
-    unsigned partIndex;
+    unsigned mCellAnimIndex;
+    unsigned mArrangementIndex;
+    unsigned mPartIndex;
 
-    CellAnim::ArrangementPart part;
+    CellAnim::ArrangementPart mPart;
 
     CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->arrangements.at(this->arrangementIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getArrangement(mArrangementIndex);
     }
 };
 

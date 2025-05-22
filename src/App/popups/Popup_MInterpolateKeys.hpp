@@ -285,7 +285,7 @@ static void _ApplyInterpolation(
     const CellAnim::Animation& animation, unsigned animationIndex
 ) {
     auto& arrangements = SessionManager::getInstance().getCurrentSession()
-        ->getCurrentCellAnim().object->arrangements;
+        ->getCurrentCellAnim().object->getArrangements();
 
     int addKeysCount = (backKey.holdFrames / interval) - 1;
     if (addKeysCount <= 0)
@@ -293,7 +293,7 @@ static void _ApplyInterpolation(
 
     std::vector<CellAnim::AnimationKey> addKeys(addKeysCount);
 
-    unsigned totalFrames = interval;
+    // unsigned totalFrames = interval;
     for (unsigned i = 0; i < addKeysCount; i++) {
         CellAnim::AnimationKey& newKey = addKeys[i];
         newKey = backKey;
@@ -301,7 +301,7 @@ static void _ApplyInterpolation(
         float t = _Bezier::BezierValueY((((i+1) * interval)) / (float)backKey.holdFrames, curve.data());
 
         newKey.holdFrames = interval;
-        totalFrames += interval;
+        // totalFrames += interval;
 
         newKey.transform = newKey.transform.lerp(frontKey.transform, t);
         newKey.opacity = static_cast<uint8_t>(std::clamp<int>(

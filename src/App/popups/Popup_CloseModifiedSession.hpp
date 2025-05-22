@@ -11,13 +11,13 @@ static void Popup_CloseModifiedSession() {
     SessionManager& sessionManager = SessionManager::getInstance();
 
     if (
-        sessionManager.sessionClosingIndex < 0 || 
-        sessionManager.sessionClosingIndex >= static_cast<int>(sessionManager.sessions.size())
+        sessionManager.getSessionClosingIndex() < 0 || 
+        sessionManager.getSessionClosingIndex() >= static_cast<int>(sessionManager.getSessionCount())
     )
         return;
 
     const std::string& sessionPath =
-        sessionManager.sessions.at(sessionManager.sessionClosingIndex).resourcePath;
+        sessionManager.getSession(sessionManager.getSessionClosingIndex()).resourcePath;
 
     char popupTitle[512];
     snprintf(
@@ -45,7 +45,7 @@ static void Popup_CloseModifiedSession() {
         ImGui::SameLine();
 
         if (ImGui::Button("Close without saving")) {
-            sessionManager.RemoveSession(sessionManager.sessionClosingIndex);
+            sessionManager.RemoveSession(sessionManager.getSessionClosingIndex());
 
             ImGui::CloseCurrentPopup();
         }

@@ -11,13 +11,6 @@ class WindowInspector : public BaseWindow {
 public:
     void Update() override;
 
-    enum InspectorLevel {
-        InspectorLevel_Animation,
-        InspectorLevel_Key,
-        InspectorLevel_Arrangement,
-        InspectorLevel_Arrangement_Im
-    } inspectorLevel { InspectorLevel_Animation };
-
 private:
     void drawPreview();
     void duplicateArrangementButton(CellAnim::AnimationKey& newKey, const CellAnim::AnimationKey& originalKey);
@@ -26,9 +19,19 @@ private:
     void Level_Key();
     void Level_Arrangement();
 
-    CellAnimRenderer previewRenderer;
+private:
+    enum InspectorLevel {
+        InspectorLevel_Animation,
+        InspectorLevel_Key,
+        InspectorLevel_Arrangement,
+        InspectorLevel_Arrangement_Im
+    };
 
-    ImVec2 windowSize;
+    InspectorLevel mInspectorLevel { InspectorLevel_Animation };
+
+    CellAnimRenderer mBoxPreviewRenderer;
+
+    ImVec2 mWindowSize;
 };
 
 #endif // WINDOWINSPECTOR_HPP

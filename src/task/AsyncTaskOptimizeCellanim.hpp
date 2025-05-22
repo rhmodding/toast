@@ -31,8 +31,8 @@ protected:
     void Effect() override;
 
 private:
-    Session* session;
-    OptimizeCellanimOptions options;
+    Session* mSession;
+    OptimizeCellanimOptions mOptions;
 };
 
 #endif // ASYNCTASK_OPTIMIZECELLANIM_HPP

@@ -90,7 +90,7 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellAnimRenderer& rend
         return partsBounding;
 
     if (selectionState.singlePartSelected()) {
-        unsigned index = selectionState.selectedParts[0].index;
+        unsigned index = selectionState.mSelectedParts[0].index;
         const auto& part = arrangement.parts.at(index);
 
         if (!part.editorLocked) {
@@ -109,7 +109,7 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellAnimRenderer& rend
 
     bool any { false };
 
-    for (const auto& [index, _] : selectionState.selectedParts) {
+    for (const auto& [index, _] : selectionState.mSelectedParts) {
         const auto& part = arrangement.parts.at(index);
 
         if (part.editorLocked)
@@ -143,7 +143,7 @@ static bool selectionChangedSinceLastCycle() {
 
     const auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
 
-    const auto& currentSelected = selectionState.selectedParts;
+    const auto& currentSelected = selectionState.mSelectedParts;
     unsigned currentArrangeIdx = playerManager.getArrangementIndex();
 
     static auto lastSelected { currentSelected };
@@ -208,30 +208,30 @@ void WindowCanvas::Menubar() {
 
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Grid")) {
-            if (ImGui::MenuItem("None", nullptr, this->state.gridType == CANVAS_GRID_TYPE_NONE))
-                this->state.gridType = CANVAS_GRID_TYPE_NONE;
+            if (ImGui::MenuItem("None", nullptr, mState.gridType == CanvasGridType::None))
+                mState.gridType = CanvasGridType::None;
 
-            if (ImGui::MenuItem("Dark", nullptr, this->state.gridType == CANVAS_GRID_TYPE_DARK))
-                this->state.gridType = CANVAS_GRID_TYPE_DARK;
+            if (ImGui::MenuItem("Dark", nullptr, mState.gridType == CanvasGridType::Dark))
+                mState.gridType = CanvasGridType::Dark;
 
-            if (ImGui::MenuItem("Light", nullptr, this->state.gridType == CANVAS_GRID_TYPE_LIGHT))
-                this->state.gridType = CANVAS_GRID_TYPE_LIGHT;
+            if (ImGui::MenuItem("Light", nullptr, mState.gridType == CanvasGridType::Light))
+                mState.gridType = CanvasGridType::Light;
 
             if (ImGui::BeginMenu("Custom")) {
-                bool enabled = this->state.gridType == CANVAS_GRID_TYPE_USER;
+                bool enabled = mState.gridType == CanvasGridType::User;
                 if (ImGui::Checkbox("Enabled", &enabled)) {
                     if (enabled)
-                        this->state.gridType = CANVAS_GRID_TYPE_USER;
+                        mState.gridType = CanvasGridType::User;
                     else
-                        this->state.setDefaultGridType();
+                        mState.setDefaultGridType();
                 }
 
                 ImGui::SeparatorText("Color Picker");
 
-                ImGui::BeginDisabled(this->state.gridType != CANVAS_GRID_TYPE_USER);
+                ImGui::BeginDisabled(mState.gridType != CanvasGridType::User);
                 ImGui::ColorPicker4(
                     "##ColorPicker",
-                    &this->state.userGridColor.x,
+                    &mState.userGridColor.x,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
                 );
@@ -242,25 +242,25 @@ void WindowCanvas::Menubar() {
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Grid Lines", nullptr, &this->state.gridLinesEnable, this->state.gridType != CANVAS_GRID_TYPE_NONE);
+            ImGui::MenuItem("Grid Lines", nullptr, &mState.gridLinesEnable, mState.gridType != CanvasGridType::None);
 
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("View")) {
             if (ImGui::MenuItem("Reset", nullptr, false)) {
-                this->state.resetView();
+                mState.resetView();
             }
 
             if (ImGui::MenuItem("Reset to Safe Area", nullptr, false)) {
-                this->state.offset = { 0.f, 0.f };
+                mState.offset = { 0.f, 0.f };
 
                 ImVec2 safeAreaSize = getSafeAreaSize();
 
                 float scale;
-                fitRect(safeAreaSize, this->canvasSize, scale);
+                fitRect(safeAreaSize, mCanvasSize, scale);
 
-                this->state.zoomFactor = scale - .1f;
+                mState.zoomFactor = scale - .1f;
             }
 
             ImGui::EndMenu();
@@ -268,14 +268,14 @@ void WindowCanvas::Menubar() {
 
         if (ImGui::BeginMenu("Rendering")) {
             if (ImGui::BeginMenu("Draw Bounding Boxes")) {
-                ImGui::Checkbox("For all parts", &this->state.drawPartBounding);
+                ImGui::Checkbox("For all parts", &mState.drawPartBounding);
 
                 ImGui::SeparatorText("Color Picker");
 
-                ImGui::BeginDisabled(!this->state.drawPartBounding);
+                ImGui::BeginDisabled(!mState.drawPartBounding);
                 ImGui::ColorPicker4(
                     "##ColorPicker",
-                    &this->state.partBoundingDrawColor.x,
+                    &mState.partBoundingDrawColor.x,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
                 );
@@ -285,23 +285,23 @@ void WindowCanvas::Menubar() {
             }
 
             if (ImGui::BeginMenu("Safe Area")) {
-                ImGui::Checkbox("Enabled", &this->state.safeAreaEnable);
+                ImGui::Checkbox("Enabled", &mState.safeAreaEnable);
 
                 ImGui::SeparatorText("Options");
 
-                ImGui::BeginDisabled(!this->state.safeAreaEnable);
-                ImGui::DragScalar("Alpha", ImGuiDataType_U8, &this->state.safeAreaAlpha);
+                ImGui::BeginDisabled(!mState.safeAreaEnable);
+                ImGui::DragScalar("Alpha", ImGuiDataType_U8, &mState.safeAreaAlpha);
                 ImGui::EndDisabled();
 
-                ImGui::BeginDisabled(!this->state.safeAreaEnable || !isCtr);
-                ImGui::Checkbox("Stereoscopic Width", &this->state.safeAreaStereoscopic);
+                ImGui::BeginDisabled(!mState.safeAreaEnable || !isCtr);
+                ImGui::Checkbox("Stereoscopic Width", &mState.safeAreaStereoscopic);
                 ImGui::EndDisabled();
 
                 ImGui::EndMenu();
             }
 
-            if (ImGui::MenuItem("Enable transparent drawing", nullptr, this->state.allowTransparentDraw))
-                this->state.allowTransparentDraw ^= true;
+            if (ImGui::MenuItem("Enable transparent drawing", nullptr, mState.allowTransparentDraw))
+                mState.allowTransparentDraw ^= true;
 
             ImGui::EndMenu();
         }
@@ -313,7 +313,7 @@ void WindowCanvas::Menubar() {
 void WindowCanvas::Update() {
     static bool firstOpen { true };
     if (firstOpen) {
-        this->state.setDefaultGridType();
+        mState.setDefaultGridType();
         firstOpen = false;
     }
 
@@ -326,42 +326,42 @@ void WindowCanvas::Update() {
     const ImGuiIO& io = ImGui::GetIO();
 
     // Note: ImDrawList uses screen coordinates
-    this->canvasTopLeft = ImGui::GetCursorScreenPos();
-    this->canvasSize = ImGui::GetContentRegionAvail();
+    mCanvasTopLeft = ImGui::GetCursorScreenPos();
+    mCanvasSize = ImGui::GetContentRegionAvail();
     const ImVec2 canvasBottomRight {
-        this->canvasTopLeft.x + this->canvasSize.x,
-        this->canvasTopLeft.y + this->canvasSize.y
+        mCanvasTopLeft.x + mCanvasSize.x,
+        mCanvasTopLeft.y + mCanvasSize.y
     };
 
     this->Menubar();
 
     uint32_t backgroundColor;
-    switch (this->state.gridType) {
-    case CANVAS_GRID_TYPE_DARK:
+    switch (mState.gridType) {
+    case CanvasGridType::Dark:
         backgroundColor = IM_COL32(50, 50, 50, 255);
         break;
-    case CANVAS_GRID_TYPE_LIGHT:
+    case CanvasGridType::Light:
         backgroundColor = IM_COL32(255, 255, 255, 255);
         break;
-    case CANVAS_GRID_TYPE_USER:
+    case CanvasGridType::User:
         backgroundColor = IM_COL32(
-            this->state.userGridColor.x * 255,
-            this->state.userGridColor.y * 255,
-            this->state.userGridColor.z * 255,
-            this->state.userGridColor.w * 255
+            mState.userGridColor.x * 255,
+            mState.userGridColor.y * 255,
+            mState.userGridColor.z * 255,
+            mState.userGridColor.w * 255
         );
         break;
-    case CANVAS_GRID_TYPE_NONE:
+    case CanvasGridType::None:
     default:
         backgroundColor = IM_COL32_BLACK_TRANS;
         break;
     }
 
-    drawList->AddRectFilled(this->canvasTopLeft, canvasBottomRight, backgroundColor);
+    drawList->AddRectFilled(mCanvasTopLeft, canvasBottomRight, backgroundColor);
 
     // This catches interactions (dragging, hovering, clicking, etc.)
-    if (this->canvasSize.x != 0.f && this->canvasSize.y != 0.f)
-        ImGui::InvisibleButton("CanvasInteraction", this->canvasSize,
+    if (mCanvasSize.x != 0.f && mCanvasSize.y != 0.f)
+        ImGui::InvisibleButton("CanvasInteraction", mCanvasSize,
             ImGuiButtonFlags_MouseButtonLeft |
             ImGuiButtonFlags_MouseButtonRight |
             ImGuiButtonFlags_MouseButtonMiddle
@@ -372,8 +372,8 @@ void WindowCanvas::Update() {
     const bool interactionDeactivated = ImGui::IsItemDeactivated(); // Un-held
 
     const ImVec2 origin(
-        this->canvasTopLeft.x + this->state.offset.x + static_cast<int>(this->canvasSize.x / 2),
-        this->canvasTopLeft.y + this->state.offset.y + static_cast<int>(this->canvasSize.y / 2)
+        mCanvasTopLeft.x + mState.offset.x + static_cast<int>(mCanvasSize.x / 2),
+        mCanvasTopLeft.y + mState.offset.y + static_cast<int>(mCanvasSize.y / 2)
     );
 
     // Dragging
@@ -430,39 +430,37 @@ void WindowCanvas::Update() {
     // Select all parts with CTRL+A
     if (ImGui::Shortcut(ImGuiKey_A | ImGuiMod_Ctrl)) {
         selectionState.clearSelectedParts();
-        selectionState.selectedParts.reserve(arrangement.parts.size());
+        selectionState.mSelectedParts.reserve(arrangement.parts.size());
 
         for (unsigned i = 0; i < arrangement.parts.size(); i++)
             selectionState.setBatchPartSelection(i, true);
     }
 
     if (panningCanvas) {
-        this->state.offset.x += io.MouseDelta.x;
-        this->state.offset.y += io.MouseDelta.y;
+        mState.offset.x += io.MouseDelta.x;
+        mState.offset.y += io.MouseDelta.y;
     }
 
     // Canvas zooming
     if (interactionHovered && io.MouseWheel != 0.f) {
         if (io.KeyShift)
-            this->state.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
+            mState.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
         else
-            this->state.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED;
+            mState.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED;
 
-        this->state.clampZoomFactor();
+        mState.clampZoomFactor();
     }
 
-    this->cellanimRenderer.offset = origin;
-
-    this->cellanimRenderer.scaleX = this->state.zoomFactor;
-    this->cellanimRenderer.scaleY = this->state.zoomFactor;
+    mCellAnimRenderer.setOffset(origin);
+    mCellAnimRenderer.setScale(ImVec2(mState.zoomFactor, mState.zoomFactor));
 
     float quadRotation { 0.f };
-    std::array<ImVec2, 4> partsBounding = calculatePartsBounding(this->cellanimRenderer, arrangement, quadRotation);
+    std::array<ImVec2, 4> partsBounding = calculatePartsBounding(mCellAnimRenderer, arrangement, quadRotation);
 
     ImVec2 partsBoundingCenter = AVERAGE_IMVEC2(partsBounding[0], partsBounding[2]);
     ImVec2 partsAnmSpaceCenter (
-        (partsBoundingCenter.x - origin.x) / this->state.zoomFactor,
-        (partsBoundingCenter.y - origin.y) / this->state.zoomFactor
+        (partsBoundingCenter.x - origin.x) / mState.zoomFactor,
+        (partsBoundingCenter.y - origin.y) / mState.zoomFactor
     );
 
     const bool noParts = partsBounding[0].x == BOUNDING_INVALID;
@@ -527,8 +525,8 @@ void WindowCanvas::Update() {
     }
 
     ImVec2 displayPivotPoint = {
-        (pivotPoint.x * this->state.zoomFactor) + origin.x,
-        (pivotPoint.y * this->state.zoomFactor) + origin.y
+        (pivotPoint.x * mState.zoomFactor) + origin.x,
+        (pivotPoint.y * mState.zoomFactor) + origin.y
     };
     constexpr float pivotRadius = 6.f;
     constexpr float pivotHoverRadius = 11.f;
@@ -615,9 +613,9 @@ void WindowCanvas::Update() {
         ImVec2 dragDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0.f);
 
         partsTransformation.pivotX =
-            pivotBeforeMoveLocal[0] + (dragDelta.x / this->state.zoomFactor);
+            pivotBeforeMoveLocal[0] + (dragDelta.x / mState.zoomFactor);
         partsTransformation.pivotY =
-            pivotBeforeMoveLocal[1] + (dragDelta.y / this->state.zoomFactor);
+            pivotBeforeMoveLocal[1] + (dragDelta.y / mState.zoomFactor);
     }
 
     auto myPartsBounding = partsBounding;
@@ -639,8 +637,8 @@ void WindowCanvas::Update() {
         switch (partsTransformation.type) {
         case PartsTransformType_Translate: {
             ImVec2 scaledOffset (
-                dragDelta.x / this->state.zoomFactor,
-                dragDelta.y / this->state.zoomFactor
+                dragDelta.x / mState.zoomFactor,
+                dragDelta.y / mState.zoomFactor
             );
 
             const auto& key = playerManager.getKey();
@@ -670,7 +668,7 @@ void WindowCanvas::Update() {
 
             float partCompensateRot = 0.f;
             ImVec2 partAvgCenter ( 0.f, 0.f );
-            for (const auto& [index, _] : selectionState.selectedParts) {
+            for (const auto& [index, _] : selectionState.mSelectedParts) {
                 const auto& part = arrangement.parts.at(index);
 
                 partCompensateRot -= part.transform.angle;
@@ -681,10 +679,10 @@ void WindowCanvas::Update() {
                 partAvgCenter.x += centerX;
                 partAvgCenter.y += centerY;
             }
-            partCompensateRot /= selectionState.selectedParts.size();
+            partCompensateRot /= selectionState.mSelectedParts.size();
 
-            partAvgCenter.x = (partAvgCenter.x / selectionState.selectedParts.size()) * keyTransform.scaleX * this->state.zoomFactor;
-            partAvgCenter.y = (partAvgCenter.y / selectionState.selectedParts.size()) * keyTransform.scaleY * this->state.zoomFactor;
+            partAvgCenter.x = (partAvgCenter.x / selectionState.mSelectedParts.size()) * keyTransform.scaleX * mState.zoomFactor;
+            partAvgCenter.y = (partAvgCenter.y / selectionState.mSelectedParts.size()) * keyTransform.scaleY * mState.zoomFactor;
 
             ImVec2 partOrigin = { origin.x + partAvgCenter.x, origin.y + partAvgCenter.y };
 
@@ -721,8 +719,8 @@ void WindowCanvas::Update() {
             float startHeight = myPartsBounding[2].y - myPartsBounding[0].y;
 
             ImVec2 myPivot = rotateVec2({
-                (partsTransformation.pivotX * this->state.zoomFactor),
-                (partsTransformation.pivotY * this->state.zoomFactor)
+                (partsTransformation.pivotX * mState.zoomFactor),
+                (partsTransformation.pivotY * mState.zoomFactor)
             }, keyCompensateRot, { 0.f, 0.f });
 
             const float rangeStartX = myPartsBounding[0].x - origin.x;
@@ -759,8 +757,8 @@ void WindowCanvas::Update() {
             }
         } break;
         case PartsTransformType_Rotate: {
-            float pivotRealX = (partsTransformation.pivotX * this->state.zoomFactor);
-            float pivotRealY = (partsTransformation.pivotY * this->state.zoomFactor);
+            float pivotRealX = (partsTransformation.pivotX * mState.zoomFactor);
+            float pivotRealY = (partsTransformation.pivotY * mState.zoomFactor);
 
             float startAngle = std::atan2(
                 mouseDragStart.y - pivotRealY, // y
@@ -783,7 +781,7 @@ void WindowCanvas::Update() {
         }
 
         // Apply transformation
-        for (const auto& [index, _] : selectionState.selectedParts) {
+        for (const auto& [index, _] : selectionState.mSelectedParts) {
             auto& part = arrangement.parts.at(index);
 
             if (part.editorLocked)
@@ -842,11 +840,11 @@ void WindowCanvas::Update() {
             part.transform.angle += partsTransformation.rotation;
         }
 
-        partsBounding = calculatePartsBounding(this->cellanimRenderer, arrangement, quadRotation);
+        partsBounding = calculatePartsBounding(mCellAnimRenderer, arrangement, quadRotation);
         partsBoundingCenter = AVERAGE_IMVEC2(partsBounding[0], partsBounding[2]);
         partsAnmSpaceCenter = ImVec2(
-            (partsBoundingCenter.x - origin.x) / this->state.zoomFactor,
-            (partsBoundingCenter.y - origin.y) / this->state.zoomFactor
+            (partsBoundingCenter.x - origin.x) / mState.zoomFactor,
+            (partsBoundingCenter.y - origin.y) / mState.zoomFactor
         );
     }
 
@@ -913,54 +911,54 @@ void WindowCanvas::Update() {
     // All drawing operations
     {
         bool isBackgroundLight = false;
-        switch (this->state.gridType) {
-        case CANVAS_GRID_TYPE_DARK:
+        switch (mState.gridType) {
+        case CanvasGridType::Dark:
             isBackgroundLight = false;
             break;
-        case CANVAS_GRID_TYPE_LIGHT:
+        case CanvasGridType::Light:
             isBackgroundLight = true;
             break;
-        case CANVAS_GRID_TYPE_USER:
-            isBackgroundLight = this->state.getUserGridColorLumi() > .5f;
+        case CanvasGridType::User:
+            isBackgroundLight = mState.getUserGridColorLumi() > .5f;
             break;
-        case CANVAS_GRID_TYPE_NONE:
+        case CanvasGridType::None:
         default:
             isBackgroundLight = ThemeManager::getInstance().getThemeIsLight();
             break;
         }
 
-        drawList->PushClipRect(this->canvasTopLeft, canvasBottomRight, true);
+        drawList->PushClipRect(mCanvasTopLeft, canvasBottomRight, true);
         {
             // Draw grid
-            if (this->state.gridLinesEnable && this->state.gridType != CANVAS_GRID_TYPE_NONE) {
-                const float GRID_STEP = 64.f * this->state.zoomFactor;
+            if (mState.gridLinesEnable && mState.gridType != CanvasGridType::None) {
+                const float GRID_STEP = 64.f * mState.zoomFactor;
 
                 constexpr uint32_t normalColor = IM_COL32(200, 200, 200, 40);
                 constexpr uint32_t centerColorX = IM_COL32(255, 0, 0, 70);
                 constexpr uint32_t centerColorY = IM_COL32(0, 255, 0, 70);
 
                 for (
-                    float x = fmodf(this->state.offset.x + static_cast<int>(this->canvasSize.x / 2), GRID_STEP);
-                    x < this->canvasSize.x;
+                    float x = fmodf(mState.offset.x + static_cast<int>(mCanvasSize.x / 2), GRID_STEP);
+                    x < mCanvasSize.x;
                     x += GRID_STEP
                 ) {
-                    bool centered = fabs((this->canvasTopLeft.x + x) - origin.x) < .01f;
+                    bool centered = fabs((mCanvasTopLeft.x + x) - origin.x) < .01f;
                     drawList->AddLine(
-                        { this->canvasTopLeft.x + x, this->canvasTopLeft.y },
-                        { this->canvasTopLeft.x + x, canvasBottomRight.y },
+                        { mCanvasTopLeft.x + x, mCanvasTopLeft.y },
+                        { mCanvasTopLeft.x + x, canvasBottomRight.y },
                         centered ? centerColorX : normalColor
                     );
                 }
 
                 for (
-                    float y = fmodf(this->state.offset.y + static_cast<int>(this->canvasSize.y / 2), GRID_STEP);
-                    y < this->canvasSize.y;
+                    float y = fmodf(mState.offset.y + static_cast<int>(mCanvasSize.y / 2), GRID_STEP);
+                    y < mCanvasSize.y;
                     y += GRID_STEP
                 ) {
-                    bool centered = fabs((this->canvasTopLeft.y + y) - origin.y) < .01f;
+                    bool centered = fabs((mCanvasTopLeft.y + y) - origin.y) < .01f;
                     drawList->AddLine(
-                        { this->canvasTopLeft.x, this->canvasTopLeft.y + y },
-                        { canvasBottomRight.x, this->canvasTopLeft.y + y },
+                        { mCanvasTopLeft.x, mCanvasTopLeft.y + y },
+                        { canvasBottomRight.x, mCanvasTopLeft.y + y },
                         centered ? centerColorY : normalColor
                     );
                 }
@@ -970,8 +968,8 @@ void WindowCanvas::Update() {
             {
                 const auto& currentSession = SessionManager::getInstance().getCurrentSession();
 
-                this->cellanimRenderer.linkCellAnim(currentSession->getCurrentCellAnim().object);
-                this->cellanimRenderer.linkTextureGroup(currentSession->sheets);
+                mCellAnimRenderer.linkCellAnim(currentSession->getCurrentCellAnim().object);
+                mCellAnimRenderer.linkTextureGroup(currentSession->sheets);
 
                 const auto& onionSkinState = playerManager.getOnionSkinState();
 
@@ -979,7 +977,7 @@ void WindowCanvas::Update() {
                 bool drawUnder = onionSkinState.drawUnder;
 
                 if (drawOnionSkin && drawUnder) {
-                    this->cellanimRenderer.DrawOnionSkin(
+                    mCellAnimRenderer.DrawOnionSkin(
                         drawList,
                         playerManager.getAnimation(), playerManager.getKeyIndex(),
                         onionSkinState.backCount,
@@ -989,10 +987,10 @@ void WindowCanvas::Update() {
                     );
                 }
 
-                this->cellanimRenderer.Draw(
+                mCellAnimRenderer.Draw(
                     drawList,
                     playerManager.getAnimation(), playerManager.getKeyIndex(),
-                    this->state.allowTransparentDraw
+                    mState.allowTransparentDraw
                 );
 
                 if (drawOnionSkin && !drawUnder) {
@@ -1005,31 +1003,41 @@ void WindowCanvas::Update() {
                         onionSkinState.opacity
                     );
                 }
+
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                    glDeleteTextures(1, &texture);
+
+                    auto data = APNGHack::build(buildData);
+
+                    FILE* file = fopen("sura.png", "wb");
+                    fwrite(data.data(), data.size(), 1, file);
+                    fclose(file);
+                }
             }
 
             // Draw safe area if enabled
-            if (this->state.safeAreaEnable) {
-                const ImVec2 safeArea = this->state.safeAreaStereoscopic ?
+            if (mState.safeAreaEnable) {
+                const ImVec2 safeArea = mState.safeAreaStereoscopic ?
                     getStereoscopicSafeAreaSize() : getSafeAreaSize();
 
                 ImVec2 boxTopLeft (
-                    origin.x - ((safeArea.x * this->state.zoomFactor) / 2.f),
-                    origin.y - ((safeArea.y * this->state.zoomFactor) / 2.f)
+                    origin.x - ((safeArea.x * mState.zoomFactor) / 2.f),
+                    origin.y - ((safeArea.y * mState.zoomFactor) / 2.f)
                 );
                 ImVec2 boxBottomRight (
-                    boxTopLeft.x + (safeArea.x * this->state.zoomFactor),
-                    boxTopLeft.y + (safeArea.y * this->state.zoomFactor)
+                    boxTopLeft.x + (safeArea.x * mState.zoomFactor),
+                    boxTopLeft.y + (safeArea.y * mState.zoomFactor)
                 );
 
-                uint32_t color = IM_COL32(0, 0, 0, this->state.safeAreaAlpha);
+                uint32_t color = IM_COL32(0, 0, 0, mState.safeAreaAlpha);
 
                 drawList->AddRectFilled( // Top Box
-                    canvasTopLeft,
+                    mCanvasTopLeft,
                     { canvasBottomRight.x, boxTopLeft.y },
                     color
                 );
                 drawList->AddRectFilled( // Left Box
-                    { canvasTopLeft.x, boxTopLeft.y },
+                    { mCanvasTopLeft.x, boxTopLeft.y },
                     { boxTopLeft.x, boxBottomRight.y },
                     color
                 );
@@ -1039,7 +1047,7 @@ void WindowCanvas::Update() {
                     color
                 );
                 drawList->AddRectFilled( // Bottom Box
-                    { canvasTopLeft.x, boxBottomRight.y },
+                    { mCanvasTopLeft.x, boxBottomRight.y },
                     canvasBottomRight,
                     color
                 );
@@ -1048,7 +1056,7 @@ void WindowCanvas::Update() {
         drawList->PopClipRect();
 
         // Draw selection box + handles & pivot point.
-        if (!noParts /* && appState.focusOnSelectedPart */) { // TODO
+        if (!noParts /* && appState.mFocusOnSelectedPart */) { // TODO
             const uint32_t colorLine = isBackgroundLight ? IM_COL32(0,0,0,0xFF) : IM_COL32(0xFF,0xFF,0xFF,0xFF);
             const uint32_t colorFill = isBackgroundLight ? IM_COL32(0xFF,0xFF,0xFF,0xFF) : IM_COL32(0,0,0,0xFF);
 
@@ -1110,8 +1118,8 @@ void WindowCanvas::Update() {
 
             // Update displayPivotPoint since pivotPoint might have updated
             displayPivotPoint = {
-                (pivotPoint.x * this->state.zoomFactor) + origin.x,
-                (pivotPoint.y * this->state.zoomFactor) + origin.y
+                (pivotPoint.x * mState.zoomFactor) + origin.x,
+                (pivotPoint.y * mState.zoomFactor) + origin.y
             };
 
             // Draw the pivot
@@ -1125,8 +1133,8 @@ void WindowCanvas::Update() {
             if ((fabs(partsTransformation.pivotX) > epsilon || partsTransformation.pivotY > epsilon) && !partsTransformation.pivotIsWorld) {
                 constexpr uint32_t pivotColorOld = IM_COL32(57, 57, 57, .3f * 255);
                 ImVec2 displayPivotPointOld = {
-                    (partsAnmSpaceCenter.x * this->state.zoomFactor) + origin.x,
-                    (partsAnmSpaceCenter.y * this->state.zoomFactor) + origin.y
+                    (partsAnmSpaceCenter.x * mState.zoomFactor) + origin.x,
+                    (partsAnmSpaceCenter.y * mState.zoomFactor) + origin.y
                 };
 
                 constexpr float pivotRadiusOld = pivotRadius - 1.f;
@@ -1152,35 +1160,35 @@ void WindowCanvas::DrawCanvasText() {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
     uint32_t textColor { IM_COL32_BLACK };
-    switch (this->state.gridType) {
-    case CANVAS_GRID_TYPE_DARK:
+    switch (mState.gridType) {
+    case CanvasGridType::Dark:
         textColor = IM_COL32_WHITE;
         break;
-    case CANVAS_GRID_TYPE_LIGHT:
+    case CanvasGridType::Light:
         textColor = IM_COL32_BLACK;
         break;
-    case CANVAS_GRID_TYPE_USER:
-        textColor = (this->state.getUserGridColorLumi() > .5f) ? IM_COL32_BLACK : IM_COL32_WHITE;
+    case CanvasGridType::User:
+        textColor = (mState.getUserGridColorLumi() > .5f) ? IM_COL32_BLACK : IM_COL32_WHITE;
         break;
-    case CANVAS_GRID_TYPE_NONE:
+    case CanvasGridType::None:
     default:
         textColor = ThemeManager::getInstance().getThemeIsLight() ? IM_COL32_BLACK : IM_COL32_WHITE;
         break;
     }
 
-    const float textDrawLeft = this->canvasTopLeft.x + 10.f;
-    float textDrawTop = this->canvasTopLeft.y + 5.f;
+    const float textDrawLeft = mCanvasTopLeft.x + 10.f;
+    float textDrawTop = mCanvasTopLeft.y + 5.f;
 
     constexpr float textDrawGap = 3.f;
 
-    if ((this->state.offset.x != 0.f) || (this->state.offset.y != 0.f)) {
+    if ((mState.offset.x != 0.f) || (mState.offset.y != 0.f)) {
         std::string str;
         {
             std::ostringstream fmtStream;
             fmtStream <<
                 "Offset: " <<
-                std::to_string(this->state.offset.x) << ", " <<
-                std::to_string(this->state.offset.y);
+                std::to_string(mState.offset.x) << ", " <<
+                std::to_string(mState.offset.y);
 
             str = fmtStream.str();
         }
@@ -1193,13 +1201,13 @@ void WindowCanvas::DrawCanvasText() {
         textDrawTop += textDrawGap + ImGui::CalcTextSize(str.c_str()).y;
     }
 
-    if (this->state.zoomFactor != 1.f) {
+    if (mState.zoomFactor != 1.f) {
         std::string str;
         {
             std::ostringstream fmtStream;
             fmtStream <<
                 "Zoom: " <<
-                std::to_string(static_cast<int>(this->state.zoomFactor * 100.f)) <<
+                std::to_string(static_cast<int>(mState.zoomFactor * 100.f)) <<
                 "% (hold [Shift] to zoom faster)";
 
             str = fmtStream.str();

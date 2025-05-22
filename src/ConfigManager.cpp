@@ -14,16 +14,16 @@ inline void clampRecentlyOpened(std::vector<std::string>& recentlyOpened) {
 }
 
 void ConfigManager::LoadConfig() {
-    std::lock_guard<std::mutex> lock(this->mtx);
+    std::lock_guard<std::mutex> lock(mMtx);
 
-    std::ifstream file(this->configPath);
+    std::ifstream file(mConfigPath);
 
     // Config doesn't exist, create default config.
     if (!file.is_open()) {
-        this->firstTime = true;
+        mFirstTime = true;
 
-        this->LoadDefaults();
-        this->SaveConfig();
+        LoadDefaults();
+        SaveConfig();
 
         return;
     }
@@ -32,32 +32,32 @@ void ConfigManager::LoadConfig() {
     file >> j;
     file.close();
 
-    this->config = j.get<Config>();
+    mConfig = j.get<Config>();
 
-    clampRecentlyOpened(this->config.recentlyOpened);
+    clampRecentlyOpened(mConfig.recentlyOpened);
 }
 
 void ConfigManager::SaveConfig() const {
-    std::ofstream file(this->configPath);
+    std::ofstream file(mConfigPath);
     if (!file.is_open()) {
         Logging::err << "[ConfigManager::Save] Unable to open file for saving." << std::endl;
         return;
     }
 
-    nlohmann::ordered_json j = config;
+    nlohmann::ordered_json j = mConfig;
     file << j.dump(4);
 
     file.close();
 }
 
 void ConfigManager::LoadDefaults() {
-    this->config = Config {};
+    mConfig = Config {};
 }
 
 void ConfigManager::addRecentlyOpened(const std::string_view path) {
-    std::lock_guard<std::mutex> lock(this->mtx);
+    std::lock_guard<std::mutex> lock(mMtx);
 
-    auto& recentlyOpened = this->config.recentlyOpened;
+    auto& recentlyOpened = mConfig.recentlyOpened;
 
     // Remove already existing instances of path
     recentlyOpened.erase(

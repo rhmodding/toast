@@ -131,12 +131,12 @@ void WindowTimeline::Update() {
             ImGui::SameLine();
 
             {
-                const bool lLooping = playerManager.looping;
+                const bool lLooping = playerManager.mLooping;
                 if (lLooping)
                     ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
 
                 if (ImGui::Button((const char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", normalButtonSize))
-                    playerManager.looping ^= true;
+                    playerManager.mLooping ^= true;
 
                 ImGui::SetItemTooltip("Toggle looping");
 
@@ -170,7 +170,7 @@ void WindowTimeline::Update() {
             ImGui::SameLine();
 
             ImGui::SetNextItemWidth(52.f);
-            ImGui::InputScalar("FPS", ImGuiDataType_U32, &playerManager.frameRate, nullptr, nullptr, "%u");
+            ImGui::InputScalar("FPS", ImGuiDataType_U32, &playerManager.mFrameRate, nullptr, nullptr, "%u");
 
             // Onion skin options
             ImGui::TableSetColumnIndex(2);
@@ -301,7 +301,7 @@ void WindowTimeline::Update() {
 
                             auto& arrangements =
                                 sessionManager.getCurrentSession()
-                                    ->getCurrentCellAnim().object->arrangements;
+                                    ->getCurrentCellAnim().object->getArrangements();
 
                             if (i+1 < playerManager.getKeyCount()) {
                                 arrangementA = &arrangements.at(key.arrangementIndex);

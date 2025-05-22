@@ -83,7 +83,7 @@ public:
 
     std::shared_ptr<Texture>& getCurrentCellAnimSheet() {
         return this->sheets->getTextureByIndex(
-            this->cellanims.at(this->currentCellAnim).object->sheetIndex
+            this->cellanims.at(this->currentCellAnim).object->getSheetIndex()
         );
     }
 

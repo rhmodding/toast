@@ -9,21 +9,21 @@
 
 class TextureGroup {
 private:
-    std::vector<std::shared_ptr<Texture>> group;
-    unsigned baseTextureIndex { 0 };
+    std::vector<std::shared_ptr<Texture>> mVec;
+    unsigned mBaseTextureIndex { 0 };
 
-    bool varyingEnabled { false };
+    bool mVaryingEnabled { false };
 public:
     TextureGroup() = default;
     ~TextureGroup() = default;
 
-    bool getVaryingEnabled() const { return this->varyingEnabled; }
-    void setVaryingEnabled(bool enabled) { this->varyingEnabled = enabled; } 
+    bool getVaryingEnabled() const { return mVaryingEnabled; }
+    void setVaryingEnabled(bool enabled) { mVaryingEnabled = enabled; } 
 
     std::shared_ptr<Texture>& getBaseTexture();
 
-    unsigned getBaseTextureIndex() const { return this->baseTextureIndex; }
-    void setBaseTextureIndex(unsigned index) { this->baseTextureIndex = index; }
+    unsigned getBaseTextureIndex() const { return mBaseTextureIndex; }
+    void setBaseTextureIndex(unsigned index) { mBaseTextureIndex = index; }
 
     // Gets texture at index baseTextureIndex + varying.
     // Note A: if varying is disabled, this will return the base texture.
@@ -41,9 +41,9 @@ public:
 
     void removeTexture(unsigned textureIndex);
 
-    unsigned getTextureCount() const { return this->group.size(); }
+    unsigned getTextureCount() const { return mVec.size(); }
 
-    std::vector<std::shared_ptr<Texture>>& getVector() { return this->group; };
+    std::vector<std::shared_ptr<Texture>>& getVector() { return mVec; };
 };
 
 

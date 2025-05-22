@@ -13,7 +13,7 @@
 #include <queue>
 
 class MainThreadTaskManager : public Singleton<MainThreadTaskManager> {
-    friend class Singleton<MainThreadTaskManager>; // Allow access to base class constructor
+    friend class Singleton<MainThreadTaskManager>;
 
 private:
     MainThreadTaskManager() = default;
@@ -32,10 +32,10 @@ public:
     void Update();
 
 private:
-    std::mutex mtx;
-    std::condition_variable queueCondition;
+    std::queue<MainThreadTask> mTaskQueue;
+    std::condition_variable mQueueCondition;
 
-    std::queue<MainThreadTask> taskQueue;
+    std::mutex mMtx;
 };
 
 #endif // MainThreadTaskManager_HPP

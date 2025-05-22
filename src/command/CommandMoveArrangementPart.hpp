@@ -18,32 +18,32 @@ public:
         unsigned cellanimIndex, unsigned arrangementIndex, unsigned partIndex,
         bool moveDown
     ) :
-        moveDown(moveDown),
-        cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex), partIndex(partIndex)
+        mCellAnimIndex(cellanimIndex), mArrangementIndex(arrangementIndex), mPartIndex(partIndex),
+        mMoveDown(moveDown)
     {}
     ~CommandMoveArrangementPart() = default;
 
     void Execute() override {
         SessionManager& sessionManager = SessionManager::getInstance();
 
-        CellAnim::Arrangement& arrangement = this->getArrangement();
+        CellAnim::Arrangement& arrangement = getArrangement();
 
-        int nSwap = this->partIndex + (moveDown ? -1 : 1);
+        int nSwap = mPartIndex + (mMoveDown ? -1 : 1);
         if (nSwap >= 0 && nSwap < static_cast<int>(arrangement.parts.size()))
             std::swap(
-                arrangement.parts.at(this->partIndex),
+                arrangement.parts.at(mPartIndex),
                 arrangement.parts.at(nSwap)
             );
 
         auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
-        if (selectionState.isPartSelected(this->partIndex)) {
-            selectionState.setPartSelected(this->partIndex, false);
+        if (selectionState.isPartSelected(mPartIndex)) {
+            selectionState.setPartSelected(mPartIndex, false);
             selectionState.setPartSelected(nSwap, true);
         }
         else if (selectionState.isPartSelected(nSwap)) {
             selectionState.setPartSelected(nSwap, false);
-            selectionState.setPartSelected(this->partIndex, true);
+            selectionState.setPartSelected(mPartIndex, true);
         }
 
         sessionManager.setCurrentSessionModified(true);
@@ -51,29 +51,25 @@ public:
 
     void Rollback() override {
         // Re-swap
-        this->Execute();
+        Execute();
     }
 
 private:
-    bool moveDown;
+    unsigned mCellAnimIndex;
+    unsigned mArrangementIndex;
+    unsigned mPartIndex;
 
-    unsigned cellanimIndex;
-    unsigned arrangementIndex;
-    unsigned partIndex;
-
-    CellAnim::ArrangementPart& getPart() {
-        return
-            SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->arrangements.at(this->arrangementIndex)
-            .parts.at(this->partIndex);
-    }
+    bool mMoveDown;
 
     CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->arrangements.at(this->arrangementIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getArrangement(mArrangementIndex);
+    }
+
+    CellAnim::ArrangementPart& getPart() {
+        return getArrangement().parts.at(mPartIndex);
     }
 };
 

@@ -154,7 +154,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         tplData + BYTESWAP_32(palette->descriptorsOffset)
     );
 
-    this->textures.resize(descriptorCount);
+    mTextures.resize(descriptorCount);
 
     for (unsigned i = 0; i < descriptorCount; i++) {
         const TPLDescriptor* descriptor = descriptors + i;
@@ -168,7 +168,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
             tplData + BYTESWAP_32(descriptor->textureHeaderOffset)
         );
 
-        TPLTexture& textureData = this->textures[i];
+        TPLTexture& textureData = mTextures[i];
 
         if (descriptor->CLUTHeaderOffset != 0) {
             const TPLClutHeader* clutHeader = reinterpret_cast<const TPLClutHeader*>(
@@ -204,18 +204,18 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         RvlImageConvert::toRGBA32(textureData, imageData);
     }
 
-    this->initialized = true;
+    mInitialized = true;
 }
 
 std::vector<unsigned char> TPLObject::Serialize() {
     std::vector<unsigned char> result;
 
-    if (!this->initialized) {
+    if (!mInitialized) {
         Logging::err << "[TPLObject::Serialize] Unable to serialize: not initialized!" << std::endl;
         return result;
     }
 
-    const unsigned textureCount = this->textures.size();
+    const unsigned textureCount = mTextures.size();
 
     // Precompute required size & texture indexes for color palettes.
     unsigned paletteEntriesSize { 0 };
@@ -228,7 +228,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
     paletteTextures.reserve(textureCount);
 
     for (unsigned i = 0; i < textureCount; i++) {
-        const auto& texture = this->textures[i];
+        const auto& texture = mTextures[i];
 
         if (
             texture.format == TPL_IMAGE_FORMAT_C4 ||
@@ -262,7 +262,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
     // Precompute size of data section.
     for (unsigned i = 0; i < textureCount; i++) {
-        const unsigned imageSize = RvlImageConvert::getImageByteSize(this->textures[i]);
+        const unsigned imageSize = RvlImageConvert::getImageByteSize(mTextures[i]);
 
         fullSize = ALIGN_UP_32(fullSize);
         fullSize += imageSize;
@@ -338,7 +338,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
     // Texture Headers
     for (unsigned i = 0; i < textureCount; i++) {
-        const TPL::TPLTexture& texture = this->textures[i];
+        const TPL::TPLTexture& texture = mTextures[i];
 
         TPLHeader* header = headers + i;
 
@@ -390,7 +390,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
     unsigned writeOffset = dataSectionStart;
     for (unsigned i = 0; i < textureCount; i++) {
-        TPL::TPLTexture& texture = this->textures[i];
+        TPL::TPLTexture& texture = mTextures[i];
 
         writeOffset = ALIGN_UP_32(writeOffset);
         headers[i].dataOffset = BYTESWAP_32(writeOffset);

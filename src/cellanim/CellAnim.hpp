@@ -31,70 +31,70 @@ struct TransformValues {
     // In degrees.
     float angle { 0.f };
 
-    TransformValues average(const TransformValues& other) const {
+    TransformValues average(const TransformValues& rhs) const {
         TransformValues transform {
             .positionX = std::clamp<int>(
-                AVERAGE_INTS(this->positionX, other.positionX),
+                AVERAGE_INTS(positionX, rhs.positionX),
                 MIN_POSITION, MAX_POSITION
             ),
             .positionY = std::clamp<int>(
-                AVERAGE_INTS(this->positionY, other.positionY),
+                AVERAGE_INTS(positionY, rhs.positionY),
                 MIN_POSITION, MAX_POSITION
             ),
 
-            .scaleX = AVERAGE_FLOATS(this->scaleX, other.scaleX),
-            .scaleY = AVERAGE_FLOATS(this->scaleY, other.scaleY),
+            .scaleX = AVERAGE_FLOATS(scaleX, rhs.scaleX),
+            .scaleY = AVERAGE_FLOATS(scaleY, rhs.scaleY),
 
-            .angle = AVERAGE_FLOATS(this->angle, other.angle)
+            .angle = AVERAGE_FLOATS(angle, rhs.angle)
         };
 
         return transform;
     }
 
-    TransformValues lerp(const TransformValues& other, float t) const {
+    TransformValues lerp(const TransformValues& rhs, float t) const {
         TransformValues transform {
             .positionX = std::clamp<int>(
-                LERP_INTS(this->positionX, other.positionX, t),
+                LERP_INTS(positionX, rhs.positionX, t),
                 MIN_POSITION, MAX_POSITION
             ),
             .positionY = std::clamp<int>(
-                LERP_INTS(this->positionY, other.positionY, t),
+                LERP_INTS(positionY, rhs.positionY, t),
                 MIN_POSITION, MAX_POSITION
             ),
 
-            .scaleX = std::lerp(this->scaleX, other.scaleX, t),
-            .scaleY = std::lerp(this->scaleY, other.scaleY, t),
+            .scaleX = std::lerp(scaleX, rhs.scaleX, t),
+            .scaleY = std::lerp(scaleY, rhs.scaleY, t),
 
-            .angle = std::lerp(this->angle, other.angle, t)
+            .angle = std::lerp(angle, rhs.angle, t)
         };
 
         return transform;
     }
 
-    bool operator==(const TransformValues& other) const {
+    bool operator==(const TransformValues& rhs) const {
         return
-            this->positionX == other.positionX &&
-            this->positionY == other.positionY &&
+            positionX == rhs.positionX &&
+            positionY == rhs.positionY &&
 
-            this->scaleX == other.scaleX &&
-            this->scaleY == other.scaleY &&
+            scaleX == rhs.scaleX &&
+            scaleY == rhs.scaleY &&
 
-            this->angle == other.angle;
+            angle == rhs.angle;
     }
 
-    bool operator!=(const TransformValues& other) const {
-        return !(*this == other);
+    bool operator!=(const TransformValues& rhs) const {
+        return !(*this == rhs);
     }
 };
 
 struct CTRColor {
     float r, g, b;
 
-    CTRColor lerp(const CTRColor& other, float t) const {
+    CTRColor lerp(const CTRColor& rhs, float t) const {
         CTRColor color {
-            .r = std::lerp(this->r, other.r, t),
-            .g = std::lerp(this->g, other.g, t),
-            .b = std::lerp(this->b, other.b, t)
+            .r = std::lerp(r, rhs.r, t),
+            .g = std::lerp(g, rhs.g, t),
+            .b = std::lerp(b, rhs.b, t)
         };
 
         // Make sure (channel * 255.f) is an exact integer in the range 0..255.
@@ -105,11 +105,11 @@ struct CTRColor {
         return color;
     }
 
-    bool operator==(const CTRColor& other) const {
+    bool operator==(const CTRColor& rhs) const {
         return
-            this->r == other.r &&
-            this->g == other.g &&
-            this->b == other.b;
+            r == rhs.r &&
+            g == rhs.g &&
+            b == rhs.b;
     }
 };
 
@@ -117,23 +117,23 @@ struct CTRQuadDepth {
     float topLeft { 0.f }, bottomLeft { 0.f };
     float topRight { 0.f }, bottomRight { 0.f };
 
-    CTRQuadDepth lerp(const CTRQuadDepth& other, float t) const {
+    CTRQuadDepth lerp(const CTRQuadDepth& rhs, float t) const {
         CTRQuadDepth depth {
-            .topLeft = std::lerp(this->topLeft, other.topLeft, t),
-            .bottomLeft = std::lerp(this->bottomLeft, other.bottomLeft, t),
-            .topRight = std::lerp(this->topRight, other.topRight, t),
-            .bottomRight = std::lerp(this->bottomRight, other.bottomRight, t)
+            .topLeft = std::lerp(topLeft, rhs.topLeft, t),
+            .bottomLeft = std::lerp(bottomLeft, rhs.bottomLeft, t),
+            .topRight = std::lerp(topRight, rhs.topRight, t),
+            .bottomRight = std::lerp(bottomRight, rhs.bottomRight, t)
         };
 
         return depth;
     }
 
-    bool operator==(const CTRQuadDepth& other) const {
+    bool operator==(const CTRQuadDepth& rhs) const {
         return
-            this->topLeft == other.topLeft &&
-            this->bottomLeft == other.bottomLeft &&
-            this->topRight == other.topRight &&
-            this->bottomRight == other.bottomRight;
+            topLeft == rhs.topLeft &&
+            bottomLeft == rhs.bottomLeft &&
+            topRight == rhs.topRight &&
+            bottomRight == rhs.bottomRight;
     }
 };
 
@@ -175,34 +175,34 @@ struct ArrangementPart {
 
     std::string editorName;
 
-    bool operator==(const ArrangementPart& other) const {
+    bool operator==(const ArrangementPart& rhs) const {
         return
-            this->regionX == other.regionX &&
-            this->regionY == other.regionY &&
-            this->regionW == other.regionW &&
-            this->regionH == other.regionH &&
+            regionX == rhs.regionX &&
+            regionY == rhs.regionY &&
+            regionW == rhs.regionW &&
+            regionH == rhs.regionH &&
 
-            this->textureVarying == other.textureVarying &&
+            textureVarying == rhs.textureVarying &&
 
-            this->transform == other.transform &&
+            transform == rhs.transform &&
 
-            this->flipX == other.flipX &&
-            this->flipY == other.flipY &&
+            flipX == rhs.flipX &&
+            flipY == rhs.flipY &&
 
-            this->opacity == other.opacity &&
+            opacity == rhs.opacity &&
 
-            this->foreColor == other.foreColor &&
-            this->backColor == other.backColor &&
+            foreColor == rhs.foreColor &&
+            backColor == rhs.backColor &&
 
-            this->quadDepth == other.quadDepth &&
+            quadDepth == rhs.quadDepth &&
 
-            this->id == other.id &&
+            id == rhs.id &&
 
-            this->emitterName == other.emitterName;
+            emitterName == rhs.emitterName;
     }
 
-    bool operator!=(const ArrangementPart& other) const {
-        return !(*this == other);
+    bool operator!=(const ArrangementPart& rhs) const {
+        return !(*this == rhs);
     }
 };
 
@@ -213,8 +213,8 @@ struct Arrangement {
     int tempOffset[2] { 0, 0 };
     float tempScale[2] { 1.f, 1.f };
 
-    bool operator==(const Arrangement& other) const {
-        return other.parts == this->parts;
+    bool operator==(const Arrangement& rhs) const {
+        return rhs.parts == parts;
     }
 };
 
@@ -239,24 +239,24 @@ struct AnimationKey {
     // On CTR only.
     CTRColor backColor { 0.f, 0.f, 0.f };
 
-    bool operator==(const AnimationKey& other) const {
+    bool operator==(const AnimationKey& rhs) const {
         return
-            this->arrangementIndex == other.arrangementIndex &&
+            arrangementIndex == rhs.arrangementIndex &&
 
-            this->holdFrames == other.holdFrames &&
+            holdFrames == rhs.holdFrames &&
 
-            this->transform == other.transform &&
+            transform == rhs.transform &&
 
-            this->translateZ == other.translateZ &&
+            translateZ == rhs.translateZ &&
 
-            this->opacity == other.opacity &&
+            opacity == rhs.opacity &&
 
-            this->foreColor == other.foreColor &&
-            this->backColor == other.backColor;
+            foreColor == rhs.foreColor &&
+            backColor == rhs.backColor;
     }
 
-    bool operator!=(const AnimationKey& other) const {
-        return !(*this == other);
+    bool operator!=(const AnimationKey& rhs) const {
+        return !(*this == rhs);
     }
 };
 
@@ -274,40 +274,107 @@ public:
     CellAnimObject(const unsigned char* data, const size_t dataSize);
     CellAnimObject() = default;
 
-    bool isInitialized() const { return this->initialized; }
+    bool isInitialized() const { return mInitialized; }
 
-    CellAnimType getType() const { return this->type; }
-    void setType(CellAnimType type) { this->type = type; }
+    CellAnimType getType() const { return mType; }
+    void setType(CellAnimType type) { mType = type; }
+
+    int getSheetIndex() const { return mSheetIndex; }
+    void setSheetIndex(int sheetIndex) {
+        if (sheetIndex < 0)
+            mSheetIndex = -1;
+        else
+            mSheetIndex = sheetIndex;
+    }
+
+    unsigned getSheetWidth() const { return mSheetW; }
+    void setSheetWidth(unsigned width) { mSheetW = width; }
+
+    unsigned getSheetHeight() const { return mSheetH; }
+    void setSheetHeight(unsigned height) { mSheetH = height; }
+
+    bool getUsePalette() const { return mUsePalette; }
+    void setUsePalette(bool usePalette) { mUsePalette = usePalette; }
+
+    std::vector<Arrangement>& getArrangements() { return mArrangements; }
+    const std::vector<Arrangement>& getArrangements() const { return mArrangements; }
+
+    Arrangement& getArrangement(unsigned arrangementIndex) {
+        if (arrangementIndex >= mArrangements.size()) {
+            throw std::runtime_error(
+                "CellAnimObject::getArrangement: arrangement index out of bounds (" +
+                std::to_string(arrangementIndex) + " >= " + std::to_string(mArrangements.size()) + ")"
+            );
+        }
+        return mArrangements[arrangementIndex];
+    }
+    const Arrangement& getArrangement(unsigned arrangementIndex) const {
+        if (arrangementIndex >= mArrangements.size()) {
+            throw std::runtime_error(
+                "CellAnimObject::getArrangement: arrangement index out of bounds (" +
+                std::to_string(arrangementIndex) + " >= " + std::to_string(mArrangements.size()) + ")"
+            );
+        }
+        return mArrangements[arrangementIndex];
+    }
+
+    std::vector<Animation>& getAnimations() { return mAnimations; }
+    const std::vector<Animation>& getAnimations() const { return mAnimations; }
+
+    Animation& getAnimation(unsigned animationIndex) {
+        if (animationIndex >= mAnimations.size()) {
+            throw std::runtime_error(
+                "CellAnimObject::getAnimation: animation index out of bounds (" +
+                std::to_string(animationIndex) + " >= " + std::to_string(mAnimations.size()) + ")"
+            );
+        }
+        return mAnimations[animationIndex];
+    }
+    const Animation& getAnimation(unsigned animationIndex) const {
+        if (animationIndex >= mAnimations.size()) {
+            throw std::runtime_error(
+                "CellAnimObject::getAnimation: animation index out of bounds (" +
+                std::to_string(animationIndex) + " >= " + std::to_string(mAnimations.size()) + ")"
+            );
+        }
+        return mAnimations[animationIndex];
+    }
 
     [[nodiscard]] std::vector<unsigned char> Serialize();
 
     std::vector<Arrangement>::iterator duplicateArrangement(const Arrangement& arrangement);
     std::vector<Arrangement>::iterator duplicateArrangement(unsigned arrangementIndex) {
-        return this->duplicateArrangement(this->arrangements.at(arrangementIndex));
+        return duplicateArrangement(mArrangements.at(arrangementIndex));
     }
 
     bool isArrangementUnique(const Arrangement& arrangement) const;
     bool isArrangementUnique(unsigned arrangementIndex) const {
-        return this->isArrangementUnique(this->arrangements.at(arrangementIndex));
+        return isArrangementUnique(mArrangements.at(arrangementIndex));
     }
 
-public:
-    int sheetIndex { -1 };
-    unsigned sheetW { 0 }, sheetH { 0 };
+private:
+    bool InitImpl_Rvl(const unsigned char* data, const size_t dataSize);
+    bool InitImpl_Ctr(const unsigned char* data, const size_t dataSize);
+
+    std::vector<unsigned char> SerializeImpl_Rvl();
+    std::vector<unsigned char> SerializeImpl_Ctr();
+
+private:
+    bool mInitialized { false };
+
+    CellAnimType mType { CELLANIM_TYPE_INVALID };
+
+    int mSheetIndex { -1 };
+    unsigned mSheetW { 0 }, mSheetH { 0 };
 
     // This flag loads the selected sheet as a paletted texture in-game.
     //     - If the sheet is non-paletted and usePalette is true, the texture
     //       will not appear.
     //     - This also applies if usePalette is false and the texture is paletted.
-    bool usePalette { false };
+    bool mUsePalette { false };
 
-    std::vector<Arrangement> arrangements;
-    std::vector<Animation> animations;
-
-private:
-    bool initialized { false };
-
-    CellAnimType type { CELLANIM_TYPE_INVALID };
+    std::vector<Arrangement> mArrangements;
+    std::vector<Animation> mAnimations;
 };
 
 } // namespace CellAnim

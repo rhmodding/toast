@@ -18,16 +18,16 @@ public:
         unsigned arrangementIndex,
         CellAnim::Arrangement arrangement
     ) :
-        cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex),
-        arrangement(arrangement)
+        mCellAnimIndex(cellanimIndex), mArrangementIndex(arrangementIndex),
+        mArrangement(arrangement)
     {}
     ~CommandInsertArrangement() = default;
 
     void Execute() override {
-        auto& arrangements = this->getCellAnim()->arrangements;
+        auto& arrangements = getCellAnim()->getArrangements();
 
-        auto it = arrangements.begin() + this->arrangementIndex;
-        arrangements.insert(it, this->arrangement);
+        auto it = arrangements.begin() + mArrangementIndex;
+        arrangements.insert(it, mArrangement);
 
         PlayerManager::getInstance().correctState();
 
@@ -35,12 +35,12 @@ public:
     }
 
     void Rollback() override {
-        auto& arrangements = this->getCellAnim()->arrangements;
+        auto& arrangements = getCellAnim()->getArrangements();
 
-        auto it = arrangements.begin() + this->arrangementIndex;
+        auto it = arrangements.begin() + mArrangementIndex;
         arrangements.erase(it);
 
-        for (auto& animation : this->getCellAnim()->animations)
+        for (auto& animation : getCellAnim()->getAnimations())
             for (auto& key : animation.keys) {
                 if (key.arrangementIndex >= arrangements.size())
                     key.arrangementIndex = 0;
@@ -52,16 +52,15 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
+    unsigned mCellAnimIndex;
+    unsigned mArrangementIndex;
 
-    unsigned arrangementIndex;
-
-    CellAnim::Arrangement arrangement;
+    CellAnim::Arrangement mArrangement;
 
     std::shared_ptr<CellAnim::CellAnimObject> getCellAnim() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object;
+            ->cellanims.at(mCellAnimIndex).object;
     }
 };
 

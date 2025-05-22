@@ -12,58 +12,12 @@
 #include "Session.hpp"
 
 class SessionManager : public Singleton<SessionManager> {
-    friend class Singleton<SessionManager>; // Allow access to base class constructor
+    friend class Singleton<SessionManager>;
 
 private:
     SessionManager() = default;
 public:
     ~SessionManager() = default;
-
-private:
-    void onSessionChange();
-
-public:
-    Session* getCurrentSession() {
-        if (this->currentSessionIndex >= 0)
-            return &this->sessions.at(this->currentSessionIndex);
-
-        return nullptr;
-    }
-
-    bool getCurrentSessionModified() const {
-        if (this->currentSessionIndex >= 0)
-            return this->sessions.at(this->currentSessionIndex).modified;
-        else
-            return false;
-    }
-    void setCurrentSessionModified(bool modified) {
-        if (this->currentSessionIndex >= 0)
-            this->sessions.at(this->currentSessionIndex).modified = modified;
-    }
-
-    bool getSessionAvaliable() const {
-        return this->currentSessionIndex >= 0;
-    }
-
-    int  getCurrentSessionIndex() const { return this->currentSessionIndex; }
-    void setCurrentSessionIndex(int sessionIndex);
-
-    // Create a new session from the path of a cellanim archive (.szs).
-    //
-    // Returns: index of new session if succeeded, -1 if failed
-    int CreateSession(std::string_view filePath);
-
-    // Export a session as a cellanim archive (.szs) to the specified path.
-    // Note: if dstFilePath is empty, then the session's resourcePath is used.
-    //
-    // Returns: true if succeeded, false if failed
-    bool ExportSession(unsigned sessionIndex, std::string_view dstFilePath = {});
-
-    // Remove a session by it's index.
-    void RemoveSession(unsigned sessionIndex);
-
-    // Remove all sessions.
-    void RemoveAllSessions();
 
 public:
     enum Error {
@@ -92,18 +46,93 @@ public:
         Error_Unknown = -1
     };
 
-    Error currentError { Error_None };
-
-    std::vector<Session> sessions;
-
-private:
-    int currentSessionIndex { -1 };
 public:
-    // Current session being closed. Used for closing while modified warning.
-    int sessionClosingIndex { -1 };
+    std::vector<Session>& getSessions() { return mSessions; }
+    const std::vector<Session>& getSessions() const { return mSessions; }
+
+    Session& getSession(unsigned sessionIndex) {
+        if (sessionIndex >= mSessions.size()) {
+            throw std::runtime_error(
+                "SessionManager::getSession: session index out of bounds (" +
+                std::to_string(sessionIndex) + " >= " + std::to_string(mSessions.size()) + ")"
+            );
+        }
+        return mSessions[sessionIndex];
+    }
+    const Session& getSession(unsigned sessionIndex) const {
+        if (sessionIndex >= mSessions.size()) {
+            throw std::runtime_error(
+                "SessionManager::getSession: session index out of bounds (" +
+                std::to_string(sessionIndex) + " >= " + std::to_string(mSessions.size()) + ")"
+            );
+        }
+        return mSessions[sessionIndex];
+    }
+
+    unsigned getSessionCount() const { return mSessions.size(); }
+
+    Session* getCurrentSession() {
+        if (mCurrentSessionIndex >= 0)
+            return &mSessions.at(mCurrentSessionIndex);
+
+        return nullptr;
+    }
+
+    bool getCurrentSessionModified() const {
+        if (mCurrentSessionIndex >= 0)
+            return mSessions.at(mCurrentSessionIndex).modified;
+        else
+            return false;
+    }
+    void setCurrentSessionModified(bool modified) {
+        if (mCurrentSessionIndex >= 0)
+            mSessions.at(mCurrentSessionIndex).modified = modified;
+    }
+
+    bool getSessionAvaliable() const {
+        return mCurrentSessionIndex >= 0;
+    }
+
+    int  getCurrentSessionIndex() const { return mCurrentSessionIndex; }
+    void setCurrentSessionIndex(int sessionIndex);
+
+    Error getCurrentError() const { return mCurrentError; }
+
+    int getSessionClosingIndex() const { return mSessionClosingIndex; }
+    void setSessionClosingIndex(int index) {
+        if (index < 0)
+            mSessionClosingIndex = -1;
+        else
+            mSessionClosingIndex = index;
+    }
+
+    // Create a new session from the path of a cellanim archive (.szs).
+    //
+    // Returns: index of new session if succeeded, -1 if failed
+    int CreateSession(std::string_view filePath);
+
+    // Export a session as a cellanim archive (.szs) to the specified path.
+    // Note: if dstFilePath is empty, then the session's resourcePath is used.
+    //
+    // Returns: true if succeeded, false if failed
+    bool ExportSession(unsigned sessionIndex, std::string_view dstFilePath = {});
+
+    // Remove a session by it's index.
+    void RemoveSession(unsigned sessionIndex);
+
+    // Remove all mSessions.
+    void RemoveAllSessions();
 
 private:
-    std::mutex mtx;
+    std::vector<Session> mSessions;
+
+    Error mCurrentError { Error_None };
+
+    int mCurrentSessionIndex { -1 };
+    // Current session being closed. Used for closing while modified warning.
+    int mSessionClosingIndex { -1 };
+
+    std::mutex mMtx;
 };
 
 #endif // SESSIONMANAGER_HPP

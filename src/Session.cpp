@@ -51,8 +51,8 @@ void Session::setCurrentCellAnimIndex(unsigned index) {
     this->currentCellAnim = index;
     const auto& cellanim = this->cellanims.at(index);
 
-    this->sheets->setBaseTextureIndex(cellanim.object->sheetIndex);
-    this->sheets->setVaryingEnabled(cellanim.object->usePalette);
+    this->sheets->setBaseTextureIndex(cellanim.object->getSheetIndex());
+    this->sheets->setVaryingEnabled(cellanim.object->getUsePalette());
 
     PlayerManager::getInstance().correctState();
 

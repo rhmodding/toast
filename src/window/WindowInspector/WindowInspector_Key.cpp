@@ -41,7 +41,7 @@ void WindowInspector::Level_Key() {
     ImGui::SameLine();
 
     const auto& arrangements = sessionManager.getCurrentSession()
-        ->getCurrentCellAnim().object->arrangements;
+        ->getCurrentCellAnim().object->getArrangements();
 
     unsigned animationIndex = playerManager.getAnimationIndex();
     const char* animationName = playerManager.getAnimation().name.c_str();

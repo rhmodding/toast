@@ -46,22 +46,22 @@ static bool textInputStdString(const char* label, std::string& str) {
 void WindowConfig::Update() {
     ConfigManager& configManager = ConfigManager::getInstance();
 
-    if (!this->open)
+    if (!mOpen)
         return;
 
-    if (this->firstOpen) {
-        this->selfConfig = configManager.getConfig();
-        this->firstOpen = false;
+    if (mFirstOpen) {
+        mMyConfig = configManager.getConfig();
+        mFirstOpen = false;
     }
 
     CENTER_NEXT_WINDOW();
 
     ImGui::SetNextWindowSize({ 500.f, 440.f }, ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Config", &this->open, ImGuiWindowFlags_MenuBar)) {
+    if (ImGui::Begin("Config", &mOpen, ImGuiWindowFlags_MenuBar)) {
         if (ImGui::BeginMenuBar()) {
             if (ImGui::BeginMenu("Config")) {
                 if (ImGui::MenuItem("Reset to defaults", nullptr)) {
-                    this->selfConfig = Config {};
+                    mMyConfig = Config {};
                 }
                 ImGui::EndMenu();
             }
@@ -102,17 +102,17 @@ void WindowConfig::Update() {
 
             switch (selected) {
             case Category_General: {
-                ImGui::Checkbox("Enable panning canvas with LMB", &this->selfConfig.canvasLMBPanEnabled);
+                ImGui::Checkbox("Enable panning canvas with LMB", &mMyConfig.canvasLMBPanEnabled);
 
-                ImGui::Checkbox("Allow creation of new animations", &this->selfConfig.allowNewAnimCreate);
+                ImGui::Checkbox("Allow creation of new animations", &mMyConfig.allowNewAnimCreate);
 
                 ImGui::Separator();
 
                 static const unsigned min = 30;
 
-                unsigned updateRate = this->selfConfig.updateRate;
+                unsigned updateRate = mMyConfig.updateRate;
                 if (ImGui::DragScalar("App update rate", ImGuiDataType_U32, &updateRate, .5f, &min, nullptr, "%u cycles per second")) {
-                    this->selfConfig.updateRate = std::max<unsigned>(updateRate, min);
+                    mMyConfig.updateRate = std::max<unsigned>(updateRate, min);
                 }
 
                 ImGui::Separator();
@@ -122,7 +122,7 @@ void WindowConfig::Update() {
                     "Backup (don't overwrite last backup)",
                     "Backup (always overwrite last backup)"
                 };
-                ImGui::Combo("Backup behaviour", reinterpret_cast<int*>(&this->selfConfig.backupBehaviour), backupOptions, 3);
+                ImGui::Combo("Backup behaviour", reinterpret_cast<int*>(&mMyConfig.backupBehaviour), backupOptions, 3);
             } break;
 
             case Category_Export: {
@@ -143,14 +143,14 @@ void WindowConfig::Update() {
                     CL_Highest // 9
                 };
 
-                int selectedCompressionLevel = compressionLevels[this->selfConfig.compressionLevel];
+                int selectedCompressionLevel = compressionLevels[mMyConfig.compressionLevel];
 
                 char buffer[64];
 
                 if (selectedCompressionLevel >= 0 && selectedCompressionLevel < CL_Count)
                     strncpy(buffer, compressionLevelNames[selectedCompressionLevel], sizeof(buffer));
                 else
-                    snprintf(buffer, sizeof(buffer), "Other (%d)", this->selfConfig.compressionLevel);
+                    snprintf(buffer, sizeof(buffer), "Other (%d)", mMyConfig.compressionLevel);
 
                 if (ImGui::SliderInt(
                     "Compression level",
@@ -159,19 +159,19 @@ void WindowConfig::Update() {
                     buffer,
                     ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp
                 )) {
-                    this->selfConfig.compressionLevel = compressionLevelMap[selectedCompressionLevel];
+                    mMyConfig.compressionLevel = compressionLevelMap[selectedCompressionLevel];
                 }
 
-                static const char* etc1QualityNames[ETC1Quality_Count] = { "Low", "Medium", "High" };
-                if (this->selfConfig.etc1Quality < ETC1Quality_Count)
-                    strncpy(buffer, etc1QualityNames[this->selfConfig.etc1Quality], sizeof(buffer));
+                static const char* etc1QualityNames[(int)ETC1Quality::Count] = { "Low", "Medium", "High" };
+                if (mMyConfig.etc1Quality < ETC1Quality::Count)
+                    strncpy(buffer, etc1QualityNames[(int)mMyConfig.etc1Quality], sizeof(buffer));
                 else
                     strncpy(buffer, "Invalid", sizeof(buffer));
 
                 ImGui::SliderInt(
                     "ETC1 compression quality",
-                    reinterpret_cast<int*>(&this->selfConfig.etc1Quality),
-                    0, ETC1Quality_Count - 1,
+                    reinterpret_cast<int*>(&mMyConfig.etc1Quality),
+                    0, (int)ETC1Quality::Count - 1,
                     buffer,
                     ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp
                 );
@@ -179,12 +179,12 @@ void WindowConfig::Update() {
 
             case Category_Theming: {
                 static const char* themeOptions[] { "Light", "Dark" };
-                ImGui::Combo("Theme", reinterpret_cast<int*>(&this->selfConfig.theme), themeOptions, 2);
+                ImGui::Combo("Theme", reinterpret_cast<int*>(&mMyConfig.theme), themeOptions, 2);
             } break;
 
             case Category_Paths: {
-                textInputStdString("Image editor path", this->selfConfig.imageEditorPath);
-                textInputStdString("Texture edit path", this->selfConfig.textureEditPath);
+                textInputStdString("Image editor path", mMyConfig.imageEditorPath);
+                textInputStdString("Texture edit path", mMyConfig.textureEditPath);
             } break;
 
             default:
@@ -194,14 +194,14 @@ void WindowConfig::Update() {
 
             ImGui::EndChild();
 
-            ImGui::BeginDisabled(this->selfConfig == configManager.getConfig());
+            ImGui::BeginDisabled(mMyConfig == configManager.getConfig());
             if (ImGui::Button("Revert")) {
-                this->selfConfig = configManager.getConfig();
+                mMyConfig = configManager.getConfig();
             }
             ImGui::SameLine();
 
             if (ImGui::Button("Save & Apply")) {
-                configManager.setConfig(this->selfConfig);
+                configManager.setConfig(mMyConfig);
                 configManager.SaveConfig();
 
                 ThemeManager::getInstance().applyTheming();

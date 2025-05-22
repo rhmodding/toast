@@ -50,70 +50,71 @@ public:
 
     void AttemptExit(bool force = false);
 
-    bool isRunning() const { return this->running; }
-    std::thread::id getMainThreadId() const { return this->mainThreadId; }
+    bool isRunning() const { return mRunning; }
+    std::thread::id getMainThreadId() const { return mMainThreadId; }
 
     GLFWwindow* getGLFWWindowHandle() {
-        if (UNLIKELY(!this->glfwWindowHndl))
+        if (UNLIKELY(mGlfwWindowHndl == nullptr))
             throw std::runtime_error("App::getGLFWWindowHandle: GLFW window handle does not exist (anymore)!");
 
-        return this->glfwWindowHndl;
+        return mGlfwWindowHndl;
     }
 
 private:
     void Menubar();
 
 private:
-    bool running { true };
+    bool mRunning { true };
 
-    GLFWwindow* glfwWindowHndl { nullptr };
-    ImGuiContext* guiContext { nullptr };
+    GLFWwindow* mGlfwWindowHndl { nullptr };
+    ImGuiContext* mGuiContext { nullptr };
 
-    bool isWindowMaximized { false };
+    bool mIsWindowMaximized { false };
 
     template <typename T>
     struct ToastWindow {
     public:
         ToastWindow() {
             static_assert(std::is_base_of<BaseWindow, T>::value, "T must be derived from BaseWindow");
-            this->windowInstance = std::make_unique<T>();
+            mWindowInstance = std::make_unique<T>();
         }
 
     public:
-        bool shy { false };
-        std::unique_ptr<T> windowInstance;
+        bool mShy { false };
+        std::unique_ptr<T> mWindowInstance;
 
     public:
         void Update() {
-            if (this->shy)
+            if (mShy) {
                 return;
+            }
 
-            if (UNLIKELY(!this->windowInstance)) {
+            if (UNLIKELY(!mWindowInstance)) {
                 throw std::runtime_error(
                     "ToastWindow<" + CxxDemangle::Demangle<T>() + ">::Update: Window instance does not exist (anymore)!"
                 );
             }
 
-            this->windowInstance->Update();
+            mWindowInstance->Update();
         }
 
         void Destroy() {
-            this->windowInstance.reset();
+            mWindowInstance.reset();
         }
     };
 
-    ToastWindow<WindowCanvas> windowCanvas;
-    ToastWindow<WindowHybridList> windowHybridList;
-    ToastWindow<WindowInspector> windowInspector;
-    ToastWindow<WindowTimeline> windowTimeline;
-    ToastWindow<WindowSpritesheet> windowSpritesheet;
+    ToastWindow<WindowCanvas> mWindowCanvas;
+    ToastWindow<WindowHybridList> mWindowHybridList;
+    ToastWindow<WindowInspector> mWindowInspector;
+    ToastWindow<WindowTimeline> mWindowTimeline;
+    ToastWindow<WindowSpritesheet> mWindowSpritesheet;
 
-    ToastWindow<WindowConfig> windowConfig;
-    ToastWindow<WindowAbout> windowAbout;
+    ToastWindow<WindowConfig> mWindowConfig;
+    ToastWindow<WindowAbout> mWindowAbout;
 
-    ToastWindow<WindowImguiDemo> windowDemo;
+    ToastWindow<WindowImguiDemo> mWindowDemo;
 
-    std::thread::id mainThreadId;
+    std::thread::id mMainThreadId;
 };
 
 #endif // TOAST_HPP

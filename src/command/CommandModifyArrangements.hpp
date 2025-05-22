@@ -17,15 +17,15 @@ public:
         unsigned cellanimIndex,
         std::vector<CellAnim::Arrangement> newArrangements
     ) :
-        cellanimIndex(cellanimIndex),
-        newArrangements(newArrangements)
+        mCellAnimIndex(cellanimIndex),
+        mNewArrangements(newArrangements)
     {
-        this->oldArrangements = this->getArrangements();
+        mOldArrangements = getArrangements();
     }
     ~CommandModifyArrangements() = default;
 
     void Execute() override {
-        this->getArrangements() = this->newArrangements;
+        getArrangements() = mNewArrangements;
 
         PlayerManager::getInstance().correctState();
 
@@ -33,7 +33,7 @@ public:
     }
 
     void Rollback() override {
-        this->getArrangements() = this->oldArrangements;
+        getArrangements() = mOldArrangements;
 
         PlayerManager::getInstance().correctState();
 
@@ -41,16 +41,16 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
+    unsigned mCellAnimIndex;
 
-    std::vector<CellAnim::Arrangement> oldArrangements;
-    std::vector<CellAnim::Arrangement> newArrangements;
+    std::vector<CellAnim::Arrangement> mOldArrangements;
+    std::vector<CellAnim::Arrangement> mNewArrangements;
 
     std::vector<CellAnim::Arrangement>& getArrangements() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->arrangements;
+            ->cellanims.at(mCellAnimIndex).object
+            ->getArrangements();
     }
 };
 

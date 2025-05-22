@@ -9,10 +9,11 @@ class WindowAbout : public BaseWindow {
 public:
     void Update() override;
 
-    bool open { false };
+public:
+    bool mOpen { false };
 
 private:
-    Texture image;
+    Texture mImage;
 };
 
 #endif // WINDOWABOUT_HPP

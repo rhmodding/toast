@@ -13,48 +13,48 @@ public:
     CommandModifySpritesheet(
         unsigned sheetIndex, std::shared_ptr<Texture> newSheet
     ) :
-        sheetIndex(sheetIndex),
-        newSheet(std::move(newSheet)), oldSheet(this->getSheet())
+        mSheetIndex(sheetIndex),
+        mNewSheet(std::move(newSheet)), mOldSheet(getSheet())
     {}
     ~CommandModifySpritesheet() = default;
 
     void Execute() override {
-        this->getSheet() = this->newSheet;
+        getSheet() = mNewSheet;
 
         Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
-        currentSession->getCurrentCellAnim().object->sheetW = this->newSheet->getWidth();
-        currentSession->getCurrentCellAnim().object->sheetH = this->newSheet->getHeight();
-        currentSession->getCurrentCellAnim().object->usePalette = TPL::getImageFormatPaletted(
-            this->newSheet->getTPLOutputFormat()
-        );
+        currentSession->getCurrentCellAnim().object->setSheetWidth(mNewSheet->getWidth());
+        currentSession->getCurrentCellAnim().object->setSheetHeight(mNewSheet->getHeight());
+        currentSession->getCurrentCellAnim().object->setUsePalette(TPL::getImageFormatPaletted(
+            mNewSheet->getTPLOutputFormat()
+        ));
 
         currentSession->modified = true;
     }
 
     void Rollback() override {
-        this->getSheet() = this->oldSheet;
+        getSheet() = mOldSheet;
 
         Session* currentSession = SessionManager::getInstance().getCurrentSession();
 
-        currentSession->getCurrentCellAnim().object->sheetW = this->oldSheet->getWidth();
-        currentSession->getCurrentCellAnim().object->sheetH = this->oldSheet->getHeight();
-        currentSession->getCurrentCellAnim().object->usePalette = TPL::getImageFormatPaletted(
-            this->newSheet->getTPLOutputFormat()
-        );
+        currentSession->getCurrentCellAnim().object->setSheetWidth(mOldSheet->getWidth());
+        currentSession->getCurrentCellAnim().object->setSheetHeight(mOldSheet->getHeight());
+        currentSession->getCurrentCellAnim().object->setUsePalette(TPL::getImageFormatPaletted(
+            mOldSheet->getTPLOutputFormat()
+        ));
 
         currentSession->modified = true;
     }
 
 private:
-    unsigned sheetIndex;
+    unsigned mSheetIndex;
 
-    std::shared_ptr<Texture> newSheet;
-    std::shared_ptr<Texture> oldSheet;
+    std::shared_ptr<Texture> mNewSheet;
+    std::shared_ptr<Texture> mOldSheet;
 
     std::shared_ptr<Texture>& getSheet() {
         return SessionManager::getInstance().getCurrentSession()
-            ->sheets->getTextureByIndex(this->sheetIndex);
+            ->sheets->getTextureByIndex(mSheetIndex);
     }
 };
 

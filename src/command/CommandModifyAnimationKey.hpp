@@ -16,15 +16,15 @@ public:
         unsigned cellanimIndex, unsigned animationIndex, unsigned keyIndex,
         CellAnim::AnimationKey newKey
     ) :
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex),
-        newKey(newKey)
+        mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex), mKeyIndex(keyIndex),
+        mNewKey(newKey)
     {
-        this->oldKey = this->getKey();
+        mOldKey = getKey();
     }
     ~CommandModifyAnimationKey() = default;
 
     void Execute() override {
-        this->getKey() = this->newKey;
+        getKey() = mNewKey;
 
         PlayerManager::getInstance().correctState();
 
@@ -32,7 +32,7 @@ public:
     }
 
     void Rollback() override {
-        this->getKey() = this->oldKey;
+        getKey() = mOldKey;
 
         PlayerManager::getInstance().correctState();
 
@@ -40,26 +40,26 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned animationIndex;
-    unsigned keyIndex;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndex;
+    unsigned mKeyIndex;
 
-    CellAnim::AnimationKey oldKey;
-    CellAnim::AnimationKey newKey;
+    CellAnim::AnimationKey mOldKey;
+    CellAnim::AnimationKey mNewKey;
 
     CellAnim::AnimationKey& getKey() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->animations.at(this->animationIndex)
-            .keys.at(this->keyIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimation(mAnimationIndex)
+            .keys.at(mKeyIndex);
     }
 
     CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->arrangements.at(this->getKey().arrangementIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getArrangement(getKey().arrangementIndex);
     }
 };
 

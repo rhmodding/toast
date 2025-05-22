@@ -12,11 +12,11 @@ AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
 ) :
     AsyncTask(id, "Optimizing cellanim .."),
 
-    session(session), options(options)
+    mSession(session), mOptions(options)
 {}
 
 static void removeAnimationNames(Session* session) {
-    auto& animations = session->getCurrentCellAnim().object->animations;
+    auto& animations = session->getCurrentCellAnim().object->getAnimations();
 
     MainThreadTaskManager::getInstance().QueueTask([&animations]() {
         for (auto& animation : animations)
@@ -30,18 +30,18 @@ static void removeUnusedArrangements(Session* session) {
     std::unordered_set<unsigned> usedIndices;
     std::vector<unsigned> toErase;
 
-    for (const auto& anim : cellanim->animations) {
+    for (const auto& anim : cellanim->getAnimations()) {
         for (const auto& key : anim.keys)
             usedIndices.insert(key.arrangementIndex);
     }
 
-    for (unsigned i = 0; i < cellanim->arrangements.size(); i++) {
+    for (unsigned i = 0; i < cellanim->getArrangements().size(); i++) {
         if (usedIndices.find(i) == usedIndices.end())
             toErase.push_back(i);
     }
 
-    auto& animations = cellanim->animations;
-    auto& arrangements = cellanim->arrangements;
+    auto& animations = cellanim->getAnimations();
+    auto& arrangements = cellanim->getArrangements();
 
     MainThreadTaskManager::getInstance().QueueTask(
     [&arrangements, &toErase, &animations]() {
@@ -121,18 +121,18 @@ static void downscaleSpritesheet(Session* session, const OptimizeCellanimOptions
 }
 
 void AsyncTaskOptimizeCellanim::Run() {
-    if (this->options.removeAnimationNames)
-        removeAnimationNames(this->session);
+    if (mOptions.removeAnimationNames)
+        removeAnimationNames(mSession);
 
-    if (this->options.removeUnusedArrangements)
-        removeUnusedArrangements(this->session);
+    if (mOptions.removeUnusedArrangements)
+        removeUnusedArrangements(mSession);
 
-    if (this->options.downscaleSpritesheet)
-        downscaleSpritesheet(this->session, this->options);
+    if (mOptions.downscaleSpritesheet)
+        downscaleSpritesheet(mSession, mOptions);
 }
 
 void AsyncTaskOptimizeCellanim::Effect() {
     // TODO: make this whole thing undo-able
-    this->session->clearUndoRedo();
+    mSession->clearUndoRedo();
     //SessionManager::getInstance().SessionChanged();
 }

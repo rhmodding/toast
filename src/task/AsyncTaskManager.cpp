@@ -3,17 +3,17 @@
 #include <algorithm>
 
 void AsyncTaskManager::UpdateTasks() {
-    for (auto& task : this->tasks) {
+    for (auto& task : mTasks) {
         task->ShowPopup();
         task->RunEffectIfComplete();
     }
 
-    this->tasks.erase(
-        std::remove_if(this->tasks.begin(), this->tasks.end(),
+    mTasks.erase(
+        std::remove_if(mTasks.begin(), mTasks.end(),
         [](const std::unique_ptr<AsyncTask>& task) {
-            return task->getComplete() && task->getEffectRun();
+            return task->getIsComplete() && task->getHasEffectRun();
         }),
 
-        this->tasks.end()
+        mTasks.end()
     );
 }

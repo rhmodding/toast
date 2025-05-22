@@ -160,7 +160,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         std::stringstream stream(name);
         std::string currentSegment;
 
-        Archive::Directory* currentDir = &this->structure;
+        Archive::Directory* currentDir = &mStructure;
 
         // Traverse.
         while (std::getline(stream, currentSegment, '/')) {
@@ -197,7 +197,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         }
     }
 
-    this->initialized = true;
+    mInitialized = true;
 }
 
 std::vector<unsigned char> SARCObject::Serialize() {
@@ -209,7 +209,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
     std::vector<FileEntry> entries;
 
     std::stack<const Archive::Directory*> dirStack;
-    dirStack.push(&this->structure);
+    dirStack.push(&mStructure);
 
     // TODO: it's naively assumed that there are no hash collisions; we should
     //       probably be checking

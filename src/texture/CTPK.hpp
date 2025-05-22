@@ -112,17 +112,17 @@ class CTPKObject {
 public:
     CTPKObject(const unsigned char* ctpkData, const size_t dataSize);
     CTPKObject() :
-        initialized(true)
+        mInitialized(true)
     {};
 
-    bool isInitialized() const { return this->initialized; }
+    bool isInitialized() const { return mInitialized; }
 
     [[nodiscard]] std::vector<unsigned char> Serialize();
 
 public:
-    bool initialized { false };
+    bool mInitialized { false };
 
-    std::vector<CTPKTexture> textures;
+    std::vector<CTPKTexture> mTextures;
 };
 
 } // namespace CTPK

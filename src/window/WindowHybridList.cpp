@@ -29,24 +29,23 @@
 #include "../command/CommandModifyAnimationName.hpp"
 #include "../command/CommandDeleteAnimation.hpp"
 
-void WindowHybridList::FlashWindow() {
-    this->flashWindow = true;
-    this->flashTimer = static_cast<float>(ImGui::GetTime());
-}
-
-void WindowHybridList::ResetFlash() {
-    this->flashWindow = false;
-    this->flashTrigger = false;
-}
-
 constexpr float WINDOW_FLASH_TIME = .3f; // seconds
+
+void WindowHybridList::flashWindow() {
+    mFlashWindow = true;
+    mFlashTimer = static_cast<float>(ImGui::GetTime());
+}
+void WindowHybridList::resetFlash() {
+    mFlashWindow = false;
+    mFlashTrigger = false;
+}
 
 static CellAnim::Animation createNewAnimation() {
     constexpr std::string_view namePrefix = "CellAnim";
 
     SessionManager& sessionManager = SessionManager::getInstance();
     const auto& animations = sessionManager.getCurrentSession()
-        ->getCurrentCellAnim().object->animations;
+        ->getCurrentCellAnim().object->getAnimations();
 
     std::set<unsigned> usedNumbers;
     for (const auto& animation : animations) {
@@ -76,22 +75,23 @@ void WindowHybridList::Update() {
 
     static bool lastArrangementMode { appState.getArrangementMode() };
     if (lastArrangementMode != appState.getArrangementMode()) {
-        this->flashTrigger = true;
-        this->FlashWindow();
+        mFlashTrigger = true;
+        flashWindow();
     }
 
     lastArrangementMode = appState.getArrangementMode();
 
     if (
-        this->flashWindow &&
-        (static_cast<float>(ImGui::GetTime()) - this->flashTimer > WINDOW_FLASH_TIME)
-    )
-        ResetFlash();
+        mFlashWindow &&
+        (static_cast<float>(ImGui::GetTime()) - mFlashTimer > WINDOW_FLASH_TIME)
+    ) {
+        resetFlash();
+    }
 
-    if (this->flashWindow) {
+    if (mFlashWindow) {
         ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
 
-        float factor = (this->flashTimer - static_cast<float>(ImGui::GetTime())) + WINDOW_FLASH_TIME;
+        float factor = (mFlashTimer - static_cast<float>(ImGui::GetTime())) + WINDOW_FLASH_TIME;
         if (factor > 1.f)
             factor = 1.f;
 
@@ -130,9 +130,9 @@ void WindowHybridList::Update() {
         const auto& config = ConfigManager::getInstance().getConfig();
 
         const auto& animations = sessionManager.getCurrentSession()
-            ->getCurrentCellAnim().object->animations;
+            ->getCurrentCellAnim().object->getAnimations();
         const auto& arrangements = sessionManager.getCurrentSession()
-            ->getCurrentCellAnim().object->arrangements;
+            ->getCurrentCellAnim().object->getArrangements();
 
         if (!appState.getArrangementMode())
             for (unsigned n = 0; n < animations.size(); n++) {
@@ -205,10 +205,10 @@ void WindowHybridList::Update() {
                         ) {
                             auto& cellAnim = *sessionManager.getCurrentSession()->getCurrentCellAnim().object;
 
-                            auto insertPos = cellAnim.arrangements.end();
-                            cellAnim.arrangements.insert(insertPos, copyAnimationArrangements.begin(), copyAnimationArrangements.end());
+                            auto insertPos = cellAnim.getArrangements().end();
+                            cellAnim.getArrangements().insert(insertPos, copyAnimationArrangements.begin(), copyAnimationArrangements.end());
 
-                            auto baseIndex = std::distance(cellAnim.arrangements.begin(), insertPos);
+                            auto baseIndex = std::distance(cellAnim.getArrangements().begin(), insertPos);
 
                             for (unsigned i = 0; i < newAnimation.keys.size(); i++) {
                                 newAnimation.keys[i].arrangementIndex = baseIndex + i;
@@ -377,6 +377,6 @@ void WindowHybridList::Update() {
 
     ImGui::End();
 
-    if (this->flashWindow)
+    if (mFlashWindow)
         ImGui::PopStyleColor();
 }

@@ -8,42 +8,42 @@
 #include "../Logging.hpp"
 
 Texture::Texture(unsigned width, unsigned height, GLuint textureId) :
-    width(width), height(height), textureId(textureId)
+    mWidth(width), mHeight(height), mTextureId(textureId)
 {
     MainThreadTaskManager::getInstance().QueueTask([this]() {
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &this->wrapS);
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &this->wrapT);
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &this->minFilter);
-        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &this->magFilter);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &mWrapS);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &mWrapT);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &mMinFilter);
+        glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &mMagFilter);
     }).get();
 }
 
 Texture::~Texture() {
-    this->DestroyTexture();
+    DestroyTexture();
 }
 
 void Texture::setWrapS(GLint wrapS) {
     MainThreadTaskManager::getInstance().QueueTask([this, wrapS]() {
-        this->wrapS = wrapS;
+        mWrapS = wrapS;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
     }).get();
 }
 void Texture::setWrapT(GLint wrapT) {
     MainThreadTaskManager::getInstance().QueueTask([this, wrapT]() {
-        this->wrapT = wrapT;
+        mWrapT = wrapT;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
     }).get();
 }
 
 void Texture::setMinFilter(GLint minFilter) {
     MainThreadTaskManager::getInstance().QueueTask([this, minFilter]() {
-        this->minFilter = minFilter;
+        mMinFilter = minFilter;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
     }).get();
 }
 void Texture::setMagFilter(GLint magFilter) {
     MainThreadTaskManager::getInstance().QueueTask([this, magFilter]() {
-        this->magFilter = magFilter;
+        mMagFilter = magFilter;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, magFilter);
     }).get();
 }
@@ -54,19 +54,19 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
         return;
     }
 
-    this->width = width;
-    this->height = height;
+    width = width;
+    height = height;
 
     MainThreadTaskManager::getInstance().QueueTask([this, data]() {
-        if (this->textureId == INVALID_TEXTURE_ID)
-            glGenTextures(1, &this->textureId);
+        if (mTextureId == INVALID_TEXTURE_ID)
+            glGenTextures(1, &mTextureId);
 
-        glBindTexture(GL_TEXTURE_2D, this->textureId);
+        glBindTexture(GL_TEXTURE_2D, mTextureId);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
         glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -88,7 +88,7 @@ bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
         return false;
     }
 
-    this->LoadRGBA32(imageData, w, h);
+    LoadRGBA32(imageData, w, h);
 
     stbi_image_free(imageData);
 
@@ -109,7 +109,7 @@ bool Texture::LoadSTBFile(std::string_view filename) {
         return false;
     }
 
-    this->LoadRGBA32(imageData, imageWidth, imageHeight);
+    LoadRGBA32(imageData, imageWidth, imageHeight);
 
     stbi_image_free(imageData);
 
@@ -122,13 +122,13 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
         return false;
     }
 
-    if (this->textureId == INVALID_TEXTURE_ID) {
+    if (mTextureId == INVALID_TEXTURE_ID) {
         Logging::err << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid" << std::endl;
         return false;
     }
 
     MainThreadTaskManager::getInstance().QueueTask([this, buffer]() {
-        glBindTexture(GL_TEXTURE_2D, this->textureId);
+        glBindTexture(GL_TEXTURE_2D, mTextureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
@@ -139,7 +139,7 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
 }
 
 unsigned char* Texture::GetRGBA32() {
-    unsigned char* imageData = new unsigned char[this->width * this->height * 4];
+    unsigned char* imageData = new unsigned char[mWidth * mHeight * 4];
 
     if (Texture::GetRGBA32(imageData))
         return imageData;
@@ -155,7 +155,7 @@ bool Texture::ExportToFile(std::string_view filename) {
         return false;
     }
 
-    unsigned char* imageData = this->GetRGBA32();
+    unsigned char* imageData = GetRGBA32();
     if (imageData == nullptr) {
         Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": GetRGBA32 failed" << std::endl;
         return false;
@@ -163,10 +163,10 @@ bool Texture::ExportToFile(std::string_view filename) {
 
     int write = stbi_write_png(
         filename.data(), // filename
-        this->width, this->height, // x, y
+        mWidth, mHeight, // x, y
         4, // comp
         imageData, // data
-        this->width * 4 // stride_bytes
+        mWidth * 4 // stride_bytes
     );
 
     delete[] imageData;
@@ -180,38 +180,38 @@ bool Texture::ExportToFile(std::string_view filename) {
 }
 
 std::optional<TPL::TPLTexture> Texture::TPLTexture() {
-    if (this->textureId == INVALID_TEXTURE_ID) {
+    if (mTextureId == INVALID_TEXTURE_ID) {
         Logging::err << "[Texture::TPLTexture] Failed to construct TPLTexture: textureId is invalid" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
     TPL::TPLTexture tplTexture {
-        .width = this->width,
-        .height = this->height,
+        .width = mWidth,
+        .height = mHeight,
 
         .mipCount = 1, // TODO use true mip count
 
-        .format = this->tplOutputFormat,
+        .format = mTPLOutputFormat,
 
-        .data = std::vector<unsigned char>(this->width * this->height * 4)
+        .data = std::vector<unsigned char>(mWidth * mHeight * 4)
     };
 
-    tplTexture.minFilter = this->minFilter == GL_NEAREST ?
+    tplTexture.minFilter = mMinFilter == GL_NEAREST ?
         TPL::TPL_TEX_FILTER_NEAR :
         TPL::TPL_TEX_FILTER_LINEAR;
-    tplTexture.magFilter = this->magFilter == GL_NEAREST ?
+    tplTexture.magFilter = mMagFilter == GL_NEAREST ?
         TPL::TPL_TEX_FILTER_NEAR :
         TPL::TPL_TEX_FILTER_LINEAR;
 
-    tplTexture.wrapS = this->wrapS == GL_REPEAT ?
+    tplTexture.wrapS = mWrapS == GL_REPEAT ?
         TPL::TPL_WRAP_MODE_REPEAT :
         TPL::TPL_WRAP_MODE_CLAMP;
-    tplTexture.wrapT = this->wrapT == GL_REPEAT ?
+    tplTexture.wrapT = mWrapT == GL_REPEAT ?
         TPL::TPL_WRAP_MODE_REPEAT :
         TPL::TPL_WRAP_MODE_CLAMP;
 
     MainThreadTaskManager::getInstance().QueueTask([this, &tplTexture]() {
-        glBindTexture(GL_TEXTURE_2D, this->textureId);
+        glBindTexture(GL_TEXTURE_2D, mTextureId);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
@@ -220,26 +220,26 @@ std::optional<TPL::TPLTexture> Texture::TPLTexture() {
 }
 
 std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
-    if (this->textureId == INVALID_TEXTURE_ID) {
+    if (mTextureId == INVALID_TEXTURE_ID) {
         Logging::err << "[Texture::CTPKTexture] Failed to construct CTPKTexture: textureId is invalid" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
     CTPK::CTPKTexture ctpkTexture {
-        .width = this->width,
-        .height = this->height,
+        .width = mWidth,
+        .height = mHeight,
 
-        .mipCount = this->outputMipCount,
+        .mipCount = mOutputMipCount,
 
-        .format = this->ctpkOutputFormat,
+        .format = mCTPKOutputFormat,
 
         .sourceTimestamp = 0,
 
-        .data = std::vector<unsigned char>(this->width * this->height * 4)
+        .data = std::vector<unsigned char>(mWidth * mHeight * 4)
     };
 
     MainThreadTaskManager::getInstance().QueueTask([this, &ctpkTexture]() {
-        glBindTexture(GL_TEXTURE_2D, this->textureId);
+        glBindTexture(GL_TEXTURE_2D, mTextureId);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, ctpkTexture.data.data());
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
@@ -248,11 +248,11 @@ std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
 }
 
 void Texture::DestroyTexture() {
-    if (this->textureId == INVALID_TEXTURE_ID)
+    if (mTextureId == INVALID_TEXTURE_ID)
         return;
 
-    MainThreadTaskManager::getInstance().QueueTask([textureId = this->textureId]() {
+    MainThreadTaskManager::getInstance().QueueTask([textureId = mTextureId]() {
         glDeleteTextures(1, &textureId);
     });
-    this->textureId = 0;
+    mTextureId = 0;
 }

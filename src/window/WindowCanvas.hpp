@@ -15,12 +15,19 @@ class WindowCanvas : public BaseWindow {
 public:
     void Update() override;
 
-    CanvasState state;
 private:
-    CellAnimRenderer cellanimRenderer;
+    void Menubar();
 
-    ImVec2 canvasTopLeft;
-    ImVec2 canvasSize;
+    void DrawCanvasText();
+
+public:
+    CanvasState mState;
+
+private:
+    CellAnimRenderer mCellAnimRenderer;
+
+    ImVec2 mCanvasTopLeft;
+    ImVec2 mCanvasSize;
 
     enum PartHandle : int {
         PartHandle_None = -1,
@@ -33,11 +40,7 @@ private:
         PartHandle_BottomRight = 6,
         PartHandle_BottomLeft = 7,
         PartHandle_Whole = 8
-    } hoveredPartHandle { PartHandle_None };
-
-    void Menubar();
-
-    void DrawCanvasText();
+    } mHoveredPartHandle { PartHandle_None };
 };
 
 #endif // WINDOWCANVAS_HPP

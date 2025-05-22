@@ -12,35 +12,35 @@ public:
         unsigned cellanimIndex, unsigned animationIndex,
         bool isInterpolated
     ) :
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex),
-        newIsInterpolated(isInterpolated)
+        mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex),
+        mNewIsInterpolated(isInterpolated)
     {
-        this->oldIsInterpolated = this->getAnimation().isInterpolated;
+        mOldIsInterpolated = getAnimation().isInterpolated;
     }
     ~CommandSetAnimationInterpolated() = default;
 
     void Execute() override {
-        this->getAnimation().isInterpolated = this->newIsInterpolated;
+        getAnimation().isInterpolated = mNewIsInterpolated;
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
-        this->getAnimation().isInterpolated = this->oldIsInterpolated;
+        getAnimation().isInterpolated = mOldIsInterpolated;
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned animationIndex;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndex;
 
-    bool oldIsInterpolated, newIsInterpolated;
+    bool mOldIsInterpolated, mNewIsInterpolated;
 
     CellAnim::Animation& getAnimation() {
         return SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(cellanimIndex).object
-            ->animations.at(animationIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimation(mAnimationIndex);
     }
 };
 

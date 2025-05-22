@@ -7,9 +7,6 @@
 
 class SelectionState {
 public:
-    SelectionState() = default;
-    ~SelectionState() = default;
-
     static int getMatchingNamePartIndex(
         const CellAnim::ArrangementPart& part,
         const CellAnim::Arrangement& arrangement
@@ -20,22 +17,8 @@ public:
     );
 
 public:
-    struct SelectedPart {
-        unsigned index;
-        int selectionOrder;
-
-        bool operator==(const SelectedPart& other) const {
-            return
-                index == other.index &&
-                selectionOrder == other.selectionOrder;
-        }
-        bool operator!=(const SelectedPart& other) const {
-            return !(*this == other);
-        }
-    };
-
-    std::vector<SelectedPart> selectedParts;
-    int nextSelectionOrder { 0 };
+    SelectionState() = default;
+    ~SelectionState() = default;
 
 private:
     void resetSelectionOrder();
@@ -44,23 +27,23 @@ private:
 
 public:
     void clearSelectedParts() {
-        this->selectedParts.clear();
-        this->nextSelectionOrder = 0;
+        mSelectedParts.clear();
+        mNextSelectionOrder = 0;
     }
 
     bool multiplePartsSelected() const {
-        return this->selectedParts.size() > 1;
+        return mSelectedParts.size() > 1;
     }
     bool anyPartsSelected() const {
-        return !this->selectedParts.empty();
+        return !mSelectedParts.empty();
     }
     bool singlePartSelected() const {
-        return this->selectedParts.size() == 1;
+        return mSelectedParts.size() == 1;
     }
 
     bool isPartSelected(unsigned partIndex) const {
         return std::any_of(
-            selectedParts.begin(), selectedParts.end(),
+            mSelectedParts.begin(), mSelectedParts.end(),
             [partIndex](const SelectedPart& sp) {
                 return sp.index == partIndex;
             }
@@ -81,6 +64,24 @@ public:
     int getNextPartIndexAfterDeletion(ImGuiMultiSelectIO* msIo, unsigned partCount);
 
     void correctSelectedParts();
+
+public:
+    struct SelectedPart {
+        unsigned index;
+        int selectionOrder;
+
+        bool operator==(const SelectedPart& other) const {
+            return
+                index == other.index &&
+                selectionOrder == other.selectionOrder;
+        }
+        bool operator!=(const SelectedPart& other) const {
+            return !(*this == other);
+        }
+    };
+    std::vector<SelectedPart> mSelectedParts;
+
+    int mNextSelectionOrder { 0 };
 };
 
 #endif // SELECTIONSTATE_HPP

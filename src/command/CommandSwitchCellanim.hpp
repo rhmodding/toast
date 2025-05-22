@@ -14,19 +14,19 @@ public:
         unsigned sessionIndex,
         unsigned cellanimIndex
     ) :
-        sessionIndex(sessionIndex),
-        cellanimIndex(cellanimIndex)
+        mSessionIndex(sessionIndex),
+        mCellAnimIndex(cellanimIndex)
     {
-        this->previousCellAnim =
-            SessionManager::getInstance().sessions.at(this->sessionIndex).getCurrentCellAnimIndex();
+        mPreviousCellAnimIndex =
+            SessionManager::getInstance().getSession(mSessionIndex).getCurrentCellAnimIndex();
     }
     ~CommandSwitchCellanim() = default;
 
     void Execute() override {
         SessionManager& sessionManager = SessionManager::getInstance();
 
-        auto& session = sessionManager.sessions.at(this->sessionIndex);
-        session.setCurrentCellAnimIndex(this->cellanimIndex);
+        auto& session = sessionManager.getSession(mSessionIndex);
+        session.setCurrentCellAnimIndex(mCellAnimIndex);
 
         PlayerManager::getInstance().correctState();
     }
@@ -34,17 +34,17 @@ public:
     void Rollback() override {
         SessionManager& sessionManager = SessionManager::getInstance();
 
-        auto& session = sessionManager.sessions.at(this->sessionIndex);
-        session.setCurrentCellAnimIndex(this->previousCellAnim);
+        auto& session = sessionManager.getSession(mSessionIndex);
+        session.setCurrentCellAnimIndex(mPreviousCellAnimIndex);
 
         PlayerManager::getInstance().correctState();
     }
 
 private:
-    unsigned sessionIndex;
+    unsigned mSessionIndex;
 
-    unsigned cellanimIndex;
-    unsigned previousCellAnim;
+    unsigned mCellAnimIndex;
+    unsigned mPreviousCellAnimIndex;
 };
 
 #endif // COMMANDSWITCHCELLANIM_HPP

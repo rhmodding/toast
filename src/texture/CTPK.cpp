@@ -168,11 +168,11 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
         return;
     }
 
-    this->textures.resize(header->textureCount);
+    mTextures.resize(header->textureCount);
 
     for (unsigned i = 0; i < header->textureCount; i++) {
         const CtpkTextureEntry* textureIn = header->textureEntries + i;
-        CTPKTexture& textureOut = this->textures[i];
+        CTPKTexture& textureOut = mTextures[i];
 
         if (textureIn->type != 2) {
             Logging::err << "[CTPKObject::CTPKObject] Unsupported texture (no. " << i+1 <<
@@ -200,13 +200,13 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
         CtrImageConvert::toRGBA32(textureOut, imageData);
     }
 
-    this->initialized = true;
+    mInitialized = true;
 }
 
 std::vector<unsigned char> CTPKObject::Serialize() {
     std::vector<unsigned char> result;
 
-    if (!this->initialized) {
+    if (!mInitialized) {
         Logging::err << "[CTPKObject::Serialize] Unable to serialize: not initialized!" << std::endl;
         return result;
     }
@@ -215,10 +215,10 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         sizeof(CtpkTextureEntry) +
         sizeof(CtpkLookupEntry) +
         sizeof(CtpkInfoEntry)
-    ) * this->textures.size());
+    ) * mTextures.size());
 
-    for (unsigned i = 0; i < this->textures.size(); i++) {
-        const auto& texture = this->textures[i];
+    for (unsigned i = 0; i < mTextures.size(); i++) {
+        const auto& texture = mTextures[i];
 
         fullSize += sizeof(uint32_t) * texture.mipCount;
 
@@ -230,16 +230,16 @@ std::vector<unsigned char> CTPKObject::Serialize() {
 
     CtpkFileHeader* header = reinterpret_cast<CtpkFileHeader*>(result.data());
     *header = CtpkFileHeader {
-        .textureCount = static_cast<uint16_t>(this->textures.size())
+        .textureCount = static_cast<uint16_t>(mTextures.size())
     };
 
     uint32_t* currentMipSize = reinterpret_cast<uint32_t*>(
-        header->textureEntries + this->textures.size()
+        header->textureEntries + mTextures.size()
     );
 
     // Write texture entries.
-    for (unsigned i = 0; i < this->textures.size(); i++) {
-        const auto& texture = this->textures[i];
+    for (unsigned i = 0; i < mTextures.size(); i++) {
+        const auto& texture = mTextures[i];
         CtpkTextureEntry* texEntry = header->textureEntries + i;
 
         texEntry->dataSize = CtrImageConvert::getImageByteSize(texture);
@@ -290,8 +290,8 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     char* currentTexFilename = reinterpret_cast<char*>(currentMipSize);
 
     // Write texture filenames.
-    for (unsigned i = 0; i < this->textures.size(); i++) {
-        const auto& texture = this->textures[i];
+    for (unsigned i = 0; i < mTextures.size(); i++) {
+        const auto& texture = mTextures[i];
         CtpkTextureEntry* texEntry = header->textureEntries + i;
 
         texEntry->sourcePathOffset = static_cast<uint32_t>(
@@ -306,17 +306,17 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     CtpkLookupEntry* lookupEntriesStart = reinterpret_cast<CtpkLookupEntry*>(
         currentTexFilename
     );
-    CtpkLookupEntry* lookupEntriesEnd = lookupEntriesStart + this->textures.size();
+    CtpkLookupEntry* lookupEntriesEnd = lookupEntriesStart + mTextures.size();
 
     header->lookupEntriesOffset = static_cast<uint32_t>(
         reinterpret_cast<unsigned char*>(lookupEntriesStart) - result.data()
     );
 
     // Write lookup entries.
-    for (unsigned i = 0; i < this->textures.size(); i++) {
+    for (unsigned i = 0; i < mTextures.size(); i++) {
         CtpkLookupEntry* lookupEntry = lookupEntriesStart + i;
 
-        lookupEntry->sourcePathHash = CRC32::compute(this->textures[i].sourcePath);
+        lookupEntry->sourcePathHash = CRC32::compute(mTextures[i].sourcePath);
         lookupEntry->textureEntryIndex = i;
     }
 
@@ -332,15 +332,15 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     CtpkInfoEntry* infoEntriesStart = reinterpret_cast<CtpkInfoEntry*>(
         lookupEntriesEnd
     );
-    CtpkInfoEntry* infoEntriesEnd = infoEntriesStart + this->textures.size();
+    CtpkInfoEntry* infoEntriesEnd = infoEntriesStart + mTextures.size();
 
     header->infoEntriesOffset = static_cast<uint32_t>(
         reinterpret_cast<unsigned char*>(infoEntriesStart) - result.data()
     );
 
     // Write info entries.
-    for (unsigned i = 0; i < this->textures.size(); i++) {
-        const auto& texture = this->textures[i];
+    for (unsigned i = 0; i < mTextures.size(); i++) {
+        const auto& texture = mTextures[i];
         CtpkInfoEntry* infoEntry = infoEntriesStart + i;
 
         infoEntry->dataFormat = static_cast<uint8_t>(texture.format);
@@ -361,13 +361,13 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     header->dataSectionOffset = static_cast<uint32_t>(dataSectionStart - result.data());
 
     unsigned char* currentData = dataSectionStart;
-    for (unsigned i = 0; i < this->textures.size(); i++) {
+    for (unsigned i = 0; i < mTextures.size(); i++) {
         CtpkTextureEntry* texEntry = header->textureEntries + i;
 
         texEntry->dataOffset = static_cast<uint32_t>(currentData - dataSectionStart);
 
-        const auto& srcTexture = this->textures[i];
-        auto dstTexture = this->textures[i]; // Copy
+        const auto& srcTexture = mTextures[i];
+        auto dstTexture = mTextures[i]; // Copy
 
         // If texture dimensions were clamped, scale down to new size.
         if (dstTexture.width != texEntry->width || dstTexture.height != texEntry->height) {

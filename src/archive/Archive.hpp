@@ -69,12 +69,15 @@ class ArchiveObjectBase {
 public:
     ArchiveObjectBase() = default;
 
-    bool isInitialized() const { return this->initialized; }
+    bool isInitialized() const { return mInitialized; }
 
-public:
-    Directory structure;
+    Directory& getStructure() { return mStructure; }
+    const Directory& getStructure() const { return mStructure; }
+
 protected:
-    bool initialized { false };
+    bool mInitialized { false };
+
+    Directory mStructure;
 };
 
 const File* findFile(std::string_view path, const Directory& directory);

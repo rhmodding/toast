@@ -12,7 +12,7 @@ public:
     CommandSetArrangementMode(
         bool enabled
     ) :
-        enabled(enabled)
+        mEnabled(enabled)
     {}
     ~CommandSetArrangementMode() = default;
 
@@ -20,12 +20,12 @@ public:
         SessionManager& sessionManager = SessionManager::getInstance();
         PlayerManager& playerManager = PlayerManager::getInstance();
 
-        if (this->enabled) {
+        if (mEnabled) {
             playerManager.setPlaying(false);
             playerManager.setArrangementModeIdx(playerManager.getKey().arrangementIndex);
         }
 
-        sessionManager.getCurrentSession()->arrangementMode = this->enabled;
+        sessionManager.getCurrentSession()->arrangementMode = mEnabled;
 
         playerManager.correctState();
     }
@@ -34,13 +34,13 @@ public:
         SessionManager& sessionManager = SessionManager::getInstance();
         PlayerManager& playerManager = PlayerManager::getInstance();
 
-        sessionManager.getCurrentSession()->arrangementMode = !this->enabled;
+        sessionManager.getCurrentSession()->arrangementMode = !mEnabled;
 
         playerManager.correctState();
     }
 
 private:
-    bool enabled;
+    bool mEnabled;
 };
 
 #endif // COMMANDSETARRANGEMENTMODE_HPP

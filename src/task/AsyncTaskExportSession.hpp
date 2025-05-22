@@ -21,12 +21,12 @@ protected:
     void Effect() override;
 
 private:
-    unsigned sessionIndex;
-    std::string filePath;
+    unsigned mSessionIndex;
+    std::string mFilePath;
 
-    bool useSessionPath;
+    bool mUseSessionPath;
 
-    std::atomic<bool> result { 0 };
+    std::atomic<bool> mResult { 0 };
 };
 
 #endif // ASYNCTASK_EXPORTSESSION_HPP

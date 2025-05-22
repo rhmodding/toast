@@ -19,7 +19,7 @@ void ThemeManager::Initialize() {
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
-        this->fonts.normal = io.Fonts->AddFontFromMemoryTTF(
+        mFonts.normal = io.Fonts->AddFontFromMemoryTTF(
             const_cast<unsigned char*>(SegoeUI_data), SegoeUI_length, 18.f, &fontConfig
         );
     }
@@ -31,7 +31,7 @@ void ThemeManager::Initialize() {
         fontConfig.MergeMode = true;
         fontConfig.PixelSnapH = true;
 
-        this->fonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(
+        mFonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(
             FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range
         );
     }
@@ -41,7 +41,7 @@ void ThemeManager::Initialize() {
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
-        this->fonts.large = io.Fonts->AddFontFromMemoryTTF(
+        mFonts.large = io.Fonts->AddFontFromMemoryTTF(
             const_cast<unsigned char*>(SegoeUI_data), SegoeUI_length, 24.f, &fontConfig
         );
     }
@@ -51,7 +51,7 @@ void ThemeManager::Initialize() {
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
-        this->fonts.giant = io.Fonts->AddFontFromMemoryTTF(
+        mFonts.giant = io.Fonts->AddFontFromMemoryTTF(
             const_cast<unsigned char*>(SegoeUI_data), SegoeUI_length, 52.f, &fontConfig
         );
     }
@@ -60,19 +60,19 @@ void ThemeManager::Initialize() {
 void ThemeManager::applyTheming() {
     const auto& config = ConfigManager::getInstance().getConfig();
 
-    if (config.theme == ThemeChoice_Dark)
-        this->windowClearColor = std::array<float, 4>({ 24 / 255.f, 24 / 255.f, 24 / 255.f, 1.f });
-    else if (config.theme == ThemeChoice_Light)
-        this->windowClearColor = std::array<float, 4>({ 248 / 255.f, 248 / 255.f, 248 / 255.f, 1.f });
+    if (config.theme == ThemeChoice::Dark)
+        mWindowClearColor = std::array<float, 4>({ 24 / 255.f, 24 / 255.f, 24 / 255.f, 1.f });
+    else if (config.theme == ThemeChoice::Light)
+        mWindowClearColor = std::array<float, 4>({ 248 / 255.f, 248 / 255.f, 248 / 255.f, 1.f });
     else {
         Logging::warn << "[ThemeManager::applyTheming] Invalid theme: " << static_cast<int>(config.theme) << std::endl;
         return;
     }
 
     MainThreadTaskManager::getInstance().QueueTask([theme = config.theme]() {
-        if (theme == ThemeChoice_Dark)
+        if (theme == ThemeChoice::Dark)
             ImGui::StyleColorsDark();
-        else if (theme == ThemeChoice_Light)
+        else if (theme == ThemeChoice::Light)
             ImGui::StyleColorsLight();
 
         ImGuiStyle& style = ImGui::GetStyle();
@@ -100,5 +100,5 @@ void ThemeManager::applyTheming() {
 }
 
 bool ThemeManager::getThemeIsLight() const {
-    return ConfigManager::getInstance().getConfig().theme == ThemeChoice_Light;
+    return ConfigManager::getInstance().getConfig().theme == ThemeChoice::Light;
 }

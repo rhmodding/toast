@@ -8,12 +8,13 @@ public:
     void Update() override;
 
 private:
-    bool  flashWindow  { false };
-    bool  flashTrigger { false };
-    float flashTimer   { 0.f };
+    void flashWindow();
+    void resetFlash();
 
-    void FlashWindow();
-    void ResetFlash();
+private:
+    bool  mFlashWindow  { false };
+    bool  mFlashTrigger { false };
+    float mFlashTimer   { 0.f };
 };
 
 #endif // WINDOWHYBRIDLIST_HPP

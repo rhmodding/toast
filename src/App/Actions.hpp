@@ -118,7 +118,7 @@ void ExportSessionAsOther() {
 
             if (isRvl) {
                 for (const auto& cellanim : currentSession->cellanims) {
-                    if (cellanim.object->sheetIndex == i)
+                    if (cellanim.object->getSheetIndex() == i)
                         sheet->setName(cellanim.name);
                 }
 
@@ -188,7 +188,7 @@ void ExportSessionAsOther() {
         for (auto& cellanim : currentSession->cellanims) {
             cellanim.object->setType(newType);
 
-            for (auto& arrangement : cellanim.object->arrangements) {
+            for (auto& arrangement : cellanim.object->getArrangements()) {
                 for (auto& part : arrangement.parts) {
                     if (isRvl) {
                         part.textureVarying = 0;
@@ -205,7 +205,7 @@ void ExportSessionAsOther() {
             }
 
             if (!isRvl) {
-                for (auto& animation : cellanim.object->animations) {
+                for (auto& animation : cellanim.object->getAnimations()) {
                     animation.isInterpolated = false;
 
                     for (auto& key : animation.keys) {

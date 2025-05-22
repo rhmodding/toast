@@ -32,7 +32,7 @@ static void Popup_MPadRegion() {
     if (!active && lateOpen && openConditions) {
         SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
-        auto& part = playerManager.getArrangement().parts.at(selectionState.selectedParts[0].index);
+        auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
 
         part.regionX = origOffset[0];
         part.regionY = origOffset[1];
@@ -49,7 +49,7 @@ static void Popup_MPadRegion() {
     if (active && openConditions) {
         SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
-        auto& part = playerManager.getArrangement().parts.at(selectionState.selectedParts[0].index);
+        auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
 
         if (!lateOpen) {
             origOffset[0] = part.regionX;
@@ -104,7 +104,7 @@ static void Popup_MPadRegion() {
             std::make_shared<CommandModifyArrangementPart>(
                 sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 playerManager.getArrangementIndex(),
-                selectionState.selectedParts[0].index,
+                selectionState.mSelectedParts[0].index,
                 newPart
             ));
 

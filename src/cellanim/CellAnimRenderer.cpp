@@ -236,25 +236,25 @@ void CellAnimRenderer::renderPartCallback(const ImDrawList* parentList, const Im
 }
 
 void CellAnimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
-    NONFATAL_ASSERT_RET(this->cellanim, true);
-    NONFATAL_ASSERT_RET(this->textureGroup, true);
+    NONFATAL_ASSERT_RET(mCellAnim, true);
+    NONFATAL_ASSERT_RET(mTextureGroup, true);
 
-    if (!this->visible)
+    if (!mVisible)
         return;
 
-    this->currentDrawList = drawList;
-    this->InternDraw(DrawMethod::DrawList, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
+    currentDrawList = drawList;
+    InternDraw(DrawMethod::DrawList, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
 }
 
 void CellAnimRenderer::DrawTex(GLuint textureId, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
-    NONFATAL_ASSERT_RET(this->cellanim, true);
-    NONFATAL_ASSERT_RET(this->textureGroup, true);
+    NONFATAL_ASSERT_RET(mCellAnim, true);
+    NONFATAL_ASSERT_RET(mTextureGroup, true);
 
-    if (!this->visible)
+    if (!mVisible)
         return;
 
-    this->currentDrawTex = textureId;
-    this->InternDraw(DrawMethod::Texture, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
+    currentDrawTex = textureId;
+    InternDraw(DrawMethod::Texture, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
 }
 
 void CellAnimRenderer::DrawOnionSkin(
@@ -264,10 +264,10 @@ void CellAnimRenderer::DrawOnionSkin(
     bool rollOver,
     uint8_t opacity
 ) {
-    NONFATAL_ASSERT_RET(this->cellanim, true);
-    NONFATAL_ASSERT_RET(this->textureGroup, true);
+    NONFATAL_ASSERT_RET(mCellAnim, true);
+    NONFATAL_ASSERT_RET(mTextureGroup, true);
 
-    if (!this->visible)
+    if (!mVisible)
         return;
 
     const unsigned keyCount = animation.keys.size();
@@ -289,8 +289,8 @@ void CellAnimRenderer::DrawOnionSkin(
             if (!rollOver && (wrappedIndex < 0 || wrappedIndex >= static_cast<int>(keyCount)))
                 break;
 
-            this->currentDrawList = drawList;
-            this->InternDraw(DrawMethod::DrawList, animation.keys.at(wrappedIndex), -1, color, true);
+            currentDrawList = drawList;
+            InternDraw(DrawMethod::DrawList, animation.keys.at(wrappedIndex), -1, color, true);
             i += step;
         }
     };
@@ -319,18 +319,15 @@ static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
 std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::AnimationKey& key, unsigned partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
-    NONFATAL_ASSERT_RETVAL(this->cellanim, transformedQuad);
+    NONFATAL_ASSERT_RETVAL(mCellAnim, transformedQuad);
 
-    const CellAnim::Arrangement& arrangement = this->cellanim->arrangements.at(key.arrangementIndex);
+    const CellAnim::Arrangement& arrangement = mCellAnim->getArrangements().at(key.arrangementIndex);
     const CellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
 
     const int*   tempOffset = arrangement.tempOffset;
     const float* tempScale  = arrangement.tempScale;
 
-    ImVec2 keyCenter {
-        this->offset.x,
-        this->offset.y
-    };
+    ImVec2 keyCenter = mOffset;
 
     ImVec2 topLeftOffset {
         static_cast<float>(part.transform.positionX),
@@ -373,8 +370,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
 
         // Key & renderer scale
         for (auto& point : transformedQuad) {
-            point.x = (point.x * key.transform.scaleX * this->scaleX) + keyCenter.x;
-            point.y = (point.y * key.transform.scaleY * this->scaleY) + keyCenter.y;
+            point.x = (point.x * key.transform.scaleX * mScale.x) + keyCenter.x;
+            point.y = (point.y * key.transform.scaleY * mScale.y) + keyCenter.y;
         }
 
         // Key rotation
@@ -383,8 +380,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
 
         // Key offset addition
         for (auto& point : transformedQuad) {
-            point.x += key.transform.positionX * this->scaleX;
-            point.y += key.transform.positionY * this->scaleY;
+            point.x += key.transform.positionX * mScale.x;
+            point.y += key.transform.positionY * mScale.y;
         }
     }
 
@@ -394,17 +391,14 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
 std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::TransformValues& keyTransform, const CellAnim::Arrangement& arrangement, unsigned partIndex) const {
     std::array<ImVec2, 4> transformedQuad;
 
-    NONFATAL_ASSERT_RETVAL(this->cellanim, transformedQuad);
+    NONFATAL_ASSERT_RETVAL(mCellAnim, transformedQuad);
 
     const CellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
 
     const int*   tempOffset = arrangement.tempOffset;
     const float* tempScale  = arrangement.tempScale;
 
-    ImVec2 keyCenter {
-        this->offset.x,
-        this->offset.y
-    };
+    ImVec2 keyCenter = mOffset;
 
     ImVec2 topLeftOffset {
         static_cast<float>(part.transform.positionX),
@@ -447,8 +441,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
 
         // Key & renderer scale
         for (auto& point : transformedQuad) {
-            point.x = (point.x * keyTransform.scaleX * this->scaleX) + keyCenter.x;
-            point.y = (point.y * keyTransform.scaleY * this->scaleY) + keyCenter.y;
+            point.x = (point.x * keyTransform.scaleX * mScale.x) + keyCenter.x;
+            point.y = (point.y * keyTransform.scaleY * mScale.y) + keyCenter.y;
         }
 
         // Key rotation
@@ -457,8 +451,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
 
         // Key offset addition
         for (auto& point : transformedQuad) {
-            point.x += keyTransform.positionX * this->scaleX;
-            point.y += keyTransform.positionY * this->scaleY;
+            point.x += keyTransform.positionX * mScale.x;
+            point.y += keyTransform.positionY * mScale.y;
         }
     }
 
@@ -466,13 +460,13 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
 }
 
 ImRect CellAnimRenderer::getKeyWorldRect(const CellAnim::AnimationKey& key) const {
-    NONFATAL_ASSERT_RETVAL(this->cellanim, ImRect());
+    NONFATAL_ASSERT_RETVAL(mCellAnim, ImRect());
 
-    const auto& arrangement = this->cellanim->arrangements.at(key.arrangementIndex);
+    const auto& arrangement = mCellAnim->getArrangement(key.arrangementIndex);
 
     std::vector<std::array<ImVec2, 4>> quads(arrangement.parts.size());
     for (unsigned i = 0; i < arrangement.parts.size(); i++)
-        quads[i] = this->getPartWorldQuad(key, i);
+        quads[i] = getPartWorldQuad(key, i);
 
     float minX = std::numeric_limits<float>::max();
     float minY = std::numeric_limits<float>::max();
@@ -505,13 +499,13 @@ static std::vector<PartDrawCommand> constructDrawData(
     const CellAnim::AnimationKey& key, int partIndex,
     uint32_t colorMod, bool allowOpacity
 ) {
-    const CellAnim::Arrangement& arrangement = cellanim.arrangements.at(key.arrangementIndex);
+    const CellAnim::Arrangement& arrangement = cellanim.getArrangement(key.arrangementIndex);
 
     std::vector<PartDrawCommand> drawData;
     drawData.reserve(arrangement.parts.size());
 
-    const float texWidth = cellanim.sheetW;
-    const float texHeight = cellanim.sheetH;
+    const float texWidth = cellanim.getSheetWidth();
+    const float texHeight = cellanim.getSheetHeight();
 
     for (unsigned i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex >= 0 && partIndex != static_cast<int>(i))
@@ -589,18 +583,18 @@ void CellAnimRenderer::InternDraw(
     uint32_t colorMod,
     bool allowOpacity
 ) {
-    NONFATAL_ASSERT_RET(this->cellanim, true);
+    NONFATAL_ASSERT_RET(mCellAnim, true);
 
-    const ImVec2 prevOffset = this->offset;
-    const float prevScaleX = this->scaleX, prevScaleY = this->scaleY;
+    const ImVec2 prevOffset = mOffset;
+    const ImVec2 prevScale = mScale;
 
     if (drawMethod == DrawMethod::Texture) {
-        this->offset = ImVec2(0.f, 0.f);
-        this->scaleX = 1.f; this->scaleY = 1.f;
+        mOffset = ImVec2(0.f, 0.f);
+        mScale = ImVec2(1.f, 1.f);
     }
 
     std::vector<PartDrawCommand> drawData = constructDrawData(
-        *this, *this->cellanim, *this->textureGroup,
+        *this, *mCellAnim, *mTextureGroup,
         key, partIndex, colorMod, allowOpacity
     );
 
@@ -608,9 +602,9 @@ void CellAnimRenderer::InternDraw(
     case DrawMethod::DrawList: {
         for (auto& cmd : drawData) {
             // ImGui will copy the userdata.
-            this->currentDrawList->AddCallback(CellAnimRenderer::renderPartCallback, &cmd.callbackData, sizeof(cmd.callbackData));
+            currentDrawList->AddCallback(CellAnimRenderer::renderPartCallback, &cmd.callbackData, sizeof(cmd.callbackData));
 
-            this->currentDrawList->AddImageQuad(
+            currentDrawList->AddImageQuad(
                 static_cast<ImTextureID>(cmd.textureId),
                 cmd.quad[0], cmd.quad[1], cmd.quad[2], cmd.quad[3],
                 cmd.uvs[0], cmd.uvs[1], cmd.uvs[2], cmd.uvs[3],
@@ -618,19 +612,19 @@ void CellAnimRenderer::InternDraw(
             );
         }
 
-        this->currentDrawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr, 0);
+        currentDrawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr, 0);
     } break;
 
     case DrawMethod::Texture: {
         constexpr float SCALE_FACTOR = 2.f;
 
-        const ImRect frameRect = this->getKeyWorldRect(key);
+        const ImRect frameRect = getKeyWorldRect(key);
 
-        this->drawTexSize = ImVec2(
+        mDrawTexSize = ImVec2(
             CEIL_FLOAT(frameRect.Max.x - frameRect.Min.x) * SCALE_FACTOR,
             CEIL_FLOAT(frameRect.Max.y - frameRect.Min.y) * SCALE_FACTOR
         );
-        this->drawTexOffset = ImVec2(
+        mDrawTexOffset = ImVec2(
             (frameRect.Min.x + frameRect.Max.x) * .5f * SCALE_FACTOR,
             (frameRect.Min.y + frameRect.Max.y) * .5f * SCALE_FACTOR
         );
@@ -672,15 +666,15 @@ void CellAnimRenderer::InternDraw(
         glVertexAttribPointer(CellAnimRenderer::colorAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
         glEnableVertexAttribArray(CellAnimRenderer::colorAttrib);
 
-        glBindTexture(GL_TEXTURE_2D, this->currentDrawTex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->drawTexSize.x, this->drawTexSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glBindTexture(GL_TEXTURE_2D, currentDrawTex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mDrawTexSize.x, mDrawTexSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, this->texDrawFramebuffer);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->currentDrawTex, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, texDrawFramebuffer);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, currentDrawTex, 0);
 
         GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
         glDrawBuffers(1, drawBuffers);
@@ -689,13 +683,13 @@ void CellAnimRenderer::InternDraw(
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             return;
 
-        glViewport(0, 0, this->drawTexSize.x, this->drawTexSize.y);
+        glViewport(0, 0, mDrawTexSize.x, mDrawTexSize.y);
 
         glBindVertexArray(VAO);
         glUseProgram(CellAnimRenderer::shaderProgram);
 
-        float L = frameRect.Min.x, R = L + (this->drawTexSize.x / SCALE_FACTOR);
-        float T = frameRect.Min.y + (this->drawTexSize.y / SCALE_FACTOR), B = frameRect.Min.y;
+        float L = frameRect.Min.x, R = L + (mDrawTexSize.x / SCALE_FACTOR);
+        float T = frameRect.Min.y + (mDrawTexSize.y / SCALE_FACTOR), B = frameRect.Min.y;
 
         const float orthoProjection[4][4] = {
             { 2.f / (R-L),   0.f,           0.f,  0.f },
@@ -735,6 +729,6 @@ void CellAnimRenderer::InternDraw(
         break;
     }
 
-    this->offset = prevOffset;
-    this->scaleX = prevScaleX; this->scaleY = prevScaleY;
+    mOffset = prevOffset;
+    mScale = prevScale;
 }

@@ -11,40 +11,40 @@
 
 #include <nlohmann/json.hpp>
 
-enum BackupBehaviour {
-    BackupBehaviour_None,
-    BackupBehaviour_Save,
-    BackupBehaviour_SaveOverwrite
+enum class BackupBehaviour {
+    None,
+    Save,
+    SaveOverwrite
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(BackupBehaviour, {
-    {BackupBehaviour_None, "None"},
-    {BackupBehaviour_Save, "Save"},
-    {BackupBehaviour_SaveOverwrite, "SaveOverwrite"}
+    {BackupBehaviour::None, "None"},
+    {BackupBehaviour::Save, "Save"},
+    {BackupBehaviour::SaveOverwrite, "SaveOverwrite"}
 });
 
-enum ThemeChoice : int {
-    ThemeChoice_Light,
-    ThemeChoice_Dark
+enum class ThemeChoice {
+    Light,
+    Dark
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThemeChoice, {
-    {ThemeChoice_Light, "Light"},
-    {ThemeChoice_Dark, "Dark"},
+    {ThemeChoice::Light, "Light"},
+    {ThemeChoice::Dark, "Dark"},
 });
 
-enum ETC1Quality : int {
-    ETC1Quality_Low,
-    ETC1Quality_Medium,
-    ETC1Quality_High,
+enum class ETC1Quality {
+    Low,
+    Medium,
+    High,
 
-    ETC1Quality_Count
+    Count
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ETC1Quality, {
-    {ETC1Quality_Low, "Low"},
-    {ETC1Quality_Medium, "Medium"},
-    {ETC1Quality_High, "High"},
+    {ETC1Quality::Low, "Low"},
+    {ETC1Quality::Medium, "Medium"},
+    {ETC1Quality::High, "High"},
 });
 
 struct Config {
@@ -55,7 +55,7 @@ public:
     static constexpr unsigned int DEFAULT_WINDOW_HEIGHT = 720;
 
 public:
-    ThemeChoice theme { ThemeChoice_Dark };
+    ThemeChoice theme { ThemeChoice::Dark };
 
     std::string imageEditorPath { "" };
 
@@ -72,11 +72,11 @@ public:
 
     unsigned updateRate { 120 };
 
-    BackupBehaviour backupBehaviour { BackupBehaviour_Save };
+    BackupBehaviour backupBehaviour { BackupBehaviour::Save };
 
     unsigned compressionLevel { 9 };
 
-    ETC1Quality etc1Quality { ETC1Quality_Medium };
+    ETC1Quality etc1Quality { ETC1Quality::Medium };
 
     bool allowNewAnimCreate { false };
 
@@ -132,7 +132,7 @@ public:
 };
 
 class ConfigManager : public Singleton<ConfigManager> {
-    friend class Singleton<ConfigManager>; // Allow access to base class constructor
+    friend class Singleton<ConfigManager>;
 
 private:
     ConfigManager() = default;
@@ -140,12 +140,10 @@ public:
     ~ConfigManager() = default;
 
 public:
-
-public:
-    const Config& getConfig() const { return this->config; }
+    const Config& getConfig() const { return mConfig; }
     void setConfig(const Config& newConfig) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        config = newConfig;
+        std::lock_guard<std::mutex> lock(mMtx);
+        mConfig = newConfig;
     }
 
     void LoadConfig();
@@ -156,12 +154,12 @@ public:
     void addRecentlyOpened(const std::string_view path);
 
 private:
-    Config config {};
+    Config mConfig {};
 
-    bool firstTime { false };
-    std::string configPath { "toast.config.json" };
+    bool mFirstTime { false };
+    std::string mConfigPath { "toast.config.json" };
 
-    std::mutex mtx;
+    std::mutex mMtx;
 };
 
 #endif // CONFIGMANAGER_HPP

@@ -34,12 +34,12 @@
 #include "common.hpp"
 
 void SessionManager::setCurrentSessionIndex(int sessionIndex) {
-    std::lock_guard<std::mutex> lock(this->mtx);
+    std::lock_guard<std::mutex> lock(mMtx);
 
-    if (sessionIndex >= this->sessions.size())
+    if (sessionIndex >= mSessions.size())
         return;
 
-    this->currentSessionIndex = sessionIndex;
+    mCurrentSessionIndex = sessionIndex;
 
     PlayerManager::getInstance().correctState();
 
@@ -50,12 +50,12 @@ static SessionManager::Error InitRvlSession(
     Session& session, const DARCH::DARCHObject& archive
 ) {
     auto rootDirIt = std::find_if(
-        archive.structure.subdirectories.begin(),
-        archive.structure.subdirectories.end(),
+        archive.getStructure().subdirectories.begin(),
+        archive.getStructure().subdirectories.end(),
         [](const Archive::Directory& dir) { return dir.name == "."; }
     );
 
-    if (rootDirIt == archive.structure.subdirectories.end()) {
+    if (rootDirIt == archive.getStructure().subdirectories.end()) {
         return SessionManager::OpenError_RootDirNotFound;
     }
 
@@ -104,7 +104,7 @@ static SessionManager::Error InitRvlSession(
 
     session.cellanims.resize(brcadFiles.size());
 
-    session.sheets->getVector().reserve(tplObject.textures.size());
+    session.sheets->getVector().reserve(tplObject.mTextures.size());
 
     // Cellanims
     for (unsigned i = 0; i < brcadFiles.size(); i++) {
@@ -166,9 +166,9 @@ static SessionManager::Error InitRvlSession(
                 if (commentPos != std::string::npos)
                     key = key.substr(0, commentPos);
 
-                auto& animations = session.cellanims[i].object->animations;
+                auto& animations = session.cellanims[i].object->getAnimations();
                 if (value < animations.size()) {
-                    auto& animation = session.cellanims[i].object->animations.at(value);
+                    auto& animation = session.cellanims[i].object->getAnimation(value);
 
                     // +1 because of the trailing underscore.
                     animation.name = key.substr(cellanimNameLen + 1);
@@ -182,9 +182,7 @@ static SessionManager::Error InitRvlSession(
     //       GL context to create GPU textures. This can be outside of a MainThreadTask
     //       but then it would use multiple MainThreadTasks instead of just one.
     MainThreadTaskManager::getInstance().QueueTask([&tplObject, &session]() {
-        for (unsigned i = 0; i < tplObject.textures.size(); i++) {
-            auto& texture = tplObject.textures[i];
-
+        for (auto& texture : tplObject.mTextures) {
             std::shared_ptr<Texture> sheet = std::make_shared<Texture>(
                 texture.width, texture.height,
                 texture.createGPUTexture()
@@ -216,22 +214,22 @@ static SessionManager::Error InitCtrSession(
     // Every layout archive has the directory "blyt". If this directory exists
     // we should throw an error
     auto blytDirIt = std::find_if(
-        archive.structure.subdirectories.begin(),
-        archive.structure.subdirectories.end(),
+        archive.getStructure().subdirectories.begin(),
+        archive.getStructure().subdirectories.end(),
         [](const Archive::Directory& dir) { return dir.name == "blyt"; }
     );
 
-    if (blytDirIt != archive.structure.subdirectories.end()) {
+    if (blytDirIt != archive.getStructure().subdirectories.end()) {
         return SessionManager::OpenError_LayoutArchive;
     }
 
     auto rootDirIt = std::find_if(
-        archive.structure.subdirectories.begin(),
-        archive.structure.subdirectories.end(),
+        archive.getStructure().subdirectories.begin(),
+        archive.getStructure().subdirectories.end(),
         [](const Archive::Directory& dir) { return dir.name == "arc"; }
     );
 
-    if (rootDirIt == archive.structure.subdirectories.end())
+    if (rootDirIt == archive.getStructure().subdirectories.end())
         return SessionManager::OpenError_RootDirNotFound;
 
     std::vector<const Archive::File*> bccadFiles;
@@ -302,7 +300,7 @@ static SessionManager::Error InitCtrSession(
         )
             return SessionManager::OpenError_FailOpenBXCAD;
 
-        cellanim.object->sheetIndex = i;
+        cellanim.object->setSheetIndex(i);
     }
 
     // Sheets
@@ -323,12 +321,12 @@ static SessionManager::Error InitCtrSession(
                 return;
             }
 
-            if (ctpkObject.textures.empty()) {
+            if (ctpkObject.mTextures.empty()) {
                 sheetsError = SessionManager::OpenError_NoCTPKTextures;
                 return;
             }
 
-            auto& texture = ctpkObject.textures[0];
+            auto& texture = ctpkObject.mTextures[0];
             texture.rotateCCW();
 
             std::shared_ptr<Texture> sheet = std::make_shared<Texture>(
@@ -356,8 +354,8 @@ static SessionManager::Error InitCtrSession(
 
 int SessionManager::CreateSession(std::string_view filePath) {
     if (!Files::doesFileExist(filePath)) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_FileDoesNotExist;
+        std::lock_guard<std::mutex> lock(mMtx);
+        mCurrentError = OpenError_FileDoesNotExist;
 
         return -1;
     }
@@ -371,8 +369,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
         if (!file.is_open()) {
             Logging::err << "[SessionManager::CreateSession] Error opening file at path: " << filePath << std::endl;
 
-            std::lock_guard<std::mutex> lock(this->mtx);
-            this->currentError = OpenError_FailOpenFile;
+            std::lock_guard<std::mutex> lock(mMtx);
+            mCurrentError = OpenError_FailOpenFile;
 
             return -1;
         }
@@ -395,8 +393,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
         if (!decompressedData.has_value()) {
             Logging::err << "[SessionManager::CreateSession] Failed to decompress Yaz0 data!" << std::endl;
 
-            std::lock_guard<std::mutex> lock(this->mtx);
-            this->currentError = OpenError_FailOpenArchive;
+            std::lock_guard<std::mutex> lock(mMtx);
+            mCurrentError = OpenError_FailOpenArchive;
 
             return -1;
         }
@@ -408,8 +406,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
 
         const auto decompressedData = NZlib::decompress(data.data(), data.size());
         if (!decompressedData.has_value()) {
-            std::lock_guard<std::mutex> lock(this->mtx);
-            this->currentError = OpenError_FailOpenArchive;
+            std::lock_guard<std::mutex> lock(mMtx);
+            mCurrentError = OpenError_FailOpenArchive;
 
             return -1;
         }
@@ -417,8 +415,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
         data = std::move(*decompressedData);
     }
     else {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = OpenError_FailOpenArchive;
+        std::lock_guard<std::mutex> lock(mMtx);
+        mCurrentError = OpenError_FailOpenArchive;
 
         return -1;
     }
@@ -470,8 +468,8 @@ int SessionManager::CreateSession(std::string_view filePath) {
     }
 
     if (initError != Error_None) {
-        std::lock_guard<std::mutex> lock(this->mtx);
-        this->currentError = initError;
+        std::lock_guard<std::mutex> lock(mMtx);
+        mCurrentError = initError;
 
         return -1;
     }
@@ -481,17 +479,17 @@ int SessionManager::CreateSession(std::string_view filePath) {
     newSession.resourcePath = filePath;
     newSession.setCurrentCellAnimIndex(0);
 
-    std::lock_guard<std::mutex> lock(this->mtx);
+    std::lock_guard<std::mutex> lock(mMtx);
 
-    this->sessions.push_back(std::move(newSession));
-    const int sessionIndex = this->sessions.size() - 1;
+    mSessions.push_back(std::move(newSession));
+    const int sessionIndex = mSessions.size() - 1;
 
-    this->currentError = Error_None;
+    mCurrentError = Error_None;
 
     Logging::info <<
         "[SessionManager::CreateSession] Created session no. " << sessionIndex+1 << '.' << std::endl;
 
-    return static_cast<int>(this->sessions.size() - 1);
+    return static_cast<int>(mSessions.size() - 1);
 }
 
 static SessionManager::Error SerializeRvlSession(
@@ -499,8 +497,8 @@ static SessionManager::Error SerializeRvlSession(
 ) {
     DARCH::DARCHObject archive;
 
-    archive.structure.AddDirectory(Archive::Directory("."));
-    auto& directory = archive.structure.subdirectories.back();
+    archive.getStructure().AddDirectory(Archive::Directory("."));
+    auto& directory = archive.getStructure().subdirectories.back();
 
     // BRCAD files
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
@@ -511,10 +509,10 @@ static SessionManager::Error SerializeRvlSession(
         Logging::info <<
             "[SerializeRvlSession] Serializing cellanim \"" << cellanim.name << "\".." << std::endl;
 
-        const auto& sheet = session.sheets->getTextureByIndex(session.cellanims[i].object->sheetIndex);
+        const auto& sheet = session.sheets->getTextureByIndex(session.cellanims[i].object->getSheetIndex());
 
         // Make sure usePalette is synced.
-        session.cellanims[i].object->usePalette = TPL::getImageFormatPaletted(sheet->getTPLOutputFormat());
+        session.cellanims[i].object->setUsePalette(TPL::getImageFormatPaletted(sheet->getTPLOutputFormat()));
 
         file.data = session.cellanims[i].object->Serialize();
 
@@ -533,8 +531,8 @@ static SessionManager::Error SerializeRvlSession(
             "[SerializeRvlSession] Writing label header for cellanim \"" << cellanimName << "\".." << std::endl;
 
         std::ostringstream stream;
-        for (unsigned j = 0; j < session.cellanims[i].object->animations.size(); j++) {
-            const auto& animation = session.cellanims[i].object->animations[j];
+        for (unsigned j = 0; j < session.cellanims[i].object->getAnimations().size(); j++) {
+            const auto& animation = session.cellanims[i].object->getAnimation(j);
             if (animation.name.empty())
                 continue;
 
@@ -556,7 +554,7 @@ static SessionManager::Error SerializeRvlSession(
 
         SessionManager::Error error { SessionManager::Error_None };
         MainThreadTaskManager::getInstance().QueueTask([&session, &tplObject, &error]() {
-            tplObject.textures.resize(session.sheets->getTextureCount());
+            tplObject.mTextures.resize(session.sheets->getTextureCount());
             for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
                 auto tplTexture = session.sheets->getTextureByIndex(i)->TPLTexture();
                 if (!tplTexture.has_value()) {
@@ -564,7 +562,7 @@ static SessionManager::Error SerializeRvlSession(
                     return;
                 }
 
-                tplObject.textures[i] = std::move(*tplTexture);
+                tplObject.mTextures[i] = std::move(*tplTexture);
             }
         }).get();
 
@@ -617,8 +615,8 @@ static SessionManager::Error SerializeCtrSession(
 ) {
     SARC::SARCObject archive;
 
-    archive.structure.AddDirectory(Archive::Directory("arc"));
-    auto& directory = archive.structure.subdirectories.back();
+    archive.getStructure().AddDirectory(Archive::Directory("arc"));
+    auto& directory = archive.getStructure().subdirectories.back();
 
     // BCCAD files
     for (unsigned i = 0; i < session.cellanims.size(); i++) {
@@ -665,7 +663,7 @@ static SessionManager::Error SerializeCtrSession(
         ctpkTex.sourcePath = "data/" + texture->getName() + "_rot.tga";
 
         CTPK::CTPKObject ctpkObject;
-        ctpkObject.textures.assign(1, std::move(ctpkTex));
+        ctpkObject.mTextures.assign(1, std::move(ctpkTex));
 
         Logging::info << "[SerializeCtrSession] Serializing texture \"" << texture->getName() << "\".." << std::endl;
 
@@ -709,12 +707,12 @@ static SessionManager::Error SerializeCtrSession(
 }
 
 bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFilePath) {
-    std::lock_guard<std::mutex> lock(this->mtx);
+    std::lock_guard<std::mutex> lock(mMtx);
 
-    if (sessionIndex >= this->sessions.size())
+    if (sessionIndex >= mSessions.size())
         return false;
 
-    auto& session = this->sessions[sessionIndex];
+    auto& session = mSessions[sessionIndex];
 
     if (dstFilePath.empty())
         dstFilePath = session.resourcePath;
@@ -741,7 +739,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
     }
 
     if (error != Error_None) {
-        this->currentError = error;
+        mCurrentError = error;
         return false;
     }
 
@@ -749,7 +747,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
 
     if (
         Files::doesFileExist(dstFilePath) && 
-        configManager.getConfig().backupBehaviour != BackupBehaviour_None
+        configManager.getConfig().backupBehaviour != BackupBehaviour::None
     ) {
         std::string backupPath = std::string(dstFilePath) + ".bak";
 
@@ -758,12 +756,12 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
 
         bool success = Files::copyFile(
             dstFilePath, backupPath,
-            configManager.getConfig().backupBehaviour == BackupBehaviour_SaveOverwrite
+            configManager.getConfig().backupBehaviour == BackupBehaviour::SaveOverwrite
         );
 
         if (!success) {
             Logging::err << "[SessionManager::ExportSession] Failed to save backup of file! Aborting.." << std::endl;
-            this->currentError = OutError_FailBackupFile;
+            mCurrentError = OutError_FailBackupFile;
             return false;
         }
     }
@@ -778,7 +776,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         file.close();
     }
     else {
-        this->currentError = OutError_FailOpenFile;
+        mCurrentError = OutError_FailOpenFile;
         return false;
     }
 
@@ -791,22 +789,22 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
 }
 
 void SessionManager::RemoveSession(unsigned sessionIndex) {
-    std::lock_guard<std::mutex> lock(this->mtx);
+    std::lock_guard<std::mutex> lock(mMtx);
 
-    if (sessionIndex >= this->sessions.size())
+    if (sessionIndex >= mSessions.size())
         return;
 
     Logging::info << "[SessionManager::RemoveSession] Removing session no. " << sessionIndex+1 << ".." << std::endl;
 
-    auto sessionIt = this->sessions.begin() + sessionIndex;
-    this->sessions.erase(sessionIt);
+    auto sessionIt = mSessions.begin() + sessionIndex;
+    mSessions.erase(sessionIt);
 
-    if (this->sessions.empty())
-        this->currentSessionIndex = -1;
+    if (mSessions.empty())
+        mCurrentSessionIndex = -1;
     else {
-        this->currentSessionIndex = std::min(
-            this->currentSessionIndex,
-            static_cast<int>(this->sessions.size()) - 1
+        mCurrentSessionIndex = std::min(
+            mCurrentSessionIndex,
+            static_cast<int>(mSessions.size()) - 1
         );
 
         PlayerManager::getInstance().correctState();
@@ -814,12 +812,12 @@ void SessionManager::RemoveSession(unsigned sessionIndex) {
 }
 
 void SessionManager::RemoveAllSessions() {
-    std::lock_guard<std::mutex> lock(this->mtx);
+    std::lock_guard<std::mutex> lock(mMtx);
 
-    unsigned sessionCount = this->sessions.size();
+    unsigned sessionCount = mSessions.size();
 
-    this->sessions.clear();
-    this->currentSessionIndex = -1;
+    mSessions.clear();
+    mCurrentSessionIndex = -1;
 
     if (sessionCount != 0)
         Logging::info << "[SessionManager::RemoveAllSessions] Removed all sessions (" << sessionCount << ")." << std::endl;

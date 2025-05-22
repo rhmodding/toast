@@ -48,7 +48,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
         const CellAnim::ArrangementPart& part =
             sessionManager.getCurrentSession()
                 ->getCurrentCellAnim().object
-                ->arrangements.at(arrangementIndex).parts.at(partIndex);
+                ->getArrangement(arrangementIndex).parts.at(partIndex);
 
         if (!part.editorName.empty())
             newName = part.editorName;
@@ -69,7 +69,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
             CellAnim::ArrangementPart newPart =
                 sessionManager.getCurrentSession()
                 ->getCurrentCellAnim().object
-                ->arrangements.at(arrangementIndex).parts.at(partIndex);
+                ->getArrangement(arrangementIndex).parts.at(partIndex);
 
             newPart.editorName = newName;
 

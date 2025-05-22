@@ -14,16 +14,16 @@ public:
     CommandDeleteAnimationKey(
         unsigned cellanimIndex, unsigned animationIndex, unsigned keyIndex
     ) :
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex)
+        mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex), mKeyIndex(keyIndex)
     {
-        this->key = this->getKey();
+        mKey = getKey();
     }
     ~CommandDeleteAnimationKey() = default;
 
     void Execute() override {
-        CellAnim::Animation& animation = this->getAnimation();
+        CellAnim::Animation& animation = getAnimation();
 
-        auto it = animation.keys.begin() + this->keyIndex;
+        auto it = animation.keys.begin() + mKeyIndex;
         animation.keys.erase(it);
 
         PlayerManager::getInstance().correctState();
@@ -32,10 +32,10 @@ public:
     }
 
     void Rollback() override {
-        CellAnim::Animation& animation = this->getAnimation();
+        CellAnim::Animation& animation = getAnimation();
 
-        auto it = animation.keys.begin() + this->keyIndex;
-        animation.keys.insert(it, this->key);
+        auto it = animation.keys.begin() + mKeyIndex;
+        animation.keys.insert(it, mKey);
 
         PlayerManager::getInstance().correctState();
 
@@ -43,25 +43,21 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned animationIndex;
-    unsigned keyIndex;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndex;
+    unsigned mKeyIndex;
 
-    CellAnim::AnimationKey key;
-
-    CellAnim::AnimationKey& getKey() {
-        return
-            SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->animations.at(this->animationIndex)
-            .keys.at(this->keyIndex);
-    }
+    CellAnim::AnimationKey mKey;
 
     CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->animations.at(this->animationIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimation(mAnimationIndex);
+    }
+
+    CellAnim::AnimationKey& getKey() {
+        return getAnimation().keys.at(mKeyIndex);
     }
 };
 

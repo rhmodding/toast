@@ -40,7 +40,7 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
             Session* currentSession = sessionManager.getCurrentSession();
 
             std::vector<CellAnim::Arrangement> newArrangements =
-                currentSession->getCurrentCellAnim().object->arrangements;
+                currentSession->getCurrentCellAnim().object->getArrangements();
 
             float scaleX =
                 static_cast<float>(currentSession->getCurrentCellAnimSheet()->getWidth()) /

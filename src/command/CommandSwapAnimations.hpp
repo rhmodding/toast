@@ -18,41 +18,39 @@ public:
         unsigned animationIndexA, unsigned animationIndexB,
         bool swapNames
     ) :
-        cellanimIndex(cellanimIndex),
-        animationIndexA(animationIndexA), animationIndexB(animationIndexB),
-        swapNames(swapNames)
+        mCellAnimIndex(cellanimIndex),
+        mAnimationIndexA(animationIndexA), mAnimationIndexB(animationIndexB),
+        mSwapNames(swapNames)
     {}
     ~CommandSwapAnimations() = default;
 
     void Execute() override {
         std::swap(
-            this->getAnimations().at(animationIndexA),
-            this->getAnimations().at(animationIndexB)
+            getAnimations().at(mAnimationIndexA), getAnimations().at(mAnimationIndexB)
         );
 
-        if (!this->swapNames) {
+        if (!mSwapNames) {
             std::swap(
-                this->getAnimations().at(animationIndexA).name,
-                this->getAnimations().at(animationIndexB).name
+                getAnimations().at(mAnimationIndexA).name, getAnimations().at(mAnimationIndexB).name
             );
         }
 
-        this->updateAnimationState();
+        updateAnimationState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
     void Rollback() override {
         // Re-swap
-        this->Execute();
+        Execute();
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned animationIndexA;
-    unsigned animationIndexB;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndexA;
+    unsigned mAnimationIndexB;
 
-    bool swapNames;
+    bool mSwapNames;
 
     void updateAnimationState() {
         PlayerManager& playerManager = PlayerManager::getInstance();
@@ -63,12 +61,12 @@ private:
         unsigned currentAnimation = playerManager.getAnimationIndex();
 
         if (
-            currentAnimation == animationIndexA ||
-            currentAnimation == animationIndexB
+            currentAnimation == mAnimationIndexA ||
+            currentAnimation == mAnimationIndexB
         ) {
             newSelectedAnimation =
-                currentAnimation == animationIndexA ? animationIndexB :
-                currentAnimation == animationIndexB ? animationIndexA :
+                currentAnimation == mAnimationIndexA ? mAnimationIndexB :
+                currentAnimation == mAnimationIndexB ? mAnimationIndexA :
                 currentAnimation;
 
             selectedDifferentAnimation = newSelectedAnimation != currentAnimation;
@@ -84,8 +82,8 @@ private:
     std::vector<CellAnim::Animation>& getAnimations() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->animations;
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimations();
     }
 };
 

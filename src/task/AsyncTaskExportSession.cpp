@@ -12,8 +12,8 @@ AsyncTaskExportSession::AsyncTaskExportSession(
 ) :
     AsyncTask(id, "Exporting session.."),
 
-    sessionIndex(sessionIndex), filePath(std::move(filePath)),
-    useSessionPath(false)
+    mSessionIndex(sessionIndex), mFilePath(std::move(filePath)),
+    mUseSessionPath(false)
 {}
 
 AsyncTaskExportSession::AsyncTaskExportSession(
@@ -22,32 +22,34 @@ AsyncTaskExportSession::AsyncTaskExportSession(
 ) :
     AsyncTask(id, "Exporting session.."),
 
-    sessionIndex(sessionIndex),
-    useSessionPath(true)
+    mSessionIndex(sessionIndex),
+    mUseSessionPath(true)
 {}
 
 void AsyncTaskExportSession::Run() {
     std::string_view dstFilePath = "";
-    if (!this->useSessionPath)
-        dstFilePath = this->filePath;
+    if (!mUseSessionPath) {
+        dstFilePath = mFilePath;
+    }
 
     bool exportResult = SessionManager::getInstance().ExportSession(
-        this->sessionIndex, dstFilePath
+        mSessionIndex, dstFilePath
     );
-    this->result.store(exportResult);
+    mResult.store(exportResult);
 }
 
 void AsyncTaskExportSession::Effect() {
-    if (!this->result) {
+    if (!mResult) {
         OPEN_GLOBAL_POPUP("###SessionErr");
         return;
     }
 
-    auto& session = SessionManager::getInstance().sessions.at(this->sessionIndex);
-    if (!this->useSessionPath)
-        session.resourcePath = this->filePath;
+    auto& session = SessionManager::getInstance().getSession(mSessionIndex);
+    if (!mUseSessionPath) {
+        session.resourcePath = mFilePath;
+    }
 
     ConfigManager::getInstance().addRecentlyOpened(
-        this->useSessionPath ? session.resourcePath : this->filePath
+        mUseSessionPath ? session.resourcePath : mFilePath
     );
 }

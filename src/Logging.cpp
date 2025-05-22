@@ -43,11 +43,11 @@ std::string Logging::LogStream::getTimestamp() {
 
 void Logging::LogStream::flush() {
     const std::string timestamp = getTimestamp();
-    const std::string finalMessage = timestamp + " " + logPrefix + buffer.str();
+    const std::string finalMessage = timestamp + " " + mLogPrefix + mBuffer.str();
 
-    if (outStream) {
-        outStream << finalMessage << '\n';
-        outStream.flush();
+    if (mOutStream) {
+        mOutStream << finalMessage << '\n';
+        mOutStream.flush();
     }
 
     if (logFile.is_open()) {
@@ -55,8 +55,8 @@ void Logging::LogStream::flush() {
         logFile.flush();
     }
 
-    buffer.str({});
-    buffer.clear();
+    mBuffer.str({});
+    mBuffer.clear();
 }
 
 void Logging::Open(std::string_view filename) {

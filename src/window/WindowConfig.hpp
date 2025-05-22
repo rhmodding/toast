@@ -9,12 +9,13 @@ class WindowConfig : public BaseWindow {
 public:
     void Update() override;
 
-    bool open { false };
+public:
+    bool mOpen { false };
 
-    Config selfConfig;
+    Config mMyConfig;
 
 private:
-    bool firstOpen { true };
+    bool mFirstOpen { true };
 };
 
 #endif // WINDOWCONFIG_HPP

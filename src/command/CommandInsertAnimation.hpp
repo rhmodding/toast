@@ -16,16 +16,16 @@ public:
         unsigned animationIndex,
         CellAnim::Animation animation
     ) :
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex),
-        animation(animation)
+        mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex),
+        mAnimation(animation)
     {}
     ~CommandInsertAnimation() = default;
 
     void Execute() override {
-        auto& animations = this->getCellAnim()->animations;
+        auto& animations = getCellAnim()->getAnimations();
 
-        auto it = animations.begin() + this->animationIndex;
-        animations.insert(it, this->animation);
+        auto it = animations.begin() + mAnimationIndex;
+        animations.insert(it, mAnimation);
 
         PlayerManager::getInstance().correctState();
 
@@ -33,9 +33,9 @@ public:
     }
 
     void Rollback() override {
-        auto& animations = this->getCellAnim()->animations;
+        auto& animations = getCellAnim()->getAnimations();
 
-        auto it = animations.begin() + this->animationIndex;
+        auto it = animations.begin() + mAnimationIndex;
         animations.erase(it);
 
         PlayerManager::getInstance().correctState();
@@ -44,14 +44,14 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned animationIndex;
-    CellAnim::Animation animation;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndex;
+    CellAnim::Animation mAnimation;
 
     std::shared_ptr<CellAnim::CellAnimObject> getCellAnim() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object;
+            ->cellanims.at(mCellAnimIndex).object;
     }
 };
 

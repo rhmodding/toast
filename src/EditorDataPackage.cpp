@@ -92,7 +92,7 @@ static CellAnim::ArrangementPart* _TedGetPart(
             return nullptr;
         }
 
-        auto& arrangements = session.cellanims.at(cellIndex).object->arrangements;
+        auto& arrangements = session.cellanims.at(cellIndex).object->getArrangements();
         if (arrngIndex >= arrangements.size()) {
             Logging::err <<
                 "[TedApply] Invalid editor data binary: oob arrangement index!:"
@@ -354,8 +354,8 @@ unsigned TedPrepareWrite(TedWriteState* state) {
     for (uint16_t i = 0; i < state->session.cellanims.size(); i++) {
         const std::shared_ptr cellanim = state->session.cellanims[i].object;
 
-        for (uint16_t j = 0; j < cellanim->arrangements.size(); j++) {
-            const auto& arrangement = cellanim->arrangements[j];
+        for (uint16_t j = 0; j < cellanim->getArrangements().size(); j++) {
+            const auto& arrangement = cellanim->getArrangement(j);
 
             for (uint16_t n = 0; n < arrangement.parts.size(); n++) {
                 const auto& part = arrangement.parts[n];

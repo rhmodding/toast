@@ -32,26 +32,24 @@ void WindowInspector::drawPreview() {
 
     const auto& currentSession = SessionManager::getInstance().getCurrentSession();
 
-    this->previewRenderer.linkCellAnim(currentSession->getCurrentCellAnim().object);
-    this->previewRenderer.linkTextureGroup(currentSession->sheets);
+    mBoxPreviewRenderer.linkCellAnim(currentSession->getCurrentCellAnim().object);
+    mBoxPreviewRenderer.linkTextureGroup(currentSession->sheets);
 
-    this->previewRenderer.scaleX = 1.f;
-    this->previewRenderer.scaleY = 1.f;
+    mBoxPreviewRenderer.setScale(ImVec2(1.f, 1.f));
 
-    ImRect keyRect = this->previewRenderer.getKeyWorldRect(playerManager.getKey());
+    ImRect keyRect = mBoxPreviewRenderer.getKeyWorldRect(playerManager.getKey());
 
     float scaleX = canvasSize.x / keyRect.GetWidth();
     float scaleY = canvasSize.y / keyRect.GetHeight();
 
-    this->previewRenderer.offset = { 0.f, 0.f };
-    this->previewRenderer.scaleX = std::min(scaleX, scaleY);
-    this->previewRenderer.scaleY = this->previewRenderer.scaleX;
+    mBoxPreviewRenderer.setOffset(ImVec2(0.f, 0.f));
+    mBoxPreviewRenderer.setScale(ImVec2(std::min(scaleX, scaleY), std::min(scaleX, scaleY)));
 
     // Recalculate
-    ImVec2 keyCenter = this->previewRenderer.getKeyWorldRect(playerManager.getKey()).GetCenter();
-    this->previewRenderer.offset = { origin.x - keyCenter.x, origin.y - keyCenter.y };
+    ImVec2 keyCenter = mBoxPreviewRenderer.getKeyWorldRect(playerManager.getKey()).GetCenter();
+    mBoxPreviewRenderer.setOffset(ImVec2(origin.x - keyCenter.x, origin.y - keyCenter.y));
 
-    this->previewRenderer.Draw(drawList, playerManager.getAnimation(), playerManager.getKeyIndex());
+    mBoxPreviewRenderer.Draw(drawList, playerManager.getAnimation(), playerManager.getKeyIndex());
 
     drawList->PopClipRect();
 
@@ -69,7 +67,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
 
     if (ImGui::Button("Make arrangement unique (duplicate)")) {
         newKey.arrangementIndex = std::distance(
-            cellAnim.arrangements.begin(),
+            cellAnim.getArrangements().begin(),
             cellAnim.duplicateArrangement(originalKey.arrangementIndex)
         );
     }
@@ -89,7 +87,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
 
         if (ImGui::Selectable("Ok")) {
             newKey.arrangementIndex = std::distance(
-                cellAnim.arrangements.begin(),
+                cellAnim.getArrangements().begin(),
                 cellAnim.duplicateArrangement(originalKey.arrangementIndex)
             );
         }
@@ -107,46 +105,46 @@ void WindowInspector::Update() {
 
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar | (
         (
-            inspectorLevel == InspectorLevel_Arrangement ||
-            inspectorLevel == InspectorLevel_Arrangement_Im
+            mInspectorLevel == InspectorLevel_Arrangement ||
+            mInspectorLevel == InspectorLevel_Arrangement_Im
         ) ?
             ImGuiWindowFlags_NoScrollbar :
             ImGuiWindowFlags_None
     ));
 
-    this->windowSize = ImGui::GetContentRegionAvail();
+    mWindowSize = ImGui::GetContentRegionAvail();
 
     auto session = SessionManager::getInstance().getCurrentSession();
     const bool arrangementMode = session->arrangementMode;
 
-    // Sync inspectorLevel with arrangementMode if needed
-    if (inspectorLevel == InspectorLevel_Arrangement && !arrangementMode)
-        inspectorLevel = InspectorLevel_Arrangement_Im;
-    else if (inspectorLevel != InspectorLevel_Arrangement && arrangementMode)
-        inspectorLevel = InspectorLevel_Arrangement;
+    // Sync mInspectorLevel with arrangementMode if needed
+    if (mInspectorLevel == InspectorLevel_Arrangement && !arrangementMode)
+        mInspectorLevel = InspectorLevel_Arrangement_Im;
+    else if (mInspectorLevel != InspectorLevel_Arrangement && arrangementMode)
+        mInspectorLevel = InspectorLevel_Arrangement;
 
     if (ImGui::BeginMenuBar()) {
-        InspectorLevel newLevel = inspectorLevel;
-        bool newFocus = appState.focusOnSelectedPart;
+        InspectorLevel newLevel = mInspectorLevel;
+        bool newFocus = appState.mFocusOnSelectedPart;
 
-        if (ImGui::MenuItem("Animation", nullptr, inspectorLevel == InspectorLevel_Animation)) {
+        if (ImGui::MenuItem("Animation", nullptr, mInspectorLevel == InspectorLevel_Animation)) {
             newLevel = InspectorLevel_Animation;
             newFocus = false;
         }
-        if (ImGui::MenuItem("Key", nullptr, inspectorLevel == InspectorLevel_Key)) {
+        if (ImGui::MenuItem("Key", nullptr, mInspectorLevel == InspectorLevel_Key)) {
             newLevel = InspectorLevel_Key;
             newFocus = false;
         }
-        if (ImGui::MenuItem("Arrangement", nullptr, inspectorLevel == InspectorLevel_Arrangement_Im)) {
+        if (ImGui::MenuItem("Arrangement", nullptr, mInspectorLevel == InspectorLevel_Arrangement_Im)) {
             newLevel = InspectorLevel_Arrangement_Im;
             newFocus = true;
         }
-        if (ImGui::MenuItem("Arrangement (All)", nullptr, inspectorLevel == InspectorLevel_Arrangement)) {
+        if (ImGui::MenuItem("Arrangement (All)", nullptr, mInspectorLevel == InspectorLevel_Arrangement)) {
             newLevel = InspectorLevel_Arrangement;
             newFocus = true;
         }
 
-        if (newLevel != inspectorLevel) {
+        if (newLevel != mInspectorLevel) {
             bool changingToArrangementMode = (newLevel == InspectorLevel_Arrangement);
             if (arrangementMode != changingToArrangementMode) {
                 session->addCommand(
@@ -154,18 +152,18 @@ void WindowInspector::Update() {
                 );
             }
 
-            inspectorLevel = newLevel;
-            appState.focusOnSelectedPart = newFocus;
+            mInspectorLevel = newLevel;
+            appState.mFocusOnSelectedPart = newFocus;
         }
 
         ImGui::EndMenuBar();
     }
 
-    if (arrangementMode || inspectorLevel == InspectorLevel_Arrangement_Im) {
+    if (arrangementMode || mInspectorLevel == InspectorLevel_Arrangement_Im) {
         Level_Arrangement();
     }
     else {
-        switch (inspectorLevel) {
+        switch (mInspectorLevel) {
         case InspectorLevel_Animation:
             Level_Animation();
             break;

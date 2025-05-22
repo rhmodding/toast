@@ -18,25 +18,24 @@ public:
         unsigned cellanimIndex, unsigned animationIndex, unsigned keyIndex,
         bool moveDown, bool preserveHold
     ) :
-        moveDown(moveDown), preserveHold(preserveHold),
-        cellanimIndex(cellanimIndex), animationIndex(animationIndex), keyIndex(keyIndex)
+        mMoveDown(moveDown), mPreserveHold(preserveHold),
+        mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex), mKeyIndex(keyIndex)
     {}
     ~CommandMoveAnimationKey() = default;
 
     void Execute() override {
-        CellAnim::Animation& animation = this->getAnimation();
+        CellAnim::Animation& animation = getAnimation();
 
-        // An signed int is used since nSwap can be negative.
-        int nSwap = this->keyIndex + (moveDown ? -1 : 1);
+        int nSwap = mKeyIndex + (mMoveDown ? -1 : 1);
         if (nSwap >= 0 && nSwap < static_cast<int>(animation.keys.size())) {
             std::swap(
-                animation.keys.at(this->keyIndex),
+                animation.keys.at(mKeyIndex),
                 animation.keys.at(nSwap)
             );
 
-            if (this->preserveHold)
+            if (mPreserveHold)
                 std::swap(
-                    animation.keys.at(this->keyIndex).holdFrames,
+                    animation.keys.at(mKeyIndex).holdFrames,
                     animation.keys.at(nSwap).holdFrames
                 );
         }
@@ -45,18 +44,18 @@ public:
     }
 
     void Rollback() override {
-        CellAnim::Animation& animation = this->getAnimation();
+        CellAnim::Animation& animation = getAnimation();
 
-        int nSwap = this->keyIndex + (moveDown ? -1 : 1);
+        int nSwap = mKeyIndex + (mMoveDown ? -1 : 1);
         if (nSwap >= 0 && nSwap < static_cast<int>(animation.keys.size())) {
             std::swap(
-                animation.keys.at(this->keyIndex),
+                animation.keys.at(mKeyIndex),
                 animation.keys.at(nSwap)
             );
 
-            if (this->preserveHold)
+            if (mPreserveHold)
                 std::swap(
-                    animation.keys.at(this->keyIndex).holdFrames,
+                    animation.keys.at(mKeyIndex).holdFrames,
                     animation.keys.at(nSwap).holdFrames
                 );
         }
@@ -65,19 +64,19 @@ public:
     }
 
 private:
-    bool moveDown;
+    unsigned mCellAnimIndex;
+    unsigned mAnimationIndex;
+    unsigned mKeyIndex;
 
-    bool preserveHold;
+    bool mMoveDown;
 
-    unsigned cellanimIndex;
-    unsigned animationIndex;
-    unsigned keyIndex;
+    bool mPreserveHold;
 
     CellAnim::Animation& getAnimation() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->animations.at(this->animationIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getAnimation(mAnimationIndex);
     }
 };
 

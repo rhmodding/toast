@@ -98,7 +98,7 @@ static void Popup_SwapAnimation(int animationIndex) {
             float beginCursorY = ImGui::GetCursorPosY();
 
             const auto& animations = sessionManager.getCurrentSession()
-                ->getCurrentCellAnim().object->animations;
+                ->getCurrentCellAnim().object->getAnimations();
 
             for (int n = 0; n < static_cast<int>(animations.size()); n++) {
                 std::ostringstream fmtStream;

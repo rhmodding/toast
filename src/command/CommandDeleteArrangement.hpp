@@ -14,27 +14,28 @@ public:
     CommandDeleteArrangement(
         unsigned cellanimIndex, unsigned arrangementIndex
     ) :
-        cellanimIndex(cellanimIndex), arrangementIndex(arrangementIndex)
+        mCellAnimIndex(cellanimIndex), mArrangementIndex(arrangementIndex)
     {
-        this->arrangement = this->getArrangement();
+        mArrangement = getArrangement();
     }
     ~CommandDeleteArrangement() = default;
 
     void Execute() override {
-        auto& arrangements = this->getArrangements();
+        auto& arrangements = getArrangements();
 
-        auto it = arrangements.begin() + this->arrangementIndex;
+        auto it = arrangements.begin() + mArrangementIndex;
         arrangements.erase(it);
 
-        for (
-            auto& animation :
-            SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object->animations
-        ) for (auto& key : animation.keys) {
-            if (key.arrangementIndex > arrangementIndex)
-                key.arrangementIndex--;
-            else if (key.arrangementIndex == arrangementIndex)
-                key.arrangementIndex = 0;
+        auto& animations = SessionManager::getInstance().getCurrentSession()
+            ->cellanims.at(mCellAnimIndex).object->getAnimations();
+
+        for (auto& animation : animations) {
+            for (auto& key : animation.keys) {
+                if (key.arrangementIndex > mArrangementIndex)
+                    key.arrangementIndex--;
+                else if (key.arrangementIndex == mArrangementIndex)
+                    key.arrangementIndex = 0;
+            }
         }
 
         PlayerManager::getInstance().correctState();
@@ -43,18 +44,19 @@ public:
     }
 
     void Rollback() override {
-        auto& arrangements = this->getArrangements();
+        auto& arrangements = getArrangements();
 
-        auto it = arrangements.begin() + this->arrangementIndex;
-        arrangements.insert(it, this->arrangement);
+        auto it = arrangements.begin() + mArrangementIndex;
+        arrangements.insert(it, mArrangement);
 
-        for (
-            auto& animation :
-            SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object->animations
-        ) for (auto& key : animation.keys) {
-            if (key.arrangementIndex >= arrangementIndex)
-                key.arrangementIndex++;
+        auto& animations = SessionManager::getInstance().getCurrentSession()
+            ->cellanims.at(mCellAnimIndex).object->getAnimations();
+
+        for (auto& animation : animations) {
+            for (auto& key : animation.keys) {
+                if (key.arrangementIndex >= mArrangementIndex)
+                    key.arrangementIndex++;
+            }
         }
 
         PlayerManager::getInstance().correctState();
@@ -63,23 +65,23 @@ public:
     }
 
 private:
-    unsigned cellanimIndex;
-    unsigned arrangementIndex;
+    unsigned mCellAnimIndex;
+    unsigned mArrangementIndex;
 
-    CellAnim::Arrangement arrangement;
+    CellAnim::Arrangement mArrangement;
 
     std::vector<CellAnim::Arrangement>& getArrangements() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->arrangements;
+            ->cellanims.at(mCellAnimIndex).object
+            ->getArrangements();
     }
 
     CellAnim::Arrangement& getArrangement() {
         return
             SessionManager::getInstance().getCurrentSession()
-            ->cellanims.at(this->cellanimIndex).object
-            ->arrangements.at(this->arrangementIndex);
+            ->cellanims.at(mCellAnimIndex).object
+            ->getArrangement(mArrangementIndex);
     }
 };
 

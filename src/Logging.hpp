@@ -21,13 +21,13 @@ public:
     class LogStream {
     public:
         LogStream(std::ostream& out, std::string_view prefix) :
-            outStream(out), logPrefix(prefix)
+            mOutStream(out), mLogPrefix(prefix)
         {}
 
         template <typename T>
         LogStream& operator<<(const T& msg) {
             std::lock_guard<std::mutex> lock(mtx);
-            buffer << msg;
+            mBuffer << msg;
             return *this;
         }
 
@@ -41,10 +41,10 @@ public:
     private:
         static std::mutex mtx;
 
-        std::ostream& outStream;
-        std::ostringstream buffer;
+        std::ostream& mOutStream;
+        std::ostringstream mBuffer;
 
-        std::string logPrefix;
+        std::string mLogPrefix;
     };
 
     static void Open(std::string_view filename);

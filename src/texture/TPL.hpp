@@ -142,17 +142,17 @@ class TPLObject {
 public:
     TPLObject(const unsigned char* tplData, const size_t dataSize);
     TPLObject() :
-        initialized(true)
+        mInitialized(true)
     {};
 
-    bool isInitialized() const { return this->initialized; }
+    bool isInitialized() const { return mInitialized; }
 
     [[nodiscard]] std::vector<unsigned char> Serialize();
 
 public:
-    bool initialized { false };
+    bool mInitialized { false };
 
-    std::vector<TPLTexture> textures;
+    std::vector<TPLTexture> mTextures;
 };
 
 } // namespace TPL
