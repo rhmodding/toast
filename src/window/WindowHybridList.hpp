@@ -1,5 +1,5 @@
-#ifndef WINDOWHYBRIDLIST_HPP
-#define WINDOWHYBRIDLIST_HPP
+#ifndef WINDOW_HYBRID_LIST_HPP
+#define WINDOW_HYBRID_LIST_HPP
 
 #include "BaseWindow.hpp"
 
@@ -17,4 +17,4 @@ private:
     float mFlashTimer   { 0.f };
 };
 
-#endif // WINDOWHYBRIDLIST_HPP
+#endif // WINDOW_HYBRID_LIST_HPP

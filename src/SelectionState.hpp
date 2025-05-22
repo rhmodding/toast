@@ -1,5 +1,5 @@
-#ifndef SELECTIONSTATE_HPP
-#define SELECTIONSTATE_HPP
+#ifndef SELECTION_STATE_HPP
+#define SELECTION_STATE_HPP
 
 #include <vector>
 
@@ -84,4 +84,4 @@ public:
     int mNextSelectionOrder { 0 };
 };
 
-#endif // SELECTIONSTATE_HPP
+#endif // SELECTION_STATE_HPP

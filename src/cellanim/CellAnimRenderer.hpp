@@ -1,5 +1,5 @@
-#ifndef CELLANIMRENDERER_HPP
-#define CELLANIMRENDERER_HPP
+#ifndef CELL_ANIM_RENDERER_HPP
+#define CELL_ANIM_RENDERER_HPP
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -110,4 +110,4 @@ public: // TODO: filthy HACK ..
     ImVec2 mDrawTexOffset;
 };
 
-#endif // CELLANIMRENDERER_HPP
+#endif // CELL_ANIM_RENDERER_HPP

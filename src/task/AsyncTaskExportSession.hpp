@@ -1,5 +1,5 @@
-#ifndef ASYNCTASK_EXPORTSESSION_HPP
-#define ASYNCTASK_EXPORTSESSION_HPP
+#ifndef ASYNC_TASK_EXPORTSESSION_HPP
+#define ASYNC_TASK_EXPORTSESSION_HPP
 
 #include "AsyncTask.hpp"
 
@@ -29,4 +29,4 @@ private:
     std::atomic<bool> mResult { 0 };
 };
 
-#endif // ASYNCTASK_EXPORTSESSION_HPP
+#endif // ASYNC_TASK_EXPORTSESSION_HPP

@@ -25,7 +25,7 @@ static void matchSelectedParts(const CellAnim::Arrangement& before, const CellAn
 }
 
 void PlayerManager::Update() {
-    if (!mPlaying || this->arrangementModeEnabled())
+    if (!mPlaying || arrangementModeEnabled())
         return;
 
     auto tickNow = std::chrono::steady_clock::now();
@@ -33,12 +33,12 @@ void PlayerManager::Update() {
 
     mTickPrev = tickNow;
 
-    const auto& keys = this->getCellAnim()->getAnimation(mAnimationIndex).keys;
-    const auto& arrangements = this->getCellAnim()->getArrangements();
+    const auto& keys = getCellAnim()->getAnimation(mAnimationIndex).keys;
+    const auto& arrangements = getCellAnim()->getArrangements();
 
     unsigned arrangementIdxBefore = keys.at(mKeyIndex).arrangementIndex;
 
-    const auto& currentAnimation = this->getCellAnim()->getAnimation(mAnimationIndex);
+    const auto& currentAnimation = getCellAnim()->getAnimation(mAnimationIndex);
 
     while (delta >= mTimeLeft) {
         if (mHoldFramesLeft > 0) {
@@ -110,26 +110,26 @@ void PlayerManager::setAnimationIndex(unsigned index) {
     mAnimationIndex = index;
     mKeyIndex = std::min<unsigned>(
         mKeyIndex,
-        this->getKeyCount() - 1
+        getKeyCount() - 1
     );
 
     mHoldFramesLeft = std::min(
-        mHoldFramesLeft, static_cast<int>(this->getKey().holdFrames)
+        mHoldFramesLeft, static_cast<int>(getKey().holdFrames)
     );
 
     selectionState.correctSelectedParts();
 }
 
 CellAnim::Animation& PlayerManager::getAnimation() const {
-    if (this->arrangementModeEnabled())
+    if (arrangementModeEnabled())
         return arrangementModeAnim;
 
-    return this->getCellAnim()->getAnimation(mAnimationIndex);
+    return getCellAnim()->getAnimation(mAnimationIndex);
 }
 
 void PlayerManager::setKeyIndex(unsigned index) {
-    const auto& keys = this->getCellAnim()->getAnimation(mAnimationIndex).keys;
-    const auto& arrangements = this->getCellAnim()->getArrangements();
+    const auto& keys = getCellAnim()->getAnimation(mAnimationIndex).keys;
+    const auto& arrangements = getCellAnim()->getArrangements();
 
     if (keys.at(mKeyIndex).arrangementIndex != keys.at(index).arrangementIndex) {
         matchSelectedParts(
@@ -151,7 +151,7 @@ void PlayerManager::setPlaying(bool playing) {
 }
 
 unsigned PlayerManager::getTotalFrames() const {
-    const auto& animation = this->getCellAnim()->getAnimation(mAnimationIndex);
+    const auto& animation = getCellAnim()->getAnimation(mAnimationIndex);
 
     unsigned totalFrames = 0;
     for (const auto& key : animation.keys) {
@@ -165,7 +165,7 @@ unsigned PlayerManager::getElapsedFrames() const {
     if (!mPlaying && mKeyIndex == 0 && mHoldFramesLeft < 1)
         return 0;
 
-    const auto& animation = this->getCellAnim()->getAnimation(mAnimationIndex);
+    const auto& animation = getCellAnim()->getAnimation(mAnimationIndex);
 
     unsigned elapsedFrames = 0;
     for (unsigned i = 0; i < mKeyIndex + 1; i++) {
@@ -178,18 +178,18 @@ unsigned PlayerManager::getElapsedFrames() const {
 
 void PlayerManager::correctState() {
     if (SessionManager::getInstance().getCurrentSessionIndex() >= 0) {
-        unsigned arrangementCount = this->getCellAnim()->getArrangements().size();
-        if (this->getArrangementModeIdx() >= arrangementCount)
-            this->setArrangementModeIdx(arrangementCount - 1);
+        unsigned arrangementCount = getCellAnim()->getArrangements().size();
+        if (getArrangementModeIdx() >= arrangementCount)
+            setArrangementModeIdx(arrangementCount - 1);
 
-        unsigned animCount = this->getCellAnim()->getAnimations().size();
+        unsigned animCount = getCellAnim()->getAnimations().size();
         unsigned animIndex = std::min(
             mAnimationIndex,
             animCount - 1
         );
 
         // setAnimationIndex clamps the key index & corrects the part selection.
-        this->setAnimationIndex(animIndex);
+        setAnimationIndex(animIndex);
     }
     else {
         mAnimationIndex = 0;

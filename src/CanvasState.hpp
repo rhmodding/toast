@@ -1,5 +1,5 @@
-#ifndef CANVASSTATE_HPP
-#define CANVASSTATE_HPP
+#ifndef CANVAS_STATE_HPP
+#define CANVAS_STATE_HPP
 
 #include <imgui.h>
 
@@ -60,4 +60,4 @@ public:
     }
 };
 
-#endif // CANVASSTATE_HPP
+#endif // CANVAS_STATE_HPP

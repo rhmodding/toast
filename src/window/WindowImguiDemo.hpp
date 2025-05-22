@@ -1,5 +1,5 @@
-#ifndef WINDOWIMGUIDEMO_HPP
-#define WINDOWIMGUIDEMO_HPP
+#ifndef WINDOW_IMGUI_DEMO_HPP
+#define WINDOW_IMGUI_DEMO_HPP
 
 #include "BaseWindow.hpp"
 
@@ -11,4 +11,4 @@ public:
     bool mOpen { false };
 };
 
-#endif // WINDOWIMGUIDEMO_HPP
+#endif // WINDOW_IMGUI_DEMO_HPP

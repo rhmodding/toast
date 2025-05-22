@@ -1,5 +1,5 @@
-#ifndef BASEWINDOW_HPP
-#define BASEWINDOW_HPP
+#ifndef BASE_WINDOW_HPP
+#define BASE_WINDOW_HPP
 
 class BaseWindow {
 public:
@@ -8,4 +8,4 @@ public:
     virtual ~BaseWindow() {}
 };
 
-#endif // BASEWINDOW_HPP
+#endif // BASE_WINDOW_HPP

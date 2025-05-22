@@ -1,5 +1,5 @@
-#ifndef WINDOWCONFIG_HPP
-#define WINDOWCONFIG_HPP
+#ifndef WINDOW_CONFIG_HPP
+#define WINDOW_CONFIG_HPP
 
 #include "BaseWindow.hpp"
 
@@ -18,4 +18,4 @@ private:
     bool mFirstOpen { true };
 };
 
-#endif // WINDOWCONFIG_HPP
+#endif // WINDOW_CONFIG_HPP

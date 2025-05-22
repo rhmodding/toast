@@ -1,5 +1,5 @@
-#ifndef THEMEMANAGER_HPP
-#define THEMEMANAGER_HPP
+#ifndef THEME_MANAGER_HPP
+#define THEME_MANAGER_HPP
 
 #include "Singleton.hpp"
 
@@ -41,4 +41,4 @@ private:
     std::array<float, 4> mWindowClearColor;
 };
 
-#endif // THEMEMANAGER_HPP
+#endif // THEME_MANAGER_HPP

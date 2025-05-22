@@ -313,7 +313,7 @@ void Toast::Menubar() {
                 Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Exit, ICON_FA_DOOR_OPEN).c_str(),
                 Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Exit).c_str()
             ))
-                this->AttemptExit();
+                AttemptExit();
 
             ImGui::EndMenu();
         }
@@ -877,7 +877,7 @@ void Toast::Update() {
 
     Shortcuts::Handle();
 
-    this->Menubar();
+    Menubar();
 
     if (SessionManager::getInstance().getSessionAvaliable()) {
         PlayerManager::getInstance().Update();

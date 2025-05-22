@@ -1,5 +1,5 @@
-#ifndef ONIONSKINSTATE_HPP
-#define ONIONSKINSTATE_HPP
+#ifndef ONION_SKIN_STATE_HPP
+#define ONION_SKIN_STATE_HPP
 
 #include <cstdint>
 
@@ -13,4 +13,4 @@ struct OnionSkinState {
     unsigned frontCount { 2 };
 };
 
-#endif // ONIONSKINSTATE_HPP
+#endif // ONION_SKIN_STATE_HPP

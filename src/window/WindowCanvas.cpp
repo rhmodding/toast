@@ -333,7 +333,7 @@ void WindowCanvas::Update() {
         mCanvasTopLeft.y + mCanvasSize.y
     };
 
-    this->Menubar();
+    Menubar();
 
     uint32_t backgroundColor;
     switch (mState.gridType) {
@@ -994,7 +994,7 @@ void WindowCanvas::Update() {
                 );
 
                 if (drawOnionSkin && !drawUnder) {
-                    this->cellanimRenderer.DrawOnionSkin(
+                    mCellAnimRenderer.DrawOnionSkin(
                         drawList,
                         playerManager.getAnimation(), playerManager.getKeyIndex(),
                         onionSkinState.backCount,
@@ -1147,7 +1147,7 @@ void WindowCanvas::Update() {
             drawList->AddCircle(displayPivotPoint, pivotDrawRadius, IM_COL32_BLACK, 0, pivotLineThickness);
         }
 
-        this->DrawCanvasText();
+        DrawCanvasText();
     }
 
     if (partsTransformation.active)

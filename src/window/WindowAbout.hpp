@@ -1,5 +1,5 @@
-#ifndef WINDOWABOUT_HPP
-#define WINDOWABOUT_HPP
+#ifndef WINDOW_ABOUT_HPP
+#define WINDOW_ABOUT_HPP
 
 #include "BaseWindow.hpp"
 
@@ -16,4 +16,4 @@ private:
     Texture mImage;
 };
 
-#endif // WINDOWABOUT_HPP
+#endif // WINDOW_ABOUT_HPP

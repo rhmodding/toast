@@ -1,5 +1,5 @@
-#ifndef BASECOMMAND_HPP
-#define BASECOMMAND_HPP
+#ifndef BASE_COMMAND_HPP
+#define BASE_COMMAND_HPP
 
 class BaseCommand {
 public:
@@ -9,4 +9,4 @@ public:
     virtual ~BaseCommand() {}
 };
 
-#endif // BASECOMMAND_HPP
+#endif // BASE_COMMAND_HPP

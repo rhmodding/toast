@@ -119,7 +119,7 @@ void WindowInspector::Level_Arrangement() {
     ImGui::BeginChild("ArrangementOverview", { 0.f, (ImGui::GetWindowSize().y / 2.f) }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeY);
     ImGui::PopStyleVar();
     {
-        this->drawPreview();
+        drawPreview();
 
         ImGui::SameLine();
 
@@ -160,7 +160,7 @@ void WindowInspector::Level_Arrangement() {
                     );
                 }
 
-                this->duplicateArrangementButton(newKey, originalKey);
+                duplicateArrangementButton(newKey, originalKey);
 
                 if (newKey != originalKey) {
                     playerManager.getKey() = originalKey;

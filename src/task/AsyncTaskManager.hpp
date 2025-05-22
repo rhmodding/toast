@@ -1,5 +1,5 @@
-#ifndef ASYNCTASKMANAGER_HPP
-#define ASYNCTASKMANAGER_HPP
+#ifndef ASYNC_TASK_MANAGER_HPP
+#define ASYNC_TASK_MANAGER_HPP
 
 #include "../Singleton.hpp"
 
@@ -54,4 +54,4 @@ bool AsyncTaskManager::hasTaskOfType() const {
     return false;
 }
 
-#endif // ASYNCTASKMANAGER_HPP
+#endif // ASYNC_TASK_MANAGER_HPP

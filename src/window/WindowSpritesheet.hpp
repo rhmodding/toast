@@ -1,5 +1,5 @@
-#ifndef WINDOWSPRITESHEET_HPP
-#define WINDOWSPRITESHEET_HPP
+#ifndef WINDOW_SPRITESHEET_HPP
+#define WINDOW_SPRITESHEET_HPP
 
 #include "BaseWindow.hpp"
 
@@ -44,4 +44,4 @@ private:
     std::shared_ptr<Texture> mFormattingNewTex;
 };
 
-#endif // WINDOWSPRITESHEET_HPP
+#endif // WINDOW_SPRITESHEET_HPP

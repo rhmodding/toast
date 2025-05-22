@@ -25,29 +25,29 @@ public:
     Session() = default;
     ~Session() = default;
 
-    Session(Session&& other) noexcept :
-        cellanims(std::move(other.cellanims)),
-        sheets(std::move(other.sheets)),
-        resourcePath(std::move(other.resourcePath)),
-        arrangementMode(other.arrangementMode),
-        modified(other.modified),
-        type(other.type),
-        undoQueue(std::move(other.undoQueue)),
-        redoQueue(std::move(other.redoQueue)),
-        currentCellAnim(other.currentCellAnim)
+    Session(Session&& rhs) noexcept :
+        cellanims(std::move(rhs.cellanims)),
+        sheets(std::move(rhs.sheets)),
+        resourcePath(std::move(rhs.resourcePath)),
+        arrangementMode(rhs.arrangementMode),
+        modified(rhs.modified),
+        type(rhs.type),
+        undoQueue(std::move(rhs.undoQueue)),
+        redoQueue(std::move(rhs.redoQueue)),
+        currentCellAnim(rhs.currentCellAnim)
     {}
 
-    Session& operator=(Session&& other) noexcept {
-        if (this != &other) {
-            this->cellanims = std::move(other.cellanims);
-            this->sheets = std::move(other.sheets);
-            this->resourcePath = std::move(other.resourcePath);
-            this->arrangementMode = other.arrangementMode;
-            this->modified = other.modified;
-            this->type = other.type;
-            this->undoQueue = std::move(other.undoQueue);
-            this->redoQueue = std::move(other.redoQueue);
-            this->currentCellAnim = other.currentCellAnim;
+    Session& operator=(Session&& rhs) noexcept {
+        if (this != &rhs) {
+            cellanims = std::move(rhs.cellanims);
+            sheets = std::move(rhs.sheets);
+            resourcePath = std::move(rhs.resourcePath);
+            arrangementMode = rhs.arrangementMode;
+            modified = rhs.modified;
+            type = rhs.type;
+            undoQueue = std::move(rhs.undoQueue);
+            redoQueue = std::move(rhs.redoQueue);
+            currentCellAnim = rhs.currentCellAnim;
         }
         return *this;
     }
@@ -63,32 +63,32 @@ public:
 public:
     void addCommand(std::shared_ptr<BaseCommand> command);
 
-    bool canUndo() const { return !this->undoQueue.empty(); }
+    bool canUndo() const { return !undoQueue.empty(); }
     void undo();
 
-    bool canRedo() const { return !this->redoQueue.empty(); }
+    bool canRedo() const { return !redoQueue.empty(); }
     void redo();
 
     void clearUndoRedo() {
-        this->undoQueue.clear();
-        this->redoQueue.clear();
+        undoQueue.clear();
+        redoQueue.clear();
     };
 
-    unsigned getCurrentCellAnimIndex() const { return this->currentCellAnim; }
+    unsigned getCurrentCellAnimIndex() const { return currentCellAnim; }
     void setCurrentCellAnimIndex(unsigned index);
 
     CellAnimGroup& getCurrentCellAnim() {
-        return this->cellanims.at(this->currentCellAnim);
+        return cellanims.at(currentCellAnim);
     }
 
     std::shared_ptr<Texture>& getCurrentCellAnimSheet() {
-        return this->sheets->getTextureByIndex(
-            this->cellanims.at(this->currentCellAnim).object->getSheetIndex()
+        return sheets->getTextureByIndex(
+            cellanims.at(currentCellAnim).object->getSheetIndex()
         );
     }
 
     SelectionState& getCurrentSelectionState() {
-        return this->cellanims.at(this->currentCellAnim).selectionState;
+        return cellanims.at(currentCellAnim).selectionState;
     }
 
 public:

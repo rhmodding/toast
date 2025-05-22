@@ -1,5 +1,5 @@
-#ifndef CellAnim_HPP
-#define CellAnim_HPP
+#ifndef CELL_ANIM_HPP
+#define CELL_ANIM_HPP
 
 #include <vector>
 
@@ -379,4 +379,4 @@ private:
 
 } // namespace CellAnim
 
-#endif // CellAnim_HPP
+#endif // CELL_ANIM_HPP

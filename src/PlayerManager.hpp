@@ -1,5 +1,5 @@
-#ifndef PLAYERMANAGER_HPP
-#define PLAYERMANAGER_HPP
+#ifndef PLAYER_MANAGER_HPP
+#define PLAYER_MANAGER_HPP
 
 #include "Singleton.hpp"
 
@@ -37,19 +37,19 @@ public:
     void setKeyIndex(unsigned index);
 
     CellAnim::AnimationKey& getKey() const {
-        return this->getAnimation().keys.at(mKeyIndex);
+        return getAnimation().keys.at(mKeyIndex);
     }
 
     unsigned getArrangementIndex() const {
-        return this->getKey().arrangementIndex;
+        return getKey().arrangementIndex;
     }
 
     CellAnim::Arrangement& getArrangement() const {
-        return this->getCellAnim()->getArrangement(this->getArrangementIndex());
+        return getCellAnim()->getArrangement(getArrangementIndex());
     }
 
     unsigned getKeyCount() const {
-        return this->getAnimation().keys.size();
+        return getAnimation().keys.size();
     }
     int getHoldFramesLeft() const { return mHoldFramesLeft; }
 
@@ -61,7 +61,7 @@ public:
 
     // 0.f - 1.f
     float getAnimationProgression() const {
-        return static_cast<float>(this->getTotalFrames()) / this->getElapsedFrames();
+        return static_cast<float>(getTotalFrames()) / getElapsedFrames();
     }
 
     // After for example a session switch or another change that can reduce the amount
@@ -103,4 +103,4 @@ public: // TODO: hack; this should be private .. make accessor methods
     unsigned mFrameRate { 60 };
 };
 
-#endif // PLAYERMANAGER_HPP
+#endif // PLAYER_MANAGER_HPP

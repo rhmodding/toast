@@ -1,5 +1,5 @@
-#ifndef ASYNCTASK_PUSHSESSION_HPP
-#define ASYNCTASK_PUSHSESSION_HPP
+#ifndef ASYNC_TASK_PUSHSESSION_HPP
+#define ASYNC_TASK_PUSHSESSION_HPP
 
 #include "AsyncTask.hpp"
 
@@ -19,4 +19,4 @@ private:
     std::atomic<int> mResult { 0 };
 };
 
-#endif // ASYNCTASK_PUSHSESSION_HPP
+#endif // ASYNC_TASK_PUSHSESSION_HPP

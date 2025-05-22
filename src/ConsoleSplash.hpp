@@ -1,5 +1,5 @@
-#ifndef CONSOLESPLASH_HPP
-#define CONSOLESPLASH_HPP
+#ifndef CONSOLE_SPLASH_HPP
+#define CONSOLE_SPLASH_HPP
 
 const char* consoleSplash =
 "                                                 " "\n"
@@ -26,4 +26,4 @@ const char* consoleSplash =
 "         https://github.com/conhlee/toast        "
 ;
 
-#endif // CONSOLESPLASH_HPP
+#endif // CONSOLE_SPLASH_HPP

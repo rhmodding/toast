@@ -1,5 +1,5 @@
-#ifndef WINDOWTIMELINE_HPP
-#define WINDOWTIMELINE_HPP
+#ifndef WINDOW_TIMELINE_HPP
+#define WINDOW_TIMELINE_HPP
 
 #include "BaseWindow.hpp"
 
@@ -8,4 +8,4 @@ public:
     void Update() override;
 };
 
-#endif // WINDOWTIMELINE_HPP
+#endif // WINDOW_TIMELINE_HPP

@@ -1,5 +1,5 @@
-#ifndef TERMINATEHANDLER_HPP
-#define TERMINATEHANDLER_HPP
+#ifndef TERMINATE_HANDLER_HPP
+#define TERMINATE_HANDLER_HPP
 
 namespace TerminateHandler {
 
@@ -7,4 +7,4 @@ void Init();
 
 } // namespace TerminateHandler
 
-#endif // TERMINATEHANDLER_HPP
+#endif // TERMINATE_HANDLER_HPP

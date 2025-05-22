@@ -1,5 +1,5 @@
-#ifndef CONFIGMANAGER_HPP
-#define CONFIGMANAGER_HPP
+#ifndef CONFIG_MANAGER_HPP
+#define CONFIG_MANAGER_HPP
 
 #include "Singleton.hpp"
 
@@ -80,20 +80,20 @@ public:
 
     bool allowNewAnimCreate { false };
 
-    bool operator==(const Config& other) const {
+    bool operator==(const Config& rhs) const {
         return
-            this->theme == other.theme &&
-            this->imageEditorPath == other.imageEditorPath &&
-            this->textureEditPath == other.textureEditPath &&
-            // this->recentlyOpened == other.recentlyOpened &&
-            this->lastWindowWidth == other.lastWindowWidth &&
-            this->lastWindowHeight == other.lastWindowHeight &&
-            this->canvasLMBPanEnabled == other.canvasLMBPanEnabled &&
-            this->updateRate == other.updateRate &&
-            this->backupBehaviour == other.backupBehaviour &&
-            this->compressionLevel == other.compressionLevel &&
-            this->etc1Quality == other.etc1Quality &&
-            this->allowNewAnimCreate == other.allowNewAnimCreate;
+            theme == rhs.theme &&
+            imageEditorPath == rhs.imageEditorPath &&
+            textureEditPath == rhs.textureEditPath &&
+            // recentlyOpened == rhs.recentlyOpened &&
+            lastWindowWidth == rhs.lastWindowWidth &&
+            lastWindowHeight == rhs.lastWindowHeight &&
+            canvasLMBPanEnabled == rhs.canvasLMBPanEnabled &&
+            updateRate == rhs.updateRate &&
+            backupBehaviour == rhs.backupBehaviour &&
+            compressionLevel == rhs.compressionLevel &&
+            etc1Quality == rhs.etc1Quality &&
+            allowNewAnimCreate == rhs.allowNewAnimCreate;
     }
 
     // Friend functions for JSON (de-)serialization
@@ -162,4 +162,4 @@ private:
     std::mutex mMtx;
 };
 
-#endif // CONFIGMANAGER_HPP
+#endif // CONFIG_MANAGER_HPP

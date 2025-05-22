@@ -1,5 +1,5 @@
-#ifndef TEXTUREGROUP_HPP
-#define TEXTUREGROUP_HPP
+#ifndef TEXTURE_GROUP_HPP
+#define TEXTURE_GROUP_HPP
 
 #include <vector>
 
@@ -47,4 +47,4 @@ public:
 };
 
 
-#endif // TEXTUREGROUP_HPP
+#endif // TEXTURE_GROUP_HPP

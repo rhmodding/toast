@@ -1,5 +1,5 @@
-#ifndef RVLPALETTE_HPP
-#define RVLPALETTE_HPP
+#ifndef RVL_PALETTE_HPP
+#define RVL_PALETTE_HPP
 
 #include "TPL.hpp"
 
@@ -30,4 +30,4 @@ bool writeCLUT(
 
 } // namespace RvlPalette
 
-#endif // RVLPALETTE_HPP
+#endif // RVL_PALETTE_HPP

@@ -1,5 +1,5 @@
-#ifndef WINDOWCANVAS_HPP
-#define WINDOWCANVAS_HPP
+#ifndef WINDOW_CANVAS_HPP
+#define WINDOW_CANVAS_HPP
 
 #include "BaseWindow.hpp"
 
@@ -43,4 +43,4 @@ private:
     } mHoveredPartHandle { PartHandle_None };
 };
 
-#endif // WINDOWCANVAS_HPP
+#endif // WINDOW_CANVAS_HPP

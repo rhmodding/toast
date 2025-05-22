@@ -1,5 +1,5 @@
-#ifndef WINDOWINSPECTOR_HPP
-#define WINDOWINSPECTOR_HPP
+#ifndef WINDOW_INSPECTOR_HPP
+#define WINDOW_INSPECTOR_HPP
 
 #include "BaseWindow.hpp"
 
@@ -34,4 +34,4 @@ private:
     ImVec2 mWindowSize;
 };
 
-#endif // WINDOWINSPECTOR_HPP
+#endif // WINDOW_INSPECTOR_HPP

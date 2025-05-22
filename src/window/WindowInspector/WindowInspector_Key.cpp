@@ -34,7 +34,7 @@ void WindowInspector::Level_Key() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    this->drawPreview();
+    drawPreview();
 
     const bool isCtr = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_CTR;
 
@@ -102,7 +102,7 @@ void WindowInspector::Level_Key() {
         ImGui::TextUnformatted("Arrangement No.");
     }
 
-    this->duplicateArrangementButton(newKey, originalKey);
+    duplicateArrangementButton(newKey, originalKey);
 
     ImGui::SeparatorText((const char*)ICON_FA_PAUSE " Hold");
 

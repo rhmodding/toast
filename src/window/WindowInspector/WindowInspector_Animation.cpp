@@ -16,7 +16,7 @@ void WindowInspector::Level_Animation() {
     PlayerManager& playerManager = PlayerManager::getInstance();
     SessionManager& sessionManager = SessionManager::getInstance();
 
-    this->drawPreview();
+    drawPreview();
 
     const bool isCtr = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_CTR;
 

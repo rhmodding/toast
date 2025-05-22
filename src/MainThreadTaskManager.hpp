@@ -1,5 +1,5 @@
-#ifndef MainThreadTaskManager_HPP
-#define MainThreadTaskManager_HPP
+#ifndef MAIN_THREAD_TASK_MANAGER_HPP
+#define MAIN_THREAD_TASK_MANAGER_HPP
 
 #include "Singleton.hpp"
 
@@ -38,4 +38,4 @@ private:
     std::mutex mMtx;
 };
 
-#endif // MainThreadTaskManager_HPP
+#endif // MAIN_THREAD_TASK_MANAGER_HPP

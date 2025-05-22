@@ -1,5 +1,5 @@
-#ifndef CXXDEMANGLE_HPP
-#define CXXDEMANGLE_HPP
+#ifndef CXX_DEMANGLE_HPP
+#define CXX_DEMANGLE_HPP
 
 #include <string>
 
@@ -17,4 +17,4 @@ template <typename T>
 
 } // namespace CxxDemangle
 
-#endif // CXXDEMANGLE_HPP
+#endif // CXX_DEMANGLE_HPP

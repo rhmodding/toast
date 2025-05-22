@@ -1,5 +1,5 @@
-#ifndef SESSIONMANAGER_HPP
-#define SESSIONMANAGER_HPP
+#ifndef SESSION_MANAGER_HPP
+#define SESSION_MANAGER_HPP
 
 #include "Singleton.hpp"
 
@@ -135,4 +135,4 @@ private:
     std::mutex mMtx;
 };
 
-#endif // SESSIONMANAGER_HPP
+#endif // SESSION_MANAGER_HPP

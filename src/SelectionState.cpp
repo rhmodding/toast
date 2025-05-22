@@ -51,13 +51,13 @@ void SelectionState::resetSelectionOrder() {
 void SelectionState::applyRangeSelectionOrder(const ImGuiSelectionRequest& req) {
     if (req.RangeDirection > 0) {
         for (int i = req.RangeLastItem; i <= req.RangeFirstItem; i++) {
-            this->setBatchPartSelection(i, req.Selected);
+            setBatchPartSelection(i, req.Selected);
             //selectionOrder++;
         }
     }
     else { //if (req.RangeDirection < 0) {
         for (int i = req.RangeFirstItem; i >= req.RangeLastItem; i--) {
-            this->setBatchPartSelection(i, req.Selected);
+            setBatchPartSelection(i, req.Selected);
             //selectionOrder--;
         }
     }
@@ -77,7 +77,7 @@ void SelectionState::setPartSelected(unsigned partIndex, bool selected) {
     }
     else if (it != mSelectedParts.end()) {
         mSelectedParts.erase(it);
-        this->resetSelectionOrder();
+        resetSelectionOrder();
     }
 }
 
@@ -102,18 +102,18 @@ void SelectionState::setBatchPartSelection(unsigned partIndex, bool selected) {
         mSelectedParts.push_back({ partIndex, mNextSelectionOrder++ });
     else if (!selected && isContained) {
         mSelectedParts.erase(it);
-        this->resetSelectionOrder();
+        resetSelectionOrder();
     }
 }
 
 void SelectionState::processMultiSelectRequests(ImGuiMultiSelectIO* msIo) {
     for (const ImGuiSelectionRequest& req : msIo->Requests) {
         if (req.Type == ImGuiSelectionRequestType_SetAll) {
-            this->clearSelectedParts();
+            clearSelectedParts();
             if (req.Selected) {
                 mSelectedParts.reserve(msIo->ItemsCount);
                 for (unsigned i = 0; i < static_cast<unsigned>(msIo->ItemsCount); i++)
-                    this->setBatchPartSelection(i, req.Selected);
+                    setBatchPartSelection(i, req.Selected);
             }
         }
         else if (req.Type == ImGuiSelectionRequestType_SetRange) {
@@ -124,10 +124,10 @@ void SelectionState::processMultiSelectRequests(ImGuiMultiSelectIO* msIo) {
                 selectionChanges < (mSelectedParts.size() / 100)
             ) {
                 for (int i = req.RangeFirstItem; i <= req.RangeLastItem; i++)
-                    this->setPartSelected(i, req.Selected);
+                    setPartSelected(i, req.Selected);
             }
             else
-                this->applyRangeSelectionOrder(req);
+                applyRangeSelectionOrder(req);
         }
     }
 }
@@ -142,16 +142,16 @@ void SelectionState::deleteSelectedParts(
 
     int itemNextIndexToSelect = -1;
     for (unsigned i = 0; i < parts.size(); i++) {
-        if (!this->isPartSelected(i))
+        if (!isPartSelected(i))
             newParts.push_back(parts[i]);
         if (itemCurrentIndexToSelect == static_cast<int>(i))
             itemNextIndexToSelect = newParts.size() - 1;
     }
     parts.swap(newParts);
 
-    this->clearSelectedParts();
+    clearSelectedParts();
     if (itemNextIndexToSelect != -1 && msIo->NavIdSelected)
-        this->setPartSelected(itemNextIndexToSelect, true);
+        setPartSelected(itemNextIndexToSelect, true);
 }
 
 int SelectionState::getNextPartIndexAfterDeletion(ImGuiMultiSelectIO* msIo, unsigned partCount) {
@@ -166,11 +166,11 @@ int SelectionState::getNextPartIndexAfterDeletion(ImGuiMultiSelectIO* msIo, unsi
     }
 
     for (unsigned index = focusedIndex + 1; index < partCount; index++) {
-        if (!this->isPartSelected(index))
+        if (!isPartSelected(index))
             return index;
     }
     for (int index = std::min(focusedIndex, static_cast<int>(partCount)) - 1; index >= 0; index--) {
-        if (!this->isPartSelected(index))
+        if (!isPartSelected(index))
             return index;
     }
 
@@ -191,5 +191,5 @@ void SelectionState::correctSelectedParts() {
     }
     mSelectedParts = newSelected;
 
-    this->resetSelectionOrder();
+    resetSelectionOrder();
 }

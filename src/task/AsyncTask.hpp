@@ -1,5 +1,5 @@
-#ifndef ASYNCTASK_HPP
-#define ASYNCTASK_HPP
+#ifndef ASYNC_TASK_HPP
+#define ASYNC_TASK_HPP
 
 #include <imgui.h>
 
@@ -40,4 +40,4 @@ private:
     float mStartTime;
 };
 
-#endif // ASYNCTASK_HPP
+#endif // ASYNC_TASK_HPP
