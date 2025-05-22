@@ -68,7 +68,7 @@ void WindowSpritesheet::RunEditor() {
 
     std::ostringstream commandStream;
 
-#ifdef __WIN32__
+#ifdef _WIN32
     commandStream <<
         "cmd.exe /c \"\"" <<
         config.imageEditorPath <<
@@ -78,7 +78,7 @@ void WindowSpritesheet::RunEditor() {
         "\"" <<
         config.imageEditorPath <<
         "\" \"" << imagePath << "\"";
-#endif // __WIN32__
+#endif // _WIN32
 
     std::string command = commandStream.str();
     Logging::info << "[WindowSpritesheet::RunEditor] Running command: " << command << std::endl;

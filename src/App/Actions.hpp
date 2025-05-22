@@ -230,13 +230,13 @@ void OpenSessionSourceFolder() {
 
     std::string folderPath = std::filesystem::absolute(filePath).parent_path().string();
 
-#if defined(__WIN32__)
+#if defined(_WIN32)
     std::string command = "explorer \"" + folderPath + "\"";
 #elif defined(__APPLE__)
     std::string command = "open \"" + folderPath + "\"";
 #else // Probably Linux.
     std::string command = "xdg-open \"" + folderPath + "\"";
-#endif // defined(__WIN32__), defined(__APPLE__)
+#endif // defined(_WIN32), defined(__APPLE__)
 
     std::thread([command]() {
         std::system(command.c_str());
