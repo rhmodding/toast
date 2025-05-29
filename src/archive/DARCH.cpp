@@ -74,7 +74,7 @@ public:
     };
 } __attribute__((packed));
 
-namespace DARCH {
+namespace Archive {
 
 DARCHObject::DARCHObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(DARCHHeader)) {
@@ -311,4 +311,4 @@ std::vector<unsigned char> DARCHObject::Serialize() {
     return result;
 }
 
-} // namespace DARCH
+} // namespace Archive

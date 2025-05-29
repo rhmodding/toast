@@ -102,7 +102,7 @@ static uint32_t sarcComputeHash(std::string_view string, uint32_t key) {
 	return result;
 }
 
-namespace SARC {
+namespace Archive {
 
 SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(SarcFileHeader)) {
@@ -310,4 +310,4 @@ std::vector<unsigned char> SARCObject::Serialize() {
     return result;
 }
 
-}
+} // namespace Archive
