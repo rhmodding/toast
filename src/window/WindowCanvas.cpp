@@ -432,7 +432,7 @@ void WindowCanvas::Update() {
         selectionState.clearSelectedParts();
         selectionState.mSelectedParts.reserve(arrangement.parts.size());
 
-        for (unsigned i = 0; i < arrangement.parts.size(); i++)
+        for (size_t i = 0; i < arrangement.parts.size(); i++)
             selectionState.setBatchPartSelection(i, true);
     }
 

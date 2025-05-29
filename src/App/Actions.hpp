@@ -113,7 +113,7 @@ void ExportSessionAsOther() {
 
         auto& sheets = currentSession->sheets->getVector();
 
-        for (unsigned i = 0; i < sheets.size(); i++) {
+        for (size_t i = 0; i < sheets.size(); i++) {
             const auto& sheet = sheets[i];
 
             if (isRvl) {

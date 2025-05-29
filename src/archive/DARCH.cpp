@@ -229,7 +229,7 @@ std::vector<unsigned char> DARCHObject::Serialize() {
     unsigned nextStringPoolOffset { 0 };
 
     // Calculate string offsets.
-    for (unsigned i = 0; i < flattenedArchive.size(); ++i) {
+    for (size_t i = 0; i < flattenedArchive.size(); ++i) {
         const FlatEntry& entry = flattenedArchive[i];
 
         stringOffsets[i] = nextStringPoolOffset;
@@ -256,7 +256,7 @@ std::vector<unsigned char> DARCHObject::Serialize() {
     header->dataSectionStart = BYTESWAP_32(baseDataOffset);
 
     // Calculate data offsets.
-    for (unsigned i = 1; i < flattenedArchive.size(); ++i) {
+    for (size_t i = 1; i < flattenedArchive.size(); ++i) {
         const FlatEntry& entry = flattenedArchive[i];
 
         if (!entry.isDir) {
@@ -270,8 +270,8 @@ std::vector<unsigned char> DARCHObject::Serialize() {
     result.resize(nextDataOffset);
     header = reinterpret_cast<DARCHHeader*>(result.data());
 
-    // Write nodes
-    for (unsigned i = 0; i < flattenedArchive.size(); ++i) {
+    // Write nodes.
+    for (size_t i = 0; i < flattenedArchive.size(); ++i) {
         const FlatEntry& entry = flattenedArchive[i];
         DARCHNode* node = reinterpret_cast<DARCHNode*>(
             result.data() + sizeof(DARCHHeader) +

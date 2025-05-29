@@ -3,7 +3,7 @@
 
 #include "Archive.hpp"
 
-namespace DARCH {
+namespace Archive {
 
 class DARCHObject : public Archive::ArchiveObjectBase {
 public:
@@ -13,6 +13,6 @@ public:
     [[nodiscard]] std::vector<unsigned char> Serialize();
 };
 
-} // namespace DARCH
+} // namespace Archive
 
 #endif // DARCH_HPP

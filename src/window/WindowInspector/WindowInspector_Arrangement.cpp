@@ -601,7 +601,7 @@ void WindowInspector::Level_Arrangement() {
                             ));
 
                             selectionState.clearSelectedParts();
-                            for (unsigned i = 0; i < copyParts.size(); i++)
+                            for (size_t i = 0; i < copyParts.size(); i++)
                                 selectionState.setPartSelected(n + 1 + i, true);
                             //appState.setPartSelected(n + 1, true);
                         }
@@ -621,7 +621,7 @@ void WindowInspector::Level_Arrangement() {
                             ));
 
                             selectionState.clearSelectedParts();
-                            for (unsigned i = 0; i < copyParts.size(); i++)
+                            for (size_t i = 0; i < copyParts.size(); i++)
                                 selectionState.setPartSelected(n + i, true);
                             //appState.setPartSelected(n, true);
                         }
@@ -659,7 +659,7 @@ void WindowInspector::Level_Arrangement() {
                             );
 
                             selectionState.clearSelectedParts();
-                            for (unsigned i = 0; i < copyParts.size(); i++) {
+                            for (size_t i = 0; i < copyParts.size(); i++) {
                                 if (n + i < newArrangement.parts.size())
                                     selectionState.setPartSelected(n + i, true);
                             }
@@ -744,7 +744,7 @@ void WindowInspector::Level_Arrangement() {
                     if (ImGui::Selectable(label)) {
                         if (isPartSelected) {
                             copyParts.resize(selectionState.mSelectedParts.size());
-                            for (unsigned i = 0; i < selectionState.mSelectedParts.size(); i++) {
+                            for (size_t i = 0; i < selectionState.mSelectedParts.size(); i++) {
                                 std::sort(
                                     selectionState.mSelectedParts.begin(), selectionState.mSelectedParts.end(),
                                     [](const SelectionState::SelectedPart& a, const SelectionState::SelectedPart& b) {

@@ -55,7 +55,7 @@ set(SOURCES
     src/compression/Yaz0.cpp
 
     src/texture/Texture.cpp
-    src/texture/TextureGroup.cpp
+    src/texture/TextureEx.cpp
 
     src/texture/CtrImageConvert.cpp
     src/texture/RvlImageConvert.cpp

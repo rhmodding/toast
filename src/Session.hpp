@@ -13,7 +13,7 @@
 
 #include "SelectionState.hpp"
 
-#include "texture/Texture.hpp"
+#include "texture/TextureEx.hpp"
 #include "texture/TextureGroup.hpp"
 
 #include "command/BaseCommand.hpp"
@@ -81,7 +81,7 @@ public:
         return cellanims.at(currentCellAnim);
     }
 
-    std::shared_ptr<Texture>& getCurrentCellAnimSheet() {
+    std::shared_ptr<TextureEx>& getCurrentCellAnimSheet() {
         return sheets->getTextureByIndex(
             cellanims.at(currentCellAnim).object->getSheetIndex()
         );
@@ -95,7 +95,7 @@ public:
     static constexpr unsigned int COMMANDS_MAX = 512;
 
     std::vector<CellAnimGroup> cellanims;
-    std::shared_ptr<TextureGroup> sheets { std::make_shared<TextureGroup>() };
+    std::shared_ptr<TextureGroup<TextureEx>> sheets { std::make_shared<TextureGroup<TextureEx>>() };
 
     std::string resourcePath;
 

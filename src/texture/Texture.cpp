@@ -54,8 +54,8 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
         return;
     }
 
-    width = width;
-    height = height;
+    mWidth = width;
+    mHeight = height;
 
     MainThreadTaskManager::getInstance().QueueTask([this, data]() {
         if (mTextureId == INVALID_TEXTURE_ID)
@@ -63,8 +63,10 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
 
         glBindTexture(GL_TEXTURE_2D, mTextureId);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWrapS);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWrapT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mMinFilter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mMagFilter);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
@@ -74,7 +76,7 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
     }).get();
 }
 
-bool Texture::LoadSTBMem(const unsigned char* data, unsigned dataSize) {
+bool Texture::LoadSTBMem(const unsigned char* data, int dataSize) {
     if (data == nullptr) {
         Logging::err << "[Texture::LoadSTBFile] Failed to load image data: data is NULL" << std::endl;
         return false;
@@ -177,74 +179,6 @@ bool Texture::ExportToFile(std::string_view filename) {
     }
 
     return true;
-}
-
-std::optional<TPL::TPLTexture> Texture::TPLTexture() {
-    if (mTextureId == INVALID_TEXTURE_ID) {
-        Logging::err << "[Texture::TPLTexture] Failed to construct TPLTexture: textureId is invalid" << std::endl;
-        return std::nullopt; // return nothing (std::optional)
-    }
-
-    TPL::TPLTexture tplTexture {
-        .width = mWidth,
-        .height = mHeight,
-
-        .mipCount = 1, // TODO use true mip count
-
-        .format = mTPLOutputFormat,
-
-        .data = std::vector<unsigned char>(mWidth * mHeight * 4)
-    };
-
-    tplTexture.minFilter = mMinFilter == GL_NEAREST ?
-        TPL::TPL_TEX_FILTER_NEAR :
-        TPL::TPL_TEX_FILTER_LINEAR;
-    tplTexture.magFilter = mMagFilter == GL_NEAREST ?
-        TPL::TPL_TEX_FILTER_NEAR :
-        TPL::TPL_TEX_FILTER_LINEAR;
-
-    tplTexture.wrapS = mWrapS == GL_REPEAT ?
-        TPL::TPL_WRAP_MODE_REPEAT :
-        TPL::TPL_WRAP_MODE_CLAMP;
-    tplTexture.wrapT = mWrapT == GL_REPEAT ?
-        TPL::TPL_WRAP_MODE_REPEAT :
-        TPL::TPL_WRAP_MODE_CLAMP;
-
-    MainThreadTaskManager::getInstance().QueueTask([this, &tplTexture]() {
-        glBindTexture(GL_TEXTURE_2D, mTextureId);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }).get();
-
-    return tplTexture;
-}
-
-std::optional<CTPK::CTPKTexture> Texture::CTPKTexture() {
-    if (mTextureId == INVALID_TEXTURE_ID) {
-        Logging::err << "[Texture::CTPKTexture] Failed to construct CTPKTexture: textureId is invalid" << std::endl;
-        return std::nullopt; // return nothing (std::optional)
-    }
-
-    CTPK::CTPKTexture ctpkTexture {
-        .width = mWidth,
-        .height = mHeight,
-
-        .mipCount = mOutputMipCount,
-
-        .format = mCTPKOutputFormat,
-
-        .sourceTimestamp = 0,
-
-        .data = std::vector<unsigned char>(mWidth * mHeight * 4)
-    };
-
-    MainThreadTaskManager::getInstance().QueueTask([this, &ctpkTexture]() {
-        glBindTexture(GL_TEXTURE_2D, mTextureId);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, ctpkTexture.data.data());
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }).get();
-
-    return ctpkTexture;
 }
 
 void Texture::DestroyTexture() {

@@ -23,6 +23,8 @@
 #include "texture/TPL.hpp"
 #include "texture/CTPK.hpp"
 
+#include "texture/TextureEx.hpp"
+
 #include "EditorDataPackage.hpp"
 
 #include "ConfigManager.hpp"
@@ -47,7 +49,7 @@ void SessionManager::setCurrentSessionIndex(int sessionIndex) {
 }
 
 static SessionManager::Error InitRvlSession(
-    Session& session, const DARCH::DARCHObject& archive
+    Session& session, const Archive::DARCHObject& archive
 ) {
     auto rootDirIt = std::find_if(
         archive.getStructure().subdirectories.begin(),
@@ -107,7 +109,7 @@ static SessionManager::Error InitRvlSession(
     session.sheets->getVector().reserve(tplObject.mTextures.size());
 
     // Cellanims
-    for (unsigned i = 0; i < brcadFiles.size(); i++) {
+    for (size_t i = 0; i < brcadFiles.size(); i++) {
         Session::CellAnimGroup& cellanim = session.cellanims[i];
         const Archive::File* file = brcadFiles[i];
 
@@ -125,17 +127,17 @@ static SessionManager::Error InitRvlSession(
     }
 
     // Headers (animation names)
-    for (unsigned i = 0; i < brcadFiles.size(); i++) {
+    for (size_t i = 0; i < brcadFiles.size(); i++) {
         const Archive::File* brcadFile = brcadFiles[i];
         const Archive::File* headerFile { nullptr };
 
-        unsigned cellanimNameLen = brcadFile->name.size() - STR_LIT_LEN(".brcad");
+        int cellanimNameLen = brcadFile->name.size() - STR_LIT_LEN(".brcad");
 
         char targetHeaderName[128];
         snprintf(
             targetHeaderName, sizeof(targetHeaderName),
             "rcad_%.*s_labels.h",
-            static_cast<int>(cellanimNameLen),
+            cellanimNameLen,
             brcadFile->name.c_str()
         );
 
@@ -183,7 +185,7 @@ static SessionManager::Error InitRvlSession(
     //       but then it would use multiple MainThreadTasks instead of just one.
     MainThreadTaskManager::getInstance().QueueTask([&tplObject, &session]() {
         for (auto& texture : tplObject.mTextures) {
-            std::shared_ptr<Texture> sheet = std::make_shared<Texture>(
+            std::shared_ptr<TextureEx> sheet = std::make_shared<TextureEx>(
                 texture.width, texture.height,
                 texture.createGPUTexture()
             );
@@ -209,7 +211,7 @@ static SessionManager::Error InitRvlSession(
 }
 
 static SessionManager::Error InitCtrSession(
-    Session& session, const SARC::SARCObject& archive
+    Session& session, const Archive::SARCObject& archive
 ) {
     // Every layout archive has the directory "blyt". If this directory exists
     // we should throw an error
@@ -285,7 +287,7 @@ static SessionManager::Error InitCtrSession(
     session.sheets->getVector().reserve(ctpkFiles.size());
 
     // Cellanims
-    for (unsigned i = 0; i < bccadFiles.size(); i++) {
+    for (size_t i = 0; i < bccadFiles.size(); i++) {
         auto& cellanim = session.cellanims[i];
         const auto* file = bccadFiles[i];
 
@@ -310,7 +312,7 @@ static SessionManager::Error InitCtrSession(
     SessionManager::Error sheetsError { SessionManager::Error_None };
 
     MainThreadTaskManager::getInstance().QueueTask([&sheetsError, &ctpkFiles, &session]() {
-        for (unsigned i = 0; i < ctpkFiles.size(); i++) {
+        for (size_t i = 0; i < ctpkFiles.size(); i++) {
             const auto* file = ctpkFiles[i];
 
             CTPK::CTPKObject ctpkObject = CTPK::CTPKObject(
@@ -329,12 +331,14 @@ static SessionManager::Error InitCtrSession(
             auto& texture = ctpkObject.mTextures[0];
             texture.rotateCCW();
 
-            std::shared_ptr<Texture> sheet = std::make_shared<Texture>(
+            std::shared_ptr<TextureEx> sheet = std::make_shared<TextureEx>(
                 texture.width, texture.height,
                 texture.createGPUTexture()
             );
-            sheet->setCTPKOutputFormat(texture.format);
             sheet->setOutputMipCount(texture.mipCount);
+            sheet->setCTPKOutputFormat(texture.targetFormat);
+            sheet->setOutputSrcTimestamp(texture.sourceTimestamp);
+            sheet->setOutputSrcPath(texture.sourcePath);
             sheet->setName(file->name.substr(0, file->name.size() - STR_LIT_LEN(".ctpk")));
 
             session.sheets->addTexture(std::move(sheet));
@@ -427,7 +431,7 @@ int SessionManager::CreateSession(std::string_view filePath) {
 
     switch (type) {
     case CellAnim::CELLANIM_TYPE_RVL: {
-        DARCH::DARCHObject archive = DARCH::DARCHObject(
+        Archive::DARCHObject archive = Archive::DARCHObject(
             data.data(), data.size()
         );
 
@@ -439,7 +443,7 @@ int SessionManager::CreateSession(std::string_view filePath) {
         initError = InitRvlSession(newSession, archive);
     } break;
     case CellAnim::CELLANIM_TYPE_CTR: {
-        SARC::SARCObject archive = SARC::SARCObject(data.data(), data.size());
+        Archive::SARCObject archive = Archive::SARCObject(data.data(), data.size());
 
         if (!archive.isInitialized()) {
             const uint32_t observedMagic = *reinterpret_cast<const uint32_t*>(data.data());
@@ -495,13 +499,13 @@ int SessionManager::CreateSession(std::string_view filePath) {
 static SessionManager::Error SerializeRvlSession(
     const Session& session, std::vector<unsigned char>& output
 ) {
-    DARCH::DARCHObject archive;
+    Archive::DARCHObject archive;
 
     archive.getStructure().AddDirectory(Archive::Directory("."));
     auto& directory = archive.getStructure().subdirectories.back();
 
     // BRCAD files
-    for (unsigned i = 0; i < session.cellanims.size(); i++) {
+    for (size_t i = 0; i < session.cellanims.size(); i++) {
         const auto& cellanim = session.cellanims[i];
 
         Archive::File file(cellanim.name + ".brcad");
@@ -520,7 +524,7 @@ static SessionManager::Error SerializeRvlSession(
     }
 
     // Header files
-    for (unsigned i = 0; i < session.cellanims.size(); i++) {
+    for (size_t i = 0; i < session.cellanims.size(); i++) {
         const std::string& cellanimName = session.cellanims[i].name;
 
         Archive::File file(
@@ -531,7 +535,7 @@ static SessionManager::Error SerializeRvlSession(
             "[SerializeRvlSession] Writing label header for cellanim \"" << cellanimName << "\".." << std::endl;
 
         std::ostringstream stream;
-        for (unsigned j = 0; j < session.cellanims[i].object->getAnimations().size(); j++) {
+        for (size_t j = 0; j < session.cellanims[i].object->getAnimations().size(); j++) {
             const auto& animation = session.cellanims[i].object->getAnimation(j);
             if (animation.name.empty())
                 continue;
@@ -556,7 +560,9 @@ static SessionManager::Error SerializeRvlSession(
         MainThreadTaskManager::getInstance().QueueTask([&session, &tplObject, &error]() {
             tplObject.mTextures.resize(session.sheets->getTextureCount());
             for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
-                auto tplTexture = session.sheets->getTextureByIndex(i)->TPLTexture();
+                const auto& sheet = session.sheets->getTextureByIndex(i);
+
+                auto tplTexture = sheet->TPLTexture();
                 if (!tplTexture.has_value()) {
                     error = SessionManager::OutError_FailTextureExport;
                     return;
@@ -613,13 +619,13 @@ static SessionManager::Error SerializeRvlSession(
 static SessionManager::Error SerializeCtrSession(
     const Session& session, std::vector<unsigned char>& output
 ) {
-    SARC::SARCObject archive;
+    Archive::SARCObject archive;
 
     archive.getStructure().AddDirectory(Archive::Directory("arc"));
     auto& directory = archive.getStructure().subdirectories.back();
 
     // BCCAD files
-    for (unsigned i = 0; i < session.cellanims.size(); i++) {
+    for (size_t i = 0; i < session.cellanims.size(); i++) {
         const auto& cellanim = session.cellanims[i];
 
         Archive::File file(cellanim.name + ".bccad");
@@ -639,7 +645,9 @@ static SessionManager::Error SerializeCtrSession(
     MainThreadTaskManager::getInstance().QueueTask([&session, &ctpkTextures, &getTexturesError]() {
         ctpkTextures.resize(session.sheets->getTextureCount());
         for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
-            auto ctpkTexture = session.sheets->getTextureByIndex(i)->CTPKTexture();
+            const auto& sheet = session.sheets->getTextureByIndex(i);
+
+            auto ctpkTexture = sheet->CTPKTexture();
             if (!ctpkTexture.has_value()) {
                 getTexturesError = SessionManager::OutError_FailTextureExport;
                 return;

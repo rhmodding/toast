@@ -7,43 +7,63 @@
 
 #include "Texture.hpp"
 
+template<typename T>
 class TextureGroup {
+    static_assert(std::is_base_of<Texture, T>::value, "T must be derived from Texture");
+public:
+    using TexSharedPtr = std::shared_ptr<T>;
+
 private:
-    std::vector<std::shared_ptr<Texture>> mVec;
+    std::vector<TexSharedPtr> mVec;
     unsigned mBaseTextureIndex { 0 };
 
     bool mVaryingEnabled { false };
+
 public:
     TextureGroup() = default;
     ~TextureGroup() = default;
 
     bool getVaryingEnabled() const { return mVaryingEnabled; }
-    void setVaryingEnabled(bool enabled) { mVaryingEnabled = enabled; } 
+    void setVaryingEnabled(bool enabled) { mVaryingEnabled = enabled; }
 
-    std::shared_ptr<Texture>& getBaseTexture();
+    TexSharedPtr& getBaseTexture() {
+        return mVec[mBaseTextureIndex % mVec.size()];
+    }
 
     unsigned getBaseTextureIndex() const { return mBaseTextureIndex; }
     void setBaseTextureIndex(unsigned index) { mBaseTextureIndex = index; }
 
-    // Gets texture at index baseTextureIndex + varying.
-    // Note A: if varying is disabled, this will return the base texture.
-    // Note B: out of bounds values will wrap around.
-    std::shared_ptr<Texture>& getTextureByVarying(unsigned varying);
+    TexSharedPtr& getTextureByVarying(unsigned varying) {
+        unsigned index = mBaseTextureIndex;
+        if (mVaryingEnabled)
+            index += varying;
+
+        return mVec[index % mVec.size()];
+    }
 
     // Gets texture at specified index.
     // Note: out of bounds values will wrap around.
-    std::shared_ptr<Texture>& getTextureByIndex(unsigned index);
+    TexSharedPtr& getTextureByIndex(unsigned index) {
+        return mVec[index % mVec.size()];
+    }
 
     // Add a texture to the group.
     //
     // Returns: the index of the new texture.
-    unsigned addTexture(std::shared_ptr<Texture> texture);
+    unsigned addTexture(TexSharedPtr texture) {
+        mVec.push_back(std::move(texture));
+        return static_cast<unsigned>(mVec.size() - 1);
+    }
 
-    void removeTexture(unsigned textureIndex);
+    void removeTexture(unsigned textureIndex) {
+        if (textureIndex < mVec.size()) {
+            mVec.erase(mVec.begin() + textureIndex);
+        }
+    }
 
-    unsigned getTextureCount() const { return mVec.size(); }
+    unsigned getTextureCount() const { return static_cast<unsigned>(mVec.size()); }
 
-    std::vector<std::shared_ptr<Texture>>& getVector() { return mVec; };
+    std::vector<TexSharedPtr>& getVector() { return mVec; }
 };
 
 

@@ -67,11 +67,11 @@ static void IMPLEMENTATION_FROM_ETC1A4(unsigned char* _result, unsigned srcWidth
 
                 uint32_t pixels[4 * 4];
 
-                uint64_t alphaData = *(uint64_t*)(data + readOffset);
+                uint64_t alphaData = *reinterpret_cast<const uint64_t*>(data + readOffset);
                 readOffset += 8;
 
                 // Nintendo stores their ETC1 blocks in little- instead of big-endian.
-                uint64_t blockData = BYTESWAP_64(*(uint64_t*)(data + readOffset));
+                uint64_t blockData = BYTESWAP_64(*reinterpret_cast<const uint64_t*>(data + readOffset));
                 readOffset += 8;
 
                 rg_etc1::unpack_etc1_block(&blockData, pixels, true);
@@ -107,7 +107,7 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
 
     rg_etc1::etc1_pack_params packerParams;
     packerParams.m_quality = static_cast<rg_etc1::etc1_quality>(
-        std::min(ConfigManager::getInstance().getConfig().etc1Quality, ETC1Quality_High)
+        std::min(ConfigManager::getInstance().getConfig().etc1Quality, ETC1Quality::High)
     );
     packerParams.m_dithering = false;
 
@@ -121,6 +121,8 @@ static void IMPLEMENTATION_TO_ETC1A4(unsigned char* result, unsigned srcWidth, u
     unsigned numThreads = std::thread::hardware_concurrency();
     if (numThreads == 0 || numThreads > 16)
         numThreads = 4;
+
+    threads.reserve(numThreads);
 
     unsigned totalTiles = (srcHeight + 7) / 8;
     unsigned tilesPerThread = (totalTiles + numThreads - 1) / numThreads;
@@ -219,7 +221,7 @@ bool CtrImageConvert::toRGBA32(
 ) {
     return CtrImageConvert::toRGBA32(
         texture.data.data(),
-        texture.format,
+        texture.targetFormat,
         texture.width, texture.height,
         data
     );
@@ -253,7 +255,7 @@ bool CtrImageConvert::fromRGBA32(
 ) {
     return CtrImageConvert::fromRGBA32(
         buffer,
-        texture.format,
+        texture.targetFormat,
         texture.width, texture.height,
         texture.data.data()
     );
@@ -304,5 +306,5 @@ unsigned CtrImageConvert::getImageByteSize(const ImageFormat type, unsigned widt
 }
 
 unsigned CtrImageConvert::getImageByteSize(const CTPK::CTPKTexture& texture) {
-    return getImageByteSize(texture.format, texture.width, texture.height, texture.mipCount);
+    return getImageByteSize(texture.targetFormat, texture.width, texture.height, texture.mipCount);
 }

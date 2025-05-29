@@ -53,7 +53,7 @@ public:
         this->subdirectories.push_back(std::move(directory));
     }
 
-    // Sort all files and 
+    // Sort all files and subdirectories in alphabetic order.
     void SortAlphabetic();
 
 public:

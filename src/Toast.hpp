@@ -76,30 +76,36 @@ private:
     public:
         ToastWindow() {
             static_assert(std::is_base_of<BaseWindow, T>::value, "T must be derived from BaseWindow");
-            mWindowInstance = std::make_unique<T>();
+            this->windowInstance = std::make_unique<T>();
         }
 
     public:
-        bool mShy { false };
-        std::unique_ptr<T> mWindowInstance;
+        bool shy { false };
+        std::unique_ptr<T> windowInstance;
 
     public:
         void Update() {
-            if (mShy) {
+            if (this->shy) {
                 return;
             }
 
-            if (UNLIKELY(!mWindowInstance)) {
+            if (UNLIKELY(!this->windowInstance)) {
                 throw std::runtime_error(
                     "ToastWindow<" + CxxDemangle::Demangle<T>() + ">::Update: Window instance does not exist (anymore)!"
                 );
             }
 
-            mWindowInstance->Update();
+            this->windowInstance->Update();
         }
 
         void Destroy() {
-            mWindowInstance.reset();
+            this->windowInstance.reset();
+        }
+
+        void UIShyToggle(const char* label) {
+            if (ImGui::MenuItem(label, "", !this->shy)) {
+                this->shy ^= true;
+            }
         }
     };
 

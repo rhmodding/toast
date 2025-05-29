@@ -35,7 +35,7 @@ static void removeUnusedArrangements(Session* session) {
             usedIndices.insert(key.arrangementIndex);
     }
 
-    for (unsigned i = 0; i < cellanim->getArrangements().size(); i++) {
+    for (size_t i = 0; i < cellanim->getArrangements().size(); i++) {
         if (usedIndices.find(i) == usedIndices.end())
             toErase.push_back(i);
     }
@@ -45,13 +45,13 @@ static void removeUnusedArrangements(Session* session) {
 
     MainThreadTaskManager::getInstance().QueueTask(
     [&arrangements, &toErase, &animations]() {
-        for (unsigned i = 0; i < toErase.size(); i++) {
+        for (size_t i = 0; i < toErase.size(); i++) {
             unsigned index = toErase.at(i);
 
             auto it = arrangements.begin() + index;
             arrangements.erase(it);
 
-            for (unsigned j = i; j < toErase.size(); j++) {
+            for (size_t j = i; j < toErase.size(); j++) {
                 if (toErase.at(j) > index)
                     toErase.at(j)--;
             }

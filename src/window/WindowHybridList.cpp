@@ -164,7 +164,7 @@ void WindowHybridList::Update() {
                         newAnimation.keys.emplace_back(); // Add one defaulted key.
                         newAnimation.name = animations[n].name;
                         newAnimation.isInterpolated = animations[n].isInterpolated;
-                        
+
                         command = std::make_shared<CommandModifyAnimation>(
                             sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                             n,
@@ -210,7 +210,7 @@ void WindowHybridList::Update() {
 
                             auto baseIndex = std::distance(cellAnim.getArrangements().begin(), insertPos);
 
-                            for (unsigned i = 0; i < newAnimation.keys.size(); i++) {
+                            for (size_t i = 0; i < newAnimation.keys.size(); i++) {
                                 newAnimation.keys[i].arrangementIndex = baseIndex + i;
                             }
                         }
@@ -227,7 +227,7 @@ void WindowHybridList::Update() {
                             auto newAnimation = animations[n];
 
                             for (
-                                unsigned i = 0;
+                                size_t i = 0;
                                 i < newAnimation.keys.size() && i < copyAnimation.keys.size();
                                 i++
                             ) {
@@ -257,7 +257,7 @@ void WindowHybridList::Update() {
                     if (ImGui::Selectable("Copy animation")) {
                         copyAnimation = animations[n];
                         copyAnimationArrangements.resize(copyAnimation.keys.size());
-                        for (unsigned i = 0; i < copyAnimation.keys.size(); i++) {
+                        for (size_t i = 0; i < copyAnimation.keys.size(); i++) {
                             copyAnimationArrangements[i] = arrangements.at(copyAnimation.keys[i].arrangementIndex);
                         }
 

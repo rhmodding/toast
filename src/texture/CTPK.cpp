@@ -185,7 +185,7 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
 
         textureOut.mipCount = textureIn->mipCount;
 
-        textureOut.format = static_cast<CTPKImageFormat>(textureIn->dataFormat);
+        textureOut.targetFormat = static_cast<CTPKImageFormat>(textureIn->dataFormat);
 
         textureOut.sourceTimestamp = textureIn->sourceTimestamp;
         if (textureIn->sourcePathOffset != 0) {
@@ -194,8 +194,23 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
             ));
         }
 
-        const unsigned char* imageData = ctpkData + header->dataSectionOffset + textureIn->dataOffset;
+        const unsigned expectedImageDataSize = CtrImageConvert::getImageByteSize(textureOut);
+        if (textureIn->dataSize < expectedImageDataSize) {
+            Logging::err << "[CTPKObject::CTPKObject] Invalid texture (no. " << i+1 <<
+                "): image data size was less than expected (" << textureIn->dataSize << " < " <<
+                expectedImageDataSize << ")" << std::endl;
+            return;
+        }
 
+        const unsigned char* imageData = ctpkData + header->dataSectionOffset + textureIn->dataOffset;
+        const unsigned char* imageDataEnd = imageData + textureIn->dataSize;
+
+        if (getImageFormatCompressed(textureOut.targetFormat)) {
+            // Copy targeted data.
+            textureOut.cachedTargetData.assign(imageData, imageDataEnd);
+        }
+
+        // Copy RGBA data.
         textureOut.data.resize(textureOut.width * textureOut.height * 4);
         CtrImageConvert::toRGBA32(textureOut, imageData);
     }
@@ -211,14 +226,11 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         return result;
     }
 
-    unsigned fullSize = sizeof(CtpkFileHeader) + ((
-        sizeof(CtpkTextureEntry) +
-        sizeof(CtpkLookupEntry) +
-        sizeof(CtpkInfoEntry)
-    ) * mTextures.size());
-
-    for (unsigned i = 0; i < mTextures.size(); i++) {
+    unsigned fullSize = sizeof(CtpkFileHeader);
+    for (size_t i = 0; i < mTextures.size(); i++) {
         const auto& texture = mTextures[i];
+
+        fullSize += sizeof(CtpkTextureEntry) + sizeof(CtpkLookupEntry) + sizeof(CtpkInfoEntry);
 
         fullSize += sizeof(uint32_t) * texture.mipCount;
 
@@ -238,12 +250,12 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     );
 
     // Write texture entries.
-    for (unsigned i = 0; i < mTextures.size(); i++) {
+    for (size_t i = 0; i < mTextures.size(); i++) {
         const auto& texture = mTextures[i];
         CtpkTextureEntry* texEntry = header->textureEntries + i;
 
         texEntry->dataSize = CtrImageConvert::getImageByteSize(texture);
-        texEntry->dataFormat = static_cast<uint32_t>(texture.format);
+        texEntry->dataFormat = static_cast<uint32_t>(texture.targetFormat);
 
         if (texture.width > 1024 || texture.height > 1024) {
             Logging::err << "[CTPKObject::Serialize] Texture no. " << i+1 << " exceeds the dimensions limit of 1024x1024; the" << std::endl;
@@ -276,7 +288,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         unsigned currentHeight = texture.height;
         for (unsigned i = 0; i < texture.mipCount; i++) {
             *(currentMipSize++) = CtrImageConvert::getImageByteSize(
-                texture.format, currentWidth, currentHeight, 1
+                texture.targetFormat, currentWidth, currentHeight, 1
             );
 
             currentWidth = (currentWidth > 1) ? currentWidth / 2 : 1;
@@ -290,7 +302,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     char* currentTexFilename = reinterpret_cast<char*>(currentMipSize);
 
     // Write texture filenames.
-    for (unsigned i = 0; i < mTextures.size(); i++) {
+    for (size_t i = 0; i < mTextures.size(); i++) {
         const auto& texture = mTextures[i];
         CtpkTextureEntry* texEntry = header->textureEntries + i;
 
@@ -313,7 +325,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     );
 
     // Write lookup entries.
-    for (unsigned i = 0; i < mTextures.size(); i++) {
+    for (size_t i = 0; i < mTextures.size(); i++) {
         CtpkLookupEntry* lookupEntry = lookupEntriesStart + i;
 
         lookupEntry->sourcePathHash = CRC32::compute(mTextures[i].sourcePath);
@@ -339,16 +351,14 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     );
 
     // Write info entries.
-    for (unsigned i = 0; i < mTextures.size(); i++) {
+    for (size_t i = 0; i < mTextures.size(); i++) {
         const auto& texture = mTextures[i];
         CtpkInfoEntry* infoEntry = infoEntriesStart + i;
 
-        infoEntry->dataFormat = static_cast<uint8_t>(texture.format);
+        infoEntry->dataFormat = static_cast<uint8_t>(texture.targetFormat);
         infoEntry->mipCount = static_cast<uint8_t>(texture.mipCount);
 
-        const bool isCompressed =
-            texture.format == CTPK_IMAGE_FORMAT_ETC1 ||
-            texture.format == CTPK_IMAGE_FORMAT_ETC1A4;
+        const bool isCompressed = getImageFormatCompressed(texture.targetFormat);
 
         infoEntry->compressed = isCompressed ? 1 : 0;
         infoEntry->compressionMethod = isCompressed ? 7 : 0;
@@ -361,7 +371,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     header->dataSectionOffset = static_cast<uint32_t>(dataSectionStart - result.data());
 
     unsigned char* currentData = dataSectionStart;
-    for (unsigned i = 0; i < mTextures.size(); i++) {
+    for (size_t i = 0; i < mTextures.size(); i++) {
         CtpkTextureEntry* texEntry = header->textureEntries + i;
 
         texEntry->dataOffset = static_cast<uint32_t>(currentData - dataSectionStart);
@@ -389,11 +399,11 @@ std::vector<unsigned char> CTPKObject::Serialize() {
             Logging::info <<
                 "[CTPKObject::Serialize] Writing data for texture no. " << (i+1) << " (mip-level no. " <<
                 j+1 << ") (" << dstTexture.width << 'x' << dstTexture.height << ", " <<
-                getImageFormatName(dstTexture.format) << ").." << std::endl;
+                getImageFormatName(dstTexture.targetFormat) << ").." << std::endl;
 
             CtrImageConvert::fromRGBA32(dstTexture, currentData);
             currentData += CtrImageConvert::getImageByteSize(
-                dstTexture.format, dstTexture.width, dstTexture.height, 1
+                dstTexture.targetFormat, dstTexture.width, dstTexture.height, 1
             );
 
             // Scale texture for next mip-level.

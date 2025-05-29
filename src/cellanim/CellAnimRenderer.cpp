@@ -71,20 +71,20 @@ static const char* fragmentShaderSource =
     "    Out_Color = vec4(passB, texColor.a) * Frag_Color;\n"
     "}\n";
 
-GLuint CellAnimRenderer::shaderProgram { 0 };
+GLuint CellAnimRenderer::sShaderProgram { 0 };
 
-GLint CellAnimRenderer::textureUniform { -1 };
-GLint CellAnimRenderer::foreColorAUniform { -1 };
-GLint CellAnimRenderer::backColorAUniform { -1 };
-GLint CellAnimRenderer::foreColorBUniform { -1 };
-GLint CellAnimRenderer::backColorBUniform { -1 };
-GLint CellAnimRenderer::projMtxUniform { -1 };
+GLint CellAnimRenderer::sTextureUniform { -1 };
+GLint CellAnimRenderer::sForeColorAUniform { -1 };
+GLint CellAnimRenderer::sBackColorAUniform { -1 };
+GLint CellAnimRenderer::sForeColorBUniform { -1 };
+GLint CellAnimRenderer::sBackColorBUniform { -1 };
+GLint CellAnimRenderer::sProjMtxUniform { -1 };
 
-GLint CellAnimRenderer::positionAttrib { -1 };
-GLint CellAnimRenderer::uvAttrib { -1 };
-GLint CellAnimRenderer::colorAttrib { -1 };
+GLint CellAnimRenderer::sPositionAttrib { -1 };
+GLint CellAnimRenderer::sUvAttrib { -1 };
+GLint CellAnimRenderer::sColorAttrib { -1 };
 
-GLuint CellAnimRenderer::texDrawFramebuffer { 0 };
+GLuint CellAnimRenderer::sTexDrawFramebuffer { 0 };
 
 static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, std::string_view errorMessage) {
     GLint success { 0 };
@@ -125,53 +125,35 @@ void CellAnimRenderer::InitShader() {
         "[CellAnimRenderer::InitShader] Fragment shader compilation failed"
     );
 
-    CellAnimRenderer::shaderProgram = glCreateProgram();
-    glAttachShader(CellAnimRenderer::shaderProgram, vertexShader);
-    glAttachShader(CellAnimRenderer::shaderProgram, fragmentShader);
-    glLinkProgram(CellAnimRenderer::shaderProgram);
+    sShaderProgram = glCreateProgram();
+    glAttachShader(sShaderProgram, vertexShader);
+    glAttachShader(sShaderProgram, fragmentShader);
+    glLinkProgram(sShaderProgram);
 
     checkShaderError(
-        CellAnimRenderer::shaderProgram, GL_LINK_STATUS, true,
+        sShaderProgram, GL_LINK_STATUS, true,
         "[CellAnimRenderer::InitShader] Shader program link failed"
     );
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // Looking up the uniform locations in advance avoids stuttering issues.
+    // Looking up the uniform & attrib locations in advance avoids stuttering issues
 
-    CellAnimRenderer::textureUniform = glGetUniformLocation(
-        CellAnimRenderer::shaderProgram, "Texture"
-    );
+    sTextureUniform = glGetUniformLocation(sShaderProgram, "Texture");
 
-    CellAnimRenderer::foreColorAUniform = glGetUniformLocation(
-        CellAnimRenderer::shaderProgram, "Fore_Color_A"
-    );
-    CellAnimRenderer::backColorAUniform = glGetUniformLocation(
-        CellAnimRenderer::shaderProgram, "Back_Color_A"
-    );
-    CellAnimRenderer::foreColorBUniform = glGetUniformLocation(
-        CellAnimRenderer::shaderProgram, "Fore_Color_B"
-    );
-    CellAnimRenderer::backColorBUniform = glGetUniformLocation(
-        CellAnimRenderer::shaderProgram, "Back_Color_B"
-    );
+    sForeColorAUniform = glGetUniformLocation(sShaderProgram, "Fore_Color_A");
+    sBackColorAUniform = glGetUniformLocation(sShaderProgram, "Back_Color_A");
+    sForeColorBUniform = glGetUniformLocation(sShaderProgram, "Fore_Color_B");
+    sBackColorBUniform = glGetUniformLocation(sShaderProgram, "Back_Color_B");
 
-    CellAnimRenderer::projMtxUniform = glGetUniformLocation(
-        CellAnimRenderer::shaderProgram, "ProjMtx"
-    );
+    sProjMtxUniform = glGetUniformLocation(sShaderProgram, "ProjMtx");
 
-    CellAnimRenderer::positionAttrib = glGetAttribLocation(
-        CellAnimRenderer::shaderProgram, "Position"
-    );
-    CellAnimRenderer::uvAttrib = glGetAttribLocation(
-        CellAnimRenderer::shaderProgram, "UV"
-    );
-    CellAnimRenderer::colorAttrib = glGetAttribLocation(
-        CellAnimRenderer::shaderProgram, "Color"
-    );
+    sPositionAttrib = glGetAttribLocation(sShaderProgram, "Position");
+    sUvAttrib = glGetAttribLocation(sShaderProgram, "UV");
+    sColorAttrib = glGetAttribLocation(sShaderProgram, "Color");
 
-    glGenFramebuffers(1, &CellAnimRenderer::texDrawFramebuffer);
+    glGenFramebuffers(1, &sTexDrawFramebuffer);
 
     Logging::info << "[CellAnimRenderer::InitShader] Successfully initialized shader." << std::endl;
 }
@@ -179,9 +161,9 @@ void CellAnimRenderer::InitShader() {
 void CellAnimRenderer::DestroyShader() {
     Logging::info << "[CellAnimRenderer::DestroyShader] Destroying shader.." << std::endl;
 
-    glDeleteProgram(CellAnimRenderer::shaderProgram);
+    glDeleteProgram(sShaderProgram);
 
-    glDeleteFramebuffers(1, &CellAnimRenderer::texDrawFramebuffer);
+    glDeleteFramebuffers(1, &sTexDrawFramebuffer);
 }
 
 struct RenderPartCallbackData {
@@ -199,25 +181,13 @@ void CellAnimRenderer::renderPartCallback(const ImDrawList* parentList, const Im
     const auto& foreColorB = renderData->foreColorB;
     const auto& backColorB = renderData->backColorB;
 
-    glUseProgram(CellAnimRenderer::shaderProgram);
+    glUseProgram(sShaderProgram);
 
-    glUniform3f(
-        CellAnimRenderer::foreColorAUniform,
-        foreColorA.r, foreColorA.g, foreColorA.b
-    );
-    glUniform3f(
-        CellAnimRenderer::backColorAUniform,
-        backColorA.r, backColorA.g, backColorA.b
-    );
+    glUniform3f(sForeColorAUniform, foreColorA.r, foreColorA.g, foreColorA.b);
+    glUniform3f(sBackColorAUniform, backColorA.r, backColorA.g, backColorA.b);
 
-    glUniform3f(
-        CellAnimRenderer::foreColorBUniform,
-        foreColorB.r, foreColorB.g, foreColorB.b
-    );
-    glUniform3f(
-        CellAnimRenderer::backColorBUniform,
-        backColorB.r, backColorB.g, backColorB.b
-    );
+    glUniform3f(sForeColorBUniform, foreColorB.r, foreColorB.g, foreColorB.b);
+    glUniform3f(sBackColorBUniform, backColorB.r, backColorB.g, backColorB.b);
 
     const ImDrawData* drawData = ImGui::GetDrawData();
 
@@ -232,7 +202,7 @@ void CellAnimRenderer::renderPartCallback(const ImDrawList* parentList, const Im
         { 0.f,           0.f,          -1.f,  0.f },
         { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
     };
-    glUniformMatrix4fv(CellAnimRenderer::projMtxUniform, 1, GL_FALSE, orthoProjection[0]);
+    glUniformMatrix4fv(sProjMtxUniform, 1, GL_FALSE, orthoProjection[0]);
 }
 
 void CellAnimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
@@ -465,7 +435,7 @@ ImRect CellAnimRenderer::getKeyWorldRect(const CellAnim::AnimationKey& key) cons
     const auto& arrangement = mCellAnim->getArrangement(key.arrangementIndex);
 
     std::vector<std::array<ImVec2, 4>> quads(arrangement.parts.size());
-    for (unsigned i = 0; i < arrangement.parts.size(); i++)
+    for (size_t i = 0; i < arrangement.parts.size(); i++)
         quads[i] = getPartWorldQuad(key, i);
 
     float minX = std::numeric_limits<float>::max();
@@ -473,7 +443,7 @@ ImRect CellAnimRenderer::getKeyWorldRect(const CellAnim::AnimationKey& key) cons
     float maxX = std::numeric_limits<float>::lowest();
     float maxY = std::numeric_limits<float>::lowest();
 
-    for (unsigned i = 0; i < arrangement.parts.size(); ++i) {
+    for (size_t i = 0; i < arrangement.parts.size(); ++i) {
         for (const ImVec2& vertex : quads[i]) {
             if (vertex.x < minX) minX = vertex.x;
             if (vertex.y < minY) minY = vertex.y;
@@ -493,9 +463,10 @@ struct PartDrawCommand {
     RenderPartCallbackData callbackData;
 };
 
+template<typename T>
 static std::vector<PartDrawCommand> constructDrawData(
     const CellAnimRenderer& renderer,
-    const CellAnim::CellAnimObject& cellanim, TextureGroup& textureGroup,
+    const CellAnim::CellAnimObject& cellanim, TextureGroup<T>& textureGroup,
     const CellAnim::AnimationKey& key, int partIndex,
     uint32_t colorMod, bool allowOpacity
 ) {
@@ -507,7 +478,7 @@ static std::vector<PartDrawCommand> constructDrawData(
     const float texWidth = cellanim.getSheetWidth();
     const float texHeight = cellanim.getSheetHeight();
 
-    for (unsigned i = 0; i < arrangement.parts.size(); i++) {
+    for (size_t i = 0; i < arrangement.parts.size(); i++) {
         if (partIndex >= 0 && partIndex != static_cast<int>(i))
             continue;
 
@@ -634,7 +605,7 @@ void CellAnimRenderer::InternDraw(
         struct Vertex { ImVec2 pos, uv; ImVec4 color; };
         std::vector<Vertex> vertexData (vertexCount);
 
-        for (unsigned i = 0; i < drawData.size(); i++) {
+        for (size_t i = 0; i < drawData.size(); i++) {
             auto tris = quadToTriangles(drawData[i].quad);
             auto uvTris = quadToTriangles(drawData[i].uvs);
             for (unsigned j = 0; j < 6; j++) {
@@ -659,12 +630,12 @@ void CellAnimRenderer::InternDraw(
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-        glVertexAttribPointer(CellAnimRenderer::positionAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
-        glEnableVertexAttribArray(CellAnimRenderer::positionAttrib);
-        glVertexAttribPointer(CellAnimRenderer::uvAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-        glEnableVertexAttribArray(CellAnimRenderer::uvAttrib);
-        glVertexAttribPointer(CellAnimRenderer::colorAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-        glEnableVertexAttribArray(CellAnimRenderer::colorAttrib);
+        glVertexAttribPointer(sPositionAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
+        glEnableVertexAttribArray(sPositionAttrib);
+        glVertexAttribPointer(sUvAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glEnableVertexAttribArray(sUvAttrib);
+        glVertexAttribPointer(sColorAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+        glEnableVertexAttribArray(sColorAttrib);
 
         glBindTexture(GL_TEXTURE_2D, currentDrawTex);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mDrawTexSize.x, mDrawTexSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -673,7 +644,7 @@ void CellAnimRenderer::InternDraw(
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, texDrawFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, sTexDrawFramebuffer);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, currentDrawTex, 0);
 
         GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
@@ -686,7 +657,7 @@ void CellAnimRenderer::InternDraw(
         glViewport(0, 0, mDrawTexSize.x, mDrawTexSize.y);
 
         glBindVertexArray(VAO);
-        glUseProgram(CellAnimRenderer::shaderProgram);
+        glUseProgram(sShaderProgram);
 
         float L = frameRect.Min.x, R = L + (mDrawTexSize.x / SCALE_FACTOR);
         float T = frameRect.Min.y + (mDrawTexSize.y / SCALE_FACTOR), B = frameRect.Min.y;
@@ -697,12 +668,12 @@ void CellAnimRenderer::InternDraw(
             { 0.f,           0.f,          -1.f,  0.f },
             { (R+L) / (L-R), (T+B) / (B-T), 0.f,  1.f },
         };
-        glUniformMatrix4fv(CellAnimRenderer::projMtxUniform, 1, GL_FALSE, orthoProjection[0]);
+        glUniformMatrix4fv(sProjMtxUniform, 1, GL_FALSE, orthoProjection[0]);
 
         glActiveTexture(GL_TEXTURE0);
-        glUniform1i(CellAnimRenderer::textureUniform, 0);
+        glUniform1i(sTextureUniform, 0);
 
-        for (unsigned i = 0; i < drawData.size(); i++) {
+        for (size_t i = 0; i < drawData.size(); i++) {
             const auto& cmd = drawData[i];
 
             const auto& foreColorA = cmd.callbackData.foreColorA;
@@ -711,10 +682,10 @@ void CellAnimRenderer::InternDraw(
             const auto& foreColorB = cmd.callbackData.foreColorB;
             const auto& backColorB = cmd.callbackData.backColorB;
 
-            glUniform3f(CellAnimRenderer::foreColorAUniform, foreColorA.r, foreColorA.g, foreColorA.b);
-            glUniform3f(CellAnimRenderer::backColorAUniform, backColorA.r, backColorA.g, backColorA.b);
-            glUniform3f(CellAnimRenderer::foreColorBUniform, foreColorB.r, foreColorB.g, foreColorB.b);
-            glUniform3f(CellAnimRenderer::backColorBUniform, backColorB.r, backColorB.g, backColorB.b);
+            glUniform3f(sForeColorAUniform, foreColorA.r, foreColorA.g, foreColorA.b);
+            glUniform3f(sBackColorAUniform, backColorA.r, backColorA.g, backColorA.b);
+            glUniform3f(sForeColorBUniform, foreColorB.r, foreColorB.g, foreColorB.b);
+            glUniform3f(sBackColorBUniform, backColorB.r, backColorB.g, backColorB.b);
 
             glBindTexture(GL_TEXTURE_2D, cmd.textureId);
             glDrawArrays(GL_TRIANGLES, i * 6, 6);

@@ -248,7 +248,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
 
     unsigned fullSize = sizeof(SarcFileHeader) + sizeof(SfatSection) +
         sizeof(SfntSection) + (sizeof(SfatNode) * entries.size());
-    for (unsigned i = 0; i < entries.size(); i++) {
+    for (size_t i = 0; i < entries.size(); i++) {
         fullSize += ALIGN_UP_4(entries[i].path.size() + 1);
         fullSize = ALIGN_UP_32(fullSize) + ALIGN_UP_32(entries[i].file->data.size());
     }
@@ -274,7 +274,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
     // Write the strings & nodes at the same time.
 
     char* currentName = sfntSection->data;
-    for (unsigned i = 0; i < entries.size(); i++) {
+    for (size_t i = 0; i < entries.size(); i++) {
         const FileEntry& entry = entries[i];
 
         SfatNode* node = sfatSection->nodes + i;
@@ -295,7 +295,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
     header->dataStart = static_cast<uint32_t>(dataStart - result.data());
 
     unsigned char* currentData = dataStart;
-    for (unsigned i = 0; i < entries.size(); i++) {
+    for (size_t i = 0; i < entries.size(); i++) {
         const FileEntry& entry = entries[i];
 
         SfatNode* node = sfatSection->nodes + i;

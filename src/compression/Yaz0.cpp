@@ -57,8 +57,11 @@ struct Yaz0CompressionState {
 namespace Yaz0 {
 
 std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
+    // Header + every byte + all op bytes needed (no RLE, only copy).
+    size_t maximumSize = sizeof(Yaz0Header) + dataSize + ((dataSize + 7) / 8);
+
     std::vector<unsigned char> result(sizeof(Yaz0Header));
-    result.reserve(dataSize);
+    result.reserve(maximumSize);
 
     Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
     *header = Yaz0Header {
@@ -236,7 +239,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
             for (; runLen > 0; runLen--, dstByte++, runSrcIdx++) {
                 if (UNLIKELY(dstByte >= dstEnd)) {
                     Logging::err << "[Yaz0::decompress] The Yaz0 data is malformed. The binary might be corrupted." << std::endl;
-                    return std::nullopt;
+                    return std::nullopt; // return nothing (std::optional)
                 }
 
                 *dstByte = destination.data()[runSrcIdx - 1];

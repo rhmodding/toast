@@ -265,7 +265,7 @@ struct Animation {
     std::string name;
 
     // On CTR only.
-    // Note: arrangement parts are matched by id.
+    // Note: arrangement parts are matched by ID, not index.
     bool isInterpolated { false };
 };
 

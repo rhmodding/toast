@@ -3,7 +3,7 @@
 
 #include "Archive.hpp"
 
-namespace SARC {
+namespace Archive {
 
 class SARCObject : public Archive::ArchiveObjectBase {
 public:
@@ -13,6 +13,6 @@ public:
     [[nodiscard]] std::vector<unsigned char> Serialize();
 };
 
-} // namespace SARC
+} // namespace Archive
 
 #endif // SARC_HPP

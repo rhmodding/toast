@@ -214,7 +214,7 @@ Toast::Toast(int argc, const char** argv) {
     });
 
     if (argc >= 2) {
-        for (unsigned i = 1; i < argc; i++) {
+        for (int i = 1; i < argc; i++) {
             AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(
                 std::string(argv[i])
             );
@@ -296,14 +296,14 @@ void Toast::Menubar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(WINDOW_TITLE)) {
             if (ImGui::MenuItem((const char*)ICON_FA_SHARE_FROM_SQUARE " About " WINDOW_TITLE, "", nullptr)) {
-                mWindowAbout.mWindowInstance->mOpen = true;
+                mWindowAbout.windowInstance->mOpen = true;
                 ImGui::SetWindowFocus("About");
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem((const char*)ICON_FA_WRENCH " Config", "", nullptr)) {
-                mWindowConfig.mWindowInstance->mOpen = true;
+                mWindowConfig.windowInstance->mOpen = true;
                 ImGui::SetWindowFocus("Config");
             }
 
@@ -427,7 +427,7 @@ void Toast::Menubar() {
             if (ImGui::BeginMenu("Select")) {
                 auto* currentSession = sessionManager.getCurrentSession();
 
-                for (unsigned i = 0; i < currentSession->cellanims.size(); i++) {
+                for (size_t i = 0; i < currentSession->cellanims.size(); i++) {
                     std::ostringstream fmtStream;
                     fmtStream << std::to_string(i+1) << ". " << currentSession->cellanims[i].name;
 
@@ -722,25 +722,16 @@ void Toast::Menubar() {
         }
 
         if (ImGui::BeginMenu("Windows")) {
-            if (ImGui::MenuItem("Canvas", "", !mWindowCanvas.mShy))
-                mWindowCanvas.mShy ^= true;
-
-            if (ImGui::MenuItem("Animation- / Arrangement List", "", !mWindowHybridList.mShy))
-                mWindowHybridList.mShy ^= true;
-
-            if (ImGui::MenuItem("Inspector", "", !mWindowInspector.mShy))
-                mWindowInspector.mShy ^= true;
-
-            if (ImGui::MenuItem("Spritesheet", "", !mWindowSpritesheet.mShy))
-                mWindowSpritesheet.mShy ^= true;
-
-            if (ImGui::MenuItem("Timeline", "", !mWindowTimeline.mShy))
-                mWindowTimeline.mShy ^= true;
+            mWindowCanvas.UIShyToggle("Canvas");
+            mWindowHybridList.UIShyToggle("Animation / Arrangement List");
+            mWindowInspector.UIShyToggle("Inspector");
+            mWindowSpritesheet.UIShyToggle("Spritesheet");
+            mWindowTimeline.UIShyToggle("Timeline");
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Dear ImGui demo window", "", mWindowDemo.mWindowInstance->mOpen))
-                mWindowDemo.mWindowInstance->mOpen ^= true;
+            if (ImGui::MenuItem("Dear ImGui demo window", "", mWindowDemo.windowInstance->mOpen))
+                mWindowDemo.windowInstance->mOpen ^= true;
 
             ImGui::EndMenu();
         }
@@ -781,7 +772,7 @@ void Toast::Menubar() {
                 if (tabVisible && ImGui::BeginPopupContextItem()) {
                     ImGui::TextUnformatted("Select a Cellanim:");
                     ImGui::Separator();
-                    for (unsigned i = 0; i < session.cellanims.size(); i++) {
+                    for (size_t i = 0; i < session.cellanims.size(); i++) {
                         std::ostringstream fmtStream;
                         fmtStream << std::to_string(i+1) << ". " << session.cellanims[i].name;
 

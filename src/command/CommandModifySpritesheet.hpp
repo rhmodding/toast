@@ -11,7 +11,7 @@ class CommandModifySpritesheet : public BaseCommand {
 public:
     // Constructor: Replace spritesheet from sheetIndex by newSheet (shared ownership).
     CommandModifySpritesheet(
-        unsigned sheetIndex, std::shared_ptr<Texture> newSheet
+        unsigned sheetIndex, std::shared_ptr<TextureEx> newSheet
     ) :
         mSheetIndex(sheetIndex),
         mNewSheet(std::move(newSheet)), mOldSheet(getSheet())
@@ -49,10 +49,10 @@ public:
 private:
     unsigned mSheetIndex;
 
-    std::shared_ptr<Texture> mNewSheet;
-    std::shared_ptr<Texture> mOldSheet;
+    std::shared_ptr<TextureEx> mNewSheet;
+    std::shared_ptr<TextureEx> mOldSheet;
 
-    std::shared_ptr<Texture>& getSheet() {
+    std::shared_ptr<TextureEx>& getSheet() {
         return SessionManager::getInstance().getCurrentSession()
             ->sheets->getTextureByIndex(mSheetIndex);
     }

@@ -94,10 +94,13 @@ public:
 
     unsigned mipCount;
 
-    CTPKImageFormat format;
+    CTPKImageFormat targetFormat;
 
     uint32_t sourceTimestamp; // Unix last modified timestamp of source TGA.
     std::string sourcePath; // Path of source TGA.
+
+    // In targeted format (see targetFormat field). Includes mipmaps.
+    std::vector<unsigned char> cachedTargetData;
 
     std::vector<unsigned char> data; // In RGBA32 format.
 

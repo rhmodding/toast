@@ -13,7 +13,7 @@ int SelectionState::getMatchingNamePartIndex(
     if (part.editorName.empty())
         return -1;
 
-    for (unsigned i = 0; i < arrangement.parts.size(); i++) {
+    for (size_t i = 0; i < arrangement.parts.size(); i++) {
         const auto& lPart = arrangement.parts[i];
         if (
             !lPart.editorName.empty() &&
@@ -28,7 +28,7 @@ int SelectionState::getMatchingRegionPartIndex(
     const CellAnim::ArrangementPart& part,
     const CellAnim::Arrangement& arrangement
 ) {
-    for (unsigned i = 0; i < arrangement.parts.size(); i++) {
+    for (size_t i = 0; i < arrangement.parts.size(); i++) {
         const auto& lPart = arrangement.parts[i];
         if (
             lPart.regionX == part.regionX &&
@@ -141,7 +141,7 @@ void SelectionState::deleteSelectedParts(
     newParts.reserve(parts.size() - mSelectedParts.size());
 
     int itemNextIndexToSelect = -1;
-    for (unsigned i = 0; i < parts.size(); i++) {
+    for (size_t i = 0; i < parts.size(); i++) {
         if (!isPartSelected(i))
             newParts.push_back(parts[i]);
         if (itemCurrentIndexToSelect == static_cast<int>(i))

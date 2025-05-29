@@ -27,6 +27,8 @@
 #include "../ConfigManager.hpp"
 #include "../ThemeManager.hpp"
 
+#include "../texture/TextureEx.hpp"
+
 #include "../texture/RvlImageConvert.hpp"
 #include "../texture/CtrImageConvert.hpp"
 
@@ -123,13 +125,13 @@ void WindowSpritesheet::FormatPopup() {
 
         constexpr std::array rvlFormatNames = [&rvlFormats] {
             std::array<const char*, rvlFormats.size()> names {};
-            for (unsigned i = 0; i < rvlFormats.size(); i++)
+            for (size_t i = 0; i < rvlFormats.size(); i++)
                 names[i] = TPL::getImageFormatName(rvlFormats[i]);
             return names;
         }();
         constexpr std::array ctrFormatNames = [&ctrFormats] {
             std::array<const char*, ctrFormats.size()> names {};
-            for (unsigned i = 0; i < ctrFormats.size(); i++)
+            for (size_t i = 0; i < ctrFormats.size(); i++)
                 names[i] = CTPK::getImageFormatName(ctrFormats[i]);
             return names;
         }();
@@ -235,7 +237,7 @@ void WindowSpritesheet::FormatPopup() {
         if (!lateOpen) {
             mipCount = cellanimSheet->getOutputMipCount();
 
-            mFormattingNewTex = std::make_shared<Texture>();
+            mFormattingNewTex = std::make_shared<TextureEx>();
 
             unsigned char* imageData = cellanimSheet->GetRGBA32();
             if (imageData) {
@@ -598,7 +600,7 @@ bool RepackSheet() {
     }
 
     // Update texture
-    auto newTexture = std::make_shared<Texture>();
+    auto newTexture = std::make_shared<TextureEx>();
     newTexture->LoadRGBA32(newImage.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
 
     // Update arrangements
@@ -682,7 +684,7 @@ bool FixSheetEdgePixels() {
     }
 
     // Update texture
-    auto newTexture = std::make_shared<Texture>();
+    auto newTexture = std::make_shared<TextureEx>();
     newTexture->LoadRGBA32(texture.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
 
     newTexture->setName(cellanimSheet->getName());
@@ -787,7 +789,7 @@ void WindowSpritesheet::Update() {
                 if (openFileDialog) {
                     SessionManager& sessionManager = SessionManager::getInstance();
 
-                    std::shared_ptr<Texture> newTexture = std::make_shared<Texture>();
+                    std::shared_ptr<TextureEx> newTexture = std::make_shared<TextureEx>();
                     bool ok = newTexture->LoadSTBFile(openFileDialog);
 
                     if (ok) {
@@ -1011,7 +1013,7 @@ void WindowSpritesheet::Update() {
 
         const auto& arrangement = playerManager.getArrangement();
 
-        for (unsigned i = 0; i < arrangement.parts.size(); i++) {
+        for (size_t i = 0; i < arrangement.parts.size(); i++) {
             const auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
             if (appState.mFocusOnSelectedPart && !selectionState.isPartSelected(i))

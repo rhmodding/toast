@@ -10,6 +10,7 @@
 
 #include "CellAnim.hpp"
 
+#include "../texture/TextureEx.hpp"
 #include "../texture/TextureGroup.hpp"
 
 class CellAnimRenderer {
@@ -20,20 +21,20 @@ public:
 private:
     static void renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd);
 
-    static GLuint shaderProgram;
+    static GLuint sShaderProgram;
 
-    static GLint textureUniform;
-    static GLint foreColorAUniform;
-    static GLint backColorAUniform;
-    static GLint foreColorBUniform;
-    static GLint backColorBUniform;
-    static GLint projMtxUniform;
+    static GLint sTextureUniform;
+    static GLint sForeColorAUniform;
+    static GLint sBackColorAUniform;
+    static GLint sForeColorBUniform;
+    static GLint sBackColorBUniform;
+    static GLint sProjMtxUniform;
 
-    static GLint positionAttrib;
-    static GLint uvAttrib;
-    static GLint colorAttrib;
+    static GLint sPositionAttrib;
+    static GLint sUvAttrib;
+    static GLint sColorAttrib;
 
-    static GLuint texDrawFramebuffer;
+    static GLuint sTexDrawFramebuffer;
 
 public:
     CellAnimRenderer() = default;
@@ -42,7 +43,7 @@ public:
     void linkCellAnim(std::shared_ptr<CellAnim::CellAnimObject> cellAnim) {
         mCellAnim = cellAnim;
     }
-    void linkTextureGroup(std::shared_ptr<TextureGroup> textureGroup) {
+    void linkTextureGroup(std::shared_ptr<TextureGroup<TextureEx>> textureGroup) {
         mTextureGroup = textureGroup;
     }
 
@@ -97,7 +98,7 @@ private:
 
 private:
     std::shared_ptr<CellAnim::CellAnimObject> mCellAnim;
-    std::shared_ptr<TextureGroup> mTextureGroup;
+    std::shared_ptr<TextureGroup<TextureEx>> mTextureGroup;
 
     ImVec2 mOffset { 0.f, 0.f };
     ImVec2 mScale { 1.f, 1.f };

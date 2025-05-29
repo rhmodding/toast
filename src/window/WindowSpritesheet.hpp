@@ -7,7 +7,7 @@
 
 #include <imgui.h>
 
-#include "../texture/Texture.hpp"
+#include "../texture/TextureEx.hpp"
 
 class WindowSpritesheet : public BaseWindow {
 public:
@@ -41,7 +41,7 @@ private:
 
     bool mShowPaletteWindow { false };
 
-    std::shared_ptr<Texture> mFormattingNewTex;
+    std::shared_ptr<TextureEx> mFormattingNewTex;
 };
 
 #endif // WINDOW_SPRITESHEET_HPP

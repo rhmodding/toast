@@ -3,34 +3,26 @@
 
 #include "../glInclude.hpp"
 
-#include "TPL.hpp"
-#include "CTPK.hpp"
-
-#include <optional>
-
 #include <string_view>
 
 #include <imgui.h> // for ImTextureID
+
+/*
+    Generic Texture class
+*/
 
 class Texture {
 public:
     static constexpr GLuint INVALID_TEXTURE_ID = 0;
 
-private:
+protected:
     unsigned mWidth { 0 };
     unsigned mHeight { 0 };
 
     GLuint mTextureId { INVALID_TEXTURE_ID };
 
-    unsigned mOutputMipCount { 1 };
-
-    TPL::TPLImageFormat mTPLOutputFormat { TPL::TPL_IMAGE_FORMAT_RGBA32 };
-    CTPK::CTPKImageFormat mCTPKOutputFormat { CTPK::CTPK_IMAGE_FORMAT_ETC1A4 };
-
     GLint mWrapS { GL_REPEAT }, mWrapT { GL_REPEAT };
     GLint mMinFilter { GL_LINEAR }, mMagFilter { GL_LINEAR };
-
-    std::string mName;
 
 public:
     // NOTE: once you construct a Texture with a textureId, you grant it
@@ -38,10 +30,7 @@ public:
     Texture() = default;
     Texture(unsigned width, unsigned height, GLuint textureId);
 
-    ~Texture();
-
-    const std::string& getName() const { return mName; }
-    void setName(std::string name) { mName = name; }
+    virtual ~Texture();
 
     unsigned getWidth() const { return mWidth; }
     unsigned getHeight() const { return mHeight; }
@@ -63,15 +52,6 @@ public:
     GLint getMagFilter() const { return mMagFilter; }
     void setMagFilter(GLint magFilter);
 
-    TPL::TPLImageFormat getTPLOutputFormat() const { return mTPLOutputFormat; }
-    void setTPLOutputFormat(TPL::TPLImageFormat format) { mTPLOutputFormat = format; }
-
-    CTPK::CTPKImageFormat getCTPKOutputFormat() const { return mCTPKOutputFormat; }
-    void setCTPKOutputFormat(CTPK::CTPKImageFormat format) { mCTPKOutputFormat = format; }
-
-    unsigned getOutputMipCount() const { return mOutputMipCount; }
-    void setOutputMipCount(unsigned mipCount) { mOutputMipCount = mipCount; }
-
     // Generate a texture & upload the RGBA32 data to it.
     // Note: if a GPU texture already exists, this will overwrite it's data.
     void LoadRGBA32(const unsigned char* data, unsigned width, unsigned height);
@@ -80,7 +60,7 @@ public:
     // Note: if a GPU texture already exists, this will overwrite it's data.
     //
     // Returns: true if succeeded, false if failed
-    bool LoadSTBMem(const unsigned char* data, unsigned dataSize);
+    bool LoadSTBMem(const unsigned char* data, int dataSize);
 
     // Generate a texture & use stb_image to load the image data from the filesystem.
     // Note: if a GPU texture already exists, this will overwrite it's data.
@@ -105,16 +85,6 @@ public:
     //
     // Returns: true if succeeded, false if failed
     bool ExportToFile(std::string_view filename);
-
-    // Construct a TPLTexture from this texture.
-    //
-    // Returns: TPL::TPLTexture wrapped in std::optional
-    [[nodiscard]] std::optional<TPL::TPLTexture> TPLTexture();
-
-    // Construct a CTPKTexture from this texture.
-    //
-    // Returns: CTPK::CTPKTexture wrapped in std::optional
-    [[nodiscard]] std::optional<CTPK::CTPKTexture> CTPKTexture();
 
     // Destroy GPU texture.
     void DestroyTexture();
