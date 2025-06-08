@@ -12,7 +12,7 @@
 
 #include "../Logging.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
     #define GLSL_VERSION_STR "#version 100"

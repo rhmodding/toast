@@ -12,7 +12,7 @@
 
 #include "../ConfigManager.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 typedef CTPK::CTPKImageFormat ImageFormat;
 

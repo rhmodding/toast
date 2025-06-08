@@ -16,7 +16,7 @@
 
 #include "../../SelectionState.hpp"
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 namespace _Bezier {
 

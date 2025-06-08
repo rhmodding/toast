@@ -7,7 +7,7 @@
 #include "RvlImageConvert.hpp"
 #include "RvlPalette.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 // 14 Feb 2000
 // Pre-byteswapped to BE.

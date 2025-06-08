@@ -14,7 +14,7 @@
 
 #include "../command/CommandModifyArrangement.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 constexpr float CANVAS_ZOOM_SPEED = .04f;
 constexpr float CANVAS_ZOOM_SPEED_FAST = .08f;

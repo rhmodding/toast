@@ -29,7 +29,7 @@
 
 #include "Logging.hpp"
 
-#include "common.hpp"
+#include "Macro.hpp"
 
 class Toast {
 private:

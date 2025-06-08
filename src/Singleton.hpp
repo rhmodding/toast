@@ -10,7 +10,7 @@
 
 #include "CxxDemangle.hpp"
 
-#include "common.hpp"
+#include "Macro.hpp"
 
 template<typename T>
 class Singleton {

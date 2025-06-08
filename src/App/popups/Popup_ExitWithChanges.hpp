@@ -5,7 +5,7 @@
 
 #include "../../Toast.hpp"
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 static void Popup_ExitWithChanges() {
     CENTER_NEXT_WINDOW();

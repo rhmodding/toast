@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 namespace CellAnim {
 

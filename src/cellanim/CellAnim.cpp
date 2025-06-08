@@ -6,7 +6,7 @@
 
 #include "../Logging.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 // 12 Mar 2010
 // Pre-byteswapped to BE.

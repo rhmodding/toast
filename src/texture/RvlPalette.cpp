@@ -2,7 +2,7 @@
 
 #include "../Logging.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 std::set<uint32_t> RvlPalette::generate(const unsigned char* _rgbaImage, unsigned pixelCount) {
     const uint32_t* rgbaImage = reinterpret_cast<const uint32_t*>(_rgbaImage);

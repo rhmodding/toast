@@ -33,7 +33,7 @@
 
 #include "Files.hpp"
 
-#include "common.hpp"
+#include "Macro.hpp"
 
 void SessionManager::setCurrentSessionIndex(int sessionIndex) {
     std::lock_guard<std::mutex> lock(mMtx);

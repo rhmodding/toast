@@ -12,7 +12,7 @@
 
 #include "../compression/Yaz0.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 constexpr uint32_t DARCH_MAGIC = IDENTIFIER_TO_U32('U',0xAA,'8','-');
 

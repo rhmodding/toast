@@ -6,7 +6,7 @@
 #include "../../SessionManager.hpp"
 #include "../../command/CommandModifyArrangements.hpp"
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) {
     if (oldTextureSizeX < 0 || oldTextureSizeY < 0)

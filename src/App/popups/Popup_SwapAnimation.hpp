@@ -16,7 +16,7 @@
 
 #include "../../Easings.hpp"
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 static void Popup_SwapAnimation(int animationIndex) {
     if (animationIndex < 0)

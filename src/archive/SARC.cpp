@@ -14,7 +14,7 @@
 
 #include "../compression/NZlib.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 constexpr uint32_t SARC_MAGIC = IDENTIFIER_TO_U32('S','A','R','C');
 constexpr uint32_t SFAT_MAGIC = IDENTIFIER_TO_U32('S','F','A','T');

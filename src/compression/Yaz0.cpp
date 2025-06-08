@@ -21,7 +21,7 @@
 
 #include "../Logging.hpp"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 constexpr uint32_t YAZ0_MAGIC = IDENTIFIER_TO_U32('Y', 'a', 'z', '0');
 

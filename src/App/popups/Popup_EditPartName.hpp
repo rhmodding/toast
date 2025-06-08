@@ -6,7 +6,7 @@
 #include "../../SessionManager.hpp"
 #include "../../command/CommandModifyArrangementPart.hpp"
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 static bool textInputStdString(const char* label, std::string& str) {
     constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;

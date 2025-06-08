@@ -5,7 +5,7 @@
 
 #include "../../SessionManager.hpp"
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 static void Popup_CloseModifiedSession() {
     SessionManager& sessionManager = SessionManager::getInstance();

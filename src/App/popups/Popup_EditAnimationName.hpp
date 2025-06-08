@@ -8,7 +8,7 @@
 #include "../../SessionManager.hpp"
 #include "../../command/CommandModifyAnimationName.hpp"
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 static void Popup_EditAnimationName(int animationIndex) {
     if (animationIndex < 0)

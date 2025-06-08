@@ -6,7 +6,7 @@
 
 #include "../stb/stb_dxt.h"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 typedef TPL::TPLImageFormat ImageFormat;
 

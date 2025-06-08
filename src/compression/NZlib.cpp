@@ -6,7 +6,7 @@
 
 #include <zlib-ng.h>
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 constexpr unsigned MIN_ZLIB_DATA_SIZE = 6;
 

@@ -14,7 +14,7 @@
 
 #include "../stb/stb_image_resize2.h"
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 constexpr uint32_t CTPK_MAGIC = IDENTIFIER_TO_U32('C','T','P','K');
 

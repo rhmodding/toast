@@ -3,7 +3,7 @@
 
 #include <imgui.h>
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 static void Popup_TextureExportFailed() {
     CENTER_NEXT_WINDOW();

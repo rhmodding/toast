@@ -12,7 +12,7 @@
 
 #include "../../command/CommandModifySpritesheet.hpp"
 
-#include "../../common.hpp"
+#include "../../Macro.hpp"
 
 #include "../Popups.hpp"
 

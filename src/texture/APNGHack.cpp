@@ -7,7 +7,7 @@
 
 #include <zlib-ng.h>
 
-#include "../common.hpp"
+#include "../Macro.hpp"
 
 enum class PNGColorType : uint8_t {
     Grayscale      = 0, // Luminance values (bpp is bitDepth).
