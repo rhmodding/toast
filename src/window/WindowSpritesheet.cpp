@@ -35,6 +35,8 @@
 #include "../command/CommandModifySpritesheet.hpp"
 #include "../command/CommandModifyArrangements.hpp"
 
+#include "../command/CompositeCommand.hpp"
+
 #include "../App/Popups.hpp"
 
 #include "../Easings.hpp"
@@ -626,12 +628,16 @@ bool RepackSheet() {
 
     newTexture->setName(cellanimSheet->getName());
 
-    session.addCommand(std::make_shared<CommandModifySpritesheet>(
+    auto composite = std::make_shared<CompositeCommand>();
+
+    composite->addCommand(std::make_shared<CommandModifySpritesheet>(
         cellanimObject->getSheetIndex(), newTexture
     ));
-    session.addCommand(std::make_shared<CommandModifyArrangements>(
+    composite->addCommand(std::make_shared<CommandModifyArrangements>(
         session.getCurrentCellAnimIndex(), std::move(arrangements)
     ));
+
+    session.addCommand(composite);
 
     return true;
 }
