@@ -24,10 +24,13 @@
 #include "../command/CommandDeleteArrangement.hpp"
 #include "../command/CommandInsertArrangement.hpp"
 #include "../command/CommandModifyArrangement.hpp"
+#include "../command/CommandModifyArrangements.hpp"
 #include "../command/CommandInsertAnimation.hpp"
 #include "../command/CommandModifyAnimation.hpp"
 #include "../command/CommandModifyAnimationName.hpp"
 #include "../command/CommandDeleteAnimation.hpp"
+
+#include "../command/CompositeCommand.hpp"
 
 constexpr float WINDOW_FLASH_TIME = .3f; // seconds
 
@@ -203,23 +206,37 @@ void WindowHybridList::Update() {
                             sessionManager.getCurrentSessionIndex() != copyAnimationSrcSession ||
                             sessionManager.getCurrentSession()->getCurrentCellAnimIndex() != copyAnimationSrcCellAnim
                         ) {
+                            auto composite = std::make_shared<CompositeCommand>();
+                            command = composite;
+
                             auto& cellAnim = *sessionManager.getCurrentSession()->getCurrentCellAnim().object;
 
-                            auto insertPos = cellAnim.getArrangements().end();
-                            cellAnim.getArrangements().insert(insertPos, copyAnimationArrangements.begin(), copyAnimationArrangements.end());
+                            std::vector<CellAnim::Arrangement> newArrangements = cellAnim.getArrangements();
+                            
+                            auto baseIndex = newArrangements.size(); // BEFORE insertion
+                            newArrangements.insert(newArrangements.end(), copyAnimationArrangements.begin(), copyAnimationArrangements.end());
 
-                            auto baseIndex = std::distance(cellAnim.getArrangements().begin(), insertPos);
-
-                            for (size_t i = 0; i < newAnimation.keys.size(); i++) {
+                            for (size_t i = 0; i < newAnimation.keys.size(); ++i) {
                                 newAnimation.keys[i].arrangementIndex = baseIndex + i;
                             }
-                        }
 
-                        command = std::make_shared<CommandModifyAnimation>(
-                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                            n,
-                            newAnimation
-                        );
+                            composite->addCommand(std::make_shared<CommandModifyArrangements>(
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                newArrangements
+                            ));
+                            composite->addCommand(std::make_shared<CommandModifyAnimation>(
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                n,
+                                newAnimation
+                            ));
+                        }
+                        else {
+                            command = std::make_shared<CommandModifyAnimation>(
+                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                n,
+                                newAnimation
+                            );
+                        }
                     }
                     if (ImGui::BeginMenu("Paste animation (special)..", allowPasteAnimation)) {
                         if (ImGui::MenuItem("..key timing")) {
