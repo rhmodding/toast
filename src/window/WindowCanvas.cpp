@@ -1003,16 +1003,6 @@ void WindowCanvas::Update() {
                         onionSkinState.opacity
                     );
                 }
-
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                    glDeleteTextures(1, &texture);
-
-                    auto data = APNGHack::build(buildData);
-
-                    FILE* file = fopen("sura.png", "wb");
-                    fwrite(data.data(), data.size(), 1, file);
-                    fclose(file);
-                }
             }
 
             // Draw safe area if enabled
