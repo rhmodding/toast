@@ -20,6 +20,8 @@
 #include "../command/CommandModifyAnimationKey.hpp"
 #include "../command/CommandModifyAnimation.hpp"
 
+#include "../command/CompositeCommand.hpp"
+
 static const uint32_t u32_one = 1;
 
 static const uint8_t  u8_min  = 0;
@@ -353,23 +355,23 @@ void WindowTimeline::Update() {
                                     newKey.holdFrames = std::max(second, 1);
                                 }
 
-                                sessionManager.getCurrentSession()->addCommand(
-                                std::make_shared<CommandModifyAnimationKey>(
+                                auto composite = std::make_shared<CompositeCommand>();
+
+                                composite->addCommand(std::make_shared<CommandModifyAnimationKey>(
                                     sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                     playerManager.getAnimationIndex(),
                                     i,
                                     modKey
                                 ));
-
-                                playerManager.setKeyIndex(i + 1);
-
-                                sessionManager.getCurrentSession()->addCommand(
-                                std::make_shared<CommandInsertAnimationKey>(
+                                composite->addCommand(std::make_shared<CommandInsertAnimationKey>(
                                     sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                                     playerManager.getAnimationIndex(),
                                     i + 1,
                                     newKey
                                 ));
+
+                                sessionManager.getCurrentSession()->addCommand(composite);
+                                playerManager.setKeyIndex(i + 1);
                             }
                             ImGui::EndDisabled();
                         }
