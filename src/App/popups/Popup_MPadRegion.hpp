@@ -34,14 +34,13 @@ static void Popup_MPadRegion() {
 
         auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
 
-        part.regionX = origOffset[0];
-        part.regionY = origOffset[1];
+        part.regionPos.x = origOffset[0];
+        part.regionPos.y = origOffset[1];
+        part.regionSize.x = origSize[0];
+        part.regionSize.y = origSize[0];
 
-        part.regionW = origSize[0];
-        part.regionH = origSize[0];
-
-        part.transform.positionX = origPosition[0];
-        part.transform.positionY = origPosition[1];
+        part.transform.position.x = origPosition[0];
+        part.transform.position.y = origPosition[1];
 
         lateOpen = false;
     }
@@ -52,14 +51,14 @@ static void Popup_MPadRegion() {
         auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
 
         if (!lateOpen) {
-            origOffset[0] = part.regionX;
-            origOffset[1] = part.regionY;
+            origOffset[0] = part.regionPos.x;
+            origOffset[1] = part.regionPos.y;
 
-            origSize[0] = part.regionW;
-            origSize[1] = part.regionH;
+            origSize[0] = part.regionSize.x;
+            origSize[1] = part.regionSize.y;
 
-            origPosition[0] = part.transform.positionX;
-            origPosition[1] = part.transform.positionY;
+            origPosition[0] = part.transform.position.x;
+            origPosition[1] = part.transform.position.y;
         }
 
         lateOpen = true;
@@ -78,25 +77,25 @@ static void Popup_MPadRegion() {
         if (ImGui::Button("Apply")) {
             auto newPart = part; // Copy
 
-            newPart.regionW = origSize[0] + padBy[0];
-            newPart.regionH = origSize[1] + padBy[1];
+            newPart.regionSize.x = origSize[0] + padBy[0];
+            newPart.regionSize.y = origSize[1] + padBy[1];
 
-            newPart.regionX = origOffset[0] - (padBy[0] / 2);
-            newPart.regionY = origOffset[1] - (padBy[1] / 2);
+            newPart.regionPos.x = origOffset[0] - (padBy[0] / 2);
+            newPart.regionPos.y = origOffset[1] - (padBy[1] / 2);
 
             if (centerPart) {
-                newPart.transform.positionX = origPosition[0] - (padBy[0] / 2);
-                newPart.transform.positionY = origPosition[1] - (padBy[1] / 2);
+                newPart.transform.position.x = origPosition[0] - (padBy[0] / 2);
+                newPart.transform.position.y = origPosition[1] - (padBy[1] / 2);
             }
 
-            part.regionX = origOffset[0];
-            part.regionY = origOffset[1];
+            part.regionPos.x = origOffset[0];
+            part.regionPos.y = origOffset[1];
 
-            part.regionW = origSize[0];
-            part.regionH = origSize[1];
+            part.regionSize.x = origSize[0];
+            part.regionSize.y = origSize[1];
 
-            part.transform.positionX = origPosition[0];
-            part.transform.positionY = origPosition[1];
+            part.transform.position.x = origPosition[0];
+            part.transform.position.y = origPosition[1];
 
             SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
@@ -124,19 +123,19 @@ static void Popup_MPadRegion() {
             lateOpen = false;
         }
 
-        part.regionW = origSize[0] + padBy[0];
-        part.regionH = origSize[1] + padBy[1];
+        part.regionSize.x = origSize[0] + padBy[0];
+        part.regionSize.y = origSize[1] + padBy[1];
 
-        part.regionX = origOffset[0] - (padBy[0] / 2);
-        part.regionY = origOffset[1] - (padBy[1] / 2);
+        part.regionPos.x = origOffset[0] - (padBy[0] / 2);
+        part.regionPos.y = origOffset[1] - (padBy[1] / 2);
 
         if (centerPart) {
-            part.transform.positionX = origPosition[0] - (padBy[0] / 2);
-            part.transform.positionY = origPosition[1] - (padBy[1] / 2);
+            part.transform.position.x = origPosition[0] - (padBy[0] / 2);
+            part.transform.position.y = origPosition[1] - (padBy[1] / 2);
         }
         else {
-            part.transform.positionX = origPosition[0];
-            part.transform.positionY = origPosition[1];
+            part.transform.position.x = origPosition[0];
+            part.transform.position.y = origPosition[1];
         }
     }
 

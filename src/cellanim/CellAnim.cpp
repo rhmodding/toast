@@ -58,10 +58,10 @@ struct RvlTransformValues {
     RvlTransformValues(const CellAnim::TransformValues& transformValues, bool isArrangementPart) {
         const int additive = (isArrangementPart ? 512 : 0);
 
-        positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.positionX + additive));
-        positionY = BYTESWAP_16(static_cast<int16_t>(transformValues.positionY + additive));
-        scaleX = BYTESWAP_FLOAT(transformValues.scaleX);
-        scaleY = BYTESWAP_FLOAT(transformValues.scaleY);
+        positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.position.x + additive));
+        positionY = BYTESWAP_16(static_cast<int16_t>(transformValues.position.y + additive));
+        scaleX = BYTESWAP_FLOAT(transformValues.scale.x);
+        scaleY = BYTESWAP_FLOAT(transformValues.scale.y);
         angle = BYTESWAP_FLOAT(transformValues.angle);
     }
 
@@ -70,10 +70,10 @@ struct RvlTransformValues {
 
         const int additive = (isArrangementPart ? -512 : 0);
 
-        transformValues.positionX = static_cast<int>(static_cast<int16_t>(BYTESWAP_16(positionX) + additive));
-        transformValues.positionY = static_cast<int>(static_cast<int16_t>(BYTESWAP_16(positionY) + additive));
-        transformValues.scaleX = BYTESWAP_FLOAT(scaleX);
-        transformValues.scaleY = BYTESWAP_FLOAT(scaleY);
+        transformValues.position.x = static_cast<int>(static_cast<int16_t>(BYTESWAP_16(positionX) + additive));
+        transformValues.position.y = static_cast<int>(static_cast<int16_t>(BYTESWAP_16(positionY) + additive));
+        transformValues.scale.x = BYTESWAP_FLOAT(scaleX);
+        transformValues.scale.y = BYTESWAP_FLOAT(scaleY);
         transformValues.angle = BYTESWAP_FLOAT(angle);
 
         return transformValues;
@@ -104,10 +104,10 @@ struct RvlArrangementPart {
 
     RvlArrangementPart() = default;
     RvlArrangementPart(const CellAnim::ArrangementPart& arrangementPart) {
-        regionX = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionX));
-        regionY = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionY));
-        regionW = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionW));
-        regionH = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionH));
+        regionX = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionPos.x));
+        regionY = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionPos.y));
+        regionW = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionSize.x));
+        regionH = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionSize.y));
 
         textureVarying = BYTESWAP_16(arrangementPart.textureVarying);
 
@@ -152,15 +152,15 @@ struct CtrArrangementPart {
 
     CtrArrangementPart() = default;
     CtrArrangementPart(const CellAnim::ArrangementPart& arrangementPart) {
-        regionX = arrangementPart.regionX;
-        regionY = arrangementPart.regionY;
-        regionW = arrangementPart.regionW;
-        regionH = arrangementPart.regionH;
+        regionX = arrangementPart.regionPos.x;
+        regionY = arrangementPart.regionPos.y;
+        regionW = arrangementPart.regionSize.x;
+        regionH = arrangementPart.regionSize.y;
 
-        positionX = static_cast<int16_t>(arrangementPart.transform.positionX + 512);
-        positionY = static_cast<int16_t>(arrangementPart.transform.positionY + 512);
-        scaleX = arrangementPart.transform.scaleX;
-        scaleY = arrangementPart.transform.scaleY;
+        positionX = static_cast<int16_t>(arrangementPart.transform.position.x + 512);
+        positionY = static_cast<int16_t>(arrangementPart.transform.position.y + 512);
+        scaleX = arrangementPart.transform.scale.x;
+        scaleY = arrangementPart.transform.scale.y;
         angle = arrangementPart.transform.angle;
 
         flipX = arrangementPart.flipX ? 0x01 : 0x00;
@@ -256,13 +256,13 @@ struct CtrAnimationKey {
         arrangementIndex = animationKey.arrangementIndex;
         holdFrames = animationKey.holdFrames;
 
-        positionX = animationKey.transform.positionX;
-        positionY = animationKey.transform.positionY;
+        positionX = animationKey.transform.position.x;
+        positionY = animationKey.transform.position.y;
 
         positionZ = animationKey.translateZ;
 
-        scaleX = animationKey.transform.scaleX;
-        scaleY = animationKey.transform.scaleY;
+        scaleX = animationKey.transform.scale.x;
+        scaleY = animationKey.transform.scale.y;
         angle = animationKey.transform.angle;
 
         foreColor[0] = ROUND_FLOAT(animationKey.foreColor.r * 255.f);
@@ -333,10 +333,14 @@ bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const siz
             currentData += sizeof(RvlArrangementPart);
 
             arrangementOut.parts[j] = CellAnim::ArrangementPart {
-                .regionX = BYTESWAP_16(arrangementPartIn->regionX),
-                .regionY = BYTESWAP_16(arrangementPartIn->regionY),
-                .regionW = BYTESWAP_16(arrangementPartIn->regionW),
-                .regionH = BYTESWAP_16(arrangementPartIn->regionH),
+                .regionPos = CellAnim::UintVec2 {
+                    BYTESWAP_16(arrangementPartIn->regionX),
+                    BYTESWAP_16(arrangementPartIn->regionY)
+                },
+                .regionSize = CellAnim::UintVec2 {
+                    BYTESWAP_16(arrangementPartIn->regionW),
+                    BYTESWAP_16(arrangementPartIn->regionH)
+                },
 
                 .textureVarying = BYTESWAP_16(arrangementPartIn->textureVarying),
 
@@ -420,16 +424,23 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
             currentData += sizeof(CtrArrangementPart);
 
             arrangementOut.parts[j] = CellAnim::ArrangementPart {
-                .regionX = arrangementPartIn->regionX,
-                .regionY = arrangementPartIn->regionY,
-                .regionW = arrangementPartIn->regionW,
-                .regionH = arrangementPartIn->regionH,
+                .regionPos = CellAnim::UintVec2 {
+                    arrangementPartIn->regionX,
+                    arrangementPartIn->regionY
+                },
+                .regionSize = CellAnim::UintVec2 {
+                    arrangementPartIn->regionW,
+                    arrangementPartIn->regionH
+                },
 
                 .transform = CellAnim::TransformValues {
-                    .positionX = static_cast<int>(static_cast<int16_t>(arrangementPartIn->positionX - 512)),
-                    .positionY = static_cast<int>(static_cast<int16_t>(arrangementPartIn->positionY - 512)),
-                    .scaleX = arrangementPartIn->scaleX,
-                    .scaleY = arrangementPartIn->scaleY,
+                    .position = CellAnim::IntVec2 {
+                        static_cast<int>(static_cast<int16_t>(arrangementPartIn->positionX - 512)),
+                        static_cast<int>(static_cast<int16_t>(arrangementPartIn->positionY - 512))
+                    },
+                    .scale = CellAnim::FltVec2 {
+                        arrangementPartIn->scaleX, arrangementPartIn->scaleY
+                    },
                     .angle = arrangementPartIn->angle,
                 },
 
@@ -438,16 +449,16 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
 
                 .opacity = arrangementPartIn->opacity,
 
-                .foreColor = CellAnim::CTRColor {
-                    .r = arrangementPartIn->foreColor[0] / 255.f,
-                    .g = arrangementPartIn->foreColor[1] / 255.f,
-                    .b = arrangementPartIn->foreColor[2] / 255.f,
-                },
-                .backColor = CellAnim::CTRColor {
-                    .r = arrangementPartIn->backColor[0] / 255.f,
-                    .g = arrangementPartIn->backColor[1] / 255.f,
-                    .b = arrangementPartIn->backColor[2] / 255.f,
-                },
+                .foreColor = CellAnim::CTRColor (
+                    arrangementPartIn->foreColor[0] / 255.f,
+                    arrangementPartIn->foreColor[1] / 255.f,
+                    arrangementPartIn->foreColor[2] / 255.f
+                ),
+                .backColor = CellAnim::CTRColor (
+                    arrangementPartIn->backColor[0] / 255.f,
+                    arrangementPartIn->backColor[1] / 255.f,
+                    arrangementPartIn->backColor[2] / 255.f
+                ),
 
                 .quadDepth = CellAnim::CTRQuadDepth {
                     .topLeft = arrangementPartIn->depthTL,
@@ -493,11 +504,12 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
                 .holdFrames = keyIn->holdFrames,
 
                 .transform = CellAnim::TransformValues {
-                    .positionX = keyIn->positionX,
-                    .positionY = keyIn->positionY,
-
-                    .scaleX = keyIn->scaleX,
-                    .scaleY = keyIn->scaleY,
+                    .position = CellAnim::IntVec2 {
+                        keyIn->positionX, keyIn->positionY
+                    },
+                    .scale = CellAnim::FltVec2 {
+                        keyIn->scaleX, keyIn->scaleY
+                    },
                     .angle = keyIn->angle,
                 },
 
@@ -505,16 +517,16 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
 
                 .opacity = keyIn->opacity,
 
-                .foreColor = CellAnim::CTRColor {
-                    .r = keyIn->foreColor[0] / 255.f,
-                    .g = keyIn->foreColor[1] / 255.f,
-                    .b = keyIn->foreColor[2] / 255.f,
-                },
-                .backColor = CellAnim::CTRColor {
-                    .r = keyIn->backColor[0] / 255.f,
-                    .g = keyIn->backColor[1] / 255.f,
-                    .b = keyIn->backColor[2] / 255.f,
-                }
+                .foreColor = CellAnim::CTRColor (
+                    keyIn->foreColor[0] / 255.f,
+                    keyIn->foreColor[1] / 255.f,
+                    keyIn->foreColor[2] / 255.f
+                ),
+                .backColor = CellAnim::CTRColor (
+                    keyIn->backColor[0] / 255.f,
+                    keyIn->backColor[1] / 255.f,
+                    keyIn->backColor[2] / 255.f
+                )
             };
         }
     }

@@ -31,10 +31,10 @@ int SelectionState::getMatchingRegionPartIndex(
     for (size_t i = 0; i < arrangement.parts.size(); i++) {
         const auto& lPart = arrangement.parts[i];
         if (
-            lPart.regionX == part.regionX &&
-            lPart.regionY == part.regionY &&
-            lPart.regionW == part.regionW &&
-            lPart.regionH == part.regionH
+            lPart.regionPos.x == part.regionPos.x &&
+            lPart.regionPos.y == part.regionPos.y &&
+            lPart.regionSize.x == part.regionSize.x &&
+            lPart.regionSize.y == part.regionSize.y
         )
             return i;
     }

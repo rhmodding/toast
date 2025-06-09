@@ -70,15 +70,15 @@ static void Popup_MTransformArrangement() {
 
             auto newArrangement = *arrangement;
             for (auto& part : newArrangement.parts) {
-                part.transform.positionX = static_cast<int16_t>(
-                    (part.transform.positionX * scale[0]) + offset[0]
+                part.transform.position.x = static_cast<int16_t>(
+                    (part.transform.position.x * scale[0]) + offset[0]
                 );
-                part.transform.positionY = static_cast<int16_t>(
-                    (part.transform.positionY * scale[1]) + offset[1]
+                part.transform.position.y = static_cast<int16_t>(
+                    (part.transform.position.y * scale[1]) + offset[1]
                 );
 
-                part.transform.scaleX *= scale[0];
-                part.transform.scaleY *= scale[1];
+                part.transform.scale.x *= scale[0];
+                part.transform.scale.y *= scale[1];
 
                 if (scale[0] < 0.f)
                     part.transform.angle = -part.transform.angle;

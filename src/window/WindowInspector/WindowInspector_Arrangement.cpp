@@ -82,25 +82,6 @@ static bool textInputStdString(const char* label, std::string& str) {
     }, &str);
 }
 
-template <typename T>
-void valueEditor(
-    const char* label, T& currentValue,
-    std::function<T()> getOriginal,
-    std::function<void(const T& oldValue, const T& newValue)> setFinal,
-    std::function<bool(const char* label, T* value)> widgetCall
-) {
-    static T oldValue;
-    T tempValue = currentValue;
-
-    if (widgetCall(label, &tempValue))
-        currentValue = tempValue;
-
-    if (ImGui::IsItemActivated())
-        oldValue = getOriginal();
-    if (ImGui::IsItemDeactivated())
-        setFinal(oldValue, tempValue);
-}
-
 void WindowInspector::Level_Arrangement() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
@@ -194,63 +175,32 @@ void WindowInspector::Level_Arrangement() {
             textInputStdString("Name", part.editorName);
 
             ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
-            {
-                // Position XY
-                {
-                    static int oldPosition[2] { 0, 0 };
-                    int positionValues[2] {
-                        part.transform.positionX,
-                        part.transform.positionY
-                    };
-
-                    if (ImGui::DragInt2(
-                        "Position XY##World",
-                        positionValues, 1.f,
+            
+            valueEditor<CellAnim::IntVec2>("Position XY", part.transform.position,
+                [&]() { return originalPart.transform.position; },
+                [&](const CellAnim::IntVec2& oldValue, const CellAnim::IntVec2& newValue) {
+                    originalPart.transform.position = oldValue;
+                    newPart.transform.position = newValue;
+                },
+                [](const char* label, CellAnim::IntVec2* value) {
+                    return ImGui::DragInt2(label,
+                        value->asArray(), 1.f,
                         CellAnim::TransformValues::MIN_POSITION,
                         CellAnim::TransformValues::MAX_POSITION
-                    )) {
-                        part.transform.positionX = static_cast<int16_t>(positionValues[0]);
-                        part.transform.positionY = static_cast<int16_t>(positionValues[1]);
-                    }
-
-                    if (ImGui::IsItemActivated()) {
-                        oldPosition[0] = originalPart.transform.positionX;
-                        oldPosition[1] = originalPart.transform.positionY;
-                    }
-
-                    if (ImGui::IsItemDeactivated()) {
-                        originalPart.transform.positionX = oldPosition[0];
-                        originalPart.transform.positionY = oldPosition[1];
-
-                        newPart.transform.positionX = static_cast<int16_t>(positionValues[0]);
-                        newPart.transform.positionY = static_cast<int16_t>(positionValues[1]);
-                    }
+                    );
                 }
+            );
 
-                // Scale XY
-                {
-                    static float oldScale[2]{ 0.f, 0.f };
-                    float scaleValues[2] { part.transform.scaleX, part.transform.scaleY };
-
-                    if (ImGui::DragFloat2("Scale XY##World", scaleValues, .01f)) {
-                        part.transform.scaleX = scaleValues[0];
-                        part.transform.scaleY = scaleValues[1];
-                    }
-
-                    if (ImGui::IsItemActivated()) {
-                        oldScale[0] = originalPart.transform.scaleX;
-                        oldScale[1] = originalPart.transform.scaleY;
-                    }
-
-                    if (ImGui::IsItemDeactivated()) {
-                        originalPart.transform.scaleX = oldScale[0];
-                        originalPart.transform.scaleY = oldScale[1];
-
-                        newPart.transform.scaleX = scaleValues[0];
-                        newPart.transform.scaleY = scaleValues[1];
-                    }
+            valueEditor<CellAnim::FltVec2>("Scale XY", part.transform.scale,
+                [&]() { return originalPart.transform.scale; },
+                [&](const CellAnim::FltVec2& oldValue, const CellAnim::FltVec2& newValue) {
+                    originalPart.transform.scale = oldValue;
+                    newPart.transform.scale = newValue;
+                },
+                [](const char* label, CellAnim::FltVec2* value) {
+                    return ImGui::DragFloat2(label, value->asArray(), .01f);
                 }
-            }
+            );
 
             valueEditor<float>("Angle Z", part.transform.angle,
                 [&]() { return originalPart.transform.angle; },
@@ -298,7 +248,7 @@ void WindowInspector::Level_Arrangement() {
                         newPart.foreColor = newValue;
                     },
                     [](const char* label, CellAnim::CTRColor* value) {
-                        return ImGui::ColorEdit3(label, &value->r);
+                        return ImGui::ColorEdit3(label, value->asArray());
                     }
                 );
 
@@ -309,74 +259,48 @@ void WindowInspector::Level_Arrangement() {
                         newPart.backColor = newValue;
                     },
                     [](const char* label, CellAnim::CTRColor* value) {
-                        return ImGui::ColorEdit3(label, &value->r);
+                        return ImGui::ColorEdit3(label, value->asArray());
                     }
                 );
             }
 
-            // TODO C++ify
             ImGui::SeparatorText((const char*)ICON_FA_BORDER_TOP_LEFT " Region");
-            {
-                // Position XY
-                {
-                    static int oldPosition[2] { 0, 0 };
-                    int positionValues[2] {
-                        static_cast<int>(part.regionX),
-                        static_cast<int>(part.regionY)
-                    };
 
-                    if (ImGui::DragInt2(
-                        "Position XY##Region", positionValues, 1.f,
-                        0, CellAnim::ArrangementPart::MAX_REGION
-                    )) {
-                        part.regionX = positionValues[0];
-                        part.regionY = positionValues[1];
-                    }
+            valueEditor<CellAnim::UintVec2>("Position XY##Region", part.regionPos,
+                [&]() { return originalPart.regionPos; },
+                [&](const CellAnim::UintVec2& oldValue, const CellAnim::UintVec2& newValue) {
+                    originalPart.regionPos = oldValue;
+                    newPart.regionPos = newValue;
+                },
+                [](const char* label, CellAnim::UintVec2* value) {
+                    static const uint32_t min { 0 };
+                    static const uint32_t max { CellAnim::ArrangementPart::MAX_REGION };
 
-                    if (ImGui::IsItemActivated()) {
-                        oldPosition[0] = originalPart.regionX;
-                        oldPosition[1] = originalPart.regionY;
-                    }
-
-                    if (ImGui::IsItemDeactivated()) {
-                        originalPart.regionX = oldPosition[0];
-                        originalPart.regionY = oldPosition[1];
-
-                        newPart.regionX = positionValues[0];
-                        newPart.regionY = positionValues[1];
-                    }
+                    return ImGui::DragScalarN(label,
+                        ImGuiDataType_U32, value->asArray(), 2,
+                        1.f, &min, &max,
+                        "%d", ImGuiSliderFlags_None
+                    );
                 }
+            );
 
-                // Size WH
-                {
-                    static int oldSize[2] { 0, 0 };
-                    int sizeValues[2] {
-                        static_cast<int>(newPart.regionW),
-                        static_cast<int>(newPart.regionH)
-                    };
+            valueEditor<CellAnim::UintVec2>("Size WH##Region", part.regionSize,
+                [&]() { return originalPart.regionSize; },
+                [&](const CellAnim::UintVec2& oldValue, const CellAnim::UintVec2& newValue) {
+                    originalPart.regionSize = oldValue;
+                    newPart.regionSize = newValue;
+                },
+                [](const char* label, CellAnim::UintVec2* value) {
+                    static const uint32_t min { 0 };
+                    static const uint32_t max { CellAnim::ArrangementPart::MAX_REGION };
 
-                    if (ImGui::DragInt2(
-                        "Size WH##Region", sizeValues, 1.f,
-                        0, CellAnim::ArrangementPart::MAX_REGION
-                    )) {
-                        part.regionW = sizeValues[0];
-                        part.regionH = sizeValues[1];
-                    }
-
-                    if (ImGui::IsItemActivated()) {
-                        oldSize[0] = originalPart.regionW;
-                        oldSize[1] = originalPart.regionH;
-                    }
-
-                    if (ImGui::IsItemDeactivated()) {
-                        originalPart.regionW = oldSize[0];
-                        originalPart.regionH = oldSize[1];
-
-                        newPart.regionW = sizeValues[0];
-                        newPart.regionH = sizeValues[1];
-                    }
+                    return ImGui::DragScalarN(label,
+                        ImGuiDataType_U32, value->asArray(), 2,
+                        1.f, &min, &max,
+                        "%d", ImGuiSliderFlags_None
+                    );
                 }
-            }
+            );
 
             // ID, Emitter Name, & Quad Depth
             if (isCtr) {
@@ -707,11 +631,8 @@ void WindowInspector::Level_Arrangement() {
                         if (ImGui::MenuItem("..region")) {
                             CellAnim::ArrangementPart newPart = part;
 
-                            newPart.regionX = copyParts[0].regionX;
-                            newPart.regionY = copyParts[0].regionY;
-
-                            newPart.regionW = copyParts[0].regionW;
-                            newPart.regionH = copyParts[0].regionH;
+                            newPart.regionPos = copyParts[0].regionPos;
+                            newPart.regionSize = copyParts[0].regionSize;
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyArrangementPart>(

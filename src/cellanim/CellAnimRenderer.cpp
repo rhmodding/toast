@@ -300,13 +300,13 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
     ImVec2 keyCenter = mOffset;
 
     ImVec2 topLeftOffset {
-        static_cast<float>(part.transform.positionX),
-        static_cast<float>(part.transform.positionY)
+        static_cast<float>(part.transform.position.x),
+        static_cast<float>(part.transform.position.y)
     };
 
     ImVec2 bottomRightOffset {
-        (topLeftOffset.x + (part.regionW * part.transform.scaleX)),
-        (topLeftOffset.y + (part.regionH * part.transform.scaleY))
+        (topLeftOffset.x + (part.regionSize.x * part.transform.scale.x)),
+        (topLeftOffset.y + (part.regionSize.y * part.transform.scale.y))
     };
 
     topLeftOffset = {
@@ -340,8 +340,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
 
         // Key & renderer scale
         for (auto& point : transformedQuad) {
-            point.x = (point.x * key.transform.scaleX * mScale.x) + keyCenter.x;
-            point.y = (point.y * key.transform.scaleY * mScale.y) + keyCenter.y;
+            point.x = (point.x * key.transform.scale.x * mScale.x) + keyCenter.x;
+            point.y = (point.y * key.transform.scale.y * mScale.y) + keyCenter.y;
         }
 
         // Key rotation
@@ -350,8 +350,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
 
         // Key offset addition
         for (auto& point : transformedQuad) {
-            point.x += key.transform.positionX * mScale.x;
-            point.y += key.transform.positionY * mScale.y;
+            point.x += key.transform.position.x * mScale.x;
+            point.y += key.transform.position.y * mScale.y;
         }
     }
 
@@ -371,13 +371,13 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
     ImVec2 keyCenter = mOffset;
 
     ImVec2 topLeftOffset {
-        static_cast<float>(part.transform.positionX),
-        static_cast<float>(part.transform.positionY)
+        static_cast<float>(part.transform.position.x),
+        static_cast<float>(part.transform.position.y)
     };
 
     ImVec2 bottomRightOffset {
-        (topLeftOffset.x + (part.regionW * part.transform.scaleX)),
-        (topLeftOffset.y + (part.regionH * part.transform.scaleY))
+        (topLeftOffset.x + (part.regionSize.x * part.transform.scale.x)),
+        (topLeftOffset.y + (part.regionSize.y * part.transform.scale.y))
     };
 
     topLeftOffset = {
@@ -411,8 +411,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
 
         // Key & renderer scale
         for (auto& point : transformedQuad) {
-            point.x = (point.x * keyTransform.scaleX * mScale.x) + keyCenter.x;
-            point.y = (point.y * keyTransform.scaleY * mScale.y) + keyCenter.y;
+            point.x = (point.x * keyTransform.scale.x * mScale.x) + keyCenter.x;
+            point.y = (point.y * keyTransform.scale.y * mScale.y) + keyCenter.y;
         }
 
         // Key rotation
@@ -421,8 +421,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
 
         // Key offset addition
         for (auto& point : transformedQuad) {
-            point.x += keyTransform.positionX * mScale.x;
-            point.y += keyTransform.positionY * mScale.y;
+            point.x += keyTransform.position.x * mScale.x;
+            point.y += keyTransform.position.y * mScale.y;
         }
     }
 
@@ -493,12 +493,12 @@ static std::vector<PartDrawCommand> constructDrawData(
         command.quad = renderer.getPartWorldQuad(key, i);
 
         ImVec2 uvTopLeft = {
-            part.regionX / texWidth,
-            part.regionY / texHeight
+            part.regionPos.x / texWidth,
+            part.regionPos.y / texHeight
         };
         ImVec2 uvBottomRight = {
-            uvTopLeft.x + (part.regionW / texWidth),
-            uvTopLeft.y + (part.regionH / texHeight)
+            uvTopLeft.x + (part.regionSize.x / texWidth),
+            uvTopLeft.y + (part.regionSize.y / texHeight)
         };
 
         command.uvs = std::array<ImVec2, 4>({

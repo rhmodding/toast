@@ -58,11 +58,11 @@ static void Popup_MTransformCellanim() {
 
             for (auto& animation : newAnimations) {
                 for (auto& key : animation.keys) {
-                    key.transform.positionX += offset[0];
-                    key.transform.positionY += offset[1];
+                    key.transform.position.x += offset[0];
+                    key.transform.position.y += offset[1];
 
-                    key.transform.scaleX *= scale[0];
-                    key.transform.scaleY *= scale[1];
+                    key.transform.scale.x *= scale[0];
+                    key.transform.scale.y *= scale[1];
                 }
             }
 

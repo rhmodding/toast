@@ -327,10 +327,8 @@ static void _ApplyInterpolation(
                 const auto* endPart = &endArrangement.parts.at(nameMatcher >= 0 ? nameMatcher : jClamp);
 
                 if (nameMatcher < 0 && (
-                    endPart->regionX != part.regionX ||
-                    endPart->regionY != part.regionY ||
-                    endPart->regionW != part.regionW ||
-                    endPart->regionH != part.regionH
+                    endPart->regionPos != part.regionPos ||
+                    endPart->regionSize != part.regionSize
                 )) {
                     int mrpi = SelectionState::getMatchingRegionPartIndex(part, endArrangement);
 
@@ -344,10 +342,8 @@ static void _ApplyInterpolation(
                     part.flipX = endPart->flipX;
                     part.flipY = endPart->flipY;
 
-                    part.regionX = endPart->regionX;
-                    part.regionY = endPart->regionY;
-                    part.regionW = endPart->regionW;
-                    part.regionH = endPart->regionH;
+                    part.regionPos = endPart->regionPos;
+                    part.regionSize = endPart->regionSize;
                 }
 
                 part.opacity = std::clamp<int>(

@@ -467,8 +467,8 @@ void WindowTimeline::Update() {
                         ImGui::Dummy({ 0.f, 10.f });
                         ImGui::BulletText("Held for: %u frame(s)", key.holdFrames);
                         ImGui::Dummy({ 0.f, 10.f });
-                        ImGui::BulletText("Scale X: %f", key.transform.scaleX);
-                        ImGui::BulletText("Scale Y: %f", key.transform.scaleY);
+                        ImGui::BulletText("Scale X: %f", key.transform.scale.x);
+                        ImGui::BulletText("Scale Y: %f", key.transform.scale.y);
                         ImGui::BulletText("Angle: %f", key.transform.angle);
                         ImGui::Dummy({ 0.f, 10.f });
                         ImGui::BulletText("Opacity: %u/255", key.opacity);

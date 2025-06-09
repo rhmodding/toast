@@ -10,25 +10,6 @@
 
 #include "../../AppState.hpp"
 
-template <typename T>
-void valueEditor(
-    const char* label, T& currentValue,
-    std::function<T()> getOriginal,
-    std::function<void(const T& oldValue, const T& newValue)> setFinal,
-    std::function<bool(const char* label, T* value)> widgetCall
-) {
-    static T oldValue;
-    T tempValue = currentValue;
-
-    if (widgetCall(label, &tempValue))
-        currentValue = tempValue;
-
-    if (ImGui::IsItemActivated())
-        oldValue = getOriginal();
-    if (ImGui::IsItemDeactivated())
-        setFinal(oldValue, tempValue);
-}
-
 void WindowInspector::Level_Key() {
     AppState& appState = AppState::getInstance();
     SessionManager& sessionManager = SessionManager::getInstance();
@@ -130,61 +111,33 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
 
-    // Position XY
-    {
-        static int oldPosition[2] { 0, 0 };
-        int positionValues[2] {
-            key.transform.positionX,
-            key.transform.positionY
-        };
-
-        if (ImGui::DragInt2(
-            "Position XY",
-            positionValues, 1.f,
-            CellAnim::TransformValues::MIN_POSITION,
-            CellAnim::TransformValues::MAX_POSITION
-        )) {
-            key.transform.positionX = positionValues[0];
-            key.transform.positionY = positionValues[1];
+    valueEditor<CellAnim::IntVec2>("Position XY", key.transform.position,
+        [&]() { return originalKey.transform.position; },
+        [&](const CellAnim::IntVec2& oldValue, const CellAnim::IntVec2& newValue) {
+            originalKey.transform.position = oldValue;
+            newKey.transform.position = newValue;
+        },
+        [](const char* label, CellAnim::IntVec2* value) {
+            return ImGui::DragInt2(label,
+                value->asArray(), 1.f,
+                CellAnim::TransformValues::MIN_POSITION,
+                CellAnim::TransformValues::MAX_POSITION
+            );
         }
+    );
 
-        if (ImGui::IsItemActivated()) {
-            oldPosition[0] = originalKey.transform.positionX;
-            oldPosition[1] = originalKey.transform.positionY;
+    valueEditor<CellAnim::FltVec2>("Scale XY", key.transform.scale,
+        [&]() { return originalKey.transform.scale; },
+        [&](const CellAnim::FltVec2& oldValue, const CellAnim::FltVec2& newValue) {
+            originalKey.transform.scale = oldValue;
+            newKey.transform.scale = newValue;
+        },
+        [](const char* label, CellAnim::FltVec2* value) {
+            return ImGui::DragFloat2(label,
+                value->asArray(), .01f
+            );
         }
-
-        if (ImGui::IsItemDeactivated()) {
-            originalKey.transform.positionX = oldPosition[0];
-            originalKey.transform.positionY = oldPosition[1];
-
-            newKey.transform.positionX = positionValues[0];
-            newKey.transform.positionY = positionValues[1];
-        }
-    }
-
-    // Scale XY
-    {
-        static float oldScale[2] { 0.f, 0.f };
-        float scaleValues[2] { key.transform.scaleX, key.transform.scaleY };
-
-        if (ImGui::DragFloat2("Scale XY", scaleValues, .01f)) {
-            key.transform.scaleX = scaleValues[0];
-            key.transform.scaleY = scaleValues[1];
-        }
-
-        if (ImGui::IsItemActivated()) {
-            oldScale[0] = originalKey.transform.scaleX;
-            oldScale[1] = originalKey.transform.scaleY;
-        }
-
-        if (ImGui::IsItemDeactivated()) {
-            originalKey.transform.scaleX = oldScale[0];
-            originalKey.transform.scaleY = oldScale[1];
-
-            newKey.transform.scaleX = scaleValues[0];
-            newKey.transform.scaleY = scaleValues[1];
-        }
-    }
+    );
 
     valueEditor<float>("Angle Z", key.transform.angle,
         [&]() { return originalKey.transform.angle; },
@@ -194,13 +147,13 @@ void WindowInspector::Level_Key() {
         },
         [](const char* label, float* value) {
             bool changed = ImGui::SliderFloat(label, value, -360.f, 360.f, "%.1f deg");
-            #if defined(__APPLE__)
-                ImGui::SetItemTooltip("Command+Click to input a rotation value.");
-            #else
-                ImGui::SetItemTooltip("Ctrl+Click to input a rotation value.");
-            #endif
+        #if defined(__APPLE__)
+            ImGui::SetItemTooltip("Command+Click to input a rotation value.");
+        #else
+            ImGui::SetItemTooltip("Ctrl+Click to input a rotation value.");
+        #endif
 
-                return changed;
+            return changed;
         }
     );
 
@@ -245,7 +198,7 @@ void WindowInspector::Level_Key() {
                 newKey.foreColor = newValue;
             },
             [](const char* label, CellAnim::CTRColor* value) {
-                return ImGui::ColorEdit3(label, &value->r);
+                return ImGui::ColorEdit3(label, value->asArray());
             }
         );
 
@@ -256,7 +209,7 @@ void WindowInspector::Level_Key() {
                 newKey.backColor = newValue;
             },
             [](const char* label, CellAnim::CTRColor* value) {
-                return ImGui::ColorEdit3(label, &value->r);
+                return ImGui::ColorEdit3(label, value->asArray());
             }
         );
     }

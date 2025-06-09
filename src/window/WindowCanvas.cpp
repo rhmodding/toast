@@ -648,8 +648,8 @@ void WindowCanvas::Update() {
             float rotatedX = scaledOffset.x * cosf(theta) - scaledOffset.y * sinf(theta);
             float rotatedY = scaledOffset.x * sinf(theta) + scaledOffset.y * cosf(theta);
 
-            float offsX = rotatedX / key.transform.scaleX;
-            float offsY = rotatedY / key.transform.scaleY;
+            float offsX = rotatedX / key.transform.scale.x;
+            float offsY = rotatedY / key.transform.scale.y;
 
             partsTransformation.translateX = offsX;
             partsTransformation.translateY = offsY;
@@ -673,16 +673,16 @@ void WindowCanvas::Update() {
 
                 partCompensateRot -= part.transform.angle;
 
-                float centerX = part.transform.positionX + (part.regionW * part.transform.scaleX * .5f);
-                float centerY = part.transform.positionY + (part.regionH * part.transform.scaleY * .5f);
+                float centerX = part.transform.position.x + (part.regionSize.x * part.transform.scale.x * .5f);
+                float centerY = part.transform.position.y + (part.regionSize.y * part.transform.scale.y * .5f);
 
                 partAvgCenter.x += centerX;
                 partAvgCenter.y += centerY;
             }
             partCompensateRot /= selectionState.mSelectedParts.size();
 
-            partAvgCenter.x = (partAvgCenter.x / selectionState.mSelectedParts.size()) * keyTransform.scaleX * mState.zoomFactor;
-            partAvgCenter.y = (partAvgCenter.y / selectionState.mSelectedParts.size()) * keyTransform.scaleY * mState.zoomFactor;
+            partAvgCenter.x = (partAvgCenter.x / selectionState.mSelectedParts.size()) * keyTransform.scale.x * mState.zoomFactor;
+            partAvgCenter.y = (partAvgCenter.y / selectionState.mSelectedParts.size()) * keyTransform.scale.y * mState.zoomFactor;
 
             ImVec2 partOrigin = { origin.x + partAvgCenter.x, origin.y + partAvgCenter.y };
 
@@ -794,10 +794,10 @@ void WindowCanvas::Update() {
 
             const auto& keyTransform = playerManager.getKey().transform;
 
-            float keyScaleX = keyTransform.scaleX;
-            float keyScaleY = keyTransform.scaleY;
-            float keyPosX = keyTransform.positionX;
-            float keyPosY = keyTransform.positionY;
+            float keyScaleX = keyTransform.scale.x;
+            float keyScaleY = keyTransform.scale.y;
+            float keyPosX = keyTransform.position.x;
+            float keyPosY = keyTransform.position.y;
 
             // Transform to part-space
 
@@ -808,25 +808,25 @@ void WindowCanvas::Update() {
             pivotPS.x = (pivotPS.x - keyPosX) / keyScaleX;
             pivotPS.y = (pivotPS.y - keyPosY) / keyScaleY;
 
-            float posAddedX = part.transform.positionX + partsTransformation.translateX;
-            float posAddedY = part.transform.positionY + partsTransformation.translateY;
+            float posAddedX = part.transform.position.x + partsTransformation.translateX;
+            float posAddedY = part.transform.position.y + partsTransformation.translateY;
 
             float offsetX = (posAddedX - pivotPS.x) * (1.f - partsTransformation.scaleX);
             float offsetY = (posAddedY - pivotPS.y) * (1.f - partsTransformation.scaleY);
 
-            part.transform.positionX = posAddedX - offsetX;
-            part.transform.positionY = posAddedY - offsetY;
+            part.transform.position.x = posAddedX - offsetX;
+            part.transform.position.y = posAddedY - offsetY;
 
-            part.transform.scaleX *= partsTransformation.scaleX;
-            part.transform.scaleY *= partsTransformation.scaleY;
+            part.transform.scale.x *= partsTransformation.scaleX;
+            part.transform.scale.y *= partsTransformation.scaleY;
 
-            float pX = pivotPS.x - (part.regionW * part.transform.scaleX) / 2.f;
-            float pY = pivotPS.y - (part.regionH * part.transform.scaleY) / 2.f;
+            float pX = pivotPS.x - (part.regionSize.x * part.transform.scale.x) / 2.f;
+            float pY = pivotPS.y - (part.regionSize.y * part.transform.scale.y) / 2.f;
 
             // Compensation on position for transformation rotation.
 
-            float dx = part.transform.positionX - pX;
-            float dy = part.transform.positionY - pY;
+            float dx = part.transform.position.x - pX;
+            float dy = part.transform.position.y - pY;
 
             float cosAngle = cosf(partsTransformation.rotation * ((float)M_PI / 180.f));
             float sinAngle = sinf(partsTransformation.rotation * ((float)M_PI / 180.f));
@@ -834,8 +834,8 @@ void WindowCanvas::Update() {
             float rotatedX = dx * cosAngle - dy * sinAngle;
             float rotatedY = dx * sinAngle + dy * cosAngle;
 
-            part.transform.positionX = rotatedX + pX;
-            part.transform.positionY = rotatedY + pY;
+            part.transform.position.x = rotatedX + pX;
+            part.transform.position.y = rotatedY + pY;
 
             part.transform.angle += partsTransformation.rotation;
         }

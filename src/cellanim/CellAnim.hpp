@@ -18,32 +18,59 @@ enum CellAnimType {
     CELLANIM_TYPE_CTR
 };
 
+
+template<typename T>
+struct Vec2 {
+    Vec2() : x(0), y(0) {}
+    Vec2(T _x, T _y) : x(_x), y(_y) {}
+
+    T* asArray() { return &x; }
+    const T* asArray() const { return &x; }
+
+    bool operator==(const Vec2<T>& rhs) const {
+        return x == rhs.x && y == rhs.y;
+    }
+    bool operator!=(const Vec2<T>& rhs) const {
+        return !(*this == rhs);
+    }
+
+    T x, y;
+};
+
+typedef Vec2<int> IntVec2;
+typedef Vec2<unsigned int> UintVec2;
+typedef Vec2<float> FltVec2;
+
 struct TransformValues {
     // On all axes.
     static constexpr int MIN_POSITION = -32768;
     static constexpr int MAX_POSITION = 32767;
 
     // In pixels.
-    int positionX { 0 }, positionY { 0 };
+    IntVec2 position { 0, 0 };
     // Keys scale from the center, while arrangement parts scale from
     // their origin (top-left).
-    float scaleX { 1.f }, scaleY { 1.f };
+    FltVec2 scale { 1.f, 1.f };
     // In degrees.
     float angle { 0.f };
 
     TransformValues average(const TransformValues& rhs) const {
         TransformValues transform {
-            .positionX = std::clamp<int>(
-                AVERAGE_INTS(positionX, rhs.positionX),
-                MIN_POSITION, MAX_POSITION
-            ),
-            .positionY = std::clamp<int>(
-                AVERAGE_INTS(positionY, rhs.positionY),
-                MIN_POSITION, MAX_POSITION
+            .position = IntVec2(
+                std::clamp<int>(
+                    AVERAGE_INTS(position.x, rhs.position.x),
+                    MIN_POSITION, MAX_POSITION
+                ),
+                std::clamp<int>(
+                    AVERAGE_INTS(position.y, rhs.position.y),
+                    MIN_POSITION, MAX_POSITION
+                )
             ),
 
-            .scaleX = AVERAGE_FLOATS(scaleX, rhs.scaleX),
-            .scaleY = AVERAGE_FLOATS(scaleY, rhs.scaleY),
+            .scale = FltVec2(
+                AVERAGE_FLOATS(scale.x, rhs.scale.x),
+                AVERAGE_FLOATS(scale.y, rhs.scale.y)
+            ),
 
             .angle = AVERAGE_FLOATS(angle, rhs.angle)
         };
@@ -53,17 +80,21 @@ struct TransformValues {
 
     TransformValues lerp(const TransformValues& rhs, float t) const {
         TransformValues transform {
-            .positionX = std::clamp<int>(
-                LERP_INTS(positionX, rhs.positionX, t),
-                MIN_POSITION, MAX_POSITION
-            ),
-            .positionY = std::clamp<int>(
-                LERP_INTS(positionY, rhs.positionY, t),
-                MIN_POSITION, MAX_POSITION
+            .position = IntVec2(
+                std::clamp<int>(
+                    LERP_INTS(position.x, rhs.position.x, t),
+                    MIN_POSITION, MAX_POSITION
+                ),
+                std::clamp<int>(
+                    LERP_INTS(position.y, rhs.position.y, t),
+                    MIN_POSITION, MAX_POSITION
+                )
             ),
 
-            .scaleX = std::lerp(scaleX, rhs.scaleX, t),
-            .scaleY = std::lerp(scaleY, rhs.scaleY, t),
+            .scale = FltVec2(
+                std::lerp(scale.x, rhs.scale.x, t),
+                std::lerp(scale.y, rhs.scale.y, t)
+            ),
 
             .angle = std::lerp(angle, rhs.angle, t)
         };
@@ -73,29 +104,28 @@ struct TransformValues {
 
     bool operator==(const TransformValues& rhs) const {
         return
-            positionX == rhs.positionX &&
-            positionY == rhs.positionY &&
-
-            scaleX == rhs.scaleX &&
-            scaleY == rhs.scaleY &&
-
+            position == rhs.position &&
+            scale == rhs.scale &&
             angle == rhs.angle;
     }
-
     bool operator!=(const TransformValues& rhs) const {
         return !(*this == rhs);
     }
 };
 
 struct CTRColor {
-    float r, g, b;
+    CTRColor() : r(0), g(0), b(0) {}
+    CTRColor(float _r, float _g, float _b) : r(_r), g(_g), b(_b) {}
+
+    float* asArray() { return &r; }
+    const float* asArray() const { return &r; }
 
     CTRColor lerp(const CTRColor& rhs, float t) const {
-        CTRColor color {
-            .r = std::lerp(r, rhs.r, t),
-            .g = std::lerp(g, rhs.g, t),
-            .b = std::lerp(b, rhs.b, t)
-        };
+        CTRColor color (
+            std::lerp(r, rhs.r, t),
+            std::lerp(g, rhs.g, t),
+            std::lerp(b, rhs.b, t)
+        );
 
         // Make sure (channel * 255.f) is an exact integer in the range 0..255.
         color.r = std::clamp(static_cast<float>(std::lroundf(color.r * 255.f)) * (1.f / 255.f), 0.f, 1.f);
@@ -106,11 +136,13 @@ struct CTRColor {
     }
 
     bool operator==(const CTRColor& rhs) const {
-        return
-            r == rhs.r &&
-            g == rhs.g &&
-            b == rhs.b;
+        return r == rhs.r && g == rhs.g && b == rhs.b;
     }
+    bool operator!=(const CTRColor& rhs) const {
+        return !(*this == rhs);
+    }
+
+    float r, g, b;
 };
 
 struct CTRQuadDepth {
@@ -144,8 +176,8 @@ struct ArrangementPart {
     static constexpr unsigned MAX_TEX_VARY = 65535;
     static constexpr unsigned MAX_ID = 255;
 
-    unsigned regionX { 8 }, regionY { 8 };
-    unsigned regionW { 32 }, regionH { 32 };
+    UintVec2 regionPos { 8, 8 };
+    UintVec2 regionSize { 8, 8 };
 
     // On RVL only.
     unsigned textureVarying { 0 };
@@ -177,10 +209,8 @@ struct ArrangementPart {
 
     bool operator==(const ArrangementPart& rhs) const {
         return
-            regionX == rhs.regionX &&
-            regionY == rhs.regionY &&
-            regionW == rhs.regionW &&
-            regionH == rhs.regionH &&
+            regionPos == rhs.regionPos &&
+            regionSize == rhs.regionSize &&
 
             textureVarying == rhs.textureVarying &&
 

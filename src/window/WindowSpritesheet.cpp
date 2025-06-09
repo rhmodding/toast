@@ -548,10 +548,10 @@ bool RepackSheet() {
     for (const auto& arrangement : arrangements) {
         for (const auto& part : arrangement.parts) {
             stbrp_rect rect = {
-                .w = static_cast<int>(part.regionW) + PADDING,
-                .h = static_cast<int>(part.regionH) + PADDING,
-                .x = static_cast<int>(part.regionX) - PADDING_HALF,
-                .y = static_cast<int>(part.regionY) - PADDING_HALF,
+                .w = static_cast<int>(part.regionSize.x) + PADDING,
+                .h = static_cast<int>(part.regionSize.y) + PADDING,
+                .x = static_cast<int>(part.regionPos.x) - PADDING_HALF,
+                .y = static_cast<int>(part.regionPos.y) - PADDING_HALF,
             };
             uniqueRects.insert(rect);
         }
@@ -607,19 +607,19 @@ bool RepackSheet() {
     for (auto& arrangement : arrangements) {
         for (auto& part : arrangement.parts) {
             stbrp_rect rect = {
-                .w = static_cast<int>(part.regionW) + PADDING,
-                .h = static_cast<int>(part.regionH) + PADDING,
-                .x = static_cast<int>(part.regionX) - PADDING_HALF,
-                .y = static_cast<int>(part.regionY) - PADDING_HALF,
+                .w = static_cast<int>(part.regionSize.x) + PADDING,
+                .h = static_cast<int>(part.regionSize.y) + PADDING,
+                .x = static_cast<int>(part.regionPos.x) - PADDING_HALF,
+                .y = static_cast<int>(part.regionPos.y) - PADDING_HALF,
             };
 
             auto it = std::find(originalRects.begin(), originalRects.end(), rect);
             if (it != originalRects.end()) {
                 const auto& newRect = sortedRects[std::distance(originalRects.begin(), it)];
-                part.regionW = newRect.w - PADDING;
-                part.regionH = newRect.h - PADDING;
-                part.regionX = newRect.x + PADDING_HALF;
-                part.regionY = newRect.y + PADDING_HALF;
+                part.regionSize.x = newRect.w - PADDING;
+                part.regionSize.y = newRect.h - PADDING;
+                part.regionPos.x = newRect.x + PADDING_HALF;
+                part.regionPos.y = newRect.y + PADDING_HALF;
             }
         }
     }
@@ -1022,9 +1022,9 @@ void WindowSpritesheet::Update() {
             const auto& part = arrangement.parts[i];
 
             unsigned sourceRect[4] {
-                part.regionX % cellanimObject->getSheetWidth(),
-                part.regionY % cellanimObject->getSheetHeight(),
-                part.regionW, part.regionH
+                part.regionPos.x % cellanimObject->getSheetWidth(),
+                part.regionPos.y % cellanimObject->getSheetHeight(),
+                part.regionSize.x, part.regionSize.y
             };
 
             const auto& associatedTex = textureGroup->getTextureByVarying(part.textureVarying);

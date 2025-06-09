@@ -51,13 +51,13 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
 
             for (auto& arrangement : newArrangements)
                 for (auto& part : arrangement.parts) {
-                    part.regionX *= scaleX;
-                    part.regionW *= scaleX;
-                    part.regionY *= scaleY;
-                    part.regionH *= scaleY;
+                    part.regionPos.x *= scaleX;
+                    part.regionSize.x *= scaleX;
+                    part.regionPos.y *= scaleY;
+                    part.regionSize.y *= scaleY;
 
-                    part.transform.scaleX /= scaleX;
-                    part.transform.scaleY /= scaleY;
+                    part.transform.scale.x /= scaleX;
+                    part.transform.scale.y /= scaleY;
                 }
 
             sessionManager.getCurrentSession()->addCommand(
