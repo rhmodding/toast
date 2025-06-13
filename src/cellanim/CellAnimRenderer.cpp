@@ -294,8 +294,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
     const CellAnim::Arrangement& arrangement = mCellAnim->getArrangements().at(key.arrangementIndex);
     const CellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
 
-    const int*   tempOffset = arrangement.tempOffset;
-    const float* tempScale  = arrangement.tempScale;
+    const auto& tempOffset = arrangement.tempOffset;
+    const auto& tempScale  = arrangement.tempScale;
 
     ImVec2 keyCenter = mOffset;
 
@@ -310,12 +310,12 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
     };
 
     topLeftOffset = {
-        (topLeftOffset.x * tempScale[0]) + tempOffset[0],
-        (topLeftOffset.y * tempScale[1]) + tempOffset[1]
+        (topLeftOffset.x * tempScale.x) + tempOffset.x,
+        (topLeftOffset.y * tempScale.y) + tempOffset.y
     };
     bottomRightOffset = {
-        (bottomRightOffset.x * tempScale[0]) + tempOffset[0],
-        (bottomRightOffset.y * tempScale[1]) + tempOffset[1]
+        (bottomRightOffset.x * tempScale.x) + tempOffset.x,
+        (bottomRightOffset.y * tempScale.y) + tempOffset.y
     };
 
     transformedQuad = {
@@ -332,7 +332,7 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
         // Rotation
         float rotAngle = part.transform.angle;
 
-        if ((tempScale[0] < 0.f) ^ (tempScale[1] < 0.f))
+        if ((tempScale.x < 0.f) ^ (tempScale.y < 0.f))
             rotAngle = -rotAngle;
 
         for (auto& point : transformedQuad)
@@ -365,8 +365,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
 
     const CellAnim::ArrangementPart& part = arrangement.parts.at(partIndex);
 
-    const int*   tempOffset = arrangement.tempOffset;
-    const float* tempScale  = arrangement.tempScale;
+    const auto& tempOffset = arrangement.tempOffset;
+    const auto& tempScale  = arrangement.tempScale;
 
     ImVec2 keyCenter = mOffset;
 
@@ -381,12 +381,12 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
     };
 
     topLeftOffset = {
-        (topLeftOffset.x * tempScale[0]) + tempOffset[0],
-        (topLeftOffset.y * tempScale[1]) + tempOffset[1]
+        (topLeftOffset.x * tempScale.x) + tempOffset.x,
+        (topLeftOffset.y * tempScale.y) + tempOffset.y
     };
     bottomRightOffset = {
-        (bottomRightOffset.x * tempScale[0]) + tempOffset[0],
-        (bottomRightOffset.y * tempScale[1]) + tempOffset[1]
+        (bottomRightOffset.x * tempScale.x) + tempOffset.x,
+        (bottomRightOffset.y * tempScale.y) + tempOffset.y
     };
 
     transformedQuad = {
@@ -403,7 +403,7 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
         // Rotation
         float rotAngle = part.transform.angle;
 
-        if ((tempScale[0] < 0.f) ^ (tempScale[1] < 0.f))
+        if ((tempScale.x < 0.f) ^ (tempScale.y < 0.f))
             rotAngle = -rotAngle;
 
         for (auto& point : transformedQuad)

@@ -1,14 +1,15 @@
 #ifndef POPUP_MTRANSFORMARRANGEMENT_HPP
 #define POPUP_MTRANSFORMARRANGEMENT_HPP
 
-#include <cstdint>
-#include <cstring>
-
 #include <imgui.h>
+
+#include "cellanim/CellAnim.hpp"
 
 #include "manager/SessionManager.hpp"
 
 #include "command/CommandModifyArrangement.hpp"
+
+#include "Macro.hpp"
 
 static void Popup_MTransformArrangement() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
@@ -24,12 +25,10 @@ static void Popup_MTransformArrangement() {
     if (sessionManager.getCurrentSessionIndex() >= 0)
         arrangement = &playerManager.getArrangement();
 
-    static const int noOffset[2] { 0, 0 };
-    static const float noScale[2] { 1.f, 1.f };
 
     if (!active && lateOpen && arrangement) {
-        memcpy(arrangement->tempOffset, noOffset, sizeof(arrangement->tempOffset));
-        memcpy(arrangement->tempScale, noScale, sizeof(arrangement->tempScale));
+        arrangement->tempOffset = { 0, 0 };
+        arrangement->tempScale = { 1.f, 1.f };
 
         lateOpen = false;
     }
@@ -39,51 +38,48 @@ static void Popup_MTransformArrangement() {
 
         ImGui::SeparatorText("Transform Arrangement");
 
-        static int offset[2] { 0, 0 };
-        static float scale[2] { 1.f, 1.f };
+        static CellAnim::IntVec2 offset { 0, 0 };
+        static CellAnim::FltVec2 scale { 1.f, 1.f };
 
         static bool uniformScale { true };
 
-        ImGui::DragInt2("Offset XY", offset, 1.f);
+        ImGui::DragInt2("Offset XY", offset.asArray(), 1.f);
 
-        const float scaleBefore[2] = { scale[0], scale[1] };
-        if (ImGui::DragFloat2("Scale XY", scale, .01f) && uniformScale) {
-            if (scale[0] != scaleBefore[0])
-                scale[1] = scale[0];
-            if (scale[1] != scaleBefore[1])
-                scale[0] = scale[1];
+        CellAnim::FltVec2 scaleBefore = scale;
+        if (ImGui::DragFloat2("Scale XY", scale.asArray(), .01f) && uniformScale) {
+            if (scale.x != scaleBefore.x)
+                scale.y = scale.x;
+            if (scale.y != scaleBefore.y)
+                scale.x = scale.y;
         }
 
         if (ImGui::Checkbox("Uniform Scale", &uniformScale)) {
-            if (scale[0] != scale[1]) {
-                float v = AVERAGE_FLOATS(scale[0], scale[1]);
-
-                scale[0] = v;
-                scale[1] = v;
+            if (scale.x != scale.y) {
+                float v = AVERAGE_FLOATS(scale.x, scale.y);
+                scale = { v, v };
             }
         }
 
         ImGui::Separator();
 
         if (ImGui::Button("Apply")) {
-            memcpy(arrangement->tempOffset, noOffset, sizeof(arrangement->tempOffset));
-            memcpy(arrangement->tempScale, noScale, sizeof(arrangement->tempScale));
+            arrangement->tempOffset = { 0, 0 };
+            arrangement->tempScale = { 1.f, 1.f };
 
             auto newArrangement = *arrangement;
             for (auto& part : newArrangement.parts) {
                 part.transform.position.x = static_cast<int16_t>(
-                    (part.transform.position.x * scale[0]) + offset[0]
+                    (part.transform.position.x * scale.x) + offset.x
                 );
                 part.transform.position.y = static_cast<int16_t>(
-                    (part.transform.position.y * scale[1]) + offset[1]
+                    (part.transform.position.y * scale.y) + offset.y
                 );
 
-                part.transform.scale.x *= scale[0];
-                part.transform.scale.y *= scale[1];
+                part.transform.scale *= scale;
 
-                if (scale[0] < 0.f)
+                if (scale.x < 0.f)
                     part.transform.angle = -part.transform.angle;
-                if (scale[1] < 0.f)
+                if (scale.y < 0.f)
                     part.transform.angle = -part.transform.angle;
             }
 
@@ -96,8 +92,8 @@ static void Popup_MTransformArrangement() {
                 newArrangement
             ));
 
-            offset[0] = 0; offset[1] = 0;
-            scale[0] = 1.f; scale[1] = 1.f;
+            offset = { 0, 0 };
+            scale = { 1.f, 1.f };
 
             ImGui::CloseCurrentPopup();
             lateOpen = false;
@@ -105,15 +101,15 @@ static void Popup_MTransformArrangement() {
 
         ImGui::SameLine();
         if (ImGui::Button("Cancel")) {
-            offset[0] = 0; offset[1] = 0;
-            scale[0] = 1.f; scale[1] = 1.f;
+            offset = { 0, 0 };
+            scale = { 1.f, 1.f };
 
             ImGui::CloseCurrentPopup();
             lateOpen = false;
         }
 
-        memcpy(arrangement->tempOffset, offset, sizeof(arrangement->tempOffset));
-        memcpy(arrangement->tempScale, scale, sizeof(arrangement->tempScale));
+        arrangement->tempOffset = offset;
+        arrangement->tempScale = scale;
 
         ImGui::EndPopup();
     }
