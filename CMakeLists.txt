@@ -65,9 +65,9 @@ set(SOURCES
 
     src/texture/APNGHack.cpp
     src/texture/CTPK.cpp
-    src/texture/CTRImageConvert.cpp
-    src/texture/RVLImageConvert.cpp
-    src/texture/RVLPalette.cpp
+    src/texture/CtrImageConvert.cpp
+    src/texture/RvlImageConvert.cpp
+    src/texture/RvlPalette.cpp
     src/texture/Texture.cpp
     src/texture/TextureEx.cpp
     src/texture/TPL.cpp
