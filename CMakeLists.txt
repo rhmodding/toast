@@ -42,7 +42,7 @@ set(SOURCES
     src/cellanim/CellAnim.cpp
     src/cellanim/CellAnimRenderer.cpp
 
-    src/compression/NZLib.cpp
+    src/compression/NZlib.cpp
     src/compression/Yaz0.cpp
 
     src/manager/AsyncTaskManager.cpp
