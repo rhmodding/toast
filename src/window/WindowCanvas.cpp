@@ -1005,60 +1005,6 @@ void WindowCanvas::Update() {
                         onionSkinState.opacity
                     );
                 }
-
-                if (ImGui::Shortcut(ImGuiKey_0 | ImGuiMod_Ctrl, ImGuiInputFlags_RouteAlways)) {
-                    GLuint texture;
-                    glGenTextures(1, &texture);
-
-                    APNGHack::BuildData buildData;
-
-                    buildData.frames.resize(playerManager.getKeyCount());
-
-                    ImVec2 maxSize { 0.f, 0.f };
-
-                    for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
-                        mCellAnimRenderer.DrawTex(
-                            texture,
-                            playerManager.getAnimation(), i,
-                            mState.allowTransparentDraw
-                        );
-
-                        glBindTexture(GL_TEXTURE_2D, texture);
-
-                        APNGHack::BuildFrame& frame = buildData.frames[i];
-
-                        frame.width = mCellAnimRenderer.mDrawTexSize.x;
-                        frame.height = mCellAnimRenderer.mDrawTexSize.y;
-
-                        mCellAnimRenderer.mDrawTexOffset;
-
-                        std::vector<unsigned char> tempBuffer (frame.width * frame.height * 4);
-                        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tempBuffer.data());
-
-                        unsigned rowSize = 1 + (4 * frame.width);
-
-                        frame.pngRGBA.resize(frame.height * rowSize);
-
-                        for (unsigned y = 0; y < frame.height; y++) {
-                            unsigned scanlineOffset = y * rowSize;
-
-                            frame.pngRGBA[scanlineOffset] = 0x00;
-                            memcpy(&frame.pngRGBA[scanlineOffset + 1], &tempBuffer[y * frame.width * 4], frame.width * 4);
-                        }
-
-                        frame.holdFrames = playerManager.getAnimation().keys[i].holdFrames;
-                    }
-
-                    glBindTexture(GL_TEXTURE_2D, 0);
-
-                    glDeleteTextures(1, &texture);
-
-                    auto data = APNGHack::build(buildData);
-
-                    FILE* file = fopen("sura.png", "wb");
-                    fwrite(data.data(), data.size(), 1, file);
-                    fclose(file);
-                }
             }
 
             // Draw safe area if enabled
