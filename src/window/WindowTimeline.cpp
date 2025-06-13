@@ -8,19 +8,20 @@
 
 #include <cstdint>
 
-#include "../font/FontAwesome.h"
+#include "font/FontAwesome.h"
 
-#include "../AppState.hpp"
-#include "../SessionManager.hpp"
-#include "../PlayerManager.hpp"
+#include "manager/AppState.hpp"
 
-#include "../command/CommandMoveAnimationKey.hpp"
-#include "../command/CommandDeleteAnimationKey.hpp"
-#include "../command/CommandInsertAnimationKey.hpp"
-#include "../command/CommandModifyAnimationKey.hpp"
-#include "../command/CommandModifyAnimation.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/PlayerManager.hpp"
 
-#include "../command/CompositeCommand.hpp"
+#include "command/CommandMoveAnimationKey.hpp"
+#include "command/CommandDeleteAnimationKey.hpp"
+#include "command/CommandInsertAnimationKey.hpp"
+#include "command/CommandModifyAnimationKey.hpp"
+#include "command/CommandModifyAnimation.hpp"
+
+#include "command/CompositeCommand.hpp"
 
 static const uint32_t u32_one = 1;
 
@@ -133,16 +134,16 @@ void WindowTimeline::Update() {
             ImGui::SameLine();
 
             {
-                const bool lLooping = playerManager.mLooping;
-                if (lLooping)
+                const bool isLooping = playerManager.getLooping();
+                if (isLooping)
                     ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
 
                 if (ImGui::Button((const char*)ICON_FA_ARROW_ROTATE_RIGHT "##loopButton", normalButtonSize))
-                    playerManager.mLooping ^= true;
+                    playerManager.setLooping(!isLooping);
 
                 ImGui::SetItemTooltip("Toggle looping");
 
-                if (lLooping)
+                if (isLooping)
                     ImGui::PopStyleColor();
             }
 
@@ -172,7 +173,11 @@ void WindowTimeline::Update() {
             ImGui::SameLine();
 
             ImGui::SetNextItemWidth(52.f);
-            ImGui::InputScalar("FPS", ImGuiDataType_U32, &playerManager.mFrameRate, nullptr, nullptr, "%u");
+
+            unsigned frameRate = playerManager.getFrameRate();
+            if (ImGui::InputScalar("FPS", ImGuiDataType_U32, &frameRate, nullptr, nullptr, "%u")) {
+                playerManager.setFrameRate(frameRate);
+            }
 
             // Onion skin options
             ImGui::TableSetColumnIndex(2);

@@ -15,12 +15,13 @@
 
 #include "cellanim/CellAnim.hpp"
 
-#include "AppState.hpp"
+#include "manager/AppState.hpp"
 
-#include "SessionManager.hpp"
-#include "ConfigManager.hpp"
-#include "PlayerManager.hpp"
-#include "ThemeManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/ConfigManager.hpp"
+#include "manager/PlayerManager.hpp"
+#include "manager/ThemeManager.hpp"
+#include "manager/MainThreadTaskManager.hpp"
 
 #include "font/FontAwesome.h"
 
@@ -32,9 +33,9 @@
 #include "command/CommandMoveAnimationKey.hpp"
 #include "command/CommandInsertAnimationKey.hpp"
 
-#include "task/AsyncTaskManager.hpp"
+#include "manager/AsyncTaskManager.hpp"
 
-#include "MainThreadTaskManager.hpp"
+#include "task/AsyncTaskPushSession.hpp"
 
 #include "App/Actions.hpp"
 #include "App/Shortcuts.hpp"
@@ -45,7 +46,7 @@
 #if !defined(__APPLE__)
 #include "stb/stb_image.h"
 
-#include "_binary/images/toastIcon.png.h"
+#include "BIN/image/toastIcon.png.h"
 #endif // !defined(__APPLE__)
 
 #define WINDOW_TITLE "toast"
@@ -336,12 +337,12 @@ void Toast::Menubar() {
                 (const char*)ICON_FA_FILE_IMPORT " Open recent",
                 !recentlyOpened.empty()
             )) {
-                for (unsigned i = 0; i < Config::MAX_RECENTLY_OPENED; i++) {
+                for (size_t i = 0; i < Config::MAX_RECENTLY_OPENED; i++) {
                     const int j = recentlyOpened.size() > i ? recentlyOpened.size() - 1 - i : -1;
                     const bool none = (j < 0);
 
                     char label[128];
-                    snprintf(label, sizeof(label), "%u. %s", i + 1, none ? "-" : recentlyOpened[j].c_str());
+                    snprintf(label, sizeof(label), "%zu. %s", i + 1, none ? "-" : recentlyOpened[j].c_str());
 
                     ImGui::BeginDisabled(none);
 
@@ -618,10 +619,7 @@ void Toast::Menubar() {
                 ImGui::BeginDisabled(arrangementUnique);
 
                 if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
-                    unsigned index = std::distance(
-                        cellAnim.getArrangements().begin(),
-                        cellAnim.duplicateArrangement(key.arrangementIndex)
-                    );
+                    unsigned index = cellAnim.duplicateArrangement(key.arrangementIndex);
 
                     if (!appState.getArrangementMode()) {
                         auto newKey = key;
@@ -785,7 +783,7 @@ void Toast::Menubar() {
                             if (session.getCurrentCellAnimIndex() != i) {
                                 sessionManager.setCurrentSessionIndex(n);
 
-                                // HEY: bug here probably
+                                // TODO: bug here probably
                                 session.addCommand(
                                 std::make_shared<CommandSwitchCellanim>(
                                     n, i
@@ -866,7 +864,7 @@ void Toast::Update() {
             ImGui::DockSpace(ImGui::GetID("HeadDockspace"), { -1.f, -1.f }, dockspaceFlags);
     }
 
-    Shortcuts::Handle();
+    Shortcuts::Process();
 
     Menubar();
 

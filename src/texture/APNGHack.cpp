@@ -3,11 +3,11 @@
 #include <cstdint>
 #include <cstring>
 
-#include "../CRC32.hpp"
+#include "util/CRC32Util.hpp"
 
 #include <zlib-ng.h>
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 enum class PNGColorType : uint8_t {
     Grayscale      = 0, // Luminance values (bpp is bitDepth).
@@ -194,7 +194,7 @@ std::vector<unsigned char> APNGHack::build(const BuildData& buildData) {
         .interlaceMethod = PNGInterlaceMethod::None
     };
 
-    *chunkIhdr->crc = BYTESWAP_32(CRC32::compute(std::string_view(
+    *chunkIhdr->crc = BYTESWAP_32(CRC32Util::compute(std::string_view(
         reinterpret_cast<char*>(chunkIhdr->crcStart),
         reinterpret_cast<char*>(chunkIhdr->crc)
     )));
@@ -205,7 +205,7 @@ std::vector<unsigned char> APNGHack::build(const BuildData& buildData) {
         .playCount = 0
     };
 
-    *chunkActl->crc = BYTESWAP_32(CRC32::compute(std::string_view(
+    *chunkActl->crc = BYTESWAP_32(CRC32Util::compute(std::string_view(
         reinterpret_cast<char*>(chunkActl->crcStart),
         reinterpret_cast<char*>(chunkActl->crc)
     )));
@@ -230,7 +230,7 @@ std::vector<unsigned char> APNGHack::build(const BuildData& buildData) {
             .blendOpr = APNGBlendOp::Source
         };
 
-        *chunkFctl->crc = BYTESWAP_32(CRC32::compute(std::string_view(
+        *chunkFctl->crc = BYTESWAP_32(CRC32Util::compute(std::string_view(
             reinterpret_cast<char*>(chunkFctl->crcStart),
             reinterpret_cast<char*>(chunkFctl->crc)
         )));
@@ -258,7 +258,7 @@ std::vector<unsigned char> APNGHack::build(const BuildData& buildData) {
             destIdat->chunkData + dstDataSize
         );
 
-        *destCRC = BYTESWAP_32(CRC32::compute(std::string_view(
+        *destCRC = BYTESWAP_32(CRC32Util::compute(std::string_view(
             reinterpret_cast<char*>(destIdat->crcStart),
             reinterpret_cast<char*>(destCRC)
         )));
@@ -268,7 +268,7 @@ std::vector<unsigned char> APNGHack::build(const BuildData& buildData) {
 
     currentChunk->chunkDataSize = 0;
     currentChunk->chunkIdentifier = PNG_IEND_ID;
-    *reinterpret_cast<uint32_t*>(currentChunk->chunkData) = BYTESWAP_32(CRC32::compute("IEND"));
+    *reinterpret_cast<uint32_t*>(currentChunk->chunkData) = BYTESWAP_32(CRC32Util::compute("IEND"));
 
     return finalData;
 }

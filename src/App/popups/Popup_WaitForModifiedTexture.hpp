@@ -3,18 +3,16 @@
 
 #include <imgui.h>
 
-#include "../../SessionManager.hpp"
-#include "../../ConfigManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/ConfigManager.hpp"
 
-#include "../../AppState.hpp"
+#include "manager/AppState.hpp"
 
-#include "../../texture/TextureEx.hpp"
+#include "texture/TextureEx.hpp"
 
-#include "../../command/CommandModifySpritesheet.hpp"
+#include "command/CommandModifySpritesheet.hpp"
 
-#include "../../Macro.hpp"
-
-#include "../Popups.hpp"
+#include "Macro.hpp"
 
 static void Popup_WaitForModifiedTexture() {
     CENTER_NEXT_WINDOW();

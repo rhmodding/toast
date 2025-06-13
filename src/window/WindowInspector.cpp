@@ -1,12 +1,12 @@
 #include "WindowInspector.hpp"
 
-#include "../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../AppState.hpp"
+#include "manager/AppState.hpp"
 
-#include "../ThemeManager.hpp"
+#include "manager/ThemeManager.hpp"
 
-#include "../command/CommandSetArrangementMode.hpp"
+#include "command/CommandSetArrangementMode.hpp"
 
 void WindowInspector::drawPreview() {
     PlayerManager& playerManager = PlayerManager::getInstance();
@@ -66,10 +66,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
     ImGui::BeginDisabled(arrangementUnique);
 
     if (ImGui::Button("Make arrangement unique (duplicate)")) {
-        newKey.arrangementIndex = std::distance(
-            cellAnim.getArrangements().begin(),
-            cellAnim.duplicateArrangement(originalKey.arrangementIndex)
-        );
+        newKey.arrangementIndex = cellAnim.duplicateArrangement(originalKey.arrangementIndex);
     }
 
     ImGui::EndDisabled();
@@ -86,31 +83,27 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
         ImGui::Separator();
 
         if (ImGui::Selectable("Ok")) {
-            newKey.arrangementIndex = std::distance(
-                cellAnim.getArrangements().begin(),
-                cellAnim.duplicateArrangement(originalKey.arrangementIndex)
-            );
+            newKey.arrangementIndex = cellAnim.duplicateArrangement(originalKey.arrangementIndex);
         }
         ImGui::Selectable("Nevermind");
 
         ImGui::EndPopup();
     }
 
-    if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
+    if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled)) {
         ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
+    }
 }
 
 void WindowInspector::Update() {
-    AppState& appState = AppState::getInstance();
+    ImGuiWindowFlags windowFlag = ImGuiWindowFlags_MenuBar;
+    if (
+        mInspectorLevel == InspectorLevel_Arrangement ||
+        mInspectorLevel == InspectorLevel_Arrangement_Im
+    )
+        windowFlag |= ImGuiWindowFlags_NoScrollbar;
 
-    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_MenuBar | (
-        (
-            mInspectorLevel == InspectorLevel_Arrangement ||
-            mInspectorLevel == InspectorLevel_Arrangement_Im
-        ) ?
-            ImGuiWindowFlags_NoScrollbar :
-            ImGuiWindowFlags_None
-    ));
+    ImGui::Begin("Inspector", nullptr, windowFlag);
 
     mWindowSize = ImGui::GetContentRegionAvail();
 
@@ -125,7 +118,7 @@ void WindowInspector::Update() {
 
     if (ImGui::BeginMenuBar()) {
         InspectorLevel newLevel = mInspectorLevel;
-        bool newFocus = appState.mFocusOnSelectedPart;
+        bool newFocus = AppState::getInstance().mFocusOnSelectedPart;
 
         if (ImGui::MenuItem("Animation", nullptr, mInspectorLevel == InspectorLevel_Animation)) {
             newLevel = InspectorLevel_Animation;
@@ -153,7 +146,7 @@ void WindowInspector::Update() {
             }
 
             mInspectorLevel = newLevel;
-            appState.mFocusOnSelectedPart = newFocus;
+            AppState::getInstance().mFocusOnSelectedPart = newFocus;
         }
 
         ImGui::EndMenuBar();

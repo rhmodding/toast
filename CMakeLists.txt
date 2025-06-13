@@ -31,6 +31,12 @@ set(SOURCES
     src/stb/stb_image_resize2_impl.cpp
     src/stb/stb_rect_pack_impl.cpp
 
+    src/BIN/fontdata/FontAwesome.cpp
+    src/BIN/fontdata/SegoeUI.cpp
+
+    src/BIN/image/toastIcon_title.png.cpp
+    src/BIN/image/toastIcon.png.cpp
+
     src/main.cpp
 
     src/Toast.cpp
@@ -39,9 +45,10 @@ set(SOURCES
 
     src/TerminateHandler.cpp
 
-    src/CxxDemangle.cpp
-
     src/App/Popups.cpp
+    src/App/Actions.cpp
+
+    src/App/Shortcuts.cpp
 
     src/cellanim/CellAnimRenderer.cpp
     src/cellanim/CellAnim.cpp
@@ -67,10 +74,6 @@ set(SOURCES
 
     src/texture/APNGHack.cpp
 
-    src/task/AsyncTaskManager.cpp
-
-    src/task/AsyncTask.cpp
-
     src/task/AsyncTaskExportSession.cpp
     src/task/AsyncTaskPushSession.cpp
     src/task/AsyncTaskOptimizeCellanim.cpp
@@ -93,19 +96,21 @@ set(SOURCES
     src/EditorDataPackage.cpp
 
     src/SelectionState.cpp
-
+    
     src/Session.cpp
-    src/SessionManager.cpp
 
-    src/PlayerManager.cpp
+    src/task/AsyncTask.cpp
 
-    src/ConfigManager.cpp
+    src/manager/AsyncTaskManager.cpp
+    src/manager/ConfigManager.cpp
+    src/manager/SessionManager.cpp
+    src/manager/PlayerManager.cpp
+    src/manager/MainThreadTaskManager.cpp
+    src/manager/ThemeManager.cpp
 
-    src/MainThreadTaskManager.cpp
-
-    src/ThemeManager.cpp
-
-    src/Files.cpp
+    src/util/BezierUtil.cpp
+    src/util/CxxDemangleUtil.cpp
+    src/util/FileUtil.cpp
 )
 
 IF (APPLE)
@@ -129,12 +134,14 @@ ENDIF()
 
 # Include directories
 target_include_directories(toast PRIVATE
-    ext/imgui
-    ext/imgui/backends
-    ext/tinyfiledialogs
-    ext/rg-etc1
+    ${CMAKE_SOURCE_DIR}/src
 
-    libs/glfw/include
+    ${CMAKE_SOURCE_DIR}/ext/imgui
+    ${CMAKE_SOURCE_DIR}/ext/imgui/backends
+    ${CMAKE_SOURCE_DIR}/ext/tinyfiledialogs
+    ${CMAKE_SOURCE_DIR}/ext/rg-etc1
+
+    ${CMAKE_SOURCE_DIR}/libs/glfw/include
 )
 
 # Link directories

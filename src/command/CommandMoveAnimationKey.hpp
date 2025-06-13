@@ -5,11 +5,9 @@
 
 #include <algorithm>
 
-#include "../cellanim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
-#include "../SessionManager.hpp"
-
-#include "../AppState.hpp"
+#include "manager/SessionManager.hpp"
 
 class CommandMoveAnimationKey : public BaseCommand {
 public:

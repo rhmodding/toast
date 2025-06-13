@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-#include "../ThemeManager.hpp"
+#include "manager/ThemeManager.hpp"
 
 enum Categories {
     Category_General,

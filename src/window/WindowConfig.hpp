@@ -3,7 +3,7 @@
 
 #include "BaseWindow.hpp"
 
-#include "../ConfigManager.hpp"
+#include "manager/ConfigManager.hpp"
 
 class WindowConfig : public BaseWindow {
 public:

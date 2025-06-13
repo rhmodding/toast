@@ -1,0 +1,181 @@
+#include "SpritesheetFixUtil.hpp"
+
+#include <cstdint>
+
+#include <memory>
+
+#include <vector>
+#include <set>
+
+#include "stb/stb_rect_pack.h"
+
+#include "cellanim/CellAnim.hpp"
+
+#include "command/CommandModifySpritesheet.hpp"
+#include "command/CommandModifyArrangements.hpp"
+#include "command/CompositeCommand.hpp"
+
+bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
+    constexpr int PADDING = 4;
+    constexpr int PADDING_HALF = PADDING / 2;
+    constexpr uint32_t BORDER_COLOR = IM_COL32_BLACK;
+
+    std::shared_ptr cellanimSheet = session.sheets->getTextureByIndex(sheetIndex);
+    std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
+
+    // Copy
+    std::vector<CellAnim::Arrangement> arrangements = cellanimObject->getArrangements();
+
+    struct RectComparator {
+        bool operator()(const stbrp_rect& lhs, const stbrp_rect& rhs) const {
+            return std::tie(lhs.w, lhs.h, lhs.x, lhs.y) < std::tie(rhs.w, rhs.h, rhs.x, rhs.y);
+        }
+    };
+
+    std::set<stbrp_rect, RectComparator> uniqueRects;
+
+    for (const auto& arrangement : arrangements) {
+        for (const auto& part : arrangement.parts) {
+            stbrp_rect rect = {
+                .w = static_cast<int>(part.regionSize.x) + PADDING,
+                .h = static_cast<int>(part.regionSize.y) + PADDING,
+                .x = static_cast<int>(part.regionPos.x) - PADDING_HALF,
+                .y = static_cast<int>(part.regionPos.y) - PADDING_HALF,
+            };
+            uniqueRects.insert(rect);
+        }
+    }
+
+    const unsigned numRects = uniqueRects.size();
+    std::vector<stbrp_rect> sortedRects(uniqueRects.begin(), uniqueRects.end());
+    auto originalRects = sortedRects;
+
+    std::vector<stbrp_node> nodes(numRects);
+    stbrp_context context;
+    stbrp_init_target(&context, cellanimSheet->getWidth(), cellanimSheet->getHeight(), nodes.data(), numRects);
+
+    if (!stbrp_pack_rects(&context, sortedRects.data(), numRects))
+        return false;
+
+    const unsigned pixelCount = cellanimSheet->getPixelCount();
+    std::unique_ptr<unsigned char[]> newImage(new unsigned char[pixelCount * 4]);
+    std::unique_ptr<unsigned char[]> srcImage(new unsigned char[pixelCount * 4]);
+    cellanimSheet->GetRGBA32(srcImage.get());
+
+    for (unsigned i = 0; i < numRects; ++i) {
+        const auto& rect = sortedRects[i];
+        const auto& origRect = originalRects[i];
+
+        const int ox = origRect.x, oy = origRect.y, nx = rect.x, ny = rect.y;
+        const int w = origRect.w, h = origRect.h;
+
+        for (int row = 0; row < h; ++row) {
+            auto* src = srcImage.get() + ((oy + row) * cellanimSheet->getWidth() + ox) * 4;
+            auto* dst = newImage.get() + ((ny + row) * cellanimSheet->getWidth() + nx) * 4;
+            memcpy(dst, src, w * 4);
+        }
+
+        uint32_t* pixelData = reinterpret_cast<uint32_t*>(newImage.get());
+
+        for (int col = 0; col < w; ++col) {
+            pixelData[ny * cellanimSheet->getWidth() + nx + col] = BORDER_COLOR;
+            pixelData[(ny + h - 1) * cellanimSheet->getWidth() + nx + col] = BORDER_COLOR;
+        }
+        for (int row = 0; row < h; ++row) {
+            pixelData[(ny + row) * cellanimSheet->getWidth() + nx] = BORDER_COLOR;
+            pixelData[(ny + row) * cellanimSheet->getWidth() + nx + w - 1] = BORDER_COLOR;
+        }
+    }
+
+    auto newTexture = std::make_shared<TextureEx>();
+    newTexture->LoadRGBA32(newImage.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
+
+    for (auto& arrangement : arrangements) {
+        for (auto& part : arrangement.parts) {
+            stbrp_rect rect = {
+                .w = static_cast<int>(part.regionSize.x) + PADDING,
+                .h = static_cast<int>(part.regionSize.y) + PADDING,
+                .x = static_cast<int>(part.regionPos.x) - PADDING_HALF,
+                .y = static_cast<int>(part.regionPos.y) - PADDING_HALF,
+            };
+
+            auto it = std::find(originalRects.begin(), originalRects.end(), rect);
+            if (it != originalRects.end()) {
+                const auto& newRect = sortedRects[std::distance(originalRects.begin(), it)];
+                part.regionSize.x = newRect.w - PADDING;
+                part.regionSize.y = newRect.h - PADDING;
+                part.regionPos.x = newRect.x + PADDING_HALF;
+                part.regionPos.y = newRect.y + PADDING_HALF;
+            }
+        }
+    }
+
+    newTexture->setName(cellanimSheet->getName());
+
+    auto composite = std::make_shared<CompositeCommand>();
+
+    composite->addCommand(std::make_shared<CommandModifySpritesheet>(
+        sheetIndex, newTexture
+    ));
+    composite->addCommand(std::make_shared<CommandModifyArrangements>(
+        session.getCurrentCellAnimIndex(), std::move(arrangements)
+    ));
+
+    session.addCommand(composite);
+
+    return true;
+}
+
+bool SpritesheetFixUtil::FixAlphaBleed(Session& session, int sheetIndex) {
+    std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
+    std::shared_ptr cellanimSheet = session.sheets->getTextureByIndex(sheetIndex);
+
+    const unsigned width = cellanimSheet->getWidth();
+    const unsigned height = cellanimSheet->getHeight();
+    const unsigned pixelCount = cellanimSheet->getPixelCount();
+
+    std::unique_ptr<unsigned char[]> texture(new unsigned char[pixelCount * 4]());
+    cellanimSheet->GetRGBA32(texture.get());
+
+    // Attempt to 'fix' every pixel
+    for (unsigned y = 0; y < height; y++) {
+        for (unsigned x = 0; x < width; x++) {
+            unsigned pixelIndex = (y * width + x) * 4;
+
+            // Pixel is #00000000
+            if (*(uint32_t*)(texture.get() + pixelIndex) == 0) {
+                static const int offsets[4][2] = {
+                    // left, right,  up,      down
+                    {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+                };
+
+                for (unsigned i = 0; i < 4; i++) {
+                    int nx = x + offsets[i][0];
+                    int ny = y + offsets[i][1];
+
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                        unsigned neighborIndex = (ny * width + nx) * 4;
+
+                        if (texture[neighborIndex + 3] > 0) {
+                            texture[pixelIndex + 0] = texture[neighborIndex + 0];
+                            texture[pixelIndex + 1] = texture[neighborIndex + 1];
+                            texture[pixelIndex + 2] = texture[neighborIndex + 2];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    auto newTexture = std::make_shared<TextureEx>();
+    newTexture->LoadRGBA32(texture.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
+
+    newTexture->setName(cellanimSheet->getName());
+
+    session.addCommand(std::make_shared<CommandModifySpritesheet>(
+        sheetIndex, newTexture
+    ));
+
+    return true;
+}

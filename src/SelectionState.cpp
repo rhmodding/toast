@@ -4,42 +4,56 @@
 
 #include <algorithm>
 
-#include "PlayerManager.hpp"
+#include "manager/PlayerManager.hpp"
 
 int SelectionState::getMatchingNamePartIndex(
     const CellAnim::ArrangementPart& part,
-    const CellAnim::Arrangement& arrangement
+    const CellAnim::Arrangement& arrangement,
+    int partIndex
 ) {
     if (part.editorName.empty())
         return -1;
 
+    int closestIndex = -1;
+    int closestDistance = std::numeric_limits<int>::max();
+
     for (size_t i = 0; i < arrangement.parts.size(); i++) {
         const auto& lPart = arrangement.parts[i];
-        if (
-            !lPart.editorName.empty() &&
-            lPart.editorName == part.editorName
-        )
-            return i;
+        if (!lPart.editorName.empty() && lPart.editorName == part.editorName) {
+            int distance = std::abs(static_cast<int>(i) - partIndex);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = static_cast<int>(i);
+            }
+        }
     }
 
-    return -1;
+    return closestIndex;
 }
+
 int SelectionState::getMatchingRegionPartIndex(
     const CellAnim::ArrangementPart& part,
-    const CellAnim::Arrangement& arrangement
+    const CellAnim::Arrangement& arrangement,
+    int partIndex
 ) {
+    int closestIndex = -1;
+    int closestDistance = std::numeric_limits<int>::max();
+
     for (size_t i = 0; i < arrangement.parts.size(); i++) {
         const auto& lPart = arrangement.parts[i];
         if (
-            lPart.regionPos.x == part.regionPos.x &&
-            lPart.regionPos.y == part.regionPos.y &&
-            lPart.regionSize.x == part.regionSize.x &&
-            lPart.regionSize.y == part.regionSize.y
-        )
-            return i;
+            lPart.regionPos == part.regionPos &&
+            lPart.regionSize == part.regionSize
+        ) {
+            int distance = std::abs(static_cast<int>(i) - partIndex);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = static_cast<int>(i);
+            }
+        }
     }
 
-    return -1;
+    return closestIndex;
 }
 
 void SelectionState::resetSelectionOrder() {

@@ -3,9 +3,9 @@
 
 #include <imgui.h>
 
-#include "../../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../../command/CommandModifyAnimations.hpp"
+#include "command/CommandModifyAnimations.hpp"
 
 static void Popup_MTransformCellanim() {
     SessionManager& sessionManager = SessionManager::getInstance();

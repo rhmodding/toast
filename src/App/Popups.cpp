@@ -17,7 +17,7 @@ int _editPartNamePartIdx { -1 };
 
 } // namespace Popups
 
-#include "../AppState.hpp"
+#include "manager/AppState.hpp"
 
 #include "popups/Popup_MTransformCellanim.hpp"
 #include "popups/Popup_MTransformAnimation.hpp"

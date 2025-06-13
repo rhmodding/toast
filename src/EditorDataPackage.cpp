@@ -201,9 +201,10 @@ static void _TedApply(const unsigned char* data, const Session& session) {
             break;
         }
 
-        if (i + 1 < fileHeader->entryCount)
+        if (i + 1 < fileHeader->entryCount) {
             currentHeader =
                 reinterpret_cast<const TedSectionHeader*>(data + currentHeader->nextSectionOffset);
+        }
     }
 }
 

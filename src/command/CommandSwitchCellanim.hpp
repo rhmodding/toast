@@ -3,9 +3,9 @@
 
 #include "BaseCommand.hpp"
 
-#include "../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../PlayerManager.hpp"
+#include "manager/PlayerManager.hpp"
 
 class CommandSwitchCellanim : public BaseCommand {
 public:

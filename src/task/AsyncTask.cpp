@@ -5,9 +5,9 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include "../font/FontAwesome.h"
+#include "font/FontAwesome.h"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 AsyncTask::AsyncTask(AsyncTaskId id, const char* message) :
     mId(id), mMessage(message)

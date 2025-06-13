@@ -10,8 +10,8 @@
 
 #include "CellAnim.hpp"
 
-#include "../texture/TextureEx.hpp"
-#include "../texture/TextureGroup.hpp"
+#include "texture/TextureEx.hpp"
+#include "texture/TextureGroup.hpp"
 
 class CellAnimRenderer {
 public:

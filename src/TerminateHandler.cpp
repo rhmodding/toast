@@ -4,9 +4,9 @@
 
 #include <typeinfo>
 
-#include "CxxDemangle.hpp"
-
 #include "Logging.hpp"
+
+#include "util/CxxDemangleUtil.hpp"
 
 #include <tinyfiledialogs.h>
 
@@ -20,7 +20,7 @@ static void onTerminate() {
     }
     catch (const std::exception& ex) {
         Logging::err <<
-            "An exception of type " << CxxDemangle::Demangle(typeid(ex).name()) << " was caught: " << ex.what() << std::endl;
+            "An exception of type " << CxxDemangleUtil::Demangle(typeid(ex).name()) << " was caught: " << ex.what() << std::endl;
     }
     catch (...) {
         Logging::err << "An unknown exception was thrown." << std::endl;

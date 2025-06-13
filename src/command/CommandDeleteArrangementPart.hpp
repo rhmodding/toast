@@ -3,10 +3,9 @@
 
 #include "BaseCommand.hpp"
 
-#include "../cellanim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
-#include "../AppState.hpp"
-#include "../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
 class CommandDeleteArrangementPart : public BaseCommand {
 public:

@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "../glInclude.hpp"
+#include "glInclude.hpp"
 
 namespace CTPK {
 

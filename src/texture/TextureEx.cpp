@@ -1,8 +1,8 @@
 #include "TextureEx.hpp"
 
-#include "../MainThreadTaskManager.hpp"
+#include "manager/MainThreadTaskManager.hpp"
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
 std::optional<TPL::TPLTexture> TextureEx::TPLTexture() {
     if (mTextureId == INVALID_TEXTURE_ID) {

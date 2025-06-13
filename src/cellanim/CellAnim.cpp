@@ -4,9 +4,9 @@
 
 #include <map>
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 // 12 Mar 2010
 // Pre-byteswapped to BE.
@@ -778,7 +778,7 @@ bool CellAnimObject::isArrangementUnique(const Arrangement& arrangement) const {
     );
 }
 
-std::vector<Arrangement>::iterator CellAnimObject::duplicateArrangement(const Arrangement& arrangement) {
+std::vector<Arrangement>::iterator CellAnimObject::insertArrangement(const Arrangement& arrangement) {
     mArrangements.push_back(arrangement);
     return std::prev(mArrangements.end());
 }

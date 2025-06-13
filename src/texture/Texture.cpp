@@ -1,11 +1,11 @@
 #include "Texture.hpp"
 
-#include "../stb/stb_image.h"
-#include "../stb/stb_image_write.h"
+#include "stb/stb_image.h"
+#include "stb/stb_image_write.h"
 
-#include "../MainThreadTaskManager.hpp"
+#include "manager/MainThreadTaskManager.hpp"
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
 Texture::Texture(unsigned width, unsigned height, GLuint textureId) :
     mWidth(width), mHeight(height), mTextureId(textureId)

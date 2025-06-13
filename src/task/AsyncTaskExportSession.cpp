@@ -1,10 +1,10 @@
 #include "AsyncTaskExportSession.hpp"
 
-#include "../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../ConfigManager.hpp"
+#include "manager/ConfigManager.hpp"
 
-#include "../AppState.hpp"
+#include "manager/AppState.hpp"
 
 AsyncTaskExportSession::AsyncTaskExportSession(
     AsyncTaskId id,

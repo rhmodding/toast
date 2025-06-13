@@ -3,7 +3,7 @@
 
 #include "BaseCommand.hpp"
 
-#include "../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
 class CommandSetAnimationInterpolated : public BaseCommand {
 public:

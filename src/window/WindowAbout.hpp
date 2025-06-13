@@ -3,7 +3,7 @@
 
 #include "BaseWindow.hpp"
 
-#include "../texture/Texture.hpp"
+#include "texture/Texture.hpp"
 
 class WindowAbout : public BaseWindow {
 public:

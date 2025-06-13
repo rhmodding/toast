@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
 #include <fstream>
 
@@ -12,9 +12,9 @@
 
 #include <stack>
 
-#include "../compression/NZlib.hpp"
+#include "compression/NZlib.hpp"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 constexpr uint32_t SARC_MAGIC = IDENTIFIER_TO_U32('S','A','R','C');
 constexpr uint32_t SFAT_MAGIC = IDENTIFIER_TO_U32('S','F','A','T');

@@ -3,9 +3,9 @@
 
 #include <imgui.h>
 
-#include "../../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../../Macro.hpp"
+#include "Macro.hpp"
 
 static void Popup_CloseModifiedSession() {
     SessionManager& sessionManager = SessionManager::getInstance();

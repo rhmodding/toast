@@ -4,17 +4,17 @@
 
 #include <algorithm>
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
-#include "../MainThreadTaskManager.hpp"
+#include "manager/MainThreadTaskManager.hpp"
 
 #include "CtrImageConvert.hpp"
 
-#include "../CRC32.hpp"
+#include "util/CRC32Util.hpp"
 
-#include "../stb/stb_image_resize2.h"
+#include "stb/stb_image_resize2.h"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 constexpr uint32_t CTPK_MAGIC = IDENTIFIER_TO_U32('C','T','P','K');
 
@@ -328,7 +328,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     for (size_t i = 0; i < mTextures.size(); i++) {
         CtpkLookupEntry* lookupEntry = lookupEntriesStart + i;
 
-        lookupEntry->sourcePathHash = CRC32::compute(mTextures[i].sourcePath);
+        lookupEntry->sourcePathHash = CRC32Util::compute(mTextures[i].sourcePath);
         lookupEntry->textureEntryIndex = i;
     }
 

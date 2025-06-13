@@ -1,7 +1,7 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
-#include "../glInclude.hpp"
+#include "glInclude.hpp"
 
 #include <string_view>
 

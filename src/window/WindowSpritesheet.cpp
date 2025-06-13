@@ -6,7 +6,7 @@
 
 #include <sstream>
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
 #include <set>
 #include <vector>
@@ -19,29 +19,31 @@
 
 #include <tinyfiledialogs.h>
 
-#include "../font/FontAwesome.h"
+#include "font/FontAwesome.h"
 
-#include "../AppState.hpp"
+#include "manager/AppState.hpp"
 
-#include "../SessionManager.hpp"
-#include "../ConfigManager.hpp"
-#include "../ThemeManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/ConfigManager.hpp"
+#include "manager/ThemeManager.hpp"
 
-#include "../texture/TextureEx.hpp"
+#include "texture/TextureEx.hpp"
 
-#include "../texture/RvlImageConvert.hpp"
-#include "../texture/CtrImageConvert.hpp"
+#include "texture/RvlImageConvert.hpp"
+#include "texture/CtrImageConvert.hpp"
 
-#include "../command/CommandModifySpritesheet.hpp"
-#include "../command/CommandModifyArrangements.hpp"
+#include "command/CommandModifySpritesheet.hpp"
+#include "command/CommandModifyArrangements.hpp"
 
-#include "../command/CompositeCommand.hpp"
+#include "command/CompositeCommand.hpp"
 
-#include "../App/Popups.hpp"
+#include "App/Popups.hpp"
 
-#include "../Easings.hpp"
+#include "util/EaseUtil.hpp"
 
-#include "../stb/stb_rect_pack.h"
+#include "util/SpritesheetFixUtil.hpp"
+
+#include "stb/stb_rect_pack.h"
 
 bool operator==(const stbrp_rect& lhs, const stbrp_rect& rhs) {
     return lhs.w == rhs.w &&
@@ -524,184 +526,6 @@ void WindowSpritesheet::FormatPopup() {
     END_GLOBAL_POPUP();
 }
 
-// TODO: move this somewhere else
-bool RepackSheet() {
-    constexpr int PADDING = 4;
-    constexpr int PADDING_HALF = PADDING / 2;
-    constexpr uint32_t BORDER_COLOR = IM_COL32_BLACK;
-
-    SessionManager& sessionManager = SessionManager::getInstance();
-
-    auto& session = *sessionManager.getCurrentSession();
-    std::shared_ptr cellanimSheet = session.getCurrentCellAnimSheet();
-    std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
-
-    // Copy
-    std::vector<CellAnim::Arrangement> arrangements = cellanimObject->getArrangements();
-
-    struct RectComparator {
-        bool operator()(const stbrp_rect& lhs, const stbrp_rect& rhs) const {
-            return std::tie(lhs.w, lhs.h, lhs.x, lhs.y) < std::tie(rhs.w, rhs.h, rhs.x, rhs.y);
-        }
-    };
-
-    std::set<stbrp_rect, RectComparator> uniqueRects;
-
-    for (const auto& arrangement : arrangements) {
-        for (const auto& part : arrangement.parts) {
-            stbrp_rect rect = {
-                .w = static_cast<int>(part.regionSize.x) + PADDING,
-                .h = static_cast<int>(part.regionSize.y) + PADDING,
-                .x = static_cast<int>(part.regionPos.x) - PADDING_HALF,
-                .y = static_cast<int>(part.regionPos.y) - PADDING_HALF,
-            };
-            uniqueRects.insert(rect);
-        }
-    }
-
-    const unsigned numRects = uniqueRects.size();
-    std::vector<stbrp_rect> sortedRects(uniqueRects.begin(), uniqueRects.end());
-    auto originalRects = sortedRects;
-
-    // Initialize packing context
-    std::vector<stbrp_node> nodes(numRects);
-    stbrp_context context;
-    stbrp_init_target(&context, cellanimSheet->getWidth(), cellanimSheet->getHeight(), nodes.data(), numRects);
-
-    if (!stbrp_pack_rects(&context, sortedRects.data(), numRects))
-        return false;
-
-    const unsigned pixelCount = cellanimSheet->getPixelCount();
-    std::unique_ptr<unsigned char[]> newImage(new unsigned char[pixelCount * 4]);
-    std::unique_ptr<unsigned char[]> srcImage(new unsigned char[pixelCount * 4]);
-    cellanimSheet->GetRGBA32(srcImage.get());
-
-    // Copy image data to the new layout
-    for (unsigned i = 0; i < numRects; ++i) {
-        const auto& rect = sortedRects[i];
-        const auto& origRect = originalRects[i];
-
-        const int ox = origRect.x, oy = origRect.y, nx = rect.x, ny = rect.y;
-        const int w = origRect.w, h = origRect.h;
-
-        for (int row = 0; row < h; ++row) {
-            auto* src = srcImage.get() + ((oy + row) * cellanimSheet->getWidth() + ox) * 4;
-            auto* dst = newImage.get() + ((ny + row) * cellanimSheet->getWidth() + nx) * 4;
-            memcpy(dst, src, w * 4);
-        }
-
-        // Add borders in one loop
-        for (int col = 0; col < w; ++col) {
-            ((uint32_t*)newImage.get())[ny * cellanimSheet->getWidth() + nx + col] = BORDER_COLOR;
-            ((uint32_t*)newImage.get())[(ny + h - 1) * cellanimSheet->getWidth() + nx + col] = BORDER_COLOR;
-        }
-        for (int row = 0; row < h; ++row) {
-            ((uint32_t*)newImage.get())[(ny + row) * cellanimSheet->getWidth() + nx] = BORDER_COLOR;
-            ((uint32_t*)newImage.get())[(ny + row) * cellanimSheet->getWidth() + nx + w - 1] = BORDER_COLOR;
-        }
-    }
-
-    // Update texture
-    auto newTexture = std::make_shared<TextureEx>();
-    newTexture->LoadRGBA32(newImage.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
-
-    // Update arrangements
-    for (auto& arrangement : arrangements) {
-        for (auto& part : arrangement.parts) {
-            stbrp_rect rect = {
-                .w = static_cast<int>(part.regionSize.x) + PADDING,
-                .h = static_cast<int>(part.regionSize.y) + PADDING,
-                .x = static_cast<int>(part.regionPos.x) - PADDING_HALF,
-                .y = static_cast<int>(part.regionPos.y) - PADDING_HALF,
-            };
-
-            auto it = std::find(originalRects.begin(), originalRects.end(), rect);
-            if (it != originalRects.end()) {
-                const auto& newRect = sortedRects[std::distance(originalRects.begin(), it)];
-                part.regionSize.x = newRect.w - PADDING;
-                part.regionSize.y = newRect.h - PADDING;
-                part.regionPos.x = newRect.x + PADDING_HALF;
-                part.regionPos.y = newRect.y + PADDING_HALF;
-            }
-        }
-    }
-
-    newTexture->setName(cellanimSheet->getName());
-
-    auto composite = std::make_shared<CompositeCommand>();
-
-    composite->addCommand(std::make_shared<CommandModifySpritesheet>(
-        cellanimObject->getSheetIndex(), newTexture
-    ));
-    composite->addCommand(std::make_shared<CommandModifyArrangements>(
-        session.getCurrentCellAnimIndex(), std::move(arrangements)
-    ));
-
-    session.addCommand(composite);
-
-    return true;
-}
-
-// TODO: move this somewhere else
-bool FixSheetEdgePixels() {
-    SessionManager& sessionManager = SessionManager::getInstance();
-
-    auto& session = *sessionManager.getCurrentSession();
-
-    std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
-    std::shared_ptr cellanimSheet = session.getCurrentCellAnimSheet();
-
-    const unsigned width = cellanimSheet->getWidth();
-    const unsigned height = cellanimSheet->getHeight();
-    const unsigned pixelCount = cellanimSheet->getPixelCount();
-
-    std::unique_ptr<unsigned char[]> texture(new unsigned char[pixelCount * 4]());
-    cellanimSheet->GetRGBA32(texture.get());
-
-    // Attempt to 'fix' every pixel
-    for (unsigned y = 0; y < height; y++) {
-        for (unsigned x = 0; x < width; x++) {
-            unsigned pixelIndex = (y * width + x) * 4;
-
-            // Pixel is #00000000
-            if (*(uint32_t*)(texture.get() + pixelIndex) == 0) {
-                static const int offsets[4][2] = {
-                    // left, right,  up,      down
-                    {-1, 0}, {1, 0}, {0, -1}, {0, 1}
-                };
-
-                for (unsigned i = 0; i < 4; i++) {
-                    int nx = x + offsets[i][0];
-                    int ny = y + offsets[i][1];
-
-                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                        unsigned neighborIndex = (ny * width + nx) * 4;
-
-                        if (texture[neighborIndex + 3] > 0) {
-                            texture[pixelIndex + 0] = texture[neighborIndex + 0];
-                            texture[pixelIndex + 1] = texture[neighborIndex + 1];
-                            texture[pixelIndex + 2] = texture[neighborIndex + 2];
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Update texture
-    auto newTexture = std::make_shared<TextureEx>();
-    newTexture->LoadRGBA32(texture.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
-
-    newTexture->setName(cellanimSheet->getName());
-
-    session.addCommand(std::make_shared<CommandModifySpritesheet>(
-        cellanimObject->getSheetIndex(), newTexture
-    ));
-
-    return true;
-}
-
 void WindowSpritesheet::Update() {
     static bool firstOpen { true };
     if (firstOpen) {
@@ -836,13 +660,13 @@ void WindowSpritesheet::Update() {
             }
 
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
-                bool ok = RepackSheet();
+                bool ok = SpritesheetFixUtil::FixRepack(*sessionManager.getCurrentSession());
                 if (!ok)
                     OPEN_GLOBAL_POPUP("###SheetRepackFailed");
             }
 
-            if (ImGui::MenuItem((const char*)ICON_FA_STAR " Fix sheet transparency", nullptr, false)) {
-                FixSheetEdgePixels();
+            if (ImGui::MenuItem((const char*)ICON_FA_STAR " Fix sheet alpha bleeding", nullptr, false)) {
+                SpritesheetFixUtil::FixAlphaBleed(*sessionManager.getCurrentSession());
             }
 
             ImGui::EndMenu();
@@ -974,7 +798,7 @@ void WindowSpritesheet::Update() {
 
     if (mSheetZoomTriggered) {
         float rel = (ImGui::GetTime() - mSheetZoomTimer) / SHEET_ZOOM_TIME;
-        float rScale = (mSheetZoomEnabled ? Easings::In : Easings::Out)(
+        float rScale = (mSheetZoomEnabled ? EaseUtil::In : EaseUtil::Out)(
             mSheetZoomEnabled ? 1.f - rel : rel
         ) + 1.f;
 

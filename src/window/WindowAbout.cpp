@@ -7,11 +7,11 @@
 
 #include <thread>
 
-#include "../font/FontAwesome.h"
+#include "font/FontAwesome.h"
 
-#include "../_binary/images/toastIcon_title.png.h"
+#include "BIN/image/toastIcon_title.png.h"
 
-#include "../ThemeManager.hpp"
+#include "manager/ThemeManager.hpp"
 
 enum LineCommand {
     LC_EMPTY_LINE,

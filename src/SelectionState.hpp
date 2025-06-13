@@ -9,11 +9,13 @@ class SelectionState {
 public:
     static int getMatchingNamePartIndex(
         const CellAnim::ArrangementPart& part,
-        const CellAnim::Arrangement& arrangement
+        const CellAnim::Arrangement& arrangement,
+        int partIndex
     );
     static int getMatchingRegionPartIndex(
         const CellAnim::ArrangementPart& part,
-        const CellAnim::Arrangement& arrangement
+        const CellAnim::Arrangement& arrangement,
+        int partIndex
     );
 
 public:

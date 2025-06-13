@@ -1,14 +1,14 @@
 #include "../WindowInspector.hpp"
 
-#include "../../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/ThemeManager.hpp"
+#include "manager/PlayerManager.hpp"
 
-#include "../../ThemeManager.hpp"
+#include "command/CommandModifyAnimationKey.hpp"
 
-#include "../../command/CommandModifyAnimationKey.hpp"
+#include "font/FontAwesome.h"
 
-#include "../../font/FontAwesome.h"
-
-#include "../../AppState.hpp"
+#include "manager/AppState.hpp"
 
 void WindowInspector::Level_Key() {
     AppState& appState = AppState::getInstance();

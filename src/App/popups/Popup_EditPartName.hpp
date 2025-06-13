@@ -3,10 +3,10 @@
 
 #include <imgui.h>
 
-#include "../../SessionManager.hpp"
-#include "../../command/CommandModifyArrangementPart.hpp"
+#include "manager/SessionManager.hpp"
+#include "command/CommandModifyArrangementPart.hpp"
 
-#include "../../Macro.hpp"
+#include "Macro.hpp"
 
 static bool textInputStdString(const char* label, std::string& str) {
     constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;

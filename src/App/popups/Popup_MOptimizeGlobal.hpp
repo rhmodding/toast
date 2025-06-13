@@ -3,10 +3,10 @@
 
 #include <imgui.h>
 
-#include "../../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/AsyncTaskManager.hpp"
 
-#include "../../task/AsyncTaskManager.hpp"
-#include "../../task/AsyncTaskOptimizeCellanim.hpp"
+#include "task/AsyncTaskOptimizeCellanim.hpp"
 
 static void Popup_MOptimizeGlobal() {
     static OptimizeCellanimOptions options {};

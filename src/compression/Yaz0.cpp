@@ -19,9 +19,9 @@
 
 #include <zlib-ng.h>
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 constexpr uint32_t YAZ0_MAGIC = IDENTIFIER_TO_U32('Y', 'a', 'z', '0');
 

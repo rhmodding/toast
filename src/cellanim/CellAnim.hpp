@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 namespace CellAnim {
 
@@ -372,9 +372,10 @@ public:
 
     [[nodiscard]] std::vector<unsigned char> Serialize();
 
-    std::vector<Arrangement>::iterator duplicateArrangement(const Arrangement& arrangement);
-    std::vector<Arrangement>::iterator duplicateArrangement(unsigned arrangementIndex) {
-        return duplicateArrangement(mArrangements.at(arrangementIndex));
+    std::vector<Arrangement>::iterator insertArrangement(const Arrangement& arrangement);
+    unsigned duplicateArrangement(unsigned arrangementIndex) {
+        auto it = insertArrangement(mArrangements.at(arrangementIndex));
+        return std::distance(mArrangements.begin(), it);
     }
 
     bool isArrangementUnique(const Arrangement& arrangement) const;

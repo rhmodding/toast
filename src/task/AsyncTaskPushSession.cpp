@@ -1,9 +1,9 @@
 #include "AsyncTaskPushSession.hpp"
 
-#include "../SessionManager.hpp"
-#include "../ConfigManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/ConfigManager.hpp"
 
-#include "../AppState.hpp"
+#include "manager/AppState.hpp"
 
 AsyncTaskPushSession::AsyncTaskPushSession(uint32_t id, std::string filePath) :
     AsyncTask(id, "Opening session.."),

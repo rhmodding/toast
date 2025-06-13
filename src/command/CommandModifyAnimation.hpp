@@ -3,12 +3,11 @@
 
 #include "BaseCommand.hpp"
 
-#include "../cellanim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
-#include "../SessionManager.hpp"
-#include "../PlayerManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/PlayerManager.hpp"
 
-#include "../AppState.hpp"
 
 class CommandModifyAnimation : public BaseCommand {
 public:

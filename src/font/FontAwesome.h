@@ -1,6 +1,3 @@
-// Generated with https://github.com/aiekick/ImGuiFontStudio
-// Based on https://github.com/juliettef/IconFontCppHeaders
-
 #ifndef FONTAWESOME_H
 #define FONTAWESOME_H
 

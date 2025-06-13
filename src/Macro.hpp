@@ -40,6 +40,7 @@
 #define ALIGN_DOWN_64(value) ( (value) & ~(64 - 1) )
 #define ALIGN_UP_64(value)   ( ((value) + 64 - 1) & ~(64 - 1) )
 
+// Get length of string literal. No pointers please!
 #define STR_LIT_LEN(stringLiteral) ( sizeof((stringLiteral)) - 1 )
 
 // t is a normalized float ([0 .. 1])

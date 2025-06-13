@@ -12,25 +12,23 @@
 
 #include <cmath>
 
-#include "../AppState.hpp"
+#include "manager/AppState.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/PlayerManager.hpp"
+#include "manager/ConfigManager.hpp"
 
-#include "../SessionManager.hpp"
-#include "../PlayerManager.hpp"
+#include "App/Popups.hpp"
 
-#include "../ConfigManager.hpp"
+#include "command/CommandDeleteArrangement.hpp"
+#include "command/CommandInsertArrangement.hpp"
+#include "command/CommandModifyArrangement.hpp"
+#include "command/CommandModifyArrangements.hpp"
+#include "command/CommandInsertAnimation.hpp"
+#include "command/CommandModifyAnimation.hpp"
+#include "command/CommandModifyAnimationName.hpp"
+#include "command/CommandDeleteAnimation.hpp"
 
-#include "../App/Popups.hpp"
-
-#include "../command/CommandDeleteArrangement.hpp"
-#include "../command/CommandInsertArrangement.hpp"
-#include "../command/CommandModifyArrangement.hpp"
-#include "../command/CommandModifyArrangements.hpp"
-#include "../command/CommandInsertAnimation.hpp"
-#include "../command/CommandModifyAnimation.hpp"
-#include "../command/CommandModifyAnimationName.hpp"
-#include "../command/CommandDeleteAnimation.hpp"
-
-#include "../command/CompositeCommand.hpp"
+#include "command/CompositeCommand.hpp"
 
 constexpr float WINDOW_FLASH_TIME = .3f; // seconds
 
@@ -74,15 +72,18 @@ static CellAnim::Animation createNewAnimation() {
 }
 
 void WindowHybridList::Update() {
-    AppState& appState = AppState::getInstance();
+    SessionManager& sessionManager = SessionManager::getInstance();
 
-    static bool lastArrangementMode { appState.getArrangementMode() };
-    if (lastArrangementMode != appState.getArrangementMode()) {
+    int currentSessionIdx = sessionManager.getCurrentSessionIndex();
+    Session* currentSession = sessionManager.getCurrentSession();
+
+    static bool lastArrangementMode { currentSession->arrangementMode };
+    if (lastArrangementMode != currentSession->arrangementMode) {
+        lastArrangementMode = currentSession->arrangementMode;
+
         mFlashTrigger = true;
         flashWindow();
     }
-
-    lastArrangementMode = appState.getArrangementMode();
 
     if (
         mFlashWindow &&
@@ -105,7 +106,7 @@ void WindowHybridList::Update() {
         ImGui::PushStyleColor(ImGuiCol_WindowBg, color);
     }
 
-    const char* windowLabel = appState.getArrangementMode() ?
+    const char* windowLabel = currentSession->arrangementMode ?
         "Arrangements" "###HybridList" :
         "Animations"   "###HybridList";
 
@@ -127,17 +128,14 @@ void WindowHybridList::Update() {
         int newAnimKeySet = -1;
         int newArrangementSelect = -1;
 
-        SessionManager& sessionManager = SessionManager::getInstance();
         PlayerManager& playerManager = PlayerManager::getInstance();
 
         const auto& config = ConfigManager::getInstance().getConfig();
 
-        const auto& animations = sessionManager.getCurrentSession()
-            ->getCurrentCellAnim().object->getAnimations();
-        const auto& arrangements = sessionManager.getCurrentSession()
-            ->getCurrentCellAnim().object->getArrangements();
+        const auto& animations = currentSession->getCurrentCellAnim().object->getAnimations();
+        const auto& arrangements = currentSession->getCurrentCellAnim().object->getArrangements();
 
-        if (!appState.getArrangementMode())
+        if (!currentSession->arrangementMode) {
             for (unsigned n = 0; n < animations.size(); n++) {
                 std::ostringstream fmtStream;
 
@@ -169,7 +167,7 @@ void WindowHybridList::Update() {
                         newAnimation.isInterpolated = animations[n].isInterpolated;
 
                         command = std::make_shared<CommandModifyAnimation>(
-                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                            currentSession->getCurrentCellAnimIndex(),
                             n,
                             newAnimation
                         );
@@ -180,7 +178,7 @@ void WindowHybridList::Update() {
                     if (config.allowNewAnimCreate) {
                         if (ImGui::Selectable("Insert new animation above")) {
                             command = std::make_shared<CommandInsertAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n+1,
                                 createNewAnimation()
                             );
@@ -188,7 +186,7 @@ void WindowHybridList::Update() {
                         }
                         if (ImGui::Selectable("Insert new animation below")) {
                             command = std::make_shared<CommandInsertAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n,
                                 createNewAnimation()
                             );
@@ -203,13 +201,13 @@ void WindowHybridList::Update() {
                         newAnimation.name = animations[n].name;
 
                         if (
-                            sessionManager.getCurrentSessionIndex() != copyAnimationSrcSession ||
-                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex() != copyAnimationSrcCellAnim
+                            currentSessionIdx != copyAnimationSrcSession ||
+                            currentSession->getCurrentCellAnimIndex() != copyAnimationSrcCellAnim
                         ) {
                             auto composite = std::make_shared<CompositeCommand>();
                             command = composite;
 
-                            auto& cellAnim = *sessionManager.getCurrentSession()->getCurrentCellAnim().object;
+                            auto& cellAnim = *currentSession->getCurrentCellAnim().object;
 
                             std::vector<CellAnim::Arrangement> newArrangements = cellAnim.getArrangements();
                             
@@ -221,18 +219,18 @@ void WindowHybridList::Update() {
                             }
 
                             composite->addCommand(std::make_shared<CommandModifyArrangements>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 newArrangements
                             ));
                             composite->addCommand(std::make_shared<CommandModifyAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n,
                                 newAnimation
                             ));
                         }
                         else {
                             command = std::make_shared<CommandModifyAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n,
                                 newAnimation
                             );
@@ -252,7 +250,7 @@ void WindowHybridList::Update() {
                             }
 
                             command = std::make_shared<CommandModifyAnimation>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n,
                                 newAnimation
                             );
@@ -260,7 +258,7 @@ void WindowHybridList::Update() {
 
                         if (ImGui::MenuItem("..name")) {
                             command = std::make_shared<CommandModifyAnimationName>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n,
                                 copyAnimation.name
                             );
@@ -278,8 +276,8 @@ void WindowHybridList::Update() {
                             copyAnimationArrangements[i] = arrangements.at(copyAnimation.keys[i].arrangementIndex);
                         }
 
-                        copyAnimationSrcSession = sessionManager.getCurrentSessionIndex();
-                        copyAnimationSrcCellAnim = sessionManager.getCurrentSession()->getCurrentCellAnimIndex();
+                        copyAnimationSrcSession = currentSessionIdx;
+                        copyAnimationSrcCellAnim = currentSession->getCurrentCellAnimIndex();
 
                         allowPasteAnimation = true;
                     }
@@ -294,7 +292,8 @@ void WindowHybridList::Update() {
                     ImGui::EndPopup();
                 }
             }
-        else
+        }
+        else {
             for (unsigned n = 0; n < arrangements.size(); n++) {
                 char buffer[48];
                 snprintf(buffer, sizeof(buffer), "Arrangement no. %d", n+1);
@@ -309,7 +308,7 @@ void WindowHybridList::Update() {
 
                     if (ImGui::Selectable("Insert new arrangement above")) {
                         command = std::make_shared<CommandInsertArrangement>(
-                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                            currentSession->getCurrentCellAnimIndex(),
                             n+1,
                             CellAnim::Arrangement()
                         );
@@ -317,7 +316,7 @@ void WindowHybridList::Update() {
                     }
                     if (ImGui::Selectable("Insert new arrangement below")) {
                         command = std::make_shared<CommandInsertArrangement>(
-                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                            currentSession->getCurrentCellAnimIndex(),
                             n,
                             CellAnim::Arrangement()
                         );
@@ -329,7 +328,7 @@ void WindowHybridList::Update() {
                     if (ImGui::BeginMenu("Paste arrangement..", allowPasteArrangement)) {
                         if (ImGui::MenuItem("..above")) {
                             command = std::make_shared<CommandInsertArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n+1,
                                 copyArrangement
                             );
@@ -337,7 +336,7 @@ void WindowHybridList::Update() {
                         }
                         if (ImGui::MenuItem("..below")) {
                             command = std::make_shared<CommandInsertArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n,
                                 copyArrangement
                             );
@@ -348,7 +347,7 @@ void WindowHybridList::Update() {
 
                         if (ImGui::MenuItem("..here (replace)")) {
                             command = std::make_shared<CommandModifyArrangement>(
-                                sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                currentSession->getCurrentCellAnimIndex(),
                                 n,
                                 copyArrangement
                             );
@@ -366,7 +365,7 @@ void WindowHybridList::Update() {
 
                     if (ImGui::Selectable("Delete arrangement")) {
                         command = std::make_shared<CommandDeleteArrangement>(
-                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                            currentSession->getCurrentCellAnimIndex(),
                             n
                         );
                     }
@@ -374,9 +373,11 @@ void WindowHybridList::Update() {
                     ImGui::EndPopup();
                 }
             }
+        }
 
         if (command)
-            sessionManager.getCurrentSession()->addCommand(command);
+            currentSession->addCommand(command);
+
         if (newAnimationSelect >= 0) {
             playerManager.setAnimationIndex(newAnimationSelect);
             playerManager.correctState();

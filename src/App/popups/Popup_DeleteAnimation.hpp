@@ -3,11 +3,11 @@
 
 #include <imgui.h>
 
-#include "../../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../../command/CommandDeleteAnimation.hpp"
+#include "command/CommandDeleteAnimation.hpp"
 
-#include "../../Macro.hpp"
+#include "Macro.hpp"
 
 static void Popup_DeleteAnimation(int animationIndex) {
     if (animationIndex < 0)

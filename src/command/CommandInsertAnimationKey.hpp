@@ -3,11 +3,9 @@
 
 #include "BaseCommand.hpp"
 
-#include "../AppState.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../SessionManager.hpp"
-
-#include "../cellanim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
 class CommandInsertAnimationKey : public BaseCommand {
 public:

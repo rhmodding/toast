@@ -25,7 +25,7 @@
 #include "window/WindowAbout.hpp"
 #include "window/WindowImguiDemo.hpp"
 
-#include "CxxDemangle.hpp"
+#include "util/CxxDemangleUtil.hpp"
 
 #include "Logging.hpp"
 
@@ -91,7 +91,7 @@ private:
 
             if (UNLIKELY(!this->windowInstance)) {
                 throw std::runtime_error(
-                    "ToastWindow<" + CxxDemangle::Demangle<T>() + ">::Update: Window instance does not exist (anymore)!"
+                    "ToastWindow<" + CxxDemangleUtil::Demangle<T>() + ">::Update: Window instance does not exist (anymore)!"
                 );
             }
 

@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include "ThemeManager.hpp"
+#include "manager/ThemeManager.hpp"
 
 enum class CanvasGridType {
     None,

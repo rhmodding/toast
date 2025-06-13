@@ -1,13 +1,13 @@
 #include "TPL.hpp"
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
-#include "../MainThreadTaskManager.hpp"
+#include "manager/MainThreadTaskManager.hpp"
 
 #include "RvlImageConvert.hpp"
 #include "RvlPalette.hpp"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 // 14 Feb 2000
 // Pre-byteswapped to BE.

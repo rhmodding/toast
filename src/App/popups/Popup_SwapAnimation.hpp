@@ -11,12 +11,12 @@
 
 #include <limits>
 
-#include "../../SessionManager.hpp"
-#include "../../command/CommandSwapAnimations.hpp"
+#include "manager/SessionManager.hpp"
+#include "command/CommandSwapAnimations.hpp"
 
-#include "../../Easings.hpp"
+#include "util/EaseUtil.hpp"
 
-#include "../../Macro.hpp"
+#include "Macro.hpp"
 
 static void Popup_SwapAnimation(int animationIndex) {
     if (animationIndex < 0)
@@ -123,7 +123,7 @@ static void Popup_SwapAnimation(int animationIndex) {
                 ));
 
                 float animProgression = std::clamp<float>((ImGui::GetTime() - animationBegin) / animationTime, 0.f, 1.f);
-                ImGui::SetCursorPosY(std::lerp(positionOrig, positionNew, Easings::InOut(animProgression)));
+                ImGui::SetCursorPosY(std::lerp(positionOrig, positionNew, EaseUtil::InOut(animProgression)));
 
                 if (ImGui::Selectable(fmtStream.str().c_str(), animationIndex == n || swapAnim == n, ImGuiSelectableFlags_NoAutoClosePopups)) {
                     swapAnim = n;

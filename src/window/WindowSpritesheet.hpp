@@ -7,7 +7,7 @@
 
 #include <imgui.h>
 
-#include "../texture/TextureEx.hpp"
+#include "texture/TextureEx.hpp"
 
 class WindowSpritesheet : public BaseWindow {
 public:

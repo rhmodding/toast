@@ -1,16 +1,16 @@
 #include "../WindowInspector.hpp"
 
-#include "../../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/ThemeManager.hpp"
+#include "manager/PlayerManager.hpp"
 
-#include "../../ThemeManager.hpp"
+#include "command/CommandSetAnimationInterpolated.hpp"
 
-#include "../../AppState.hpp"
+#include "font/FontAwesome.h"
 
-#include "../../command/CommandSetAnimationInterpolated.hpp"
+#include "App/Popups.hpp"
 
-#include "../../font/FontAwesome.h"
-
-#include "../../App/Popups.hpp"
+#include "manager/AppState.hpp"
 
 void WindowInspector::Level_Animation() {
     PlayerManager& playerManager = PlayerManager::getInstance();

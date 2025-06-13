@@ -1,19 +1,18 @@
 #include "../WindowInspector.hpp"
 
-// #include "../../ConfigManager.hpp"
-#include "../../SessionManager.hpp"
+// #include "manager/ConfigManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/ThemeManager.hpp"
 
-#include "../../ThemeManager.hpp"
+#include "command/CommandModifyArrangement.hpp"
+#include "command/CommandModifyArrangementPart.hpp"
+#include "command/CommandInsertArrangementPart.hpp"
+#include "command/CommandDeleteArrangementPart.hpp"
+#include "command/CommandMoveArrangementPart.hpp"
 
-#include "../../command/CommandModifyArrangement.hpp"
-#include "../../command/CommandModifyArrangementPart.hpp"
-#include "../../command/CommandInsertArrangementPart.hpp"
-#include "../../command/CommandDeleteArrangementPart.hpp"
-#include "../../command/CommandMoveArrangementPart.hpp"
+#include "command/CommandModifyAnimationKey.hpp"
 
-#include "../../command/CommandModifyAnimationKey.hpp"
-
-#include "../../font/FontAwesome.h"
+#include "font/FontAwesome.h"
 
 // Used for the part visibillity & lock buttons.
 static bool partToggleButton(const char* label, bool toggled) {

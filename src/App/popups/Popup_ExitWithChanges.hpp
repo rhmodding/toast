@@ -3,9 +3,9 @@
 
 #include <imgui.h>
 
-#include "../../Toast.hpp"
+#include "Toast.hpp"
 
-#include "../../Macro.hpp"
+#include "Macro.hpp"
 
 static void Popup_ExitWithChanges() {
     CENTER_NEXT_WINDOW();

@@ -6,13 +6,13 @@
 
 #include <cstdint>
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
 #include <rg_etc1.h>
 
-#include "../ConfigManager.hpp"
+#include "manager/ConfigManager.hpp"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 typedef CTPK::CTPKImageFormat ImageFormat;
 

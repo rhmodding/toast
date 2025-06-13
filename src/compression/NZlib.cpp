@@ -1,12 +1,12 @@
 #include "NZlib.hpp"
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
 #include <algorithm>
 
 #include <zlib-ng.h>
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 constexpr unsigned MIN_ZLIB_DATA_SIZE = 6;
 

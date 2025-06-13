@@ -5,7 +5,7 @@
 
 #include <vector>
 
-#include "../glInclude.hpp"
+#include "glInclude.hpp"
 
 namespace TPL {
 

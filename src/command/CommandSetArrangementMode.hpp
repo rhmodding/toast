@@ -3,8 +3,8 @@
 
 #include "BaseCommand.hpp"
 
-#include "../SessionManager.hpp"
-#include "../PlayerManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/PlayerManager.hpp"
 
 class CommandSetArrangementMode : public BaseCommand {
 public:

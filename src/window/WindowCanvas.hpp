@@ -7,9 +7,9 @@
 
 #include <cstdint>
 
-#include "../CanvasState.hpp"
+#include "CanvasState.hpp"
 
-#include "../cellanim/CellAnimRenderer.hpp"
+#include "cellanim/CellAnimRenderer.hpp"
 
 class WindowCanvas : public BaseWindow {
 public:

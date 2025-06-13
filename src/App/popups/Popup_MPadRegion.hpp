@@ -3,10 +3,9 @@
 
 #include <imgui.h>
 
-#include "../../AppState.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../../SessionManager.hpp"
-#include "../../command/CommandModifyArrangementPart.hpp"
+#include "command/CommandModifyArrangementPart.hpp"
 
 static void Popup_MPadRegion() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });

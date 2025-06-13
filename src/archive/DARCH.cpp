@@ -3,18 +3,18 @@
 #include <cstdint>
 #include <cstring>
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
 #include <fstream>
 
 #include <utility>
 #include <stack>
 
-#include "../compression/Yaz0.hpp"
+#include "compression/Yaz0.hpp"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
-constexpr uint32_t DARCH_MAGIC = IDENTIFIER_TO_U32('U',0xAA,'8','-');
+constexpr uint32_t DARCH_MAGIC = IDENTIFIER_TO_U32('U',0xAAu,'8','-');
 
 struct DARCHHeader {
     // Compare to DARCH_MAGIC.

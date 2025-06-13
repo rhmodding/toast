@@ -2,11 +2,11 @@
 
 #include <unordered_map>
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
-#include "../stb/stb_dxt.h"
+#include "stb/stb_dxt.h"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 typedef TPL::TPLImageFormat ImageFormat;
 

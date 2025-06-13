@@ -3,11 +3,10 @@
 
 #include "BaseCommand.hpp"
 
-#include "../cellanim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
-#include "../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../AppState.hpp"
 
 class CommandInsertArrangementPart : public BaseCommand {
 public:

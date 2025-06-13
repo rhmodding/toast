@@ -5,7 +5,7 @@
 
 #include <string_view>
 
-#include "../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
 class CommandModifyAnimationName : public BaseCommand {
 public:

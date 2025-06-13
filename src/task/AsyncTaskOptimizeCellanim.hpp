@@ -3,9 +3,9 @@
 
 #include "AsyncTask.hpp"
 
-#include "../glInclude.hpp"
+#include "glInclude.hpp"
 
-#include "../Session.hpp"
+#include "Session.hpp"
 
 struct OptimizeCellanimOptions {
     bool removeAnimationNames { false };

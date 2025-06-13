@@ -8,11 +8,11 @@
 
 #include <string_view>
 
-#include "../glInclude.hpp"
+#include "glInclude.hpp"
 
-#include "../Logging.hpp"
+#include "Logging.hpp"
 
-#include "../Macro.hpp"
+#include "Macro.hpp"
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
     #define GLSL_VERSION_STR "#version 100"

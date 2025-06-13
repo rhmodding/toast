@@ -3,10 +3,10 @@
 
 #include "BaseCommand.hpp"
 
-#include "../SessionManager.hpp"
-#include "../PlayerManager.hpp"
+#include "manager/SessionManager.hpp"
+#include "manager/PlayerManager.hpp"
 
-#include "../cellanim/CellAnim.hpp"
+#include "cellanim/CellAnim.hpp"
 
 class CommandInsertAnimation : public BaseCommand {
 public:

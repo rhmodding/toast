@@ -3,9 +3,9 @@
 
 #include "BaseCommand.hpp"
 
-#include "../SessionManager.hpp"
+#include "manager/SessionManager.hpp"
 
-#include "../texture/Texture.hpp"
+#include "texture/Texture.hpp"
 
 class CommandModifySpritesheet : public BaseCommand {
 public:

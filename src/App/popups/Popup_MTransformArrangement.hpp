@@ -6,8 +6,9 @@
 
 #include <imgui.h>
 
-#include "../../SessionManager.hpp"
-#include "../../command/CommandModifyArrangement.hpp"
+#include "manager/SessionManager.hpp"
+
+#include "command/CommandModifyArrangement.hpp"
 
 static void Popup_MTransformArrangement() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });

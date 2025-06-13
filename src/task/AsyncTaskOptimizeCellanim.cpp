@@ -2,9 +2,9 @@
 
 #include <unordered_set>
 
-#include "../MainThreadTaskManager.hpp"
+#include "manager/MainThreadTaskManager.hpp"
 
-#include "../stb/stb_image_resize2.h"
+#include "stb/stb_image_resize2.h"
 
 AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
     AsyncTaskId id,
