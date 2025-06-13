@@ -34,6 +34,60 @@ struct Vec2 {
         return !(*this == rhs);
     }
 
+    Vec2<T> operator*(const Vec2<T>& rhs) const {
+        return Vec2<T>(x * rhs.x, y * rhs.y);
+    }
+    Vec2<T> operator*(T scalar) const {
+        return Vec2<T>(x * scalar, y * scalar);
+    }
+
+    Vec2<T>& operator*=(const Vec2<T>& rhs) {
+        x *= rhs.x;
+        y *= rhs.y;
+        return *this;
+    }
+    Vec2<T>& operator*=(T scalar) {
+        x *= scalar;
+        y *= scalar;
+        return *this;
+    }
+
+    Vec2<T> operator/(const Vec2<T>& rhs) const {
+        return Vec2<T>(x / rhs.x, y / rhs.y);
+    }
+    Vec2<T> operator/(T scalar) const {
+        return Vec2<T>(x / scalar, y / scalar);
+    }
+
+    Vec2<T>& operator/=(const Vec2<T>& rhs) {
+        x /= rhs.x;
+        y /= rhs.y;
+        return *this;
+    }
+    Vec2<T>& operator/=(T scalar) {
+        x /= scalar;
+        y /= scalar;
+        return *this;
+    }
+
+    Vec2<T> operator+(const Vec2<T>& rhs) const {
+        return Vec2<T>(x + rhs.x, y + rhs.y);
+    }
+    Vec2<T>& operator+=(const Vec2<T>& rhs) {
+        x += rhs.x;
+        y += rhs.y;
+        return *this;
+    }
+
+    Vec2<T> operator-(const Vec2<T>& rhs) const {
+        return Vec2<T>(x - rhs.x, y - rhs.y);
+    }
+    Vec2<T>& operator-=(const Vec2<T>& rhs) {
+        x -= rhs.x;
+        y -= rhs.y;
+        return *this;
+    }
+
     T x, y;
 };
 
@@ -240,8 +294,8 @@ struct Arrangement {
     std::vector<ArrangementPart> parts;
 
     // Temporary & editor-specific: used for arrangement scale preview.
-    int tempOffset[2] { 0, 0 };
-    float tempScale[2] { 1.f, 1.f };
+    IntVec2 tempOffset { 0, 0 };
+    FltVec2 tempScale { 1.f, 1.f };
 
     bool operator==(const Arrangement& rhs) const {
         return rhs.parts == parts;
