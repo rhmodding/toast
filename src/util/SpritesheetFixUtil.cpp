@@ -2,10 +2,14 @@
 
 #include <cstdint>
 
+#include <cstring>
+
 #include <memory>
 
 #include <vector>
 #include <set>
+
+#include <algorithm>
 
 #include "stb/stb_rect_pack.h"
 
@@ -14,6 +18,14 @@
 #include "command/CommandModifySpritesheet.hpp"
 #include "command/CommandModifyArrangements.hpp"
 #include "command/CompositeCommand.hpp"
+
+static inline bool operator==(const stbrp_rect& a, const stbrp_rect& b) {
+    return a.x == b.x && a.y == b.y && a.w == b.w && a.h == b.h;
+}
+
+static inline bool RectLess(const stbrp_rect& lhs, const stbrp_rect& rhs) {
+    return std::tie(lhs.w, lhs.h, lhs.x, lhs.y) < std::tie(rhs.w, rhs.h, rhs.x, rhs.y);
+}
 
 bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
     constexpr int PADDING = 4;
@@ -26,13 +38,7 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
     // Copy
     std::vector<CellAnim::Arrangement> arrangements = cellanimObject->getArrangements();
 
-    struct RectComparator {
-        bool operator()(const stbrp_rect& lhs, const stbrp_rect& rhs) const {
-            return std::tie(lhs.w, lhs.h, lhs.x, lhs.y) < std::tie(rhs.w, rhs.h, rhs.x, rhs.y);
-        }
-    };
-
-    std::set<stbrp_rect, RectComparator> uniqueRects;
+    std::set<stbrp_rect, decltype(&RectLess)> uniqueRects(RectLess);
 
     for (const auto& arrangement : arrangements) {
         for (const auto& part : arrangement.parts) {
@@ -72,7 +78,7 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
         for (int row = 0; row < h; ++row) {
             auto* src = srcImage.get() + ((oy + row) * cellanimSheet->getWidth() + ox) * 4;
             auto* dst = newImage.get() + ((ny + row) * cellanimSheet->getWidth() + nx) * 4;
-            memcpy(dst, src, w * 4);
+            std::memcpy(dst, src, w * 4);
         }
 
         uint32_t* pixelData = reinterpret_cast<uint32_t*>(newImage.get());

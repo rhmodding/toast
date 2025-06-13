@@ -3,7 +3,7 @@
 
 #include "BaseWindow.hpp"
 
-class WindowImguiDemo : public BaseWindow {
+class WindowImGuiDemo : public BaseWindow {
 public:
     void Update() override;
 

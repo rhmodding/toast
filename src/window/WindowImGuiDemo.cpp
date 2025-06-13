@@ -1,8 +1,8 @@
-#include "WindowImguiDemo.hpp"
+#include "WindowImGuiDemo.hpp"
 
 #include <imgui.h>
 
-void WindowImguiDemo::Update() {
+void WindowImGuiDemo::Update() {
     if (!mOpen) {
         return;
     }

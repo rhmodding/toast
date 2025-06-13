@@ -23,7 +23,7 @@
 #include "window/WindowSpritesheet.hpp"
 #include "window/WindowConfig.hpp"
 #include "window/WindowAbout.hpp"
-#include "window/WindowImguiDemo.hpp"
+#include "window/WindowImGuiDemo.hpp"
 
 #include "util/CxxDemangleUtil.hpp"
 
@@ -118,7 +118,7 @@ private:
     ToastWindow<WindowConfig> mWindowConfig;
     ToastWindow<WindowAbout> mWindowAbout;
 
-    ToastWindow<WindowImguiDemo> mWindowDemo;
+    ToastWindow<WindowImGuiDemo> mWindowDemo;
 
     std::thread::id mMainThreadId;
 };

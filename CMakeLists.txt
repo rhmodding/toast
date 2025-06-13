@@ -21,15 +21,17 @@ set(SOURCES
     ext/imgui/backends/imgui_impl_glfw.cpp
     ext/imgui/backends/imgui_impl_opengl3.cpp
 
-    ext/tinyfiledialogs/tinyfiledialogs.c
-
     ext/rg-etc1/rg_etc1.cpp
 
-    src/stb/stb_dxt_impl.cpp
-    src/stb/stb_image_write_impl.cpp
-    src/stb/stb_image_impl.cpp
-    src/stb/stb_image_resize2_impl.cpp
-    src/stb/stb_rect_pack_impl.cpp
+    ext/tinyfiledialogs/tinyfiledialogs.c
+
+    src/App/Actions.cpp
+    src/App/Popups.cpp
+    src/App/Shortcuts.cpp
+
+    src/archive/Archive.cpp
+    src/archive/DARCH.cpp
+    src/archive/SARC.cpp
 
     src/BIN/fontdata/FontAwesome.cpp
     src/BIN/fontdata/SegoeUI.cpp
@@ -37,80 +39,70 @@ set(SOURCES
     src/BIN/image/toastIcon_title.png.cpp
     src/BIN/image/toastIcon.png.cpp
 
-    src/main.cpp
-
-    src/Toast.cpp
-
-    src/Logging.cpp
-
-    src/TerminateHandler.cpp
-
-    src/App/Popups.cpp
-    src/App/Actions.cpp
-
-    src/App/Shortcuts.cpp
-
-    src/cellanim/CellAnimRenderer.cpp
     src/cellanim/CellAnim.cpp
+    src/cellanim/CellAnimRenderer.cpp
 
-    src/archive/Archive.cpp
-
-    src/archive/DARCH.cpp
-    src/archive/SARC.cpp
-
-    src/compression/NZlib.cpp
+    src/compression/NZLib.cpp
     src/compression/Yaz0.cpp
-
-    src/texture/Texture.cpp
-    src/texture/TextureEx.cpp
-
-    src/texture/CtrImageConvert.cpp
-    src/texture/RvlImageConvert.cpp
-
-    src/texture/RvlPalette.cpp
-
-    src/texture/CTPK.cpp
-    src/texture/TPL.cpp
-
-    src/texture/APNGHack.cpp
-
-    src/task/AsyncTaskExportSession.cpp
-    src/task/AsyncTaskPushSession.cpp
-    src/task/AsyncTaskOptimizeCellanim.cpp
-
-    src/window/WindowTimeline.cpp
-    src/window/WindowCanvas.cpp
-    src/window/WindowHybridList.cpp
-    src/window/WindowInspector.cpp
-    src/window/WindowSpritesheet.cpp
-
-    src/window/WindowInspector/WindowInspector_Animation.cpp
-    src/window/WindowInspector/WindowInspector_Arrangement.cpp
-    src/window/WindowInspector/WindowInspector_Key.cpp
-
-    src/window/WindowConfig.cpp
-    src/window/WindowAbout.cpp
-
-    src/window/WindowImguiDemo.cpp
-
-    src/EditorDataPackage.cpp
-
-    src/SelectionState.cpp
-    
-    src/Session.cpp
-
-    src/task/AsyncTask.cpp
 
     src/manager/AsyncTaskManager.cpp
     src/manager/ConfigManager.cpp
-    src/manager/SessionManager.cpp
-    src/manager/PlayerManager.cpp
     src/manager/MainThreadTaskManager.cpp
+    src/manager/PlayerManager.cpp
+    src/manager/SessionManager.cpp
     src/manager/ThemeManager.cpp
+
+    src/stb/stb_dxt_impl.cpp
+    src/stb/stb_image_impl.cpp
+    src/stb/stb_image_resize2_impl.cpp
+    src/stb/stb_image_write_impl.cpp
+    src/stb/stb_rect_pack_impl.cpp
+
+    src/task/AsyncTask.cpp
+    src/task/AsyncTaskExportSession.cpp
+    src/task/AsyncTaskOptimizeCellanim.cpp
+    src/task/AsyncTaskPushSession.cpp
+
+    src/texture/APNGHack.cpp
+    src/texture/CTPK.cpp
+    src/texture/CTRImageConvert.cpp
+    src/texture/RVLImageConvert.cpp
+    src/texture/RVLPalette.cpp
+    src/texture/Texture.cpp
+    src/texture/TextureEx.cpp
+    src/texture/TPL.cpp
 
     src/util/BezierUtil.cpp
     src/util/CxxDemangleUtil.cpp
     src/util/FileUtil.cpp
+    src/util/SpritesheetFixUtil.cpp
+
+    src/window/WindowInspector/LvlAnimation.cpp
+    src/window/WindowInspector/LvlArrangement.cpp
+    src/window/WindowInspector/LvlKey.cpp
+
+    src/window/WindowAbout.cpp
+    src/window/WindowCanvas.cpp
+    src/window/WindowConfig.cpp
+    src/window/WindowHybridList.cpp
+    src/window/WindowImGuiDemo.cpp
+    src/window/WindowInspector.cpp
+    src/window/WindowSpritesheet.cpp
+    src/window/WindowTimeline.cpp
+
+    src/EditorDataPackage.cpp
+
+    src/Logging.cpp
+
+    src/main.cpp
+
+    src/SelectionState.cpp
+
+    src/Session.cpp
+
+    src/TerminateHandler.cpp
+
+    src/Toast.cpp
 )
 
 IF (APPLE)
