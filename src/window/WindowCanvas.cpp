@@ -21,7 +21,7 @@
 constexpr float CANVAS_ZOOM_SPEED = .04f;
 constexpr float CANVAS_ZOOM_SPEED_FAST = .08f;
 
-static void fitRect(ImVec2 &rectToFit, const ImVec2 &targetRect, float& scale) {
+static void fitRect(ImVec2 &rectToFit, const ImVec2& targetRect, float& scale) {
     float widthRatio = targetRect.x / rectToFit.x;
     float heightRatio = targetRect.y / rectToFit.y;
 

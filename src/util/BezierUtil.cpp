@@ -1,5 +1,7 @@
 #include "BezierUtil.hpp"
 
+#include <cstdint>
+
 #include <imgui_internal.h>
 
 #include <math.h>
