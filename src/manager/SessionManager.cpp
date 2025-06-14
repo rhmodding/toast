@@ -199,11 +199,11 @@ static SessionManager::Error InitRvlSession(
     {
         const Archive::File* tedSearch = Archive::findFile(TED_ARC_FILENAME, *rootDirIt);
         if (tedSearch)
-            TedApply(tedSearch->data.data(), session);
+            EditorDataProc::Apply(session, tedSearch->data.data(), tedSearch->data.size());
         else {
             const Archive::File* datSearch = Archive::findFile(TED_ARC_FILENAME_OLD, *rootDirIt);
             if (datSearch)
-                TedApply(datSearch->data.data(), session);
+                EditorDataProc::Apply(session, datSearch->data.data(), tedSearch->data.size());
         }
     }
 
@@ -350,8 +350,9 @@ static SessionManager::Error InitCtrSession(
 
     // Editor data
     const Archive::File* tedSearch = Archive::findFile(TED_ARC_FILENAME, *rootDirIt);
-    if (tedSearch)
-        TedApply(tedSearch->data.data(), session);
+    if (tedSearch) {
+        EditorDataProc::Apply(session, tedSearch->data.data(), tedSearch->data.size());
+    }
 
     return SessionManager::Error_None;
 }
@@ -586,10 +587,7 @@ static SessionManager::Error SerializeRvlSession(
     {
         Archive::File file(TED_ARC_FILENAME);
 
-        TedWriteState* state = TedCreateWriteState(session);
-            file.data.resize(TedPrepareWrite(state));
-            TedWrite(state, file.data.data());
-        TedDestroyWriteState(state);
+        file.data = EditorDataProc::Create(session);
 
         directory.AddFile(std::move(file));
     }
@@ -686,10 +684,7 @@ static SessionManager::Error SerializeCtrSession(
     {
         Archive::File file(TED_ARC_FILENAME);
 
-        TedWriteState* state = TedCreateWriteState(session);
-            file.data.resize(TedPrepareWrite(state));
-            TedWrite(state, file.data.data());
-        TedDestroyWriteState(state);
+        file.data = EditorDataProc::Create(session);
 
         directory.AddFile(std::move(file));
     }

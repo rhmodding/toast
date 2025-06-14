@@ -3,22 +3,17 @@
 
 #include "manager/SessionManager.hpp"
 
-// TODO: rewrite this whole thing it's VERY embarrasing
+#include <cstddef>
 
 #define TED_ARC_FILENAME "TOAST.TED"
 #define TED_ARC_FILENAME_OLD "TOAST.DAT"
 
-void TedApply(const unsigned char* data, const Session& session);
+namespace EditorDataProc {
 
-struct TedWriteState;
+bool Apply(Session& session, const unsigned char* data, size_t dataSize);
 
-[[nodiscard]] TedWriteState* TedCreateWriteState(const Session& session);
-void TedDestroyWriteState(TedWriteState* state);
+std::vector<unsigned char> Create(const Session& session);
 
-// Prepares write state; returns output buffer size
-unsigned TedPrepareWrite(TedWriteState* state);
-
-// Write to output buffer. Sizeof buffer must be retval of TedPrepareWrite
-void TedWrite(TedWriteState* state, unsigned char* buffer);
+} // namespace EditorDataProc
 
 #endif // EDITOR_DATA_PACKAGE_HPP
