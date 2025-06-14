@@ -299,7 +299,7 @@ struct CtrAnimation {
 
 bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(RvlCellAnimHeader)) {
-        Logging::err << "[CellAnimObject::InitRvl] Invalid RCAD binary: data size smaller than header size!" << std::endl;
+        Logging::err << "[CellAnimObject::InitImpl_Rvl] Invalid RCAD binary: data size smaller than header size!" << std::endl;
         return false;
     }
 
@@ -391,7 +391,7 @@ bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const siz
 
 bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(CtrCellAnimHeader)) {
-        Logging::err << "[CellAnimObject::InitCtr] Invalid CCAD binary: data size smaller than header size!" << std::endl;
+        Logging::err << "[CellAnimObject::InitImpl_Ctr] Invalid CCAD binary: data size smaller than header size!" << std::endl;
         return false;
     }
 
@@ -565,7 +565,7 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
 }
 
 std::vector<unsigned char> CellAnim::CellAnimObject::SerializeImpl_Rvl() {
-    unsigned fullSize = sizeof(RvlCellAnimHeader) + sizeof(AnimationsHeader);
+    size_t fullSize = sizeof(RvlCellAnimHeader) + sizeof(AnimationsHeader);
     for (const CellAnim::Arrangement& arrangement : mArrangements)
         fullSize += sizeof(RvlArrangement) + (sizeof(RvlArrangementPart) * arrangement.parts.size());
     for (const CellAnim::Animation& animation : mAnimations)
@@ -630,7 +630,7 @@ std::vector<unsigned char> CellAnim::CellAnimObject::SerializeImpl_Ctr() {
     std::map<std::string, unsigned> emitterNames;
     unsigned nextEmitterIndex { 0 };
 
-    unsigned fullSize = sizeof(CtrCellAnimHeader) + sizeof(AnimationsHeader);
+    size_t fullSize = sizeof(CtrCellAnimHeader) + sizeof(AnimationsHeader);
     for (const CellAnim::Arrangement& arrangement : mArrangements) {
         fullSize += sizeof(CtrArrangement);
         for (const CellAnim::ArrangementPart& part : arrangement.parts) {
@@ -728,9 +728,10 @@ std::vector<unsigned char> CellAnim::CellAnimObject::SerializeImpl_Ctr() {
         const uint8_t stringLength = static_cast<uint8_t>(std::min(emitterName->size(), (size_t)(0xFF)));
 
         *reinterpret_cast<uint8_t*>(currentOutput) = stringLength;
+        currentOutput += sizeof(uint8_t);
 
-        strncpy(reinterpret_cast<char*>(currentOutput + 1), emitterName->c_str(), stringLength);
-        currentOutput += sizeof(uint8_t) + stringLength;
+        strncpy(reinterpret_cast<char*>(currentOutput), emitterName->c_str(), stringLength);
+        currentOutput += stringLength;
     }
 
     return result;
