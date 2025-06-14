@@ -454,6 +454,8 @@ std::vector<unsigned char> EditorDataProc::Create(const Session &session) {
         }
     };
 
+    auto createStartTime = std::chrono::high_resolution_clock::now();
+
     for (size_t cellAnimIdx = 0; cellAnimIdx < session.cellanims.size(); cellAnimIdx++) {
         bool alreadySetFollowCellAnim = (cellAnimIdx == 0);
 
@@ -587,6 +589,13 @@ std::vector<unsigned char> EditorDataProc::Create(const Session &session) {
     unsigned char* compressedDataStart = reinterpret_cast<unsigned char*>(fileHeader + 1);
 
     std::memcpy(compressedDataStart, compressedWork.data(), compressedWork.size());
+
+    auto createTotalTime = std::chrono::high_resolution_clock::now() - createStartTime;
+
+    auto createTotalTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(createTotalTime).count();
+
+    Logging::info << "[EditorDataProc::Create] Created compressed editor data package (" << (workDataSize / 1000) <<
+                     "kb of data down to " << (resultData.size() / 1000) << "kb) in " << createTotalTimeMs << "ms." << std::endl;
 
     return resultData;
 }
