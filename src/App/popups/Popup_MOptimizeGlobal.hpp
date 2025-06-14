@@ -44,6 +44,10 @@ static void Popup_MOptimizeGlobal() {
 
         ImGui::Dummy({ 0.f, 5.f });
 
+        ImGui::Checkbox("Remove all duplicate arrangements", &options.removeDuplicateArrangements);
+
+        ImGui::Dummy({ 0.f, 5.f });
+
         ImGui::PopStyleVar();
         ImGui::Combo(
             "Downscale Spritesheet",

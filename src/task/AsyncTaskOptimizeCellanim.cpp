@@ -4,6 +4,8 @@
 
 #include "manager/MainThreadTaskManager.hpp"
 
+#include "manager/PlayerManager.hpp"
+
 #include "stb/stb_image_resize2.h"
 
 AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
@@ -63,6 +65,64 @@ static void removeUnusedArrangements(Session* session) {
                 }
             }
         }
+
+        PlayerManager::getInstance().correctState();
+    }).get();
+}
+
+static void removeDuplicateArrangements(Session* session) {
+    std::shared_ptr cellanim = session->getCurrentCellAnim().object;
+
+    auto& arrangements = cellanim->getArrangements();
+    auto& animations = cellanim->getAnimations();
+
+    // map from original index to the deduplicated index
+    std::unordered_map<unsigned, unsigned> remap;
+    std::vector<unsigned> toErase;
+
+    for (size_t i = 0; i < arrangements.size(); ++i) {
+        if (remap.find(i) != remap.end())
+            continue;
+
+        for (size_t j = i + 1; j < arrangements.size(); ++j) {
+            if (arrangements[i] == arrangements[j]) {
+                remap[j] = i;
+                toErase.push_back(j);
+            }
+        }
+    }
+
+    std::sort(toErase.begin(), toErase.end());
+    toErase.erase(std::unique(toErase.begin(), toErase.end()), toErase.end());
+
+    MainThreadTaskManager::getInstance().QueueTask(
+    [&arrangements, &animations, toErase, remap]() mutable {
+        for (auto& animation : animations) {
+            for (auto& key : animation.keys) {
+                auto it = remap.find(key.arrangementIndex);
+                if (it != remap.end()) {
+                    key.arrangementIndex = it->second;
+                }
+            }
+        }
+
+        for (auto it = toErase.rbegin(); it != toErase.rend(); ++it) {
+            arrangements.erase(arrangements.begin() + *it);
+
+            for (auto& [from, to] : remap) {
+                if (from > *it) remap[from]--;
+                if (to > *it) remap[from] = --remap[from];
+            }
+
+            for (auto& animation : animations) {
+                for (auto& key : animation.keys) {
+                    if (key.arrangementIndex > *it)
+                        key.arrangementIndex--;
+                }
+            }
+        }
+
+        PlayerManager::getInstance().correctState();
     }).get();
 }
 
@@ -126,6 +186,9 @@ void AsyncTaskOptimizeCellanim::Run() {
 
     if (mOptions.removeUnusedArrangements)
         removeUnusedArrangements(mSession);
+
+    if (mOptions.removeDuplicateArrangements)
+        removeDuplicateArrangements(mSession);
 
     if (mOptions.downscaleSpritesheet)
         downscaleSpritesheet(mSession, mOptions);

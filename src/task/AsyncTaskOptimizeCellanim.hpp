@@ -9,6 +9,7 @@
 
 struct OptimizeCellanimOptions {
     bool removeAnimationNames { false };
+    bool removeDuplicateArrangements { true };
     bool removeUnusedArrangements { true };
 
     enum DownscaleOption {
