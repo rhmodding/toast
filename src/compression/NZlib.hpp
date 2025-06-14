@@ -1,6 +1,8 @@
 #ifndef NZLIB_HPP
 #define NZLIB_HPP
 
+#include <cstddef>
+
 #include <vector>
 
 #include <optional>

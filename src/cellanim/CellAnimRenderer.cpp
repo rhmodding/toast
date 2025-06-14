@@ -1,5 +1,7 @@
 #include "CellAnimRenderer.hpp"
 
+#include <cstddef>
+
 #include <cmath>
 
 #include <array>

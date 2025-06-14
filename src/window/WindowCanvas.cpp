@@ -1,9 +1,11 @@
 #include "WindowCanvas.hpp"
 
-#include <sstream>
-#include <string>
+#include <cstddef>
 
 #include <cmath>
+
+#include <sstream>
+#include <string>
 
 #include "manager/SessionManager.hpp"
 #include "manager/ConfigManager.hpp"

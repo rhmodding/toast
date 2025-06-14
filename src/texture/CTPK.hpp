@@ -1,6 +1,8 @@
 #ifndef CTPK_HPP
 #define CTPK_HPP
 
+#include <cstddef>
+
 #include <cstdint>
 
 #include <vector>

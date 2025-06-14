@@ -246,7 +246,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
         }
     );
 
-    unsigned fullSize = sizeof(SarcFileHeader) + sizeof(SfatSection) +
+    size_t fullSize = sizeof(SarcFileHeader) + sizeof(SfatSection) +
         sizeof(SfntSection) + (sizeof(SfatNode) * entries.size());
     for (size_t i = 0; i < entries.size(); i++) {
         fullSize += ALIGN_UP_4(entries[i].path.size() + 1);

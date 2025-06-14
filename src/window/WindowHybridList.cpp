@@ -1,7 +1,6 @@
 #include "WindowHybridList.hpp"
 
-#include <imgui.h>
-#include <imgui_internal.h>
+#include <cstdint>
 
 #include <sstream>
 
@@ -11,6 +10,9 @@
 #include <set>
 
 #include <cmath>
+
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include "manager/AppState.hpp"
 #include "manager/SessionManager.hpp"

@@ -1,5 +1,7 @@
 #include "../WindowInspector.hpp"
 
+#include <cstdint>
+
 // #include "manager/ConfigManager.hpp"
 #include "manager/SessionManager.hpp"
 #include "manager/ThemeManager.hpp"

@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include <chrono>
+
 #include <zlib-ng.h>
 
 #include "Logging.hpp"

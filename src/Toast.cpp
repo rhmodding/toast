@@ -1,8 +1,6 @@
 #include "Toast.hpp"
 
-#include <array>
-
-#include <imgui.h>
+#include <cstddef>
 
 #include <chrono>
 
@@ -10,6 +8,10 @@
 
 #include <string>
 #include <sstream>
+
+#include <array>
+
+#include <imgui.h>
 
 #include <tinyfiledialogs.h>
 

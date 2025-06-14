@@ -3,6 +3,10 @@
 
 #include "Archive.hpp"
 
+#include <cstddef>
+
+#include <vector>
+
 namespace Archive {
 
 class DARCHObject : public Archive::ArchiveObjectBase {

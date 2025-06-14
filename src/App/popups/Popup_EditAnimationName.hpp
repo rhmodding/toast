@@ -3,6 +3,8 @@
 
 #include <imgui.h>
 
+#include <cstddef>
+
 #include <string>
 
 #include "manager/SessionManager.hpp"

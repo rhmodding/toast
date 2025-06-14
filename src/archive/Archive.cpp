@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+#include <cstddef>
+
 void Archive::Directory::SortAlphabetic() {
     this->files.sort([](const File& a, const File& b) {
         return a.name < b.name;

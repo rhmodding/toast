@@ -3,6 +3,10 @@
 
 #include "Archive.hpp"
 
+#include <cstddef>
+
+#include <vector>
+
 namespace Archive {
 
 class SARCObject : public Archive::ArchiveObjectBase {

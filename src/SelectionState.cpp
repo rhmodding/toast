@@ -2,6 +2,8 @@
 
 #include <imgui.h>
 
+#include <cstddef>
+
 #include <algorithm>
 
 #include "manager/PlayerManager.hpp"

@@ -1,10 +1,12 @@
 #include "NZlib.hpp"
 
-#include "Logging.hpp"
-
 #include <algorithm>
 
+#include <chrono>
+
 #include <zlib-ng.h>
+
+#include "Logging.hpp"
 
 #include "Macro.hpp"
 

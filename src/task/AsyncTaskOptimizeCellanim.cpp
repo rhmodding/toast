@@ -1,5 +1,7 @@
 #include "AsyncTaskOptimizeCellanim.hpp"
 
+#include <cstddef>
+
 #include <unordered_set>
 
 #include "manager/MainThreadTaskManager.hpp"

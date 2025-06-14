@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 
+#include <cstddef>
+
 #include <filesystem>
 
 #include <string>

@@ -1,10 +1,12 @@
 #ifndef CELL_ANIM_HPP
 #define CELL_ANIM_HPP
 
-#include <vector>
-
+#include <cstddef>
 #include <cstdint>
+
 #include <cmath>
+
+#include <vector>
 
 #include <algorithm>
 

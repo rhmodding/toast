@@ -1,6 +1,8 @@
 #ifndef YAZ0_HPP
 #define YAZ0_HPP
 
+#include <cstddef>
+
 #include <vector>
 
 #include <optional>

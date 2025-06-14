@@ -1,6 +1,6 @@
 #include "WindowSpritesheet.hpp"
 
-#include <imgui.h>
+#include <cstddef>
 
 #include <cstdlib>
 
@@ -16,6 +16,8 @@
 #include <filesystem>
 
 #include <thread>
+
+#include <imgui.h>
 
 #include <tinyfiledialogs.h>
 

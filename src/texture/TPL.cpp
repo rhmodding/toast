@@ -258,7 +258,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
     unsigned dataSectionStart = headerSectionStart + (sizeof(TPLHeader) * textureCount);
 
-    unsigned fullSize = dataSectionStart;
+    size_t fullSize = dataSectionStart;
 
     // Precompute size of data section.
     for (unsigned i = 0; i < textureCount; i++) {
