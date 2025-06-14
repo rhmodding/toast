@@ -79,6 +79,8 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         .decompressedSize = BYTESWAP_32(static_cast<uint32_t>(dataSize)),
     };
 
+    auto compressStartTime = std::chrono::high_resolution_clock::now();
+
     // Compression using a modified version of zlib-ng to find RLE matches.
     if (compressionLevel != 0) {
         Yaz0CompressionState state(result);
@@ -181,18 +183,20 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         }
     }
 
-    size_t compressedSize = result.size() - sizeof(Yaz0Header);
+    auto compressTotalTime = std::chrono::high_resolution_clock::now() - compressStartTime;
 
-    if (compressedSize >= dataSize) {
+    auto compressTotalTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(compressTotalTime).count();
+
+    if (result.size() >= dataSize) {
         Logging::info <<
-            "[Yaz0::compress] Successfully stored " << (dataSize / 1000) << "kb of data (final size: " <<
-            (compressedSize / 1000) << "kb)." << std::endl;
+            "[Yaz0::compress] Successfully stored " << (dataSize / 1000) << "kb of data in " <<
+            compressTotalTimeMs << "ms (final size: " << (result.size() / 1000) << "kb)." << std::endl;
     }
     else {
-        float reductionRate = ((dataSize - compressedSize) / static_cast<float>(dataSize)) * 100.f;
+        float reductionRate = ((dataSize - result.size()) / static_cast<float>(dataSize)) * 100.f;
         Logging::info <<
             "[Yaz0::compress] Successfully compressed " << (dataSize / 1000) << "kb of data down to " <<
-            (compressedSize / 1000) << "kb (" << reductionRate << "% reduction)." << std::endl;
+            (result.size() / 1000) << "kb in " << compressTotalTimeMs << "ms (" << reductionRate << "% reduction)." << std::endl;
     }
 
     return result;
@@ -215,6 +219,8 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: decompressed size is zero!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
+
+    auto decompressStartTime = std::chrono::high_resolution_clock::now();
 
     std::vector<unsigned char> destination(decompressedSize);
 
@@ -249,7 +255,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
             for (; runLen > 0; runLen--, dstByte++, runSrcIdx++) {
                 if (UNLIKELY(dstByte >= dstEnd)) {
-                    Logging::err << "[Yaz0::decompress] The Yaz0 data is malformed. The binary might be corrupted." << std::endl;
+                    Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: run length is out of bounds!" << std::endl;
                     return std::nullopt; // return nothing (std::optional)
                 }
 
@@ -257,6 +263,14 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
             }
         }
     }
+
+    auto decompressEndTime = std::chrono::high_resolution_clock::now() - decompressStartTime;
+
+    auto decompressWorkTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(decompressEndTime).count();
+
+    Logging::info <<
+            "[Yaz0::decompress] Decompressed " << (decompressedSize / 1000) << "kb of data in " <<
+            decompressWorkTimeMs << "ms from " << (dataSize / 1000) << "kb of compressed data." << std::endl;
 
     return destination;
 }

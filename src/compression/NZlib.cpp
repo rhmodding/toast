@@ -39,6 +39,8 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
 
+    auto compressStartTime = std::chrono::high_resolution_clock::now();
+
     // Hack!!! Blame zeldamods, not me!!!
     const int init = zng_deflateInit2(
         &strm, std::clamp<int>(compressionLevel, Z_NO_COMPRESSION, Z_BEST_COMPRESSION),
@@ -59,13 +61,18 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     zng_deflateEnd(&strm);
 
+    auto compressTotalTime = std::chrono::high_resolution_clock::now() - compressStartTime;
+
+    auto compressTotalTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(compressTotalTime).count();
+
     deflated.resize(sizeof(uint32_t) + strm.total_out);
 
     float reductionRate = ((dataSize - strm.total_out) / static_cast<float>(dataSize)) * 100.f;
 
     Logging::info <<
         "[NZlib::compress] Successfully compressed " << (dataSize / 1000) << "kb of data down to " <<
-        (strm.total_out / 1000) << "kb (" << reductionRate << "% reduction)." << std::endl;
+        (strm.total_out / 1000) << "kb (" << reductionRate << "% reduction) in " << compressTotalTimeMs <<
+        "ms." << std::endl;
 
     return deflated;
 }
@@ -103,6 +110,8 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
 
+    auto decompressStartTime = std::chrono::high_resolution_clock::now();
+
     const int init = zng_inflateInit2(&strm, 15);
     if (init != Z_OK) {
         Logging::err << "[NZlib::decompress] zng_inflateInit failed!" << std::endl;
@@ -116,6 +125,14 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         Logging::err << "[NZlib::decompress] zng_inflate failed: " << ret << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
+
+    auto decompressEndTime = std::chrono::high_resolution_clock::now() - decompressStartTime;
+
+    auto decompressWorkTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(decompressEndTime).count();
+
+    Logging::info <<
+            "[NZlib::decompress] Decompressed " << (inflateSize / 1000) << "kb of data in " <<
+            decompressWorkTimeMs << "ms from " << (dataSize / 1000) << "kb of compressed data." << std::endl;
 
     return inflated;
 }
