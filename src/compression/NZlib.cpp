@@ -10,11 +10,20 @@
 
 #include "Macro.hpp"
 
-constexpr unsigned MIN_ZLIB_DATA_SIZE = 6;
+constexpr unsigned int MIN_ZLIB_DATA_SIZE = 6;
 
 namespace NZlib {
 
 std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
+    if (dataSize > 0xFFFFFFFF) {
+        Logging::err << "[NZlib::compress] Unable to compress: size of data is more than 4GiB!" << std::endl;
+        return std::nullopt; // return nothing (std::optional)
+    }
+    if (dataSize == 0) {
+        Logging::err << "[NZlib::compress] Unable to compress: size of data is zero" << std::endl;
+        return std::nullopt; // return nothing (std::optional)
+    }
+
     std::vector<unsigned char> deflated(
         sizeof(uint32_t) + zng_compressBound(dataSize)
     );
@@ -64,6 +73,10 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(uint32_t)) {
         Logging::err << "[NZlib::decompress] Invalid NZlib binary: data size smaller than header size!" << std::endl;
+        return std::nullopt; // return nothing (std::optional)
+    }
+    if (dataSize > (0xFFFFFFFF + sizeof(uint32_t))) {
+        Logging::err << "[NZlib::decompress] Invalid NZlib binary: size of compressed payload is more than 4GiB!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 

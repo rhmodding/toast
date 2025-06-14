@@ -59,6 +59,15 @@ struct Yaz0CompressionState {
 namespace Yaz0 {
 
 std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
+    if (dataSize > 0xFFFFFFFF) {
+        Logging::err << "[Yaz0::compress] Unable to compress: size of data is more than 4GiB!" << std::endl;
+        return std::nullopt; // return nothing (std::optional)
+    }
+    if (dataSize == 0) {
+        Logging::err << "[Yaz0::compress] Unable to compress: size of data is zero" << std::endl;
+        return std::nullopt; // return nothing (std::optional)
+    }
+
     // Header + every byte + all op bytes needed (no RLE, only copy).
     size_t maximumSize = sizeof(Yaz0Header) + dataSize + ((dataSize + 7) / 8);
 
