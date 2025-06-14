@@ -176,7 +176,7 @@ void WindowInspector::Level_Arrangement() {
             textInputStdString("Name", part.editorName);
 
             ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
-            
+
             valueEditor<CellAnim::IntVec2>("Position XY", part.transform.position,
                 [&]() { return originalPart.transform.position; },
                 [&](const CellAnim::IntVec2& oldValue, const CellAnim::IntVec2& newValue) {

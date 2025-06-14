@@ -226,7 +226,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         return result;
     }
 
-    unsigned fullSize = sizeof(CtpkFileHeader);
+    size_t fullSize = sizeof(CtpkFileHeader);
     for (size_t i = 0; i < mTextures.size(); i++) {
         const auto& texture = mTextures[i];
 

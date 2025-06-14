@@ -212,7 +212,7 @@ void WindowHybridList::Update() {
                             auto& cellAnim = *currentSession->getCurrentCellAnim().object;
 
                             std::vector<CellAnim::Arrangement> newArrangements = cellAnim.getArrangements();
-                            
+
                             auto baseIndex = newArrangements.size(); // BEFORE insertion
                             newArrangements.insert(newArrangements.end(), copyAnimationArrangements.begin(), copyAnimationArrangements.end());
 
