@@ -172,13 +172,13 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
     const unsigned char* compressedStart = data + fileHeader->headerSize;
     const unsigned char* compressedEnd = compressedStart + fileHeader->dataSize;
 
-    std::vector<unsigned char> entryData (fileHeader->decompressedSize);
+    std::vector<unsigned char> workData (fileHeader->decompressedSize);
     if (fileHeader->flags & TED_FLAG_COMPRESSED_ZLIB) {
         zng_stream strm {};
         strm.next_in = compressedStart;
         strm.avail_in = compressedEnd - compressedStart;
-        strm.next_out = entryData.data();
-        strm.avail_out = entryData.size();
+        strm.next_out = workData.data();
+        strm.avail_out = workData.size();
         strm.zalloc = Z_NULL;
         strm.zfree = Z_NULL;
         strm.opaque = Z_NULL;
@@ -198,11 +198,11 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
         }
     }
     else {
-        entryData.assign(compressedStart, compressedEnd);
+        workData.assign(compressedStart, compressedEnd);
     }
 
-    const TedWorkHeader* workHeader = reinterpret_cast<const TedWorkHeader*>(entryData.data());
-    const char* stringPool = reinterpret_cast<const char*>(entryData.data() + workHeader->stringPoolOffset);
+    const TedWorkHeader* workHeader = reinterpret_cast<const TedWorkHeader*>(workData.data());
+    const char* stringPool = reinterpret_cast<const char*>(workData.data() + workHeader->stringPoolOffset);
 
     const TedEntry* currentEntry = workHeader->firstEntry;
     uint16_t currentCellAnimIdx = 0;
@@ -249,7 +249,7 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
             part->opacity = currentEntry->partHide.originalOpacity;
             part->editorVisible = false;
         } break;
-        
+
         default:
             break;
         }
@@ -533,7 +533,7 @@ std::vector<unsigned char> EditorDataProc::Create(const Session &session) {
         unsigned entrySize = entry.sizeHalf * 2;
 
         std::memcpy(currentEntryPos, &entry, entrySize);
-        currentEntryPos += entrySize;        
+        currentEntryPos += entrySize;
     }
 
     char* stringPoolStart = reinterpret_cast<char*>(workData.data() + stringPoolOffset);

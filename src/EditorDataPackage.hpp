@@ -5,10 +5,11 @@
 
 #include <cstddef>
 
-#define TED_ARC_FILENAME "TOAST.TED"
-#define TED_ARC_FILENAME_OLD "TOAST.DAT"
+#include <string_view>
 
 namespace EditorDataProc {
+
+inline constexpr std::string_view ARCHIVE_FILENAME = "TOAST.TED";
 
 bool Apply(Session& session, const unsigned char* data, size_t dataSize);
 

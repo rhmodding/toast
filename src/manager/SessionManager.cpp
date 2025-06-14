@@ -199,15 +199,9 @@ static SessionManager::Error InitRvlSession(
     }).get();
 
     // Editor data
-    {
-        const Archive::File* tedSearch = Archive::findFile(TED_ARC_FILENAME, *rootDirIt);
-        if (tedSearch)
-            EditorDataProc::Apply(session, tedSearch->data.data(), tedSearch->data.size());
-        else {
-            const Archive::File* datSearch = Archive::findFile(TED_ARC_FILENAME_OLD, *rootDirIt);
-            if (datSearch)
-                EditorDataProc::Apply(session, datSearch->data.data(), tedSearch->data.size());
-        }
+    const Archive::File* tedSearch = Archive::findFile(EditorDataProc::ARCHIVE_FILENAME, *rootDirIt);
+    if (tedSearch) {
+        EditorDataProc::Apply(session, tedSearch->data.data(), tedSearch->data.size());
     }
 
     return SessionManager::Error_None;
@@ -352,7 +346,7 @@ static SessionManager::Error InitCtrSession(
         return sheetsError;
 
     // Editor data
-    const Archive::File* tedSearch = Archive::findFile(TED_ARC_FILENAME, *rootDirIt);
+    const Archive::File* tedSearch = Archive::findFile(EditorDataProc::ARCHIVE_FILENAME, *rootDirIt);
     if (tedSearch) {
         EditorDataProc::Apply(session, tedSearch->data.data(), tedSearch->data.size());
     }
@@ -588,7 +582,7 @@ static SessionManager::Error SerializeRvlSession(
 
     // TED file
     {
-        Archive::File file(TED_ARC_FILENAME);
+        Archive::File file(std::string(EditorDataProc::ARCHIVE_FILENAME));
 
         file.data = EditorDataProc::Create(session);
 
@@ -685,7 +679,7 @@ static SessionManager::Error SerializeCtrSession(
 
     // TED file
     {
-        Archive::File file(TED_ARC_FILENAME);
+        Archive::File file(std::string(EditorDataProc::ARCHIVE_FILENAME));
 
         file.data = EditorDataProc::Create(session);
 
