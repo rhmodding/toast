@@ -32,6 +32,9 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
     constexpr int PADDING_HALF = PADDING / 2;
     constexpr uint32_t BORDER_COLOR = IM_COL32_BLACK;
 
+    if (sheetIndex < 0)
+        sheetIndex = session.getCurrentCellAnim().object->getSheetIndex();
+
     std::shared_ptr cellanimSheet = session.sheets->getTextureByIndex(sheetIndex);
     std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
 
@@ -133,6 +136,9 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
 }
 
 bool SpritesheetFixUtil::FixAlphaBleed(Session& session, int sheetIndex) {
+    if (sheetIndex < 0)
+        sheetIndex = session.getCurrentCellAnim().object->getSheetIndex();
+
     std::shared_ptr cellanimObject = session.getCurrentCellAnim().object;
     std::shared_ptr cellanimSheet = session.sheets->getTextureByIndex(sheetIndex);
 
