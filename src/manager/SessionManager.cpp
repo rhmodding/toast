@@ -582,7 +582,7 @@ static SessionManager::Error SerializeRvlSession(
 
     // TED file
     {
-        Archive::File file(std::string(EditorDataProc::ARCHIVE_FILENAME));
+        Archive::File file { std::string(EditorDataProc::ARCHIVE_FILENAME) };
 
         file.data = EditorDataProc::Create(session);
 
@@ -679,7 +679,7 @@ static SessionManager::Error SerializeCtrSession(
 
     // TED file
     {
-        Archive::File file(std::string(EditorDataProc::ARCHIVE_FILENAME));
+        Archive::File file { std::string(EditorDataProc::ARCHIVE_FILENAME) };
 
         file.data = EditorDataProc::Create(session);
 
