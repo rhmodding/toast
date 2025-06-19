@@ -57,26 +57,26 @@ public:
     void LoadRGBA32(const unsigned char* data, unsigned width, unsigned height);
 
     // Generate a texture & use stb_image to load the image data from memory.
-    // Note: if a GPU texture already exists, this will overwrite it's data.
+    //     - Note: if a GPU texture already exists, this will overwrite it's data.
     //
     // Returns: true if succeeded, false if failed
     bool LoadSTBMem(const unsigned char* data, int dataSize);
 
     // Generate a texture & use stb_image to load the image data from the filesystem.
-    // Note: if a GPU texture already exists, this will overwrite it's data.
+    //     - Note: if a GPU texture already exists, this will overwrite it's data.
     //
     // Returns: true if succeeded, false if failed
     bool LoadSTBFile(std::string_view filename);
 
     // Download the texture from the GPU into a RGBA32 image buffer.
-    // Note: the size of the buffer must be getPixelCount() * 4
+    //     - Note: the size of the buffer must be getPixelCount() * 4
     // 
     // Returns: true if succeeded, false if failed
     bool GetRGBA32(unsigned char* buffer);
 
     // Download the texture from the GPU as RGBA32 image data.
-    // Note A: the resulting pointer is dynamically allocated and must be freed by the caller.
-    // Note B: the size of the data is getPixelCount() * 4
+    //     - Note A: the resulting pointer is dynamically allocated and must be freed by the caller.
+    //     - Note B: the size of the data is getPixelCount() * 4
     //
     // Returns: pointer to linear RGBA32 image data if succeeded, nullptr if failed
     [[nodiscard]] unsigned char* GetRGBA32();
