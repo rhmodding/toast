@@ -17,6 +17,7 @@ public:
 
     struct FontCollection {
         ImFont* normal { nullptr };
+        ImFont* normalJP { nullptr };
         ImFont* large { nullptr };
         ImFont* giant { nullptr };
         ImFont* icon { nullptr };

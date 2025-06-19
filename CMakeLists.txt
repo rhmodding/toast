@@ -34,7 +34,8 @@ set(SOURCES
     src/archive/SARC.cpp
 
     src/BIN/fontdata/FontAwesome.cpp
-    src/BIN/fontdata/SegoeUI.cpp
+    src/BIN/fontdata/NotoSans.cpp
+    src/BIN/fontdata/NotoSansJP.cpp
 
     src/BIN/image/toastIcon_title.png.cpp
     src/BIN/image/toastIcon.png.cpp

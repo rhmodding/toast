@@ -1,7 +1,8 @@
 #include "ThemeManager.hpp"
 
-#include "BIN/fontdata/SegoeUI.h"
 #include "BIN/fontdata/FontAwesome.h"
+#include "BIN/fontdata/NotoSans.h"
+#include "BIN/fontdata/NotoSansJP.h"
 
 #include "font/FontAwesome.h"
 
@@ -14,13 +15,25 @@
 void ThemeManager::Initialize() {
     ImGuiIO& io = ImGui::GetIO();
 
-    { // normal: SegoeUI (18px)
+    { // normal: Noto Sans (18px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
         mFonts.normal = io.Fonts->AddFontFromMemoryTTF(
-            const_cast<unsigned char*>(SegoeUI_data), SegoeUI_length, 18.f, &fontConfig
+            const_cast<unsigned char*>(NotoSans_data), NotoSans_length, 18.f, &fontConfig
+        );
+    }
+
+    { // normal: Noto Sans JP (18px)
+        ImFontConfig fontConfig;
+        fontConfig.MergeMode = true;
+        fontConfig.FontDataOwnedByAtlas = false;
+        //fontConfig.OversampleH = 1;
+
+        mFonts.normalJP = io.Fonts->AddFontFromMemoryTTF(
+            const_cast<unsigned char*>(NotoSansJP_data), NotoSansJP_length, 18.f, &fontConfig,
+            io.Fonts->GetGlyphRangesJapanese()
         );
     }
 
@@ -36,23 +49,23 @@ void ThemeManager::Initialize() {
         );
     }
 
-    { // large: SegoeUI (24px)
+    { // large: Noto Sans (24px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
         mFonts.large = io.Fonts->AddFontFromMemoryTTF(
-            const_cast<unsigned char*>(SegoeUI_data), SegoeUI_length, 24.f, &fontConfig
+            const_cast<unsigned char*>(NotoSans_data), NotoSans_length, 24.f, &fontConfig
         );
     }
 
-    { // giant: SegoeUI (52px)
+    { // giant: Noto Sans (52px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
         //fontConfig.OversampleH = 1;
 
         mFonts.giant = io.Fonts->AddFontFromMemoryTTF(
-            const_cast<unsigned char*>(SegoeUI_data), SegoeUI_length, 52.f, &fontConfig
+            const_cast<unsigned char*>(NotoSans_data), NotoSans_length, 52.f, &fontConfig
         );
     }
 }
@@ -60,20 +73,29 @@ void ThemeManager::Initialize() {
 void ThemeManager::applyTheming() {
     const auto& config = ConfigManager::getInstance().getConfig();
 
-    if (config.theme == ThemeChoice::Dark)
+    switch (config.theme) {
+    case ThemeChoice::Dark:
         mWindowClearColor = std::array<float, 4>({ 24 / 255.f, 24 / 255.f, 24 / 255.f, 1.f });
-    else if (config.theme == ThemeChoice::Light)
+        break;
+    case ThemeChoice::Light:
         mWindowClearColor = std::array<float, 4>({ 248 / 255.f, 248 / 255.f, 248 / 255.f, 1.f });
-    else {
+        break;
+    default:
         Logging::warn << "[ThemeManager::applyTheming] Invalid theme: " << static_cast<int>(config.theme) << std::endl;
-        return;
+        break;
     }
 
     MainThreadTaskManager::getInstance().QueueTask([theme = config.theme]() {
-        if (theme == ThemeChoice::Dark)
+        switch (theme) {
+        case ThemeChoice::Dark:
             ImGui::StyleColorsDark();
-        else if (theme == ThemeChoice::Light)
+            break;
+        case ThemeChoice::Light:
             ImGui::StyleColorsLight();
+            break;
+        default:
+            break;
+        }
 
         ImGuiStyle& style = ImGui::GetStyle();
 
