@@ -76,6 +76,7 @@ set(SOURCES
     src/util/BezierUtil.cpp
     src/util/CxxDemangleUtil.cpp
     src/util/FileUtil.cpp
+    src/util/ShiftJISUtil.cpp
     src/util/SpritesheetFixUtil.cpp
 
     src/window/WindowInspector/LvlAnimation.cpp
@@ -183,6 +184,7 @@ ELSEIF(APPLE) # macOS
         "-framework IOKit"
         "-framework CoreFoundation"
         "-framework ApplicationServices"
+        iconv
     )
 ELSE() # Generic
     target_link_libraries(toast PRIVATE
