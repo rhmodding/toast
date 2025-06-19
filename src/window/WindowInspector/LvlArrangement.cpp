@@ -173,7 +173,16 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Name (editor)");
 
-            textInputStdString("Name", part.editorName);
+            valueEditor<std::string>("Name", part.editorName,
+                [&]() { return originalPart.editorName; },
+                [&](const std::string& oldValue, const std::string& newValue) {
+                    originalPart.editorName = oldValue;
+                    newPart.editorName = newValue;
+                },
+                [](const char* label, std::string* value) {
+                    return textInputStdString(label, *value);
+                }
+            );
 
             ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
 
