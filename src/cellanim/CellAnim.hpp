@@ -355,6 +355,20 @@ struct Animation {
     // On CTR only.
     // Note: arrangement parts are matched by ID, not index.
     bool isInterpolated { false };
+
+    bool operator==(const Animation& rhs) const {
+        return
+            keys == rhs.keys &&
+
+            name == rhs.name &&
+            comment == rhs.comment &&
+
+            isInterpolated == rhs.isInterpolated;
+    }
+
+    bool operator!=(const Animation& rhs) const {
+        return !(*this == rhs);
+    }
 };
 
 class CellAnimObject {
