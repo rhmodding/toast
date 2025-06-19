@@ -350,6 +350,8 @@ struct Animation {
     std::vector<AnimationKey> keys;
     std::string name;
 
+    std::string comment; // On RVL only.
+
     // On CTR only.
     // Note: arrangement parts are matched by ID, not index.
     bool isInterpolated { false };

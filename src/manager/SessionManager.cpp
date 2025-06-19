@@ -36,6 +36,8 @@
 
 #include "util/FileUtil.hpp"
 
+#include "util/ShiftJISUtil.hpp"
+
 #include "Macro.hpp"
 
 void SessionManager::setCurrentSessionIndex(int sessionIndex) {
@@ -136,17 +138,10 @@ static SessionManager::Error InitRvlSession(
 
         int cellanimNameLen = brcadFile->name.size() - STR_LIT_LEN(".brcad");
 
-        char targetHeaderName[128];
-        snprintf(
-            targetHeaderName, sizeof(targetHeaderName),
-            "rcad_%.*s_labels.h",
-            cellanimNameLen,
-            brcadFile->name.c_str()
-        );
-
         // Find header file
+        std::string targetHeaderName = "rcad_" + brcadFile->name.substr(0, cellanimNameLen) + "_labels.h";
         for (const auto& file : rootDirIt->files) {
-            if (strcmp(file.name.c_str(), targetHeaderName) == 0) {
+            if (file.name == targetHeaderName) {
                 headerFile = &file;
                 break;
             }
@@ -155,21 +150,32 @@ static SessionManager::Error InitRvlSession(
         if (!headerFile)
             continue;
 
-        // Process defines
-        std::istringstream stringStream(std::string(headerFile->data.begin(), headerFile->data.end()));
+        std::istringstream stringStream(ShiftJISUtil::convertToUTF8(
+            reinterpret_cast<const char*>(headerFile->data.data()), headerFile->data.size()
+        ));
         std::string line;
 
         while (std::getline(stringStream, line)) {
+            while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) {
+                line.pop_back();
+            }
             if (line.compare(0, 7, "#define") == 0) {
                 std::istringstream lineStream(line);
-                std::string define, key;
+                std::string defineTag, key;
                 unsigned value;
 
-                lineStream >> define >> key >> value;
+                lineStream >> defineTag >> key >> value;
 
-                size_t commentPos = key.find("//");
-                if (commentPos != std::string::npos)
-                    key = key.substr(0, commentPos);
+                std::string comment;
+                std::getline(lineStream, comment);
+
+                size_t commentStart = comment.find_first_not_of(" \t//");
+                if (commentStart != std::string::npos) {
+                    comment = comment.substr(commentStart);
+                }
+                else {
+                    comment.clear(); // No comment.
+                }
 
                 auto& animations = session.cellanims[i].object->getAnimations();
                 if (value < animations.size()) {
@@ -177,6 +183,8 @@ static SessionManager::Error InitRvlSession(
 
                     // +1 because of the trailing underscore.
                     animation.name = key.substr(cellanimNameLen + 1);
+                    if (comment != "(null)")
+                        animation.comment = comment;
                 }
             }
         }
@@ -538,12 +546,15 @@ static SessionManager::Error SerializeRvlSession(
             if (animation.name.empty())
                 continue;
 
-            // Note: Bread requires a comment at the end, so we write it for reverse-compatibillity.
-            stream << "#define " << cellanimName << '_' << animation.name << '\t' << std::to_string(j) << "\t// (null)\n";
+            stream <<
+                "#define " << cellanimName << '_' << animation.name << '\t' << std::to_string(j) <<
+                "\t// " << (animation.comment.empty() ? "(null)" : animation.comment) << "\r\n";
         }
 
-        const std::string str = stream.str();
-        file.data.insert(file.data.end(), str.begin(), str.end());
+        const std::string strUtf8 = stream.str();
+        const std::string strShiftJIS = ShiftJISUtil::convertToShiftJIS(strUtf8.c_str(), strUtf8.length());
+
+        file.data.insert(file.data.end(), strShiftJIS.begin(), strShiftJIS.end());
 
         directory.AddFile(std::move(file));
     }
