@@ -78,7 +78,7 @@ static const char* githubURLCmd =
 #endif // __APPLE__, _WIN32
     "https://github.com/conhlee/toast";
 
-constexpr ImVec2 windowSize (850.f, 520.f);
+constexpr ImVec2 windowSize (880.f, 520.f);
 
 constexpr const char buildString[] = "built on: " __DATE__ " " __TIME__;
 
