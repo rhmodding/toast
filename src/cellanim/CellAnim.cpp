@@ -83,10 +83,10 @@ struct RvlTransformValues {
 // Note: In Bread (the predecessor of toast) 'arrangements' were called 'sprites'.
 
 struct RvlArrangementPart {
-    uint16_t regionX; // X position of UV region in spritesheet
-    uint16_t regionY; // Y position of UV region in spritesheet
-    uint16_t regionW; // Width of UV region in spritesheet
-    uint16_t regionH; // Height of UV region in spritesheet
+    uint16_t cellX; // X position of UV region in spritesheet
+    uint16_t cellY; // Y position of UV region in spritesheet
+    uint16_t cellW; // Width of UV region in spritesheet
+    uint16_t cellH; // Height of UV region in spritesheet
 
     // Additive to the texture index (if usePalette is true).
     uint16_t textureVarying;
@@ -104,10 +104,10 @@ struct RvlArrangementPart {
 
     RvlArrangementPart() = default;
     RvlArrangementPart(const CellAnim::ArrangementPart& arrangementPart) {
-        regionX = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionPos.x));
-        regionY = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionPos.y));
-        regionW = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionSize.x));
-        regionH = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.regionSize.y));
+        cellX = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.cellOrigin.x));
+        cellY = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.cellOrigin.y));
+        cellW = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.cellSize.x));
+        cellH = BYTESWAP_16(static_cast<uint16_t>(arrangementPart.cellSize.y));
 
         textureVarying = BYTESWAP_16(arrangementPart.textureVarying);
 
@@ -120,10 +120,10 @@ struct RvlArrangementPart {
     }
 } __attribute__((packed));
 struct CtrArrangementPart {
-    uint16_t regionX; // X position of UV region in spritesheet
-    uint16_t regionY; // Y position of UV region in spritesheet
-    uint16_t regionW; // Width of UV region in spritesheet
-    uint16_t regionH; // Height of UV region in spritesheet
+    uint16_t cellX; // X position of UV region in spritesheet
+    uint16_t cellY; // Y position of UV region in spritesheet
+    uint16_t cellW; // Width of UV region in spritesheet
+    uint16_t cellH; // Height of UV region in spritesheet
 
     int16_t positionX { 0 }, positionY { 0 }; // In pixels.
     float scaleX { 1.f }, scaleY { 1.f };
@@ -152,10 +152,10 @@ struct CtrArrangementPart {
 
     CtrArrangementPart() = default;
     CtrArrangementPart(const CellAnim::ArrangementPart& arrangementPart) {
-        regionX = arrangementPart.regionPos.x;
-        regionY = arrangementPart.regionPos.y;
-        regionW = arrangementPart.regionSize.x;
-        regionH = arrangementPart.regionSize.y;
+        cellX = arrangementPart.cellOrigin.x;
+        cellY = arrangementPart.cellOrigin.y;
+        cellW = arrangementPart.cellSize.x;
+        cellH = arrangementPart.cellSize.y;
 
         positionX = static_cast<int16_t>(arrangementPart.transform.position.x + 512);
         positionY = static_cast<int16_t>(arrangementPart.transform.position.y + 512);
@@ -333,13 +333,13 @@ bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const siz
             currentData += sizeof(RvlArrangementPart);
 
             arrangementOut.parts[j] = CellAnim::ArrangementPart {
-                .regionPos = CellAnim::UintVec2 {
-                    BYTESWAP_16(arrangementPartIn->regionX),
-                    BYTESWAP_16(arrangementPartIn->regionY)
+                .cellOrigin = CellAnim::UintVec2 {
+                    BYTESWAP_16(arrangementPartIn->cellX),
+                    BYTESWAP_16(arrangementPartIn->cellY)
                 },
-                .regionSize = CellAnim::UintVec2 {
-                    BYTESWAP_16(arrangementPartIn->regionW),
-                    BYTESWAP_16(arrangementPartIn->regionH)
+                .cellSize = CellAnim::UintVec2 {
+                    BYTESWAP_16(arrangementPartIn->cellW),
+                    BYTESWAP_16(arrangementPartIn->cellH)
                 },
 
                 .textureVarying = BYTESWAP_16(arrangementPartIn->textureVarying),
@@ -424,13 +424,13 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
             currentData += sizeof(CtrArrangementPart);
 
             arrangementOut.parts[j] = CellAnim::ArrangementPart {
-                .regionPos = CellAnim::UintVec2 {
-                    arrangementPartIn->regionX,
-                    arrangementPartIn->regionY
+                .cellOrigin = CellAnim::UintVec2 {
+                    arrangementPartIn->cellX,
+                    arrangementPartIn->cellY
                 },
-                .regionSize = CellAnim::UintVec2 {
-                    arrangementPartIn->regionW,
-                    arrangementPartIn->regionH
+                .cellSize = CellAnim::UintVec2 {
+                    arrangementPartIn->cellW,
+                    arrangementPartIn->cellH
                 },
 
                 .transform = CellAnim::TransformValues {

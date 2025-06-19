@@ -690,7 +690,7 @@ void Toast::Menubar() {
 
             ImGui::Separator();
 
-            if (ImGui::BeginMenu("Region")) {
+            if (ImGui::BeginMenu("Cell")) {
                 if (ImGui::MenuItem("Pad (Expand/Contract) .."))
                     OPEN_GLOBAL_POPUP("MPadRegion");
 

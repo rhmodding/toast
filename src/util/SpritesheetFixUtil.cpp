@@ -46,10 +46,10 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
     for (const auto& arrangement : arrangements) {
         for (const auto& part : arrangement.parts) {
             stbrp_rect rect = {
-                .w = static_cast<int>(part.regionSize.x) + PADDING,
-                .h = static_cast<int>(part.regionSize.y) + PADDING,
-                .x = static_cast<int>(part.regionPos.x) - PADDING_HALF,
-                .y = static_cast<int>(part.regionPos.y) - PADDING_HALF,
+                .w = static_cast<int>(part.cellSize.x) + PADDING,
+                .h = static_cast<int>(part.cellSize.y) + PADDING,
+                .x = static_cast<int>(part.cellOrigin.x) - PADDING_HALF,
+                .y = static_cast<int>(part.cellOrigin.y) - PADDING_HALF,
             };
             uniqueRects.insert(rect);
         }
@@ -102,19 +102,19 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
     for (auto& arrangement : arrangements) {
         for (auto& part : arrangement.parts) {
             stbrp_rect rect = {
-                .w = static_cast<int>(part.regionSize.x) + PADDING,
-                .h = static_cast<int>(part.regionSize.y) + PADDING,
-                .x = static_cast<int>(part.regionPos.x) - PADDING_HALF,
-                .y = static_cast<int>(part.regionPos.y) - PADDING_HALF,
+                .w = static_cast<int>(part.cellSize.x) + PADDING,
+                .h = static_cast<int>(part.cellSize.y) + PADDING,
+                .x = static_cast<int>(part.cellOrigin.x) - PADDING_HALF,
+                .y = static_cast<int>(part.cellOrigin.y) - PADDING_HALF,
             };
 
             auto it = std::find(originalRects.begin(), originalRects.end(), rect);
             if (it != originalRects.end()) {
                 const auto& newRect = sortedRects[std::distance(originalRects.begin(), it)];
-                part.regionSize.x = newRect.w - PADDING;
-                part.regionSize.y = newRect.h - PADDING;
-                part.regionPos.x = newRect.x + PADDING_HALF;
-                part.regionPos.y = newRect.y + PADDING_HALF;
+                part.cellSize.x = newRect.w - PADDING;
+                part.cellSize.y = newRect.h - PADDING;
+                part.cellOrigin.x = newRect.x + PADDING_HALF;
+                part.cellOrigin.y = newRect.y + PADDING_HALF;
             }
         }
     }

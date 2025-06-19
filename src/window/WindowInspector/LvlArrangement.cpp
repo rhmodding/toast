@@ -265,17 +265,17 @@ void WindowInspector::Level_Arrangement() {
                 );
             }
 
-            ImGui::SeparatorText((const char*)ICON_FA_BORDER_TOP_LEFT " Region");
+            ImGui::SeparatorText((const char*)ICON_FA_BORDER_TOP_LEFT " Cell");
 
-            valueEditor<CellAnim::UintVec2>("Position XY##Region", part.regionPos,
-                [&]() { return originalPart.regionPos; },
+            valueEditor<CellAnim::UintVec2>("Origin XY##Cell", part.cellOrigin,
+                [&]() { return originalPart.cellOrigin; },
                 [&](const CellAnim::UintVec2& oldValue, const CellAnim::UintVec2& newValue) {
-                    originalPart.regionPos = oldValue;
-                    newPart.regionPos = newValue;
+                    originalPart.cellOrigin = oldValue;
+                    newPart.cellOrigin = newValue;
                 },
                 [](const char* label, CellAnim::UintVec2* value) {
                     static const uint32_t min { 0 };
-                    static const uint32_t max { CellAnim::ArrangementPart::MAX_REGION };
+                    static const uint32_t max { CellAnim::ArrangementPart::MAX_CELL_COORD };
 
                     return ImGui::DragScalarN(label,
                         ImGuiDataType_U32, value->asArray(), 2,
@@ -285,15 +285,15 @@ void WindowInspector::Level_Arrangement() {
                 }
             );
 
-            valueEditor<CellAnim::UintVec2>("Size WH##Region", part.regionSize,
-                [&]() { return originalPart.regionSize; },
+            valueEditor<CellAnim::UintVec2>("Size WH##Cell", part.cellSize,
+                [&]() { return originalPart.cellSize; },
                 [&](const CellAnim::UintVec2& oldValue, const CellAnim::UintVec2& newValue) {
-                    originalPart.regionSize = oldValue;
-                    newPart.regionSize = newValue;
+                    originalPart.cellSize = oldValue;
+                    newPart.cellSize = newValue;
                 },
                 [](const char* label, CellAnim::UintVec2* value) {
                     static const uint32_t min { 0 };
-                    static const uint32_t max { CellAnim::ArrangementPart::MAX_REGION };
+                    static const uint32_t max { CellAnim::ArrangementPart::MAX_CELL_COORD };
 
                     return ImGui::DragScalarN(label,
                         ImGuiDataType_U32, value->asArray(), 2,
@@ -593,7 +593,7 @@ void WindowInspector::Level_Arrangement() {
                     }
 
                     if (ImGui::BeginMenu("Paste single part (special)..", copyParts.size() == 1)) {
-                        if (ImGui::MenuItem("..transform")) {
+                        if (ImGui::MenuItem(".. transform")) {
                             CellAnim::ArrangementPart newPart = part;
 
                             newPart.transform = copyParts[0].transform;
@@ -613,7 +613,7 @@ void WindowInspector::Level_Arrangement() {
                             selectionState.setPartSelected(n, true);
                         }
 
-                        if (ImGui::MenuItem("..opacity")) {
+                        if (ImGui::MenuItem(".. opacity")) {
                             CellAnim::ArrangementPart newPart = part;
                             newPart.opacity = copyParts[0].opacity;
 
@@ -629,11 +629,11 @@ void WindowInspector::Level_Arrangement() {
                             selectionState.setPartSelected(n, true);
                         }
 
-                        if (ImGui::MenuItem("..region")) {
+                        if (ImGui::MenuItem(".. cell")) {
                             CellAnim::ArrangementPart newPart = part;
 
-                            newPart.regionPos = copyParts[0].regionPos;
-                            newPart.regionSize = copyParts[0].regionSize;
+                            newPart.cellOrigin = copyParts[0].cellOrigin;
+                            newPart.cellSize = copyParts[0].cellSize;
 
                             sessionManager.getCurrentSession()->addCommand(
                             std::make_shared<CommandModifyArrangementPart>(

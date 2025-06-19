@@ -33,7 +33,7 @@ int SelectionState::getMatchingNamePartIndex(
     return closestIndex;
 }
 
-int SelectionState::getMatchingRegionPartIndex(
+int SelectionState::getMatchingCellPartIndex(
     const CellAnim::ArrangementPart& part,
     const CellAnim::Arrangement& arrangement,
     int partIndex
@@ -44,8 +44,8 @@ int SelectionState::getMatchingRegionPartIndex(
     for (size_t i = 0; i < arrangement.parts.size(); i++) {
         const auto& lPart = arrangement.parts[i];
         if (
-            lPart.regionPos == part.regionPos &&
-            lPart.regionSize == part.regionSize
+            lPart.cellOrigin == part.cellOrigin &&
+            lPart.cellSize == part.cellSize
         ) {
             int distance = std::abs(static_cast<int>(i) - partIndex);
             if (distance < closestDistance) {

@@ -69,10 +69,10 @@ static void _ApplyInterpolation(
                 const auto* endPart = &endArrangement.parts.at(nameMatcher >= 0 ? nameMatcher : jClamp);
 
                 if (nameMatcher < 0 && (
-                    endPart->regionPos != part.regionPos ||
-                    endPart->regionSize != part.regionSize
+                    endPart->cellOrigin != part.cellOrigin ||
+                    endPart->cellSize != part.cellSize
                 )) {
-                    int mrpi = SelectionState::getMatchingRegionPartIndex(part, endArrangement, j);
+                    int mrpi = SelectionState::getMatchingCellPartIndex(part, endArrangement, j);
 
                     if (mrpi >= 0)
                         endPart = &endArrangement.parts.at(mrpi);
@@ -84,8 +84,11 @@ static void _ApplyInterpolation(
                     part.flipX = endPart->flipX;
                     part.flipY = endPart->flipY;
 
-                    part.regionPos = endPart->regionPos;
-                    part.regionSize = endPart->regionSize;
+                    part.cellOrigin = endPart->cellOrigin;
+                    part.cellSize = endPart->cellSize;
+
+                    part.editorVisible = endPart->editorVisible;
+                    part.editorLocked = endPart->editorLocked;
                 }
 
                 part.opacity = std::clamp<int>(

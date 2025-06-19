@@ -307,8 +307,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Animati
     };
 
     ImVec2 bottomRightOffset {
-        (topLeftOffset.x + (part.regionSize.x * part.transform.scale.x)),
-        (topLeftOffset.y + (part.regionSize.y * part.transform.scale.y))
+        (topLeftOffset.x + (part.cellSize.x * part.transform.scale.x)),
+        (topLeftOffset.y + (part.cellSize.y * part.transform.scale.y))
     };
 
     topLeftOffset = {
@@ -378,8 +378,8 @@ std::array<ImVec2, 4> CellAnimRenderer::getPartWorldQuad(const CellAnim::Transfo
     };
 
     ImVec2 bottomRightOffset {
-        (topLeftOffset.x + (part.regionSize.x * part.transform.scale.x)),
-        (topLeftOffset.y + (part.regionSize.y * part.transform.scale.y))
+        (topLeftOffset.x + (part.cellSize.x * part.transform.scale.x)),
+        (topLeftOffset.y + (part.cellSize.y * part.transform.scale.y))
     };
 
     topLeftOffset = {
@@ -495,12 +495,12 @@ static std::vector<PartDrawCommand> constructDrawData(
         command.quad = renderer.getPartWorldQuad(key, i);
 
         ImVec2 uvTopLeft = {
-            part.regionPos.x / texWidth,
-            part.regionPos.y / texHeight
+            part.cellOrigin.x / texWidth,
+            part.cellOrigin.y / texHeight
         };
         ImVec2 uvBottomRight = {
-            uvTopLeft.x + (part.regionSize.x / texWidth),
-            uvTopLeft.y + (part.regionSize.y / texHeight)
+            uvTopLeft.x + (part.cellSize.x / texWidth),
+            uvTopLeft.y + (part.cellSize.y / texHeight)
         };
 
         command.uvs = std::array<ImVec2, 4>({

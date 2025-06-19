@@ -227,13 +227,13 @@ struct CTRQuadDepth {
 
 struct ArrangementPart {
     // On all axes.
-    static constexpr unsigned MAX_REGION = 65535;
+    static constexpr unsigned MAX_CELL_COORD = 65535;
 
     static constexpr unsigned MAX_TEX_VARY = 65535;
     static constexpr unsigned MAX_ID = 255;
 
-    UintVec2 regionPos { 8, 8 };
-    UintVec2 regionSize { 8, 8 };
+    UintVec2 cellOrigin { 8, 8 };
+    UintVec2 cellSize { 8, 8 };
 
     // On RVL only.
     unsigned textureVarying { 0 };
@@ -265,8 +265,8 @@ struct ArrangementPart {
 
     bool operator==(const ArrangementPart& rhs) const {
         return
-            regionPos == rhs.regionPos &&
-            regionSize == rhs.regionSize &&
+            cellOrigin == rhs.cellOrigin &&
+            cellSize == rhs.cellSize &&
 
             textureVarying == rhs.textureVarying &&
 

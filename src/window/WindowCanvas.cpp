@@ -677,8 +677,8 @@ void WindowCanvas::Update() {
 
                 partCompensateRot -= part.transform.angle;
 
-                float centerX = part.transform.position.x + (part.regionSize.x * part.transform.scale.x * .5f);
-                float centerY = part.transform.position.y + (part.regionSize.y * part.transform.scale.y * .5f);
+                float centerX = part.transform.position.x + (part.cellSize.x * part.transform.scale.x * .5f);
+                float centerY = part.transform.position.y + (part.cellSize.y * part.transform.scale.y * .5f);
 
                 partAvgCenter.x += centerX;
                 partAvgCenter.y += centerY;
@@ -824,8 +824,8 @@ void WindowCanvas::Update() {
             part.transform.scale.x *= partsTransformation.scaleX;
             part.transform.scale.y *= partsTransformation.scaleY;
 
-            float pX = pivotPS.x - (part.regionSize.x * part.transform.scale.x) / 2.f;
-            float pY = pivotPS.y - (part.regionSize.y * part.transform.scale.y) / 2.f;
+            float pX = pivotPS.x - (part.cellSize.x * part.transform.scale.x) / 2.f;
+            float pY = pivotPS.y - (part.cellSize.y * part.transform.scale.y) / 2.f;
 
             // Compensation on position for transformation rotation.
 

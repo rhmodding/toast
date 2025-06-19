@@ -12,7 +12,7 @@ public:
         const CellAnim::Arrangement& arrangement,
         int partIndex
     );
-    static int getMatchingRegionPartIndex(
+    static int getMatchingCellPartIndex(
         const CellAnim::ArrangementPart& part,
         const CellAnim::Arrangement& arrangement,
         int partIndex

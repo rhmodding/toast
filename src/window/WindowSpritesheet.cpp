@@ -622,9 +622,7 @@ void WindowSpritesheet::Update() {
                     SessionManager& sessionManager = SessionManager::getInstance();
 
                     std::shared_ptr<TextureEx> newTexture = std::make_shared<TextureEx>();
-                    bool ok = newTexture->LoadSTBFile(openFileDialog);
-
-                    if (ok) {
+                    if (newTexture->LoadSTBFile(openFileDialog)) {
                         bool diffSize =
                             newTexture->getWidth()  != cellanimSheet->getWidth() ||
                             newTexture->getHeight() != cellanimSheet->getHeight();
@@ -662,8 +660,7 @@ void WindowSpritesheet::Update() {
             }
 
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
-                bool ok = SpritesheetFixUtil::FixRepack(*sessionManager.getCurrentSession());
-                if (!ok)
+                if (!SpritesheetFixUtil::FixRepack(*sessionManager.getCurrentSession()))
                     OPEN_GLOBAL_POPUP("###SheetRepackFailed");
             }
 
@@ -854,9 +851,9 @@ void WindowSpritesheet::Update() {
             const auto& part = arrangement.parts[i];
 
             unsigned sourceRect[4] {
-                part.regionPos.x % cellanimObject->getSheetWidth(),
-                part.regionPos.y % cellanimObject->getSheetHeight(),
-                part.regionSize.x, part.regionSize.y
+                part.cellOrigin.x % cellanimObject->getSheetWidth(),
+                part.cellOrigin.y % cellanimObject->getSheetHeight(),
+                part.cellSize.x, part.cellSize.y
             };
 
             const auto& associatedTex = textureGroup->getTextureByVarying(part.textureVarying);

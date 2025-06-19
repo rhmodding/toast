@@ -23,23 +23,20 @@ static void Popup_MPadRegion() {
         openConditions &= selectionState.singlePartSelected();
     }
 
-    static unsigned origOffset[2] { 8, 8 };
-    static unsigned origSize[2] { 32, 32 };
+    static CellAnim::UintVec2 origCellOrigin;
+    static CellAnim::UintVec2 origCellSize;
 
-    static unsigned origPosition[2] { 0, 0 };
+    static CellAnim::IntVec2 origPosition;
 
     if (!active && lateOpen && openConditions) {
         SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
         auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
 
-        part.regionPos.x = origOffset[0];
-        part.regionPos.y = origOffset[1];
-        part.regionSize.x = origSize[0];
-        part.regionSize.y = origSize[0];
+        part.cellOrigin = origCellOrigin;
+        part.cellSize = origCellSize;
 
-        part.transform.position.x = origPosition[0];
-        part.transform.position.y = origPosition[1];
+        part.transform.position = origPosition;
 
         lateOpen = false;
     }
@@ -50,51 +47,47 @@ static void Popup_MPadRegion() {
         auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
 
         if (!lateOpen) {
-            origOffset[0] = part.regionPos.x;
-            origOffset[1] = part.regionPos.y;
+            origCellOrigin = part.cellOrigin;
+            origCellSize = part.cellSize;
 
-            origSize[0] = part.regionSize.x;
-            origSize[1] = part.regionSize.y;
-
-            origPosition[0] = part.transform.position.x;
-            origPosition[1] = part.transform.position.y;
+            origPosition = part.transform.position;
         }
 
         lateOpen = true;
 
-        ImGui::SeparatorText("Part Region Padding");
+        ImGui::SeparatorText("Part Cell Padding");
 
-        static int padBy[2] { 0, 0 };
+        static CellAnim::IntVec2 padBy { 0, 0 };
         static bool centerPart { true };
 
-        ImGui::DragInt2("Padding (pixels)", padBy, .5f);
+        ImGui::DragInt2("Padding (pixels)", padBy.asArray(), .5f);
 
         ImGui::Checkbox("Center part", &centerPart);
 
         ImGui::Separator();
 
         if (ImGui::Button("Apply")) {
+            part.cellSize = origCellSize;
+            part.cellOrigin = origCellOrigin;
+
+            part.transform.position = origPosition;
+
             auto newPart = part; // Copy
 
-            newPart.regionSize.x = origSize[0] + padBy[0];
-            newPart.regionSize.y = origSize[1] + padBy[1];
+            newPart.cellSize.x = origCellSize.x + padBy.x;
+            newPart.cellSize.y = origCellSize.y + padBy.y;
 
-            newPart.regionPos.x = origOffset[0] - (padBy[0] / 2);
-            newPart.regionPos.y = origOffset[1] - (padBy[1] / 2);
+            newPart.cellOrigin.x = origCellOrigin.x - (padBy.x / 2);
+            newPart.cellOrigin.y = origCellOrigin.y - (padBy.y / 2);
 
             if (centerPart) {
-                newPart.transform.position.x = origPosition[0] - (padBy[0] / 2);
-                newPart.transform.position.y = origPosition[1] - (padBy[1] / 2);
+                newPart.transform.position.x = origPosition.x - ((padBy.x / 2) * newPart.transform.scale.x);
+                newPart.transform.position.y = origPosition.y - ((padBy.y / 2) * newPart.transform.scale.y);
             }
-
-            part.regionPos.x = origOffset[0];
-            part.regionPos.y = origOffset[1];
-
-            part.regionSize.x = origSize[0];
-            part.regionSize.y = origSize[1];
-
-            part.transform.position.x = origPosition[0];
-            part.transform.position.y = origPosition[1];
+            else {
+                newPart.transform.position.x = origPosition.x;
+                newPart.transform.position.y = origPosition.y;
+            }
 
             SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
 
@@ -106,35 +99,31 @@ static void Popup_MPadRegion() {
                 newPart
             ));
 
-            padBy[0] = 0;
-            padBy[1] = 0;
-
             ImGui::CloseCurrentPopup();
             lateOpen = false;
         }
 
         ImGui::SameLine();
         if (ImGui::Button("Cancel")) {
-            padBy[0] = 0;
-            padBy[1] = 0;
+            padBy = { 0, 0 };
 
             ImGui::CloseCurrentPopup();
             lateOpen = false;
         }
 
-        part.regionSize.x = origSize[0] + padBy[0];
-        part.regionSize.y = origSize[1] + padBy[1];
+        part.cellSize.x = origCellSize.x + padBy.x;
+        part.cellSize.y = origCellSize.y + padBy.y;
 
-        part.regionPos.x = origOffset[0] - (padBy[0] / 2);
-        part.regionPos.y = origOffset[1] - (padBy[1] / 2);
+        part.cellOrigin.x = origCellOrigin.x - (padBy.x / 2);
+        part.cellOrigin.y = origCellOrigin.y - (padBy.y / 2);
 
         if (centerPart) {
-            part.transform.position.x = origPosition[0] - (padBy[0] / 2);
-            part.transform.position.y = origPosition[1] - (padBy[1] / 2);
+            part.transform.position.x = origPosition.x - ((padBy.x / 2) * part.transform.scale.x);
+            part.transform.position.y = origPosition.y - ((padBy.y / 2) * part.transform.scale.y);
         }
         else {
-            part.transform.position.x = origPosition[0];
-            part.transform.position.y = origPosition[1];
+            part.transform.position.x = origPosition.x;
+            part.transform.position.y = origPosition.y;
         }
     }
 

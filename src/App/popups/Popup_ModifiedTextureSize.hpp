@@ -21,21 +21,24 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
     ImGui::PopStyleVar();
 
     if (active) {
-        ImGui::TextUnformatted("The new texture's size is different from the existing texture.\nPlease select the wanted behavior:");
+        ImGui::TextUnformatted(
+            "The new texture's size is different from the existing texture.\n"
+            "Please select the desired behavior:"
+        );
 
         ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();
         ImGui::Dummy({ 0.f, 5.f });
 
-        if (ImGui::Button("No region scaling"))
+        if (ImGui::Button("No cell scaling"))
             ImGui::CloseCurrentPopup();
 
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-            ImGui::SetTooltip("Select this option for texture extensions.");
+            ImGui::SetTooltip("Each part's cell will be kept as is (unscaled).");
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Apply region scaling")) {
+        if (ImGui::Button("Apply cell scaling")) {
             SessionManager& sessionManager = SessionManager::getInstance();
 
             Session* currentSession = sessionManager.getCurrentSession();
@@ -50,16 +53,17 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
                 static_cast<float>(currentSession->getCurrentCellAnimSheet()->getHeight()) /
                 oldTextureSizeY;
 
-            for (auto& arrangement : newArrangements)
+            for (auto& arrangement : newArrangements) {
                 for (auto& part : arrangement.parts) {
-                    part.regionPos.x *= scaleX;
-                    part.regionSize.x *= scaleX;
-                    part.regionPos.y *= scaleY;
-                    part.regionSize.y *= scaleY;
+                    part.cellOrigin.x *= scaleX;
+                    part.cellSize.x *= scaleX;
+                    part.cellOrigin.y *= scaleY;
+                    part.cellSize.y *= scaleY;
 
                     part.transform.scale.x /= scaleX;
                     part.transform.scale.y /= scaleY;
                 }
+            }
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangements>(
@@ -70,7 +74,7 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
             ImGui::CloseCurrentPopup();
         } ImGui::SetItemDefaultFocus();
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-            ImGui::SetTooltip("Select this option for texture upscales.");
+            ImGui::SetTooltip("Each part's cell will be scaled to match the new texture size.");
 
         ImGui::EndPopup();
     }
