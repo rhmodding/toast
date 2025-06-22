@@ -18,7 +18,6 @@ void ThemeManager::Initialize() {
     { // normal: Noto Sans (18px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
 
         mFonts.normal = io.Fonts->AddFontFromMemoryTTF(
             const_cast<unsigned char*>(NotoSans_data), NotoSans_length, 18.f, &fontConfig
@@ -29,7 +28,6 @@ void ThemeManager::Initialize() {
         ImFontConfig fontConfig;
         fontConfig.MergeMode = true;
         fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
 
         mFonts.normalJP = io.Fonts->AddFontFromMemoryTTF(
             const_cast<unsigned char*>(NotoSansJP_data), NotoSansJP_length, 18.f, &fontConfig,
@@ -42,7 +40,6 @@ void ThemeManager::Initialize() {
 
         ImFontConfig fontConfig;
         fontConfig.MergeMode = true;
-        fontConfig.PixelSnapH = true;
 
         mFonts.icon = io.Fonts->AddFontFromMemoryCompressedBase85TTF(
             FONT_ICON_BUFFER_NAME_FA, 15.f, &fontConfig, range
@@ -52,7 +49,6 @@ void ThemeManager::Initialize() {
     { // large: Noto Sans (24px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
 
         mFonts.large = io.Fonts->AddFontFromMemoryTTF(
             const_cast<unsigned char*>(NotoSans_data), NotoSans_length, 24.f, &fontConfig
@@ -62,7 +58,6 @@ void ThemeManager::Initialize() {
     { // giant: Noto Sans (52px)
         ImFontConfig fontConfig;
         fontConfig.FontDataOwnedByAtlas = false;
-        //fontConfig.OversampleH = 1;
 
         mFonts.giant = io.Fonts->AddFontFromMemoryTTF(
             const_cast<unsigned char*>(NotoSans_data), NotoSans_length, 52.f, &fontConfig
