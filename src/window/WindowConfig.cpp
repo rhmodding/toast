@@ -1,11 +1,13 @@
 #include "WindowConfig.hpp"
 
+#include <cstdint>
+
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include <cstdint>
-
 #include "manager/ThemeManager.hpp"
+
+#include "util/UIUtil.hpp"
 
 enum Categories {
     Category_General,
@@ -22,26 +24,6 @@ static const char* categoryNames[Categories_Count] {
     "Theming",
     "Paths"
 };
-
-static bool textInputStdString(const char* label, std::string& str) {
-    constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
-
-    return ImGui::InputText(label, const_cast<char*>(str.c_str()), str.capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
-        std::string* str = reinterpret_cast<std::string*>(data->UserData);
-        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
-            // Resize string callback
-            //
-            // If for some reason we refuse the new length (BufTextLen) and/or
-            // capacity (BufSize) we need to set them back to what we want.
-            IM_ASSERT(data->Buf == str->c_str());
-
-            str->resize(data->BufTextLen);
-            data->Buf = const_cast<char*>(str->c_str());
-        }
-
-        return 0;
-    }, &str);
-}
 
 void WindowConfig::Update() {
     ConfigManager& configManager = ConfigManager::getInstance();
@@ -183,8 +165,8 @@ void WindowConfig::Update() {
             } break;
 
             case Category_Paths: {
-                textInputStdString("Image editor path", mMyConfig.imageEditorPath);
-                textInputStdString("Texture edit path", mMyConfig.textureEditPath);
+                UIUtil::Widget::StdStringTextInput("Image editor path", mMyConfig.imageEditorPath);
+                UIUtil::Widget::StdStringTextInput("Texture edit path", mMyConfig.textureEditPath);
             } break;
 
             default:

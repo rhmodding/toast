@@ -4,11 +4,13 @@
 #include "manager/ThemeManager.hpp"
 #include "manager/PlayerManager.hpp"
 
+#include "manager/AppState.hpp"
+
 #include "command/CommandModifyAnimationKey.hpp"
 
-#include "font/FontAwesome.h"
+#include "util/UIUtil.hpp"
 
-#include "manager/AppState.hpp"
+#include "font/FontAwesome.h"
 
 void WindowInspector::Level_Key() {
     AppState& appState = AppState::getInstance();
@@ -87,7 +89,7 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((const char*)ICON_FA_PAUSE " Hold");
 
-    valueEditor<unsigned>("Hold Frames", key.holdFrames,
+    UIUtil::Widget::ValueEditor<unsigned>("Hold Frames", key.holdFrames,
         [&]() { return originalKey.holdFrames; },
         [&](const unsigned& oldValue, const unsigned& newValue) {
             originalKey.holdFrames = oldValue;
@@ -111,7 +113,7 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
 
-    valueEditor<CellAnim::IntVec2>("Position XY", key.transform.position,
+    UIUtil::Widget::ValueEditor<CellAnim::IntVec2>("Position XY", key.transform.position,
         [&]() { return originalKey.transform.position; },
         [&](const CellAnim::IntVec2& oldValue, const CellAnim::IntVec2& newValue) {
             originalKey.transform.position = oldValue;
@@ -126,7 +128,7 @@ void WindowInspector::Level_Key() {
         }
     );
 
-    valueEditor<CellAnim::FltVec2>("Scale XY", key.transform.scale,
+    UIUtil::Widget::ValueEditor<CellAnim::FltVec2>("Scale XY", key.transform.scale,
         [&]() { return originalKey.transform.scale; },
         [&](const CellAnim::FltVec2& oldValue, const CellAnim::FltVec2& newValue) {
             originalKey.transform.scale = oldValue;
@@ -139,7 +141,7 @@ void WindowInspector::Level_Key() {
         }
     );
 
-    valueEditor<float>("Angle Z", key.transform.angle,
+    UIUtil::Widget::ValueEditor<float>("Angle Z", key.transform.angle,
         [&]() { return originalKey.transform.angle; },
         [&](const float& oldValue, const float& newValue) {
             originalKey.transform.angle = oldValue;
@@ -161,7 +163,7 @@ void WindowInspector::Level_Key() {
     if (isCtr) {
         ImGui::Dummy({ 0.f, 3.f });
 
-        valueEditor<float>("Position Z", key.translateZ,
+        UIUtil::Widget::ValueEditor<float>("Position Z", key.translateZ,
             [&]() { return originalKey.translateZ; },
             [&](const float& oldValue, const float& newValue) {
                 originalKey.translateZ = oldValue;
@@ -175,7 +177,7 @@ void WindowInspector::Level_Key() {
 
     ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Rendering");
 
-    valueEditor<uint8_t>("Opacity", key.opacity,
+    UIUtil::Widget::ValueEditor<uint8_t>("Opacity", key.opacity,
         [&]() { return originalKey.opacity; },
         [&](const uint8_t& oldValue, const uint8_t& newValue) {
             originalKey.opacity = oldValue;
@@ -191,7 +193,7 @@ void WindowInspector::Level_Key() {
 
     // Fore & Back Color
     if (isCtr) {
-        valueEditor<CellAnim::CTRColor>("Fore Color", key.foreColor,
+        UIUtil::Widget::ValueEditor<CellAnim::CTRColor>("Fore Color", key.foreColor,
             [&]() { return originalKey.foreColor; },
             [&](const CellAnim::CTRColor& oldValue, const CellAnim::CTRColor& newValue) {
                 originalKey.foreColor = oldValue;
@@ -202,7 +204,7 @@ void WindowInspector::Level_Key() {
             }
         );
 
-        valueEditor<CellAnim::CTRColor>("Back Color", key.backColor,
+        UIUtil::Widget::ValueEditor<CellAnim::CTRColor>("Back Color", key.backColor,
             [&]() { return originalKey.backColor; },
             [&](const CellAnim::CTRColor& oldValue, const CellAnim::CTRColor& newValue) {
                 originalKey.backColor = oldValue;

@@ -78,6 +78,7 @@ set(SOURCES
     src/util/FileUtil.cpp
     src/util/ShiftJISUtil.cpp
     src/util/SpritesheetFixUtil.cpp
+    src/util/UIUtil.cpp
 
     src/window/WindowInspector/LvlAnimation.cpp
     src/window/WindowInspector/LvlArrangement.cpp

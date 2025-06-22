@@ -4,29 +4,12 @@
 #include <imgui.h>
 
 #include "manager/SessionManager.hpp"
+
 #include "command/CommandModifyArrangementPart.hpp"
 
+#include "util/UIUtil.hpp"
+
 #include "Macro.hpp"
-
-static bool textInputStdString(const char* label, std::string& str) {
-    constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
-
-    return ImGui::InputText(label, const_cast<char*>(str.c_str()), str.capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
-        std::string* str = reinterpret_cast<std::string*>(data->UserData);
-        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
-            // Resize string callback
-            //
-            // If for some reason we refuse the new length (BufTextLen) and/or
-            // capacity (BufSize) we need to set them back to what we want.
-            IM_ASSERT(data->Buf == str->c_str());
-
-            str->resize(data->BufTextLen);
-            data->Buf = const_cast<char*>(str->c_str());
-        }
-
-        return 0;
-    }, &str);
-}
 
 static void Popup_EditPartName(int arrangementIndex, int partIndex) {
     if (arrangementIndex < 0 || partIndex < 0)
@@ -59,7 +42,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
     if (open) {
         ImGui::Text("Edit name for part no. %u (arrangement no. %u):", partIndex + 1, arrangementIndex + 1);
 
-        textInputStdString("##Input", newName);
+        UIUtil::Widget::StdStringTextInput("##Input", newName);
 
         ImGui::Dummy({ 0.f, 15.f });
         ImGui::Separator();

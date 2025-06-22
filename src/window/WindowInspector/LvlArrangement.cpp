@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-// #include "manager/ConfigManager.hpp"
 #include "manager/SessionManager.hpp"
 #include "manager/ThemeManager.hpp"
 
@@ -13,6 +12,8 @@
 #include "command/CommandMoveArrangementPart.hpp"
 
 #include "command/CommandModifyAnimationKey.hpp"
+
+#include "util/UIUtil.hpp"
 
 #include "font/FontAwesome.h"
 
@@ -61,26 +62,6 @@ static bool partToggleButton(const char* label, bool toggled) {
     ImGui::PopStyleColor();
 
     return pressed;
-}
-
-static bool textInputStdString(const char* label, std::string& str) {
-    constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
-
-    return ImGui::InputText(label, const_cast<char*>(str.c_str()), str.capacity() + 1, flags, [](ImGuiInputTextCallbackData* data) -> int {
-        std::string* str = reinterpret_cast<std::string*>(data->UserData);
-        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
-            // Resize string callback
-            //
-            // If for some reason we refuse the new length (BufTextLen) and/or
-            // capacity (BufSize) we need to set them back to what we want.
-            IM_ASSERT(data->Buf == str->c_str());
-
-            str->resize(data->BufTextLen);
-            data->Buf = const_cast<char*>(str->c_str());
-        }
-
-        return 0;
-    }, &str);
 }
 
 void WindowInspector::Level_Arrangement() {
@@ -173,20 +154,20 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Name (editor)");
 
-            valueEditor<std::string>("Name", part.editorName,
+            UIUtil::Widget::ValueEditor<std::string>("Name", part.editorName,
                 [&]() { return originalPart.editorName; },
                 [&](const std::string& oldValue, const std::string& newValue) {
                     originalPart.editorName = oldValue;
                     newPart.editorName = newValue;
                 },
                 [](const char* label, std::string* value) {
-                    return textInputStdString(label, *value);
+                    return UIUtil::Widget::StdStringTextInput(label, *value);
                 }
             );
 
             ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");
 
-            valueEditor<CellAnim::IntVec2>("Position XY", part.transform.position,
+            UIUtil::Widget::ValueEditor<CellAnim::IntVec2>("Position XY", part.transform.position,
                 [&]() { return originalPart.transform.position; },
                 [&](const CellAnim::IntVec2& oldValue, const CellAnim::IntVec2& newValue) {
                     originalPart.transform.position = oldValue;
@@ -201,7 +182,7 @@ void WindowInspector::Level_Arrangement() {
                 }
             );
 
-            valueEditor<CellAnim::FltVec2>("Scale XY", part.transform.scale,
+            UIUtil::Widget::ValueEditor<CellAnim::FltVec2>("Scale XY", part.transform.scale,
                 [&]() { return originalPart.transform.scale; },
                 [&](const CellAnim::FltVec2& oldValue, const CellAnim::FltVec2& newValue) {
                     originalPart.transform.scale = oldValue;
@@ -212,7 +193,7 @@ void WindowInspector::Level_Arrangement() {
                 }
             );
 
-            valueEditor<float>("Angle Z", part.transform.angle,
+            UIUtil::Widget::ValueEditor<float>("Angle Z", part.transform.angle,
                 [&]() { return originalPart.transform.angle; },
                 [&](const float& oldValue, const float& newValue) {
                     originalPart.transform.angle = oldValue;
@@ -235,7 +216,7 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::SeparatorText((const char*)ICON_FA_IMAGE " Rendering");
 
-            valueEditor<uint8_t>("Opacity", part.opacity,
+            UIUtil::Widget::ValueEditor<uint8_t>("Opacity", part.opacity,
                 [&]() { return originalPart.opacity; },
                 [&](const uint8_t& oldValue, const uint8_t& newValue) {
                     originalPart.opacity = oldValue;
@@ -251,7 +232,7 @@ void WindowInspector::Level_Arrangement() {
 
             // Fore & Back Color
             if (isCtr) {
-                valueEditor<CellAnim::CTRColor>("Fore Color", part.foreColor,
+                UIUtil::Widget::ValueEditor<CellAnim::CTRColor>("Fore Color", part.foreColor,
                     [&]() { return originalPart.foreColor; },
                     [&](const CellAnim::CTRColor& oldValue, const CellAnim::CTRColor& newValue) {
                         originalPart.foreColor = oldValue;
@@ -262,7 +243,7 @@ void WindowInspector::Level_Arrangement() {
                     }
                 );
 
-                valueEditor<CellAnim::CTRColor>("Back Color", part.backColor,
+                UIUtil::Widget::ValueEditor<CellAnim::CTRColor>("Back Color", part.backColor,
                     [&]() { return originalPart.backColor; },
                     [&](const CellAnim::CTRColor& oldValue, const CellAnim::CTRColor& newValue) {
                         originalPart.backColor = oldValue;
@@ -276,7 +257,7 @@ void WindowInspector::Level_Arrangement() {
 
             ImGui::SeparatorText((const char*)ICON_FA_BORDER_TOP_LEFT " Cell");
 
-            valueEditor<CellAnim::UintVec2>("Origin XY##Cell", part.cellOrigin,
+            UIUtil::Widget::ValueEditor<CellAnim::UintVec2>("Origin XY##Cell", part.cellOrigin,
                 [&]() { return originalPart.cellOrigin; },
                 [&](const CellAnim::UintVec2& oldValue, const CellAnim::UintVec2& newValue) {
                     originalPart.cellOrigin = oldValue;
@@ -294,7 +275,7 @@ void WindowInspector::Level_Arrangement() {
                 }
             );
 
-            valueEditor<CellAnim::UintVec2>("Size WH##Cell", part.cellSize,
+            UIUtil::Widget::ValueEditor<CellAnim::UintVec2>("Size WH##Cell", part.cellSize,
                 [&]() { return originalPart.cellSize; },
                 [&](const CellAnim::UintVec2& oldValue, const CellAnim::UintVec2& newValue) {
                     originalPart.cellSize = oldValue;
@@ -316,7 +297,7 @@ void WindowInspector::Level_Arrangement() {
             if (isCtr) {
                 ImGui::SeparatorText((const char*)ICON_FA_PENCIL " ID");
 
-                valueEditor<unsigned>("ID", part.id,
+                UIUtil::Widget::ValueEditor<unsigned>("ID", part.id,
                     [&]() { return originalPart.id; },
                     [&](const unsigned& oldValue, const unsigned& newValue) {
                         originalPart.id = oldValue;
@@ -332,7 +313,7 @@ void WindowInspector::Level_Arrangement() {
 
                 ImGui::SeparatorText((const char*)ICON_FA_WAND_MAGIC_SPARKLES " 3D Depth");
 
-                valueEditor<CellAnim::CTRQuadDepth>("Quad Depth", part.quadDepth,
+                UIUtil::Widget::ValueEditor<CellAnim::CTRQuadDepth>("Quad Depth", part.quadDepth,
                     [&]() { return originalPart.quadDepth; },
                     [&](const CellAnim::CTRQuadDepth& oldValue, const CellAnim::CTRQuadDepth& newValue) {
                         originalPart.quadDepth = oldValue;
@@ -340,6 +321,8 @@ void WindowInspector::Level_Arrangement() {
                     },
                     [](const char* label, CellAnim::CTRQuadDepth* value) {
                         bool changed = false;
+
+                        ImGui::PushID(label);
 
                         ImGui::BeginGroup();
 
@@ -359,20 +342,22 @@ void WindowInspector::Level_Arrangement() {
 
                         ImGui::EndGroup();
 
+                        ImGui::PopID();
+
                         return changed;
                     }
                 );
 
                 ImGui::SeparatorText((const char*)ICON_FA_WAND_MAGIC_SPARKLES " Effects");
 
-                valueEditor<std::string>("Emitter Name", part.emitterName,
+                UIUtil::Widget::ValueEditor<std::string>("Emitter Name", part.emitterName,
                     [&]() { return originalPart.emitterName; },
                     [&](const std::string& oldValue, const std::string& newValue) {
                         originalPart.emitterName = oldValue;
                         newPart.emitterName = newValue;
                     },
                     [](const char* label, std::string* value) {
-                        return textInputStdString(label, *value);
+                        return UIUtil::Widget::StdStringTextInput(label, *value);
                     }
                 );
             }
