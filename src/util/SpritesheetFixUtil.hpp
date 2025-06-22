@@ -1,5 +1,5 @@
-#ifndef SPRITESHEET_FIX_UTIL
-#define SPRITESHEET_FIX_UTIL
+#ifndef SPRITESHEET_FIX_UTIL_HPP
+#define SPRITESHEET_FIX_UTIL_HPP
 
 #include "manager/SessionManager.hpp"
 
@@ -14,4 +14,4 @@ bool FixAlphaBleed(Session& session, int sheetIndex = -1 /* Use current sheet */
 
 } // namespace SpritesheetFixUtil
 
-#endif // SPRITESHEET_FIX_UTIL
+#endif // SPRITESHEET_FIX_UTIL_HPP

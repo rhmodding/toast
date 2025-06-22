@@ -1,5 +1,5 @@
-#ifndef SHIFT_JIS_UTIL
-#define SHIFT_JIS_UTIL
+#ifndef SHIFT_JIS_UTIL_HPP
+#define SHIFT_JIS_UTIL_HPP
 
 #include <cstddef>
 
@@ -15,4 +15,4 @@ std::string convertToShiftJIS(const char* string, const size_t stringSize);
 
 } // namespace ShiftJISUtil
 
-#endif // SHIFT_JIS_UTIL
+#endif // SHIFT_JIS_UTIL_HPP
