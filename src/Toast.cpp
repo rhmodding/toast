@@ -835,36 +835,34 @@ void Toast::Update() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Begin main window
-    {
-        constexpr ImGuiDockNodeFlags dockspaceFlags =
-            ImGuiDockNodeFlags_PassthruCentralNode;
-        constexpr ImGuiWindowFlags windowFlags =
-            ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
-            ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
-            ImGuiWindowFlags_NoBackground;
+    // Begin main window.
+    constexpr ImGuiDockNodeFlags dockspaceFlags =
+        ImGuiDockNodeFlags_PassthruCentralNode;
+    constexpr ImGuiWindowFlags windowFlags =
+        ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+        ImGuiWindowFlags_NoBackground;
 
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-        ImGui::SetNextWindowPos(viewport->WorkPos);
-        ImGui::SetNextWindowSize(viewport->WorkSize);
-        ImGui::SetNextWindowViewport(viewport->ID);
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.f });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.f });
 
-        ImGui::Begin(WINDOW_TITLE "###HeadWindow", nullptr, windowFlags);
+    ImGui::Begin(WINDOW_TITLE "###HeadWindow", nullptr, windowFlags);
 
-        ImGui::PopStyleVar(3);
-        ImGui::PopStyleColor();
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor();
 
-        // Submit the Dockspace
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
-            ImGui::DockSpace(ImGui::GetID("HeadDockspace"), { -1.f, -1.f }, dockspaceFlags);
-    }
+    // Submit the dockspace.
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
+        ImGui::DockSpace(ImGui::GetID("HeadDockspace"), { -1.f, -1.f }, dockspaceFlags);
 
     Shortcuts::Process();
 
@@ -887,7 +885,7 @@ void Toast::Update() {
 
     Popups::Update();
 
-    // End main window
+    // End main window.
     ImGui::End();
 
     AsyncTaskManager::getInstance().UpdateTasks();
