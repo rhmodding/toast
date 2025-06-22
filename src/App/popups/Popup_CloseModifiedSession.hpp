@@ -30,7 +30,7 @@ static void Popup_CloseModifiedSession() {
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     if (ImGui::BeginPopupModal(popupTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Dummy({ ImGui::CalcTextSize(sessionPath.c_str()).x - 40.f, 0.f });
+        ImGui::Dummy({ ImGui::CalcTextSize(sessionPath.c_str()).x - 30.f, 0.f });
 
         ImGui::TextUnformatted("Are you sure you want to close this session?\nYour changes will be lost.");
 
