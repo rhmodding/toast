@@ -49,13 +49,15 @@ struct CtrCellAnimHeader {
     uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 
+template <bool isArrangementPart>
 struct RvlTransformValues {
     int16_t positionX { 0 }, positionY { 0 }; // In pixels.
     float scaleX { 1.f }, scaleY { 1.f };
     float angle { 0.f }; // In degrees.
 
     RvlTransformValues() = default;
-    RvlTransformValues(const CellAnim::TransformValues& transformValues, bool isArrangementPart) {
+
+    RvlTransformValues(const CellAnim::TransformValues& transformValues) {
         const int additive = (isArrangementPart ? 512 : 0);
 
         positionX = BYTESWAP_16(static_cast<int16_t>(transformValues.position.x + additive));
@@ -65,7 +67,7 @@ struct RvlTransformValues {
         angle = BYTESWAP_FLOAT(transformValues.angle);
     }
 
-    CellAnim::TransformValues toTransformValues(bool isArrangementPart) const {
+    CellAnim::TransformValues toTransformValues() const {
         CellAnim::TransformValues transformValues;
 
         const int additive = (isArrangementPart ? -512 : 0);
@@ -80,8 +82,6 @@ struct RvlTransformValues {
     }
 } __attribute__((packed));
 
-// Note: In Bread (the predecessor of toast) 'arrangements' were called 'sprites'.
-
 struct RvlArrangementPart {
     uint16_t cellX; // X position of UV region in spritesheet
     uint16_t cellY; // Y position of UV region in spritesheet
@@ -93,7 +93,7 @@ struct RvlArrangementPart {
 
     uint16_t _pad16 { 0x0000 };
 
-    RvlTransformValues transform;
+    RvlTransformValues<true> transform;
 
     uint8_t flipX; // Horizontally flipped (boolean)
     uint8_t flipY; // Vertically flipped (boolean)
@@ -111,12 +111,34 @@ struct RvlArrangementPart {
 
         textureVarying = BYTESWAP_16(arrangementPart.textureVarying);
 
-        transform = RvlTransformValues(arrangementPart.transform, true);
+        transform = RvlTransformValues<true>(arrangementPart.transform);
 
         flipX = arrangementPart.flipX ? 0x01 : 0x00;
         flipY = arrangementPart.flipY ? 0x01 : 0x00;
 
         opacity = arrangementPart.opacity;
+    }
+
+    CellAnim::ArrangementPart toArrangementPart() const {
+        return CellAnim::ArrangementPart {
+            .cellOrigin = CellAnim::UintVec2 {
+                BYTESWAP_16(cellX),
+                BYTESWAP_16(cellY)
+            },
+            .cellSize = CellAnim::UintVec2 {
+                BYTESWAP_16(cellW),
+                BYTESWAP_16(cellH)
+            },
+
+            .textureVarying = BYTESWAP_16(textureVarying),
+
+            .transform = transform.toTransformValues(),
+
+            .flipX = flipX != 0x00,
+            .flipY = flipY != 0x00,
+
+            .opacity = opacity
+        };
     }
 } __attribute__((packed));
 struct CtrArrangementPart {
@@ -186,6 +208,57 @@ struct CtrArrangementPart {
         depthTR = arrangementPart.quadDepth.topRight;
         depthBR = arrangementPart.quadDepth.bottomRight;
     }
+
+    CellAnim::ArrangementPart toArrangementPart() const {
+        return CellAnim::ArrangementPart {
+            .cellOrigin = CellAnim::UintVec2 {
+                cellX,
+                cellY
+            },
+            .cellSize = CellAnim::UintVec2 {
+                cellW,
+                cellH
+            },
+
+            .transform = CellAnim::TransformValues {
+                .position = CellAnim::IntVec2 {
+                    static_cast<int>(static_cast<int16_t>(positionX - 512)),
+                    static_cast<int>(static_cast<int16_t>(positionY - 512))
+                },
+                .scale = CellAnim::FltVec2 {
+                    scaleX, scaleY
+                },
+                .angle = angle,
+            },
+
+            .flipX = flipX != 0x00,
+            .flipY = flipY != 0x00,
+
+            .opacity = opacity,
+
+            .foreColor = CellAnim::CTRColor (
+                foreColor[0] / 255.f,
+                foreColor[1] / 255.f,
+                foreColor[2] / 255.f
+            ),
+            .backColor = CellAnim::CTRColor (
+                backColor[0] / 255.f,
+                backColor[1] / 255.f,
+                backColor[2] / 255.f
+            ),
+
+            .quadDepth = CellAnim::CTRQuadDepth {
+                .topLeft = depthTL,
+                .bottomLeft = depthBL,
+                .topRight = depthTR,
+                .bottomRight = depthBR,
+            },
+
+            .id = id
+
+            // emitterName cannot be derived
+        };
+    }
 } __attribute__((packed));
 
 struct RvlArrangement {
@@ -216,7 +289,7 @@ struct RvlAnimationKey {
     // Amount of frames the key is held for (0 is allowed).
     uint16_t holdFrames;
 
-    RvlTransformValues transform;
+    RvlTransformValues<false> transform;
 
     uint8_t opacity;
 
@@ -227,9 +300,21 @@ struct RvlAnimationKey {
         arrangementIndex = BYTESWAP_16(animationKey.arrangementIndex);
         holdFrames = BYTESWAP_16(animationKey.holdFrames);
 
-        transform = RvlTransformValues(animationKey.transform, false);
+        transform = RvlTransformValues<false>(animationKey.transform);
 
         opacity = animationKey.opacity;
+    }
+
+    CellAnim::AnimationKey toAnimationKey() const {
+        return CellAnim::AnimationKey {
+            .arrangementIndex = BYTESWAP_16(arrangementIndex),
+
+            .holdFrames = BYTESWAP_16(holdFrames),
+
+            .transform = transform.toTransformValues(),
+
+            .opacity = opacity
+        };
     }
 } __attribute__((packed));
 struct CtrAnimationKey {
@@ -273,6 +358,35 @@ struct CtrAnimationKey {
         backColor[2] = ROUND_FLOAT(animationKey.backColor.b * 255.f);
 
         opacity = animationKey.opacity;
+    }
+
+    CellAnim::AnimationKey toAnimationKey() const {
+        return CellAnim::AnimationKey {
+            .arrangementIndex = arrangementIndex,
+
+            .holdFrames = holdFrames,
+
+            .transform = CellAnim::TransformValues {
+                .position = CellAnim::IntVec2 { positionX, positionY },
+                .scale = CellAnim::FltVec2 { scaleX, scaleY },
+                .angle = angle,
+            },
+
+            .translateZ = positionZ,
+
+            .opacity = opacity,
+
+            .foreColor = CellAnim::CTRColor (
+                foreColor[0] / 255.f,
+                foreColor[1] / 255.f,
+                foreColor[2] / 255.f
+            ),
+            .backColor = CellAnim::CTRColor (
+                backColor[0] / 255.f,
+                backColor[1] / 255.f,
+                backColor[2] / 255.f
+            )
+        };
     }
 } __attribute__((packed));
 
@@ -332,25 +446,7 @@ bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const siz
             const RvlArrangementPart* arrangementPartIn = reinterpret_cast<const RvlArrangementPart*>(currentData);
             currentData += sizeof(RvlArrangementPart);
 
-            arrangementOut.parts[j] = CellAnim::ArrangementPart {
-                .cellOrigin = CellAnim::UintVec2 {
-                    BYTESWAP_16(arrangementPartIn->cellX),
-                    BYTESWAP_16(arrangementPartIn->cellY)
-                },
-                .cellSize = CellAnim::UintVec2 {
-                    BYTESWAP_16(arrangementPartIn->cellW),
-                    BYTESWAP_16(arrangementPartIn->cellH)
-                },
-
-                .textureVarying = BYTESWAP_16(arrangementPartIn->textureVarying),
-
-                .transform = arrangementPartIn->transform.toTransformValues(true),
-
-                .flipX = arrangementPartIn->flipX != 0x00,
-                .flipY = arrangementPartIn->flipY != 0x00,
-
-                .opacity = arrangementPartIn->opacity
-            };
+            arrangementOut.parts[j] = arrangementPartIn->toArrangementPart();
         }
     }
 
@@ -374,15 +470,7 @@ bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const siz
             const RvlAnimationKey* keyIn = reinterpret_cast<const RvlAnimationKey*>(currentData);
             currentData += sizeof(RvlAnimationKey);
 
-            animationOut.keys[j] = CellAnim::AnimationKey {
-                .arrangementIndex = BYTESWAP_16(keyIn->arrangementIndex),
-
-                .holdFrames = BYTESWAP_16(keyIn->holdFrames),
-
-                .transform = keyIn->transform.toTransformValues(false),
-
-                .opacity = keyIn->opacity
-            };
+            animationOut.keys[j] = keyIn->toAnimationKey();
         }
     }
 
@@ -423,54 +511,7 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
             const CtrArrangementPart* arrangementPartIn = reinterpret_cast<const CtrArrangementPart*>(currentData);
             currentData += sizeof(CtrArrangementPart);
 
-            arrangementOut.parts[j] = CellAnim::ArrangementPart {
-                .cellOrigin = CellAnim::UintVec2 {
-                    arrangementPartIn->cellX,
-                    arrangementPartIn->cellY
-                },
-                .cellSize = CellAnim::UintVec2 {
-                    arrangementPartIn->cellW,
-                    arrangementPartIn->cellH
-                },
-
-                .transform = CellAnim::TransformValues {
-                    .position = CellAnim::IntVec2 {
-                        static_cast<int>(static_cast<int16_t>(arrangementPartIn->positionX - 512)),
-                        static_cast<int>(static_cast<int16_t>(arrangementPartIn->positionY - 512))
-                    },
-                    .scale = CellAnim::FltVec2 {
-                        arrangementPartIn->scaleX, arrangementPartIn->scaleY
-                    },
-                    .angle = arrangementPartIn->angle,
-                },
-
-                .flipX = arrangementPartIn->flipX != 0x00,
-                .flipY = arrangementPartIn->flipY != 0x00,
-
-                .opacity = arrangementPartIn->opacity,
-
-                .foreColor = CellAnim::CTRColor (
-                    arrangementPartIn->foreColor[0] / 255.f,
-                    arrangementPartIn->foreColor[1] / 255.f,
-                    arrangementPartIn->foreColor[2] / 255.f
-                ),
-                .backColor = CellAnim::CTRColor (
-                    arrangementPartIn->backColor[0] / 255.f,
-                    arrangementPartIn->backColor[1] / 255.f,
-                    arrangementPartIn->backColor[2] / 255.f
-                ),
-
-                .quadDepth = CellAnim::CTRQuadDepth {
-                    .topLeft = arrangementPartIn->depthTL,
-                    .bottomLeft = arrangementPartIn->depthBL,
-                    .topRight = arrangementPartIn->depthTR,
-                    .bottomRight = arrangementPartIn->depthBR,
-                },
-
-                .id = arrangementPartIn->id
-
-                // emitterName is set later.
-            };
+            arrangementOut.parts[j] = arrangementPartIn->toArrangementPart();
         }
     }
 
@@ -498,36 +539,7 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
             const CtrAnimationKey* keyIn = reinterpret_cast<const CtrAnimationKey*>(currentData);
             currentData += sizeof(CtrAnimationKey);
 
-            animationOut.keys[j] = CellAnim::AnimationKey {
-                .arrangementIndex = keyIn->arrangementIndex,
-
-                .holdFrames = keyIn->holdFrames,
-
-                .transform = CellAnim::TransformValues {
-                    .position = CellAnim::IntVec2 {
-                        keyIn->positionX, keyIn->positionY
-                    },
-                    .scale = CellAnim::FltVec2 {
-                        keyIn->scaleX, keyIn->scaleY
-                    },
-                    .angle = keyIn->angle,
-                },
-
-                .translateZ = keyIn->positionZ,
-
-                .opacity = keyIn->opacity,
-
-                .foreColor = CellAnim::CTRColor (
-                    keyIn->foreColor[0] / 255.f,
-                    keyIn->foreColor[1] / 255.f,
-                    keyIn->foreColor[2] / 255.f
-                ),
-                .backColor = CellAnim::CTRColor (
-                    keyIn->backColor[0] / 255.f,
-                    keyIn->backColor[1] / 255.f,
-                    keyIn->backColor[2] / 255.f
-                )
-            };
+            animationOut.keys[j] = keyIn->toAnimationKey();
         }
     }
 
@@ -538,10 +550,11 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
         std::vector<std::string> emitterNames(static_cast<unsigned>(emitterNameCount));
         for (unsigned i = 0; i < emitterNameCount; i++) {
             const uint8_t stringLength = *reinterpret_cast<const uint8_t*>(currentData);
+            currentData += sizeof(uint8_t);
 
-            emitterNames[i].assign(reinterpret_cast<const char*>(currentData + 1), stringLength);
+            emitterNames[i].assign(reinterpret_cast<const char*>(currentData), stringLength);
 
-            currentData += sizeof(uint8_t) + stringLength;
+            currentData += stringLength;
         }
 
         currentData = arrangementsStart;
