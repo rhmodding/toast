@@ -25,7 +25,9 @@ NLOHMANN_JSON_SERIALIZE_ENUM(BackupBehaviour, {
 
 enum class ThemeChoice {
     Light,
-    Dark
+    Dark,
+
+    Count
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ThemeChoice, {

@@ -108,60 +108,87 @@ void WindowConfig::Update() {
             } break;
 
             case Category_Export: {
-                enum CompressionLevels { CL_Highest, CL_High, CL_Medium, CL_Low, CL_VeryLow, CL_Count };
-
-                static const char* compressionLevelNames[CL_Count] = { "Highest", "High", "Medium", "Low", "Very Low" };
-                static const int compressionLevelMap[CL_Count] = { 9, 8, 7, 4, 2 };
-                static const int compressionLevels[] = {
-                    CL_Count, // 0
-                    CL_Count, // 1
-                    CL_VeryLow, // 2
-                    CL_Count, // 3
-                    CL_Low, // 4
-                    CL_Count, // 5
-                    CL_Count, // 6
-                    CL_Medium, // 7
-                    CL_High, // 8
-                    CL_Highest // 9
+                enum class AbstrCompressionLevel {
+                    VeryLow,
+                    Low,
+                    Medium,
+                    High,
+                    Highest,
+                    Count
                 };
 
-                int selectedCompressionLevel = compressionLevels[mMyConfig.compressionLevel];
+                static constexpr std::array<std::string_view, static_cast<int>(AbstrCompressionLevel::Count)> abstrCompressionLevelNames = {
+                    "Very Low", "Low", "Medium", "High", "Highest"
+                };
+                static constexpr std::array<int, static_cast<int>(AbstrCompressionLevel::Count)> abstrCompressionLevelValues = {
+                    2, 4, 7, 8, 9
+                };
+
+                // Map from true compression level (index) to abstract compression level (value).
+                static constexpr std::array<AbstrCompressionLevel, 10> abstrCompressionLevelTable = {
+                    AbstrCompressionLevel::Count,   // 0
+                    AbstrCompressionLevel::Count,   // 1
+                    AbstrCompressionLevel::VeryLow, // 2
+                    AbstrCompressionLevel::Count,   // 3
+                    AbstrCompressionLevel::Low,     // 4
+                    AbstrCompressionLevel::Count,   // 5
+                    AbstrCompressionLevel::Count,   // 6
+                    AbstrCompressionLevel::Medium,  // 7
+                    AbstrCompressionLevel::High,    // 8
+                    AbstrCompressionLevel::Highest  // 9
+                };
+
+                int selectedCompLevelIndex = static_cast<int>(abstrCompressionLevelTable[mMyConfig.compressionLevel]);
 
                 char buffer[64];
-
-                if (selectedCompressionLevel >= 0 && selectedCompressionLevel < CL_Count)
-                    strncpy(buffer, compressionLevelNames[selectedCompressionLevel], sizeof(buffer));
-                else
-                    snprintf(buffer, sizeof(buffer), "Other (%d)", mMyConfig.compressionLevel);
+                if (selectedCompLevelIndex >= 0 && selectedCompLevelIndex < static_cast<int>(AbstrCompressionLevel::Count)) {
+                    std::snprintf(buffer, sizeof(buffer), "%s", abstrCompressionLevelNames[selectedCompLevelIndex].data());
+                } else {
+                    std::snprintf(buffer, sizeof(buffer), "Other (%d)", mMyConfig.compressionLevel);
+                }
 
                 if (ImGui::SliderInt(
                     "Compression level",
-                    &selectedCompressionLevel,
-                    CL_Count - 1, 0,
+                    &selectedCompLevelIndex,
+                    0,
+                    static_cast<int>(AbstrCompressionLevel::Count) - 1,
                     buffer,
                     ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp
                 )) {
-                    mMyConfig.compressionLevel = compressionLevelMap[selectedCompressionLevel];
+                    mMyConfig.compressionLevel = abstrCompressionLevelValues[selectedCompLevelIndex];
                 }
 
-                static const char* etc1QualityNames[(int)ETC1Quality::Count] = { "Low", "Medium", "High" };
-                if (mMyConfig.etc1Quality < ETC1Quality::Count)
-                    strncpy(buffer, etc1QualityNames[(int)mMyConfig.etc1Quality], sizeof(buffer));
-                else
-                    strncpy(buffer, "Invalid", sizeof(buffer));
+                static constexpr std::array<std::string_view, static_cast<int>(ETC1Quality::Count)> ETC1QualityNames = {
+                    "Low", "Medium", "High"
+                };
 
-                ImGui::SliderInt(
+                int qualityIndex = static_cast<int>(mMyConfig.etc1Quality);
+
+                if (qualityIndex >= 0 && qualityIndex < static_cast<int>(ETC1Quality::Count)) {
+                    std::snprintf(buffer, sizeof(buffer), "%s", ETC1QualityNames[qualityIndex].data());
+                } else {
+                    std::snprintf(buffer, sizeof(buffer), "Invalid");
+                }
+
+                if (ImGui::SliderInt(
                     "ETC1 compression quality",
-                    reinterpret_cast<int*>(&mMyConfig.etc1Quality),
-                    0, (int)ETC1Quality::Count - 1,
+                    &qualityIndex,
+                    0,
+                    static_cast<int>(ETC1Quality::Count) - 1,
                     buffer,
                     ImGuiSliderFlags_NoInput | ImGuiSliderFlags_AlwaysClamp
-                );
+                )) {
+                    mMyConfig.etc1Quality = static_cast<ETC1Quality>(qualityIndex);
+                }
             } break;
 
             case Category_Theming: {
-                static const char* themeOptions[] { "Light", "Dark" };
-                ImGui::Combo("Theme", reinterpret_cast<int*>(&mMyConfig.theme), themeOptions, 2);
+                static const char* themeNames[static_cast<int>(ThemeChoice::Count)] { "Light", "Dark" };
+
+                int themeIndex = static_cast<int>(mMyConfig.theme);
+                if (ImGui::Combo("Theme", &themeIndex, themeNames, 2)) {
+                    mMyConfig.theme = static_cast<ThemeChoice>(themeIndex);
+                }
             } break;
 
             case Category_Paths: {
