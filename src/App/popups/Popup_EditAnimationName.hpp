@@ -49,7 +49,7 @@ static void Popup_EditAnimationName(int animationIndex) {
             // 'Fix' the new name.
 
             // On RVL we make the name suitable to be a C macro name. It doesn't make sense to
-            // do this for CTR cellanims since only RVL stores it's animation names in C header files.
+            // do this for CTR cellanims since only RVL stores its animation names in C header files.
             if (sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL) {
                 size_t i = 0;
 

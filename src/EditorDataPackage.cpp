@@ -67,7 +67,7 @@ struct TedEntry {
         struct {
             uint16_t arrangementIndex;
             uint16_t partIndex;
-            // When a part gets set to hidden, it's opacity is overwritten to zero when
+            // When a part gets set to hidden, its opacity is overwritten to zero when
             // serialized. The opacity is restored to this value when loaded
             uint8_t originalOpacity;
         } partHide;

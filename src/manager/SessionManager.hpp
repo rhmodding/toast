@@ -117,7 +117,7 @@ public:
     // Returns: true if succeeded, false if failed
     bool ExportSession(unsigned sessionIndex, std::string_view dstFilePath = {});
 
-    // Remove a session by it's index.
+    // Remove a session by its index.
     void RemoveSession(unsigned sessionIndex);
 
     // Remove all mSessions.

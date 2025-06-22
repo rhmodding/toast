@@ -53,17 +53,17 @@ public:
     void setMagFilter(GLint magFilter);
 
     // Generate a texture & upload the RGBA32 data to it.
-    // Note: if a GPU texture already exists, this will overwrite it's data.
+    // Note: if a GPU texture already exists, this will overwrite its data.
     void LoadRGBA32(const unsigned char* data, unsigned width, unsigned height);
 
     // Generate a texture & use stb_image to load the image data from memory.
-    //     - Note: if a GPU texture already exists, this will overwrite it's data.
+    //     - Note: if a GPU texture already exists, this will overwrite its data.
     //
     // Returns: true if succeeded, false if failed
     bool LoadSTBMem(const unsigned char* data, int dataSize);
 
     // Generate a texture & use stb_image to load the image data from the filesystem.
-    //     - Note: if a GPU texture already exists, this will overwrite it's data.
+    //     - Note: if a GPU texture already exists, this will overwrite its data.
     //
     // Returns: true if succeeded, false if failed
     bool LoadSTBFile(std::string_view filename);
