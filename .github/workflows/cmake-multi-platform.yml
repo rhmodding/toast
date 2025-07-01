@@ -14,8 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-latest, macos-13]
-        build_type: [Release]
-        c_compiler: [gcc]
         include:
           - os: windows-latest
             c_compiler: gcc
@@ -51,10 +49,17 @@ jobs:
 
       - name: Install libglfw3-dev & libglew-dev on Ubuntu
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
+        run: | # No need for sudo apt-get update, since we've done that on the previous step.
           sudo apt-get install -y libglfw3-dev
           sudo apt-get install -y libglew-dev
+
+      - name: Install Ninja (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y ninja-build
+
+      - name: Install Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
 
       - name: Install MinGW on Windows
         if: runner.os == 'Windows'
@@ -70,10 +75,21 @@ jobs:
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-      - name: Configure CMake
+      - name: Configure CMake (Ubuntu/macOS)
+        if: runner.os != 'Windows'
         run: >
           cmake -B ${{ steps.strings.outputs.build-output-dir }}
-          ${{ matrix.os == 'windows-latest' && '-G "MinGW Makefiles"' || '' }}
+          -G Ninja
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -S ${{ github.workspace }}
+
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          -G "MinGW Makefiles"
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -82,38 +98,23 @@ jobs:
       - name: Build
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-      - name: Zip build on macOS
-        if: runner.os == 'macOS'
-        run: |
-          cd ${{ steps.strings.outputs.build-output-dir }}
-          zip -r toast_macOS.zip toast.app
-      - name: Upload zipped build on macOS
+      - name: Upload build on macOS
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: toast_macOS
-          path: ${{ steps.strings.outputs.build-output-dir }}/toast_macOS.zip
-      
-      - name: Zip build on Ubuntu
-        if: runner.os == 'Linux'
-        run: |
-          cd ${{ steps.strings.outputs.build-output-dir }}
-          zip -r toast_Linux.zip toast
-      - name: Upload zipped build on Ubuntu
+          path: ${{ steps.strings.outputs.build-output-dir }}/toast.app/
+
+      - name: Upload build on Ubuntu
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: toast_Linux
-          path: ${{ steps.strings.outputs.build-output-dir }}/toast_Linux.zip
-      
-      - name: Zip build on Windows
-        if: runner.os == 'Windows'
-        run: |
-          cd ${{ steps.strings.outputs.build-output-dir }}
-          Compress-Archive -Path toast.exe -DestinationPath toast_Windows.zip
+          path: ${{ steps.strings.outputs.build-output-dir }}/toast
+
       - name: Upload zipped build on Windows
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: toast_Windows
-          path: ${{ steps.strings.outputs.build-output-dir }}/toast_Windows.zip
+          path: ${{ steps.strings.outputs.build-output-dir }}/toast.exe
