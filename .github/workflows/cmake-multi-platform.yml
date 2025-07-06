@@ -112,12 +112,20 @@ jobs:
         if: runner.os == 'Windows'
         run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} -- -j $Env:NUMBER_OF_PROCESSORS
 
+      # We need to do this to stop upload-artifact from uploading toast.app/Contents
+      # instead of toast.app
+      - name: (HACK) Move toast.app into macOS_build
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p "${{ steps.strings.outputs.build-output-dir }}/macOS_build"
+          mv "${{ steps.strings.outputs.build-output-dir }}/toast.app" "${{ steps.strings.outputs.build-output-dir }}/macOS_build/"
+
       - name: Upload build on macOS
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: toast_macOS
-          path: ${{ steps.strings.outputs.build-output-dir }}/toast.app/
+          path: ${{ steps.strings.outputs.build-output-dir }}/macOS_build
 
       - name: Upload build on Ubuntu
         if: runner.os == 'Linux'
@@ -126,7 +134,7 @@ jobs:
           name: toast_Linux
           path: ${{ steps.strings.outputs.build-output-dir }}/toast
 
-      - name: Upload zipped build on Windows
+      - name: Upload build on Windows
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
