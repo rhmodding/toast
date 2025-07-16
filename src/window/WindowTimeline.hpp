@@ -6,6 +6,10 @@
 class WindowTimeline : public BaseWindow {
 public:
     void Update() override;
+
+private:
+    void ChildToolbar();
+    void ChildKeys();
 };
 
 #endif // WINDOW_TIMELINE_HPP

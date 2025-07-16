@@ -65,11 +65,31 @@ public:
     void setFrameRate(unsigned frameRate) { mFrameRate = frameRate; }
 
     unsigned getTotalFrames() const;
-    unsigned getElapsedFrames() const;
 
-    // 0.f - 1.f
-    float getAnimationProgression() const {
+    unsigned getElapsedFrames() const;
+    void setElapsedFrames(size_t frames);
+
+    // Elapsed frames normalised to [0..1].
+    float getElaspedNorm() const {
         return static_cast<float>(getTotalFrames()) / getElapsedFrames();
+    }
+
+    CellAnim::AnimationKey& getKeyAtFrame(size_t frame) {
+        auto& animation = getCellAnim()->getAnimation(mAnimationIndex);
+
+        size_t i;
+        size_t currentFrame = 0;
+        for (i = 0; i < animation.keys.size(); i++) {
+            size_t duration = animation.keys[i].holdFrames;
+            currentFrame += duration;
+
+            if (currentFrame > frame)
+                break;
+        }
+
+        if (i >= animation.keys.size())
+            return animation.keys.back();
+        return animation.keys[i];
     }
 
     // After for example a session switch or another change that can reduce the amount

@@ -126,7 +126,7 @@ CellAnim::Animation& PlayerManager::getAnimation() const {
 }
 
 void PlayerManager::setKeyIndex(unsigned index) {
-    const auto& keys = getCellAnim()->getAnimation(mAnimationIndex).keys;
+    const auto& keys = getAnimation().keys;
     const auto& arrangements = getCellAnim()->getArrangements();
 
     if (keys.at(mKeyIndex).arrangementIndex != keys.at(index).arrangementIndex) {
@@ -145,29 +145,53 @@ void PlayerManager::setKeyIndex(unsigned index) {
 }
 
 unsigned PlayerManager::getTotalFrames() const {
-    const auto& animation = getCellAnim()->getAnimation(mAnimationIndex);
-
-    unsigned totalFrames = 0;
-    for (const auto& key : animation.keys) {
-        totalFrames += key.holdFrames;
-    }
-
-    return totalFrames;
+    return getAnimation().countFrames();
 }
 
 unsigned PlayerManager::getElapsedFrames() const {
-    if (!mPlaying && mKeyIndex == 0 && mHoldFramesLeft < 1)
-        return 0;
+    const auto& animation = getAnimation();
 
-    const auto& animation = getCellAnim()->getAnimation(mAnimationIndex);
+    /*
+    unsigned totalDuration = 0;
+    for (const auto& key : animation.keys)
+        totalDuration += key.holdFrames;
+    */
 
-    unsigned elapsedFrames = 0;
-    for (unsigned i = 0; i < mKeyIndex + 1; i++) {
-        elapsedFrames += animation.keys[i].holdFrames;
+    unsigned elapsed = 0;
+    for (unsigned i = 0; i < mKeyIndex; i++) {
+        elapsed += animation.keys[i].holdFrames;
     }
-    elapsedFrames -= mHoldFramesLeft;
+    elapsed += (animation.keys[mKeyIndex].holdFrames - mHoldFramesLeft);
 
-    return elapsedFrames;
+    /*
+    if (elapsed >= totalDuration)
+        return totalDuration - 1;
+    */
+
+    return elapsed;
+}
+
+void PlayerManager::setElapsedFrames(size_t frames) {
+    const auto& animation = getAnimation();
+
+    size_t i;
+    size_t currentFrame = 0;
+    for (i = 0; i < animation.keys.size(); i++) {
+        size_t duration = animation.keys[i].holdFrames;
+        if (frames >= currentFrame && frames < (currentFrame + duration))
+            break;
+
+        currentFrame += duration;
+    }
+
+    if (i == animation.keys.size()) {
+        setKeyIndex(i - 1);
+        mHoldFramesLeft = 0;
+    }
+    else {
+        setKeyIndex(i);
+        mHoldFramesLeft = animation.keys[i].holdFrames - (frames - currentFrame);
+    }
 }
 
 void PlayerManager::correctState() {
