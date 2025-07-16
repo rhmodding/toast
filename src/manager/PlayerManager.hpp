@@ -9,6 +9,8 @@
 
 #include <memory>
 
+#include <limits>
+
 #include "OnionSkinState.hpp"
 
 #include "cellanim/CellAnim.hpp"
@@ -96,7 +98,7 @@ private:
 
     unsigned mFrameRate { 60 };
 
-    int mHoldFramesLeft { 0 };
+    int mHoldFramesLeft { std::numeric_limits<int>::max() };
 
     unsigned mAnimationIndex { 0 };
     unsigned mKeyIndex { 0 };
