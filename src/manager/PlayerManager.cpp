@@ -39,7 +39,7 @@ void PlayerManager::Update() {
     const auto& currentAnimation = getCellAnim()->getAnimation(mAnimationIndex);
 
     while (delta >= mTimeLeft) {
-        if (mHoldFramesLeft > 0) {
+        if (mHoldFramesLeft > 1) {
             mHoldFramesLeft--;
 
             delta -= mTimeLeft;
@@ -77,7 +77,7 @@ void PlayerManager::Update() {
             }
         }
 
-        mHoldFramesLeft = currentAnimation.keys[mKeyIndex].holdFrames - 1;
+        mHoldFramesLeft = currentAnimation.keys[mKeyIndex].holdFrames;
 
         delta -= mTimeLeft;
         mTimeLeft = 1.f / mFrameRate;
