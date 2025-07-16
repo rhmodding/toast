@@ -50,6 +50,7 @@ set(SOURCES
     src/manager/ConfigManager.cpp
     src/manager/MainThreadTaskManager.cpp
     src/manager/PlayerManager.cpp
+    src/manager/PromptPopupManager.cpp
     src/manager/SessionManager.cpp
     src/manager/ThemeManager.cpp
 
