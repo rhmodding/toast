@@ -9,7 +9,7 @@
 #include "command/CommandSetArrangementMode.hpp"
 
 void WindowInspector::drawPreview() {
-    PlayerManager& playerManager = PlayerManager::getInstance();
+    const PlayerManager& playerManager = PlayerManager::getInstance();
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 

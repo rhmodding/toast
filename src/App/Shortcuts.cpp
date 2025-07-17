@@ -70,11 +70,11 @@ void Process() {
                 case ShortcutAction::SaveAs:
                     return Actions::ExportSessionPromptPath();
                 case ShortcutAction::Undo:
-                    if (sessionManager.getSessionAvaliable())
+                    if (sessionManager.isSessionAvailable())
                         return sessionManager.getCurrentSession()->undo();
                     break;
                 case ShortcutAction::Redo:
-                    if (sessionManager.getSessionAvaliable())
+                    if (sessionManager.isSessionAvailable())
                         return sessionManager.getCurrentSession()->redo();
                     break;
                 default:

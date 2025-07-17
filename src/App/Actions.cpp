@@ -43,7 +43,7 @@ void ExportSessionPromptPath() {
     auto& sessionManager = SessionManager::getInstance();
     auto& asyncTaskManager = AsyncTaskManager::getInstance();
 
-    if (!sessionManager.getSessionAvaliable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
+    if (!sessionManager.isSessionAvailable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
         return;
 
     const bool isRvl = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL;
@@ -70,7 +70,7 @@ void ExportSession() {
     auto& sessionManager = SessionManager::getInstance();
     auto& asyncTaskManager = AsyncTaskManager::getInstance();
 
-    if (!sessionManager.getSessionAvaliable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
+    if (!sessionManager.isSessionAvailable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
         return;
 
     asyncTaskManager.StartTask<AsyncTaskExportSession>(
@@ -125,7 +125,7 @@ void ExportSessionAsOther() {
     auto& sessionManager = SessionManager::getInstance();
     auto& asyncTaskManager = AsyncTaskManager::getInstance();
 
-    if (!sessionManager.getSessionAvaliable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
+    if (!sessionManager.isSessionAvailable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
         return;
 
     auto* session = sessionManager.getCurrentSession();
@@ -153,7 +153,7 @@ void ExportSessionAsOther() {
         if (isRvl) {
             for (const auto& cellanim : session->cellanims) {
                 if (cellanim.object->getSheetIndex() == i)
-                    sheet->setName(cellanim.name);
+                    sheet->setName(cellanim.object->getName());
             }
             sheet->setTPLOutputFormat(ConvertToTPL(sheet->getCTPKOutputFormat()));
         }

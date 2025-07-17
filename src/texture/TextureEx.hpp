@@ -50,7 +50,8 @@ public:
     void setOutputSrcPath(std::string path) { mOutputSrcPath = path; }
 
     const std::string& getName() const { return mName; }
-    void setName(std::string name) { mName = name; }
+    void setName(const std::string& name) { mName = name; }
+    void setName(std::string&& name) { mName = std::move(name); }
 
     // Construct a TPLTexture from this texture.
     //

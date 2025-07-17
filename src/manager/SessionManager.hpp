@@ -3,11 +3,15 @@
 
 #include "Singleton.hpp"
 
+#include <cstddef>
+
 #include <vector>
 
 #include <mutex>
 
 #include <string_view>
+
+#include <stdexcept>
 
 #include "Session.hpp"
 
@@ -20,96 +24,29 @@ public:
     ~SessionManager() = default;
 
 public:
-    enum Error {
-        Error_None = 0,
-
-        OpenError_FileDoesNotExist = -0xFF,
-        OpenError_FailOpenFile,
-        OpenError_FailOpenArchive,
-        OpenError_FailFindTPL,
-        OpenError_RootDirNotFound,
-        OpenError_NoBXCADsFound,
-        OpenError_FailOpenBXCAD,
-        OpenError_FailOpenTPL,
-        OpenError_MissingCTPK, // The number of CTPKs is not equal to the number of BCCADs.
-        OpenError_FailOpenCTPK,
-        OpenError_NoCTPKTextures, // A CTPK exists but contains no textures.
-        OpenError_LayoutArchive, // The user selected a layout archive instead of a cellanim archive.
-        OpenError_EffectResource, // The user selected an effect file instead of a cellanim archive.
-        OpenError_BCRES, // The user selected a BCRES instead of a cellanim archive.
-
-        OutError_FailOpenFile,
-        OutError_FailBackupFile,
-        OutError_ZlibError,
-        OutError_FailTextureExport,
-
-        Error_Unknown = -1
-    };
-
-public:
     std::vector<Session>& getSessions() { return mSessions; }
     const std::vector<Session>& getSessions() const { return mSessions; }
+    size_t getSessionCount() const { return mSessions.size(); }
 
-    Session& getSession(unsigned sessionIndex) {
-        if (sessionIndex >= mSessions.size()) {
-            throw std::runtime_error(
-                "SessionManager::getSession: session index out of bounds (" +
-                std::to_string(sessionIndex) + " >= " + std::to_string(mSessions.size()) + ")"
-            );
-        }
-        return mSessions[sessionIndex];
-    }
-    const Session& getSession(unsigned sessionIndex) const {
-        if (sessionIndex >= mSessions.size()) {
-            throw std::runtime_error(
-                "SessionManager::getSession: session index out of bounds (" +
-                std::to_string(sessionIndex) + " >= " + std::to_string(mSessions.size()) + ")"
-            );
-        }
-        return mSessions[sessionIndex];
-    }
+    Session& getSession(size_t index);
+    const Session& getSession(size_t index) const;
 
-    unsigned getSessionCount() const { return mSessions.size(); }
+    // Returns nullptr if no session is selected.
+    Session* getCurrentSession();
+    const Session* getCurrentSession() const;
+    // Returns <0 if no session is selected.
+    ssize_t getCurrentSessionIndex() const { return mCurrentSessionIndex; }
+    void setCurrentSessionIndex(ssize_t index);
 
-    Session* getCurrentSession() {
-        if (mCurrentSessionIndex >= 0)
-            return &mSessions.at(mCurrentSessionIndex);
+    bool isCurrentSessionModified() const;
+    void setCurrentSessionModified(bool modified);
 
-        return nullptr;
-    }
-
-    bool getCurrentSessionModified() const {
-        if (mCurrentSessionIndex >= 0)
-            return mSessions.at(mCurrentSessionIndex).modified;
-        else
-            return false;
-    }
-    void setCurrentSessionModified(bool modified) {
-        if (mCurrentSessionIndex >= 0)
-            mSessions.at(mCurrentSessionIndex).modified = modified;
-    }
-
-    bool getSessionAvaliable() const {
-        return mCurrentSessionIndex >= 0;
-    }
-
-    int  getCurrentSessionIndex() const { return mCurrentSessionIndex; }
-    void setCurrentSessionIndex(int sessionIndex);
-
-    Error getCurrentError() const { return mCurrentError; }
-
-    int getSessionClosingIndex() const { return mSessionClosingIndex; }
-    void setSessionClosingIndex(int index) {
-        if (index < 0)
-            mSessionClosingIndex = -1;
-        else
-            mSessionClosingIndex = index;
-    }
+    bool isSessionAvailable() const { return mCurrentSessionIndex >= 0; }
 
     // Create a new session from the path of a cellanim archive (.szs).
     //
     // Returns: index of new session if succeeded, -1 if failed
-    int CreateSession(std::string_view filePath);
+    ssize_t CreateSession(std::string_view filePath);
 
     // Export a session as a cellanim archive (.szs) to the specified path.
     // Note: if dstFilePath is empty, then the session's resourcePath is used.
@@ -120,17 +57,12 @@ public:
     // Remove a session by its index.
     void RemoveSession(unsigned sessionIndex);
 
-    // Remove all mSessions.
+    // Remove all sessions.
     void RemoveAllSessions();
 
 private:
     std::vector<Session> mSessions;
-
-    Error mCurrentError { Error_None };
-
-    int mCurrentSessionIndex { -1 };
-    // Current session being closed. Used for closing while modified warning.
-    int mSessionClosingIndex { -1 };
+    ssize_t mCurrentSessionIndex { -1 };
 
     std::mutex mMtx;
 };

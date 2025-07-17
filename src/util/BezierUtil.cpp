@@ -4,7 +4,9 @@
 
 #include <imgui_internal.h>
 
-#include <math.h>
+#include <cstdio>
+
+#include <cmath>
 
 #include <algorithm>
 
@@ -25,7 +27,7 @@ ImVec2 BezierUtil::Approx(const float x, const float P[4], unsigned maxIteration
                     + 6.f * u * t * (P[2] - P[0])
                     + 3.f * tt * (1.f - P[2]);
 
-        if (fabsf(dBezX) < 1e-5f)
+        if (std::fabsf(dBezX) < 1e-5f)
             break;
 
         float delta = bezX - x;
@@ -109,7 +111,7 @@ bool BezierUtil::ImWidget(const char* label, float P[4], bool handlesEnabled) {
     bb.Expand({ -(padX / 2.f), -(padY / 2.f) });
 
     char buf[128];
-    snprintf(buf, sizeof(buf), "%s##bInteract", label);
+    std::snprintf(buf, sizeof(buf), "%s##bInteract", label);
 
     if (outerBb.GetArea() != 0.f)
         ImGui::InvisibleButton(buf, outerBb.GetSize(),
@@ -164,8 +166,8 @@ bool BezierUtil::ImWidget(const char* label, float P[4], bool handlesEnabled) {
         if (handlesEnabled) {
             for (int i = 0; i < 2; i++) {
                 ImVec2 pos {
-                    (P[i*2+0]) * bb.GetWidth() + bb.Min.x,
-                    (1 - P[i*2+1]) * bb.GetHeight() + bb.Min.y
+                    (P[i * 2 + 0]) * bb.GetWidth() + bb.Min.x,
+                    (1.f - P[i * 2 + 1]) * bb.GetHeight() + bb.Min.y
                 };
 
                 hoveredHandle[i] = ImGui::IsMouseHoveringRect(
@@ -174,7 +176,7 @@ bool BezierUtil::ImWidget(const char* label, float P[4], bool handlesEnabled) {
                 );
 
                 if (hoveredHandle[i] || handleBeingDragged == i)
-                    ImGui::SetTooltip("(%4.3f, %4.3f)", P[i*2+0], P[i*2+1]);
+                    ImGui::SetTooltip("(%4.3f, %4.3f)", P[i * 2 + 0], P[i * 2 + 1]);
 
                 if (
                     draggingLeft &&

@@ -8,6 +8,8 @@
 
 #include <vector>
 
+#include <string>
+
 #include <algorithm>
 
 #include "Macro.hpp"
@@ -19,7 +21,6 @@ enum CellAnimType {
     CELLANIM_TYPE_RVL,
     CELLANIM_TYPE_CTR
 };
-
 
 // TODO: move somewhere else
 template<typename T>
@@ -357,6 +358,15 @@ struct Animation {
     // Note: arrangement parts are matched by ID, not index.
     bool isInterpolated { false };
 
+    size_t countFrames() const {
+        size_t totalFrames = 0;
+        for (const auto& key : keys) {
+            totalFrames += key.holdFrames;
+        }
+
+        return totalFrames;
+    }
+
     bool operator==(const Animation& rhs) const {
         return
             keys == rhs.keys &&
@@ -381,6 +391,10 @@ public:
 
     CellAnimType getType() const { return mType; }
     void setType(CellAnimType type) { mType = type; }
+
+    const std::string& getName() const { return mName; }
+    void setName(const std::string& name) { mName = name; }
+    void setName(std::string&& name) { mName = std::move(name); }
 
     int getSheetIndex() const { return mSheetIndex; }
     void setSheetIndex(int sheetIndex) {
@@ -467,6 +481,8 @@ private:
     bool mInitialized { false };
 
     CellAnimType mType { CELLANIM_TYPE_INVALID };
+
+    std::string mName;
 
     int mSheetIndex { -1 };
     unsigned mSheetW { 0 }, mSheetH { 0 };

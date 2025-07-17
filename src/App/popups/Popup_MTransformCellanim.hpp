@@ -14,7 +14,7 @@
 static void Popup_MTransformCellanim() {
     SessionManager& sessionManager = SessionManager::getInstance();
 
-    if (!sessionManager.getSessionAvaliable())
+    if (!sessionManager.isSessionAvailable())
         return;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });

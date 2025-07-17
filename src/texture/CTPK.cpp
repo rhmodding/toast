@@ -43,8 +43,8 @@ struct CtpkTextureEntry {
 } __attribute__((packed));
 
 struct CtpkFileHeader {
-    uint32_t magic { CTPK_MAGIC }; // Compare to CTPK_MAGIC
-    uint16_t formatVersion { CTPK_VERSION }; // Compare to CTPK_VERSION
+    uint32_t magic { CTPK_MAGIC }; // Compare to CTPK_MAGIC.
+    uint16_t formatVersion { CTPK_VERSION }; // Compare to CTPK_VERSION.
 
     uint16_t textureCount;
 
@@ -107,8 +107,8 @@ void CTPKTexture::rotateCW() {
     // Copy
     std::vector<unsigned char> temp = this->data;
 
-    for (unsigned y = 0; y < this->height; ++y) {
-        for (unsigned x = 0; x < this->width; ++x) {
+    for (unsigned y = 0; y < this->height; y++) {
+        for (unsigned x = 0; x < this->width; x++) {
             unsigned newX = (this->height - 1) - y;
             unsigned newY = x;
 
@@ -122,9 +122,10 @@ void CTPKTexture::rotateCW() {
         }
     }
 
-    unsigned width = this->width;
+    unsigned tempWidth = this->width;
+
     this->width = this->height;
-    this->height = width;
+    this->height = tempWidth;
 }
 
 GLuint CTPKTexture::createGPUTexture() const {
@@ -170,7 +171,7 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
 
     mTextures.resize(header->textureCount);
 
-    for (unsigned i = 0; i < header->textureCount; i++) {
+    for (uint16_t i = 0; i < header->textureCount; i++) {
         const CtpkTextureEntry* textureIn = header->textureEntries + i;
         CTPKTexture& textureOut = mTextures[i];
 
@@ -194,7 +195,7 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
             ));
         }
 
-        const unsigned expectedImageDataSize = CtrImageConvert::getImageByteSize(textureOut);
+        const size_t expectedImageDataSize = CtrImageConvert::getImageByteSize(textureOut);
         if (textureIn->dataSize < expectedImageDataSize) {
             Logging::err << "[CTPKObject::CTPKObject] Invalid texture (no. " << i+1 <<
                 "): image data size was less than expected (" << textureIn->dataSize << " < " <<
@@ -287,12 +288,12 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         unsigned currentWidth = texture.width;
         unsigned currentHeight = texture.height;
         for (unsigned i = 0; i < texture.mipCount; i++) {
-            *(currentMipSize++) = CtrImageConvert::getImageByteSize(
+            *(currentMipSize++) = static_cast<uint32_t>(CtrImageConvert::getImageByteSize(
                 texture.targetFormat, currentWidth, currentHeight, 1
-            );
+            ));
 
-            currentWidth = (currentWidth > 1) ? currentWidth / 2 : 1;
-            currentHeight = (currentHeight > 1) ? currentHeight / 2 : 1;
+            currentWidth = (currentWidth > 1) ? (currentWidth / 2) : 1;
+            currentHeight = (currentHeight > 1) ? (currentHeight / 2) : 1;
         }
 
         texEntry->sourceTimestamp = texture.sourceTimestamp;
@@ -407,7 +408,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
             );
 
             // Scale texture for next mip-level.
-            if (j + 1 != dstTexture.mipCount) {
+            if ((j + 1) != dstTexture.mipCount) {
                 dstTexture.width = (dstTexture.width > 1) ? dstTexture.width / 2 : 1;
                 dstTexture.height = (dstTexture.height > 1) ? dstTexture.height / 2 : 1;
 

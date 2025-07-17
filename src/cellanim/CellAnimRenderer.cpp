@@ -276,8 +276,8 @@ void CellAnimRenderer::DrawOnionSkin(
 
 // Note: 'angle' is in degrees.
 static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
-    const float s = sinf(angle * ((float)M_PI / 180.f));
-    const float c = cosf(angle * ((float)M_PI / 180.f));
+    const float s = std::sinf(angle * ((float)M_PI / 180.f));
+    const float c = std::cosf(angle * ((float)M_PI / 180.f));
 
     float vx = v.x - origin.x;
     float vy = v.y - origin.y;

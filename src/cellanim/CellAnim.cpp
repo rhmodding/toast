@@ -16,7 +16,7 @@ constexpr uint32_t RCAD_REVISION_DATE = BYTESWAP_32(20100312);
 constexpr uint32_t CCAD_REVISION_DATE = 20131007;
 
 struct RvlCellAnimHeader {
-    // Compare to RCAD_REVISION_DATE
+    // Compare to RCAD_REVISION_DATE.
     uint32_t revisionDate { RCAD_REVISION_DATE };
 
     // Load textures in paletted (CI) mode; also enables varyings.
@@ -38,7 +38,7 @@ struct RvlCellAnimHeader {
     uint16_t _pad16 { 0x0000 };
 } __attribute__((packed));
 struct CtrCellAnimHeader {
-    // Compare to CCAD_REVISION_DATE
+    // Compare to CCAD_REVISION_DATE.
     uint32_t revisionDate { CCAD_REVISION_DATE };
 
     uint16_t sheetW; // Sheet width in relation to UV regions.

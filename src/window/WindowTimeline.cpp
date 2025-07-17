@@ -50,7 +50,7 @@ void WindowTimeline::ChildToolbar() {
         const char* playPauseIcon = playerManager.getPlaying() ?
             (const char*)ICON_FA_PAUSE : (const char*)ICON_FA_PLAY;
 
-        snprintf(
+        std::snprintf(
             playPauseLabel, sizeof(playPauseLabel),
             "%s##PlayPause", playPauseIcon
         );
@@ -133,7 +133,6 @@ void WindowTimeline::ChildToolbar() {
                 ImGui::PopStyleColor();
         }
 
-        // Key No., Hold Frames Left & FPS
         ImGui::TableSetColumnIndex(1);
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.5f);
@@ -163,7 +162,7 @@ void WindowTimeline::ChildToolbar() {
 
         ImGui::SetNextItemWidth(52.f);
         if (ImGui::InputInt("FPS", &frameRate, 0, 0)) {
-            playerManager.setFrameRate(frameRate);
+            playerManager.setFrameRate(std::max<int>(frameRate, 1));
         }
 
         ImGui::TableSetColumnIndex(2);
@@ -236,7 +235,7 @@ static void drawFrameIndic(float height, float keyWidth, float holdWidth, float 
             float spacing = (j == 0 || j == (keyDuration - 1)) ? keySpacing : 0.f;
 
             char textFormat[16];
-            snprintf(textFormat, sizeof(textFormat), "%u", currentFrame);
+            std::snprintf(textFormat, sizeof(textFormat), "%u", currentFrame);
 
             ImVec2 textSize = ImGui::CalcTextSize(textFormat);
 
@@ -319,7 +318,7 @@ void WindowTimeline::ChildKeys() {
             }
 
             char buttonLabel[24] { '\0' };
-            snprintf(
+            std::snprintf(
                 buttonLabel, sizeof(buttonLabel),
                 "%u##KeyButton", i+1
             );
@@ -688,7 +687,7 @@ void WindowTimeline::ChildKeys() {
                 ImGui::PushID(i);
 
                 char buffer[32];
-                snprintf(buffer, sizeof(buffer), "%u##OnionSkinButton", i + 1);
+                std::snprintf(buffer, sizeof(buffer), "%u##OnionSkinButton", i + 1);
 
                 int keyCount = playerManager.getKeyCount();
                 int currentKeyIndex = playerManager.getKeyIndex();

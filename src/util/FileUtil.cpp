@@ -1,9 +1,30 @@
 #include "FileUtil.hpp"
 
 #include <cstdio>
+
 #include <fstream>
 
 #include "Logging.hpp"
+
+std::optional<std::vector<unsigned char>> FileUtil::openFileData(std::string_view filePath) {
+    std::ifstream file(filePath.data(), std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+        Logging::err << "[FileUtil::openFileData] Error opening file at path: " << filePath << std::endl;
+
+        return std::nullopt;
+    }
+
+    std::vector<unsigned char> data;
+
+    data.resize(file.tellg());
+    file.seekg(0, std::ios::beg);
+
+    file.read(reinterpret_cast<char*>(data.data()), data.size());
+
+    file.close();
+
+    return data;
+}
 
 bool FileUtil::doesFileExist(std::string_view filePath) {
     if (filePath.empty())

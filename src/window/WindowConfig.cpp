@@ -72,7 +72,7 @@ void WindowConfig::Update() {
 
             ImGui::TextWrapped("Category");
 
-            ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
+            ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.4f);
             ImGui::TextWrapped("%s", categoryNames[selected]);
             ImGui::PopFont();
 
@@ -143,12 +143,13 @@ void WindowConfig::Update() {
                 char buffer[64];
                 if (selectedCompLevelIndex >= 0 && selectedCompLevelIndex < static_cast<int>(AbstrCompressionLevel::Count)) {
                     std::snprintf(buffer, sizeof(buffer), "%s", abstrCompressionLevelNames[selectedCompLevelIndex].data());
-                } else {
+                }
+                else {
                     std::snprintf(buffer, sizeof(buffer), "Other (%d)", mMyConfig.compressionLevel);
                 }
 
                 if (ImGui::SliderInt(
-                    "Compression level",
+                    "Archive compression level",
                     &selectedCompLevelIndex,
                     0,
                     static_cast<int>(AbstrCompressionLevel::Count) - 1,
@@ -166,12 +167,13 @@ void WindowConfig::Update() {
 
                 if (qualityIndex >= 0 && qualityIndex < static_cast<int>(ETC1Quality::Count)) {
                     std::snprintf(buffer, sizeof(buffer), "%s", ETC1QualityNames[qualityIndex].data());
-                } else {
+                }
+                else {
                     std::snprintf(buffer, sizeof(buffer), "Invalid");
                 }
 
                 if (ImGui::SliderInt(
-                    "ETC1 compression quality",
+                    "ETC1(A4) compression quality",
                     &qualityIndex,
                     0,
                     static_cast<int>(ETC1Quality::Count) - 1,

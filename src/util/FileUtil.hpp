@@ -3,7 +3,16 @@
 
 #include <string_view>
 
+#include <optional>
+
+#include <vector>
+
 namespace FileUtil {
+
+// Open a binary from the filesystem and read it's data.
+//
+// Returns: std::vector<unsigned char> wrapped in std::optional
+std::optional<std::vector<unsigned char>> openFileData(std::string_view filePath);
 
 bool doesFileExist(std::string_view filePath);
 

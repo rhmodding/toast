@@ -263,6 +263,7 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
     return true;
 }
 
+// TODO: remove on public release
 static bool ApplyImpl_Old(Session& session, const unsigned char *data, const size_t dataSize) {
     Logging::warn << "[EditorDataProc::Apply] ---   <<-- USING MALFORM TED HACK -->>   ---" << std::endl;
     Logging::warn << "[EditorDataProc::Apply] TED size is " << (dataSize / 1000) << "kb long" << std::endl;
@@ -478,7 +479,8 @@ std::vector<unsigned char> EditorDataProc::Create(const Session &session) {
                     if (inserted) {
                         entry.partName.stringOffset = nextStringPoolOffs;
                         nextStringPoolOffs += part.editorName.size() + 1;
-                    } else {
+                    }
+                    else {
                         entry.partName.stringOffset = it->second;
                     }
 

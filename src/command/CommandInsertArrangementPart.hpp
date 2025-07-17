@@ -6,7 +6,7 @@
 #include "cellanim/CellAnim.hpp"
 
 #include "manager/SessionManager.hpp"
-
+#include "manager/PlayerManager.hpp"
 
 class CommandInsertArrangementPart : public BaseCommand {
 public:

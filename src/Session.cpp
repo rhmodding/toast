@@ -6,7 +6,7 @@
 
 void Session::addCommand(std::shared_ptr<BaseCommand> command) {
     command->Execute();
-    if (this->undoQueue.size() == COMMANDS_MAX)
+    if (this->undoQueue.size() >= COMMANDS_MAX)
         this->undoQueue.pop_front();
 
     this->undoQueue.push_back(command);
@@ -57,5 +57,6 @@ void Session::setCurrentCellAnimIndex(unsigned index) {
     PlayerManager::getInstance().correctState();
 
     Logging::info <<
-        "[Session::setCurrentCellAnimIndex] Selected cellanim no. " << index+1 << " (\"" << cellanim.name << "\")." << std::endl;
+        "[Session::setCurrentCellAnimIndex] Selected cellanim no. " << index+1 << " (\"" <<
+        cellanim.object->getName() << "\")." << std::endl;
 }

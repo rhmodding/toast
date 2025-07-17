@@ -24,11 +24,13 @@
 #include "manager/PlayerManager.hpp"
 #include "manager/ThemeManager.hpp"
 #include "manager/MainThreadTaskManager.hpp"
+#include "manager/PromptPopupManager.hpp"
 
 #include "font/FontAwesome.h"
 
 #include "command/CommandSwitchCellanim.hpp"
 #include "command/CommandDeleteArrangement.hpp"
+#include "command/CommandModifyArrangementPart.hpp"
 #include "command/CommandDeleteArrangementPart.hpp"
 #include "command/CommandModifyAnimationKey.hpp"
 #include "command/CommandDeleteAnimationKey.hpp"
@@ -103,6 +105,7 @@ Toast::Toast(int argc, const char** argv) {
     ConfigManager::createSingleton();
     PlayerManager::createSingleton();
     SessionManager::createSingleton();
+    PromptPopupManager::createSingleton();
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
     // GL ES 2.0 + GLSL 100
@@ -252,6 +255,7 @@ Toast::~Toast() {
     ThemeManager::destroySingleton();
     AsyncTaskManager::destroySingleton();
     MainThreadTaskManager::destroySingleton();
+    PromptPopupManager::destroySingleton();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -271,8 +275,23 @@ void Toast::AttemptExit(bool force) {
     if (!force) {
         for (const auto& session : SessionManager::getInstance().getSessions()) {
             if (session.modified) {
-                Popups::_openExitWithChangesPopup = true;
-                return; // Cancel
+                PromptPopupManager::getInstance().Queue(
+                    PromptPopupManager::CreatePrompt(
+                        "Hang on!",
+                        "There are still unsaved changes in one or more sessions.\n"
+                        "Are you sure you want to close toast?"
+                    )
+                    .WithResponses(
+                        PromptPopup::RESPONSE_CANCEL | PromptPopup::RESPONSE_YES,
+                        PromptPopup::RESPONSE_CANCEL
+                    )
+                    .WithCallback([this](auto res, const std::string*) {
+                        if (res == PromptPopup::RESPONSE_YES) {
+                            AttemptExit(true);
+                        }
+                    })
+                );
+                return;
             }
         }
     }
@@ -322,7 +341,7 @@ void Toast::Menubar() {
         }
 
         CellAnim::CellAnimType cellanimType { CellAnim::CELLANIM_TYPE_INVALID };
-            if (sessionManager.getSessionAvaliable())
+            if (sessionManager.isSessionAvailable())
                 cellanimType = sessionManager.getCurrentSession()->type;
 
         if (ImGui::BeginMenu("File")) {
@@ -344,7 +363,7 @@ void Toast::Menubar() {
                     const bool none = (j < 0);
 
                     char label[128];
-                    snprintf(label, sizeof(label), "%zu. %s", i + 1, none ? "-" : recentlyOpened[j].c_str());
+                    std::snprintf(label, sizeof(label), "%zu. %s", i + 1, none ? "-" : recentlyOpened[j].c_str());
 
                     ImGui::BeginDisabled(none);
 
@@ -364,7 +383,7 @@ void Toast::Menubar() {
 
             if (ImGui::MenuItem(
                 (const char*)ICON_FA_FILE_IMPORT " Open containing folder...",
-                nullptr, false, sessionManager.getSessionAvaliable()
+                nullptr, false, sessionManager.isSessionAvailable()
             ))
                 Actions::OpenSessionSourceFolder();
 
@@ -374,7 +393,7 @@ void Toast::Menubar() {
                 Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Save, ICON_FA_FILE_EXPORT).c_str(),
                 Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Save).c_str(),
                 false,
-                sessionManager.getSessionAvaliable()
+                sessionManager.isSessionAvailable()
             ))
                 Actions::ExportSession();
 
@@ -382,7 +401,7 @@ void Toast::Menubar() {
                 Shortcuts::getDisplayName(Shortcuts::ShortcutAction::SaveAs, ICON_FA_FILE_EXPORT).c_str(),
                 Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::SaveAs).c_str(),
                 false,
-                sessionManager.getSessionAvaliable()
+                sessionManager.isSessionAvailable()
             ))
                 Actions::ExportSessionPromptPath();
 
@@ -395,7 +414,7 @@ void Toast::Menubar() {
                 convertOptionTitle = (const char*)ICON_FA_FILE_EXPORT " Save as Fever (RVL) cellanim...";
 
             if (ImGui::MenuItem(
-                convertOptionTitle, nullptr, false, sessionManager.getSessionAvaliable()
+                convertOptionTitle, nullptr, false, sessionManager.isSessionAvailable()
             ))
                 Actions::ExportSessionAsOther();
 
@@ -407,7 +426,7 @@ void Toast::Menubar() {
                 Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Undo, ICON_FA_ARROW_ROTATE_LEFT).c_str(),
                 Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Undo).c_str(),
                 false,
-                sessionManager.getSessionAvaliable() &&
+                sessionManager.isSessionAvailable() &&
                 sessionManager.getCurrentSession()->canUndo()
             ))
                 sessionManager.getCurrentSession()->undo();
@@ -416,7 +435,7 @@ void Toast::Menubar() {
                 Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Redo, ICON_FA_ARROW_ROTATE_RIGHT).c_str(),
                 Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Redo).c_str(),
                 false,
-                sessionManager.getSessionAvaliable() &&
+                sessionManager.isSessionAvailable() &&
                 sessionManager.getCurrentSession()->canRedo()
             ))
                 sessionManager.getCurrentSession()->redo();
@@ -424,7 +443,7 @@ void Toast::Menubar() {
             ImGui::EndMenu();
         }
 
-        const bool sessionAvaliable = sessionManager.getSessionAvaliable();
+        const bool sessionAvaliable = sessionManager.isSessionAvailable();
 
         if (ImGui::BeginMenu("Cellanim", sessionAvaliable)) {
             if (ImGui::BeginMenu("Select")) {
@@ -432,7 +451,7 @@ void Toast::Menubar() {
 
                 for (size_t i = 0; i < currentSession->cellanims.size(); i++) {
                     std::ostringstream fmtStream;
-                    fmtStream << std::to_string(i+1) << ". " << currentSession->cellanims[i].name;
+                    fmtStream << std::to_string(i+1) << ". " << currentSession->cellanims[i].object->getName();
 
                     if (ImGui::MenuItem(
                         fmtStream.str().c_str(), nullptr,
@@ -700,11 +719,35 @@ void Toast::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Set editor name ..")) {
-                Popups::_editPartNameArrangeIdx =
-                    playerManager.getArrangementIndex();
-                Popups::_editPartNamePartIdx = selectionState.mSelectedParts[0].index;
+                PromptPopupManager::getInstance().Queue(
+                    PromptPopupManager::CreatePrompt(
+                        "Edit part name",
+                        "Please enter the part's new name:"
+                    )
+                    .WithInput(part.editorName)
+                    .WithResponses(
+                        PromptPopup::RESPONSE_OK | PromptPopup::RESPONSE_CANCEL,
+                        PromptPopup::RESPONSE_OK
+                    )
+                    .WithCallback(
+                        [
+                            arrangementIndex = playerManager.getArrangementIndex(),
+                            partIndex = selectionState.mSelectedParts[0].index
+                        ]
+                        (auto res, const std::string* newName) {
+                            auto session = SessionManager::getInstance().getCurrentSession();
+                            auto& anim = session->getCurrentCellAnim();
+                            auto newPart = anim.object->getArrangement(arrangementIndex).parts.at(partIndex);
 
-                OPEN_GLOBAL_POPUP("###EditPartName");
+                            newPart.editorName = *newName;
+
+                            session->addCommand(std::make_shared<CommandModifyArrangementPart>(
+                                session->getCurrentCellAnimIndex(),
+                                arrangementIndex, partIndex, newPart)
+                            );
+                        }
+                    )
+                );
             }
 
             ImGui::Separator();
@@ -774,7 +817,7 @@ void Toast::Menubar() {
                     ImGui::Separator();
                     for (size_t i = 0; i < session.cellanims.size(); i++) {
                         std::ostringstream fmtStream;
-                        fmtStream << std::to_string(i+1) << ". " << session.cellanims[i].name;
+                        fmtStream << std::to_string(i+1) << ". " << session.cellanims[i].object->getName();
 
                         if (ImGui::MenuItem(
                             fmtStream.str().c_str(), nullptr,
@@ -800,14 +843,28 @@ void Toast::Menubar() {
                 ImGui::SetItemTooltip(
                     "Path: %s\nCellanim: %s\n\nRight-click to select the cellanim.",
                     session.resourcePath.c_str(),
-                    session.getCurrentCellAnim().name.c_str()
+                    session.getCurrentCellAnim().object->getName().c_str()
                 );
 
                 if (!sessionOpen) {
-                    sessionManager.setSessionClosingIndex(n);
-
-                    if (session.modified)
-                        OPEN_GLOBAL_POPUP("###CloseModifiedSession");
+                    if (session.modified) {
+                        PromptPopupManager::getInstance().Queue(
+                            PromptPopupManager::CreatePrompt(
+                                "Hang on!",
+                                "There are still unsaved changes in this session; are you sure\n"
+                                "you want to close it?"
+                            )
+                            .WithResponses(
+                                PromptPopup::RESPONSE_CANCEL | PromptPopup::RESPONSE_YES,
+                                PromptPopup::RESPONSE_CANCEL
+                            )
+                            .WithCallback([n](auto res, const std::string*) {
+                                if (res == PromptPopup::RESPONSE_YES) {
+                                    SessionManager::getInstance().RemoveSession(n);
+                                }
+                            })
+                        );
+                    }
                     else {
                         sessionManager.RemoveSession(n);
                     }
@@ -868,7 +925,7 @@ void Toast::Update() {
 
     Menubar();
 
-    if (SessionManager::getInstance().getSessionAvaliable()) {
+    if (SessionManager::getInstance().isSessionAvailable()) {
         PlayerManager::getInstance().Update();
 
         mWindowCanvas.Update();
@@ -882,6 +939,8 @@ void Toast::Update() {
     mWindowAbout.Update();
 
     mWindowDemo.Update();
+
+    PromptPopupManager::getInstance().Update();
 
     Popups::Update();
 

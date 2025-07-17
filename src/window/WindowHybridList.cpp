@@ -18,8 +18,7 @@
 #include "manager/SessionManager.hpp"
 #include "manager/PlayerManager.hpp"
 #include "manager/ConfigManager.hpp"
-
-#include "App/Popups.hpp"
+#include "manager/PromptPopupManager.hpp"
 
 #include "command/CommandDeleteArrangement.hpp"
 #include "command/CommandInsertArrangement.hpp"
@@ -287,8 +286,37 @@ void WindowHybridList::Update() {
                     ImGui::Separator();
 
                     if (ImGui::Selectable("Delete animation")) {
-                        Popups::_deleteAnimationIdx = n;
-                        OPEN_GLOBAL_POPUP("###DeleteAnimation");
+                        std::string promptMsg =
+                            "Are you sure you want to delete animation no. " +
+                            std::to_string(n) + "?";
+
+                        if (n != (animations.size() - 1)) {
+                            promptMsg += "\nThis change will shift other animations indices.";
+                        }
+                        else {
+                            promptMsg += "\n"
+                                "The game will likely crash if it attempts to load an animation\n"
+                                "at this index.";
+                        }
+
+                        PromptPopupManager::getInstance().Queue(
+                            PromptPopupManager::CreatePrompt("Hang on!", promptMsg)
+                            .WithResponses(
+                                PromptPopup::RESPONSE_YES | PromptPopup::RESPONSE_CANCEL,
+                                PromptPopup::RESPONSE_CANCEL
+                            )
+                            .WithCallback([n](auto res, const std::string*) {
+                                if (res == PromptPopup::RESPONSE_YES) {
+                                    SessionManager& sessionManager = SessionManager::getInstance();
+
+                                    sessionManager.getCurrentSession()->addCommand(
+                                    std::make_shared<CommandDeleteAnimation>(
+                                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                                        n
+                                    ));
+                                }
+                            })
+                        );
                     }
 
                     ImGui::EndPopup();
@@ -298,7 +326,7 @@ void WindowHybridList::Update() {
         else {
             for (unsigned n = 0; n < arrangements.size(); n++) {
                 char buffer[48];
-                snprintf(buffer, sizeof(buffer), "Arrangement no. %d", n+1);
+                std::snprintf(buffer, sizeof(buffer), "Arrangement no. %d", n+1);
 
                 if (ImGui::Selectable(buffer, playerManager.getArrangementModeIdx() == n, ImGuiSelectableFlags_SelectOnNav)) {
                     newArrangementSelect = n;

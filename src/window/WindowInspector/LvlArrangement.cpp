@@ -425,12 +425,12 @@ void WindowInspector::Level_Arrangement() {
 
                 char selectableLabel[128];
                 if (part.editorName.empty())
-                    snprintf(
+                    std::snprintf(
                         selectableLabel, sizeof(selectableLabel),
                         "Part no. %u", n+1
                     );
                 else
-                    snprintf(
+                    std::snprintf(
                         selectableLabel, sizeof(selectableLabel),
                         "Part no. %u (%s)", n+1, part.editorName.c_str()
                     );
@@ -449,7 +449,7 @@ void WindowInspector::Level_Arrangement() {
                     char label[128];
 
                     if (isPartSelected) {
-                        snprintf(
+                        std::snprintf(
                             label, sizeof(label),
                             "%zu selected parts",
                             selectionState.mSelectedParts.size()
@@ -497,7 +497,7 @@ void WindowInspector::Level_Arrangement() {
 
                     ImGui::Separator();
 
-                    snprintf(
+                    std::snprintf(
                         label, sizeof(label),
                         "Paste %zu part%s..",
                         copyParts.size(), copyParts.size() == 1 ? "" : "s"
@@ -647,7 +647,7 @@ void WindowInspector::Level_Arrangement() {
                     ImGui::Separator();
 
                     if (isPartSelected) {
-                        snprintf(
+                        std::snprintf(
                             label, sizeof(label),
                             "Copy %zu part%s",
                             selectionState.mSelectedParts.size(),
@@ -682,7 +682,7 @@ void WindowInspector::Level_Arrangement() {
                     ImGui::Separator();
 
                     if (isPartSelected) {
-                        snprintf(
+                        std::snprintf(
                             label, sizeof(label),
                             "Delete %zu part%s",
                             selectionState.mSelectedParts.size(),
@@ -710,22 +710,42 @@ void WindowInspector::Level_Arrangement() {
 
                 ImGui::SameLine(4.f, 0.f);
                 if (partToggleButton((const char*)ICON_FA_EYE "##Visible", !part.editorVisible)) {
+                    auto newArrangement = arrangement;
+
                     if (!isPartSelected)
-                        part.editorVisible ^= true;
+                        newArrangement.parts[n].editorVisible ^= true;
                     else {
                         for (const auto& [index, _] : selectionState.mSelectedParts)
-                            arrangement.parts.at(index).editorVisible ^= true;
+                            newArrangement.parts.at(index).editorVisible ^= true;
                     }
+
+                    sessionManager.getCurrentSession()->addCommand(
+                        std::make_shared<CommandModifyArrangement>(
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                            playerManager.getArrangementIndex(),
+                            newArrangement
+                        )
+                    );
                 }
 
                 ImGui::SameLine();
                 if (partToggleButton((const char*)ICON_FA_LOCK "##Locked", part.editorLocked)) {
+                    auto newArrangement = arrangement;
+
                     if (!isPartSelected)
-                        part.editorLocked ^= true;
+                        newArrangement.parts[n].editorLocked ^= true;
                     else {
                         for (const auto& [index, _] : selectionState.mSelectedParts)
-                            arrangement.parts.at(index).editorLocked ^= true;
+                            newArrangement.parts.at(index).editorLocked ^= true;
                     }
+
+                    sessionManager.getCurrentSession()->addCommand(
+                        std::make_shared<CommandModifyArrangement>(
+                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                            playerManager.getArrangementIndex(),
+                            newArrangement
+                        )
+                    );
                 }
 
                 ImGui::SameLine();

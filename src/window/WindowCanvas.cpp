@@ -168,13 +168,13 @@ static float mapRange(float value, float rangeStart, float rangeEnd) {
 float calcPointsDistance(const ImVec2& a, const ImVec2& b) {
     float dx = b.x - a.x;
     float dy = b.y - a.y;
-    return sqrtf(dx * dx + dy * dy);
+    return std::sqrtf(dx * dx + dy * dy);
 }
 
 // In degrees.
 static ImVec2 rotateVec2(const ImVec2& v, float angle, const ImVec2& origin) {
-    const float s = sinf(angle * ((float)M_PI / 180.f));
-    const float c = cosf(angle * ((float)M_PI / 180.f));
+    const float s = std::sinf(angle * ((float)M_PI / 180.f));
+    const float c = std::cosf(angle * ((float)M_PI / 180.f));
 
     float vx = v.x - origin.x;
     float vy = v.y - origin.y;
@@ -649,8 +649,8 @@ void WindowCanvas::Update() {
 
             float theta = -key.transform.angle * (float)M_PI / 180.f;
 
-            float rotatedX = scaledOffset.x * cosf(theta) - scaledOffset.y * sinf(theta);
-            float rotatedY = scaledOffset.x * sinf(theta) + scaledOffset.y * cosf(theta);
+            float rotatedX = scaledOffset.x * std::cosf(theta) - scaledOffset.y * std::sinf(theta);
+            float rotatedY = scaledOffset.x * std::sinf(theta) + scaledOffset.y * std::cosf(theta);
 
             float offsX = rotatedX / key.transform.scale.x;
             float offsY = rotatedY / key.transform.scale.y;
@@ -832,8 +832,8 @@ void WindowCanvas::Update() {
             float dx = part.transform.position.x - pX;
             float dy = part.transform.position.y - pY;
 
-            float cosAngle = cosf(partsTransformation.rotation * ((float)M_PI / 180.f));
-            float sinAngle = sinf(partsTransformation.rotation * ((float)M_PI / 180.f));
+            float cosAngle = std::cosf(partsTransformation.rotation * ((float)M_PI / 180.f));
+            float sinAngle = std::sinf(partsTransformation.rotation * ((float)M_PI / 180.f));
 
             float rotatedX = dx * cosAngle - dy * sinAngle;
             float rotatedY = dx * sinAngle + dy * cosAngle;
@@ -946,7 +946,7 @@ void WindowCanvas::Update() {
                     x < mCanvasSize.x;
                     x += GRID_STEP
                 ) {
-                    bool centered = fabs((mCanvasTopLeft.x + x) - origin.x) < .01f;
+                    bool centered = std::fabsf((mCanvasTopLeft.x + x) - origin.x) < .01f;
                     drawList->AddLine(
                         { mCanvasTopLeft.x + x, mCanvasTopLeft.y },
                         { mCanvasTopLeft.x + x, canvasBottomRight.y },
@@ -959,7 +959,7 @@ void WindowCanvas::Update() {
                     y < mCanvasSize.y;
                     y += GRID_STEP
                 ) {
-                    bool centered = fabs((mCanvasTopLeft.y + y) - origin.y) < .01f;
+                    bool centered = std::fabsf((mCanvasTopLeft.y + y) - origin.y) < .01f;
                     drawList->AddLine(
                         { mCanvasTopLeft.x, mCanvasTopLeft.y + y },
                         { canvasBottomRight.x, mCanvasTopLeft.y + y },
@@ -1124,7 +1124,7 @@ void WindowCanvas::Update() {
 
             constexpr float epsilon = 1e-2f;
 
-            if ((fabs(partsTransformation.pivotX) > epsilon || partsTransformation.pivotY > epsilon) && !partsTransformation.pivotIsWorld) {
+            if ((std::fabsf(partsTransformation.pivotX) > epsilon || partsTransformation.pivotY > epsilon) && !partsTransformation.pivotIsWorld) {
                 constexpr uint32_t pivotColorOld = IM_COL32(57, 57, 57, .3f * 255);
                 ImVec2 displayPivotPointOld = {
                     (partsAnmSpaceCenter.x * mState.zoomFactor) + origin.x,

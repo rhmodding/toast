@@ -9,12 +9,12 @@
 
 #include "Macro.hpp"
 
-// 14 Feb 2000
+// Feb 14, 2000
 // Pre-byteswapped to BE.
 constexpr uint32_t TPL_VERSION_NUMBER = BYTESWAP_32(2142000);
 
 struct TPLPalette {
-    // Compare to TPL_VERSION_NUMBER
+    // Compare to TPL_VERSION_NUMBER.
     uint32_t versionNumber { TPL_VERSION_NUMBER };
 
     // Amount of descriptors in the descriptor table.
@@ -50,8 +50,9 @@ struct TPLHeader {
 
     uint8_t edgeLODEnable; // Not sure what this does.
 
-    uint8_t minMipmap; // Index of minimum mipmap level. Usually zero.
-    uint8_t maxMipmap; // Index of maximum mipmap level.
+    // Mipmap count is maxMipmap - minMipmap + 1.
+    uint8_t minMipmap; // Index of minimum mipmap level (zero-indexed). Usually zero.
+    uint8_t maxMipmap; // Index of maximum mipmap level (zero-indexed).
 
     // Set by game.
     uint8_t _relocated { 0x00 };
@@ -156,7 +157,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
 
     mTextures.resize(descriptorCount);
 
-    for (unsigned i = 0; i < descriptorCount; i++) {
+    for (uint32_t i = 0; i < descriptorCount; i++) {
         const TPLDescriptor* descriptor = descriptors + i;
 
         if (descriptor->textureHeaderOffset == 0) {
@@ -215,19 +216,19 @@ std::vector<unsigned char> TPLObject::Serialize() {
         return result;
     }
 
-    const unsigned textureCount = mTextures.size();
+    const size_t textureCount = mTextures.size();
 
     // Precompute required size & texture indexes for color palettes.
-    unsigned paletteEntriesSize { 0 };
+    size_t paletteEntriesSize { 0 };
 
     struct PaletteTexEntry {
-        unsigned texIndex;
+        size_t texIndex;
         std::set<uint32_t> palette;
     };
     std::vector<PaletteTexEntry> paletteTextures;
     paletteTextures.reserve(textureCount);
 
-    for (unsigned i = 0; i < textureCount; i++) {
+    for (size_t i = 0; i < textureCount; i++) {
         const auto& texture = mTextures[i];
 
         if (
@@ -248,7 +249,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
         }
     }
 
-    unsigned headerSectionStart = (
+    const size_t headerSectionStart = (
         ALIGN_UP_32(
             sizeof(TPLPalette) +
             (sizeof(TPLDescriptor) * textureCount) +
@@ -256,16 +257,15 @@ std::vector<unsigned char> TPLObject::Serialize() {
         ) + paletteEntriesSize
     );
 
-    unsigned dataSectionStart = headerSectionStart + (sizeof(TPLHeader) * textureCount);
+    const size_t dataSectionStart = headerSectionStart + (sizeof(TPLHeader) * textureCount);
 
     size_t fullSize = dataSectionStart;
 
     // Precompute size of data section.
-    for (unsigned i = 0; i < textureCount; i++) {
-        const unsigned imageSize = RvlImageConvert::getImageByteSize(mTextures[i]);
+    for (size_t i = 0; i < textureCount; i++) {
+        const size_t imageSize = RvlImageConvert::getImageByteSize(mTextures[i]);
 
-        fullSize = ALIGN_UP_32(fullSize);
-        fullSize += imageSize;
+        fullSize = ALIGN_UP_32(fullSize) + imageSize;
     }
 
     result.resize(fullSize);
@@ -278,24 +278,24 @@ std::vector<unsigned char> TPLObject::Serialize() {
     palette->descriptorCount = BYTESWAP_32(textureCount);
     palette->descriptorsOffset = BYTESWAP_32(sizeof(TPLPalette));
 
-    unsigned nextClutOffset { 0 };
-    if (!paletteTextures.empty())
+    size_t nextClutOffset { 0 };
+    if (!paletteTextures.empty()) {
         nextClutOffset = ALIGN_UP_32(
             sizeof(TPLPalette) +
             (sizeof(TPLDescriptor) * textureCount) +
             (sizeof(TPLClutHeader) * paletteTextures.size())
         );
+    }
 
     TPLHeader* headers = reinterpret_cast<TPLHeader*>(result.data() + headerSectionStart);
     TPLDescriptor* descriptors = reinterpret_cast<TPLDescriptor*>(result.data() + sizeof(TPLPalette));
 
     // Texture Descriptors
-    for (unsigned textureIndex = 0; textureIndex < textureCount; textureIndex++) {
+    for (size_t textureIndex = 0; textureIndex < textureCount; textureIndex++) {
         TPLDescriptor* descriptor = descriptors + textureIndex;
 
         descriptor->textureHeaderOffset = BYTESWAP_32(static_cast<uint32_t>(
-            headerSectionStart +
-            (sizeof(TPLHeader) * textureIndex)
+            headerSectionStart + (sizeof(TPLHeader) * textureIndex)
         ));
 
         auto it = std::find_if(
@@ -305,7 +305,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             }
         );
         if (it != paletteTextures.end()) {
-            unsigned clutIndex = std::distance(paletteTextures.begin(), it);
+            size_t clutIndex = std::distance(paletteTextures.begin(), it);
             descriptor->CLUTHeaderOffset = BYTESWAP_32(static_cast<uint32_t>(
                 sizeof(TPLPalette) +
                 (sizeof(TPLDescriptor) * textureCount) +
@@ -323,13 +323,13 @@ std::vector<unsigned char> TPLObject::Serialize() {
     );
 
     // Palette Descriptors & Data
-    for (unsigned clutIndex = 0; clutIndex < paletteTextures.size(); clutIndex++) {
+    for (size_t clutIndex = 0; clutIndex < paletteTextures.size(); clutIndex++) {
         TPLClutHeader* clutHeader = clutHeaders + clutIndex;
 
         clutHeader->dataFormat = BYTESWAP_32(DEFAULT_CLUT_FORMAT);
         clutHeader->dataOffset = BYTESWAP_32(nextClutOffset);
 
-        unsigned colorCount = ALIGN_UP_16(paletteTextures[clutIndex].palette.size());
+        const size_t colorCount = ALIGN_UP_16(paletteTextures[clutIndex].palette.size());
         clutHeader->numEntries = BYTESWAP_16(colorCount);
 
         // Convieniently, every palette format's pixel is 16-bit
@@ -337,7 +337,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
     }
 
     // Texture Headers
-    for (unsigned i = 0; i < textureCount; i++) {
+    for (size_t i = 0; i < textureCount; i++) {
         const TPL::TPLTexture& texture = mTextures[i];
 
         TPLHeader* header = headers + i;
@@ -388,8 +388,8 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
     // Image Data
 
-    unsigned writeOffset = dataSectionStart;
-    for (unsigned i = 0; i < textureCount; i++) {
+    size_t writeOffset = dataSectionStart;
+    for (size_t i = 0; i < textureCount; i++) {
         TPL::TPLTexture& texture = mTextures[i];
 
         writeOffset = ALIGN_UP_32(writeOffset);
@@ -400,7 +400,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.width << 'x' << texture.height << ", " <<
             getImageFormatName(texture.format) << ").." << std::endl;
 
-        const unsigned imageSize = RvlImageConvert::getImageByteSize(texture);
+        const size_t imageSize = RvlImageConvert::getImageByteSize(texture);
 
         unsigned char* imageData = result.data() + writeOffset;
         RvlImageConvert::fromRGBA32(texture, imageData);

@@ -25,42 +25,25 @@ public:
     Session() = default;
     ~Session() = default;
 
-    Session(Session&& rhs) noexcept :
-        cellanims(std::move(rhs.cellanims)),
-        sheets(std::move(rhs.sheets)),
-        resourcePath(std::move(rhs.resourcePath)),
-        arrangementMode(rhs.arrangementMode),
-        modified(rhs.modified),
-        type(rhs.type),
-        undoQueue(std::move(rhs.undoQueue)),
-        redoQueue(std::move(rhs.redoQueue)),
-        currentCellAnim(rhs.currentCellAnim)
-    {}
+    Session(const Session&) = delete;
+    Session& operator=(const Session&) = delete;
+
+    Session(Session&& rhs) noexcept {
+        moveFrom(std::move(rhs));
+    }
 
     Session& operator=(Session&& rhs) noexcept {
-        if (this != &rhs) {
-            cellanims = std::move(rhs.cellanims);
-            sheets = std::move(rhs.sheets);
-            resourcePath = std::move(rhs.resourcePath);
-            arrangementMode = rhs.arrangementMode;
-            modified = rhs.modified;
-            type = rhs.type;
-            undoQueue = std::move(rhs.undoQueue);
-            redoQueue = std::move(rhs.redoQueue);
-            currentCellAnim = rhs.currentCellAnim;
-        }
+        if (this != &rhs)
+            moveFrom(std::move(rhs));
         return *this;
     }
 
 public:
     struct CellAnimGroup {
         std::shared_ptr<CellAnim::CellAnimObject> object;
-        std::string name;
-
         SelectionState selectionState;
     };
 
-public:
     void addCommand(std::shared_ptr<BaseCommand> command);
 
     bool canUndo() const { return !undoQueue.empty(); }
@@ -72,23 +55,34 @@ public:
     void clearUndoRedo() {
         undoQueue.clear();
         redoQueue.clear();
-    };
+    }
 
     unsigned getCurrentCellAnimIndex() const { return currentCellAnim; }
     void setCurrentCellAnimIndex(unsigned index);
 
+    const CellAnimGroup& getCurrentCellAnim() const {
+        return cellanims.at(currentCellAnim);
+    }
     CellAnimGroup& getCurrentCellAnim() {
         return cellanims.at(currentCellAnim);
     }
 
+    const std::shared_ptr<TextureEx>& getCurrentCellAnimSheet() const {
+        return sheets->getTextureByIndex(
+            getCurrentCellAnim().object->getSheetIndex()
+        );
+    }
     std::shared_ptr<TextureEx>& getCurrentCellAnimSheet() {
         return sheets->getTextureByIndex(
-            cellanims.at(currentCellAnim).object->getSheetIndex()
+            getCurrentCellAnim().object->getSheetIndex()
         );
     }
 
+    const SelectionState& getCurrentSelectionState() const {
+        return getCurrentCellAnim().selectionState;
+    }
     SelectionState& getCurrentSelectionState() {
-        return cellanims.at(currentCellAnim).selectionState;
+        return getCurrentCellAnim().selectionState;
     }
 
 public:
@@ -100,16 +94,27 @@ public:
     std::string resourcePath;
 
     bool arrangementMode { false };
-
     bool modified { false };
 
     CellAnim::CellAnimType type { CellAnim::CELLANIM_TYPE_INVALID };
 
 private:
+    unsigned currentCellAnim { 0 };
+
     std::deque<std::shared_ptr<BaseCommand>> undoQueue;
     std::deque<std::shared_ptr<BaseCommand>> redoQueue;
 
-    unsigned currentCellAnim { 0 };
+    void moveFrom(Session&& rhs) {
+        cellanims = std::move(rhs.cellanims);
+        sheets = std::move(rhs.sheets);
+        resourcePath = std::move(rhs.resourcePath);
+        arrangementMode = rhs.arrangementMode;
+        modified = rhs.modified;
+        type = rhs.type;
+        undoQueue = std::move(rhs.undoQueue);
+        redoQueue = std::move(rhs.redoQueue);
+        currentCellAnim = rhs.currentCellAnim;
+    }
 };
 
 #endif // SESSION_HPP

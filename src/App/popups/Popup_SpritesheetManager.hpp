@@ -32,7 +32,7 @@ static void Popup_SpritesheetManager() {
             ImGui::BeginChild("SheetList", { 150.f, 0.f }, ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
             for (unsigned i = 0; i < sheets->getTextureCount(); i++) {
                 char label[32];
-                snprintf(label, sizeof(label), "Sheet no. %u", i + 1);
+                std::snprintf(label, sizeof(label), "Sheet no. %u", i + 1);
                 if (ImGui::Selectable(label, selectedSheet == i))
                     selectedSheet = i;
             }

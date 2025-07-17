@@ -28,6 +28,7 @@
 #include "manager/SessionManager.hpp"
 #include "manager/ConfigManager.hpp"
 #include "manager/ThemeManager.hpp"
+#include "manager/PromptPopupManager.hpp"
 
 #include "texture/TextureEx.hpp"
 
@@ -328,7 +329,7 @@ void WindowSpritesheet::FormatPopup() {
                     char formattedStr[32];
                     {
                         char numberStr[32];
-                        snprintf(numberStr, sizeof(numberStr), "%u", dataSize);
+                        std::snprintf(numberStr, sizeof(numberStr), "%u", dataSize);
 
                         unsigned srcLen = strlen(numberStr);
                         unsigned destLen = srcLen + (srcLen - 1) / 3;
@@ -605,7 +606,14 @@ void WindowSpritesheet::Update() {
                     RunEditor();
                 }
                 else {
-                    OPEN_GLOBAL_POPUP("###TextureExportFailed");
+                    PromptPopupManager::getInstance().Queue(
+                        PromptPopupManager::CreatePrompt(
+                            "An error occurred while exporting the texture..",
+                            "The texture could not be exported to the PNG file; please\n"
+                            "check the log for more details."
+                        )
+                        .WithResponses(PromptPopup::RESPONSE_OK)
+                    );
                 }
             }
             if (ImGui::MenuItem("Replace with new image...", nullptr, false)) {
@@ -692,7 +700,7 @@ void WindowSpritesheet::Update() {
 
         {
             char textBuffer[32];
-            snprintf(
+            std::snprintf(
                 textBuffer, sizeof(textBuffer),
                 "Double-click to %s", mSheetZoomEnabled ? "un-zoom" : "zoom"
             );

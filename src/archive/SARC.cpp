@@ -28,32 +28,32 @@ constexpr uint16_t SARC_BYTEORDER_LITTLE = 0xFEFF;
 constexpr uint32_t SARC_DEFAULT_HASH_KEY = 0x65;
 
 struct SarcFileHeader {
-    uint32_t magic { SARC_MAGIC }; // Compare to SARC_MAGIC
+    uint32_t magic { SARC_MAGIC }; // Compare to SARC_MAGIC.
     uint16_t headerSize { sizeof(SarcFileHeader) };
 
-    uint16_t byteOrder { SARC_BYTEORDER_LITTLE }; // Compare to SARC_BYTEORDER_BIG and SARC_BYTEORDER_LITTLE
+    uint16_t byteOrder { SARC_BYTEORDER_LITTLE }; // Compare to SARC_BYTEORDER_BIG and SARC_BYTEORDER_LITTLE.
 
     uint32_t fileSize; // Size of this file.
     uint32_t dataStart; // File offset to the archive data.
 
-    uint16_t formatVersion { SARC_VERSION }; // Compare to SARC_VERSION
+    uint16_t formatVersion { SARC_VERSION }; // Compare to SARC_VERSION.
 
     uint16_t _reserved { 0x0000 };
 } __attribute__((packed));
 
 struct SfatNode {
-    uint32_t nameHash;
+    uint32_t nameHash; // See sarcComputeHash for algorithm.
 
-    // | nameOffset (24b) | collisionCount (8b) |
+    // | nameOffset (3byte) | collisionCount (1byte) |
     uint32_t nameOffsetAndCollisionCount;
 
-    // In 4byte increments; multiply by 4 to get the true offset.
     // Relative to the start of the SFNT section's data.
     unsigned getNameOffset() const {
-        return this->nameOffsetAndCollisionCount & 0x00FFFFFF;
+        return (this->nameOffsetAndCollisionCount & 0x00FFFFFF) * 4;
     }
 
-    // TODO: not sure what this exactly is
+    // The collision count represents the occourence number of a file entry's hash.
+    // The value is usually 1, assuming no collisions.
     unsigned getCollisionCount() const {
         return (this->nameOffsetAndCollisionCount & 0xFF000000) >> 24;
     }
@@ -63,9 +63,10 @@ struct SfatNode {
         this->nameOffsetAndCollisionCount |= ((collisionCount & 0xFF) << 24);
     }
 
+    // Note: nameOffset must be divisible by four
     void setNameOffset(unsigned nameOffset) {
         this->nameOffsetAndCollisionCount &= 0xFF000000;
-        this->nameOffsetAndCollisionCount |= (nameOffset & 0xFFFFFF);
+        this->nameOffsetAndCollisionCount |= ((nameOffset / 4) & 0xFFFFFF);
     }
 
     uint32_t dataOffsetStart; // Relative to the file header's dataStart.
@@ -73,7 +74,7 @@ struct SfatNode {
 } __attribute__((packed));
 
 struct SfatSection {
-    uint32_t magic { SFAT_MAGIC }; // Compare to SFAT_MAGIC
+    uint32_t magic { SFAT_MAGIC }; // Compare to SFAT_MAGIC.
     uint16_t sectionSize { sizeof(SfatSection) };
 
     uint16_t nodeCount;
@@ -86,7 +87,7 @@ struct SfatSection {
 } __attribute__((packed));
 
 struct SfntSection {
-    uint32_t magic { SFNT_MAGIC }; // Compare to SFNT_MAGIC
+    uint32_t magic { SFNT_MAGIC }; // Compare to SFNT_MAGIC.
     uint16_t sectionSize { sizeof(SfntSection) };
 
     uint16_t _pad16 { 0x0000 };
@@ -150,7 +151,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         const SfatNode* node = sfatSection->nodes + i;
 
         // Path to the file, in the format "dir1/dir2/file.ext".
-        const char* name = sfntSection->data + (node->getNameOffset() * 4);
+        const char* name = sfntSection->data + node->getNameOffset();
 
         const unsigned char* nodeDataStart = data + header->dataStart + node->dataOffsetStart;
         const unsigned char* nodeDataEnd = data + header->dataStart + node->dataOffsetEnd;
@@ -204,15 +205,13 @@ std::vector<unsigned char> SARCObject::Serialize() {
     struct FileEntry {
         const Archive::File* file;
         std::string path;
+        uint32_t collisionCount;
         uint32_t pathHash;
     };
     std::vector<FileEntry> entries;
 
     std::stack<const Archive::Directory*> dirStack;
     dirStack.push(&mStructure);
-
-    // TODO: it's naively assumed that there are no hash collisions; we should
-    //       probably be checking
 
     while (!dirStack.empty()) {
         const Archive::Directory* currentDir = dirStack.top();
@@ -245,6 +244,19 @@ std::vector<unsigned char> SARCObject::Serialize() {
             return a.pathHash < b.pathHash;
         }
     );
+
+    uint32_t lastHash = entries[0].pathHash;
+    uint32_t lastCollisionCount = 0;
+    for (auto& entry : entries) {
+        if (entry.pathHash == lastHash) {
+            entry.collisionCount = ++lastCollisionCount;
+        }
+        else {
+            lastHash = entry.pathHash;
+            lastCollisionCount = 1;
+            entry.collisionCount = lastCollisionCount;
+        }
+    }
 
     size_t fullSize = sizeof(SarcFileHeader) + sizeof(SfatSection) +
         sizeof(SfntSection) + (sizeof(SfatNode) * entries.size());
@@ -281,8 +293,8 @@ std::vector<unsigned char> SARCObject::Serialize() {
 
         node->nameHash = entry.pathHash;
 
-        node->setCollisionCount(1);
-        node->setNameOffset((currentName - sfntSection->data) / 4);
+        node->setCollisionCount(entry.collisionCount);
+        node->setNameOffset(currentName - sfntSection->data);
 
         strcpy(currentName, entry.path.c_str());
         currentName += ALIGN_UP_4(entry.path.size() + 1);
