@@ -40,7 +40,7 @@ private:
 
 public:
     bool isDirectory() const {
-        return (this->isDirAndNameOffset & 0xFF) != 0x00;
+        return (this->isDirAndNameOffset & 0x000000FF) != 0x00;
     }
 
     // The name offset is relative to the start of the string pool.
@@ -55,8 +55,8 @@ public:
     }
 
     void setNameOffset(unsigned _nameOffset) {
-        uint32_t isDir = this->isDirAndNameOffset & 0xFF;
-        uint32_t nameOffset = BYTESWAP_32(_nameOffset & 0xFFFFFF);
+        uint32_t isDir = (this->isDirAndNameOffset & 0x000000FF);
+        uint32_t nameOffset = BYTESWAP_32(_nameOffset & 0x00FFFFFF);
 
         this->isDirAndNameOffset = isDir | nameOffset;
     }
@@ -236,8 +236,6 @@ std::vector<unsigned char> DARCHObject::Serialize() {
         nextStringPoolOffset += (
             entry.isDir ? entry.dir->name.size() : entry.file->name.size()
         ) + 1;
-
-        nextStringPoolOffset = ALIGN_UP_4(nextStringPoolOffset);
     }
 
     header->nodeSectionSize = BYTESWAP_32(static_cast<uint32_t>(
@@ -263,7 +261,8 @@ std::vector<unsigned char> DARCHObject::Serialize() {
             dataOffsets[i] = nextDataOffset;
 
             nextDataOffset += entry.file->data.size();
-            nextDataOffset = ALIGN_UP_32(nextDataOffset);
+            if (i != (flattenedArchive.size() - 1))
+                nextDataOffset = ALIGN_UP_32(nextDataOffset);
         }
     }
 
