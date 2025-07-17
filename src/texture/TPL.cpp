@@ -250,7 +250,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
     }
 
     const size_t headerSectionStart = (
-        ALIGN_UP_32(
+        (
             sizeof(TPLPalette) +
             (sizeof(TPLDescriptor) * textureCount) +
             (sizeof(TPLClutHeader) * paletteTextures.size())
@@ -280,7 +280,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
 
     size_t nextClutOffset { 0 };
     if (!paletteTextures.empty()) {
-        nextClutOffset = ALIGN_UP_32(
+        nextClutOffset = (
             sizeof(TPLPalette) +
             (sizeof(TPLDescriptor) * textureCount) +
             (sizeof(TPLClutHeader) * paletteTextures.size())
