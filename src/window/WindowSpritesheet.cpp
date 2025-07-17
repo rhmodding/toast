@@ -298,7 +298,7 @@ void WindowSpritesheet::FormatPopup() {
             );
 
             {
-                ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
+                ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.4f);
                 ImGui::SeparatorText("Image Info");
                 ImGui::PopFont();
 
@@ -357,7 +357,7 @@ void WindowSpritesheet::FormatPopup() {
                 ImGui::EndChild();
             }
             {
-                ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
+                ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.4f);
                 ImGui::SeparatorText("Format Info");
                 ImGui::PopFont();
 

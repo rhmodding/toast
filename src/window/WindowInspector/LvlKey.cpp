@@ -37,7 +37,7 @@ void WindowInspector::Level_Key() {
 
         ImGui::Text("Anim \"%s\" (no. %u)", animationName, animationIndex+1);
 
-        ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
+        ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.4f);
         ImGui::TextWrapped("Key no. %u", playerManager.getKeyIndex() + 1);
         ImGui::PopFont();
 

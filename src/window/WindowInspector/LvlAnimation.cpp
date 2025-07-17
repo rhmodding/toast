@@ -65,7 +65,7 @@ void WindowInspector::Level_Animation() {
 
         ImGui::Text("Animation no. %u:", animationIndex + 1);
 
-        ImGui::PushFont(ThemeManager::getInstance().getFonts().large);
+        ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.4f);
         ImGui::TextWrapped("%s",
             animation.name.empty() ? "(no name set)" : animation.name.c_str()
         );

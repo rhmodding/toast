@@ -155,7 +155,7 @@ static void drawHeader(ImVec2& position, ImGuiWindow* window) {
         position.y + (30.f / 2.f) - window->Pos.y
     });
 
-    ImGui::PushFont(themeManager.getFonts().giant);
+    ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 3.0f);
 
     // Title.
     window->DrawList->AddText(position, ImGui::GetColorU32(ImGuiCol_Text), headerTitle);

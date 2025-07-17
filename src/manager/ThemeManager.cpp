@@ -24,17 +24,6 @@ void ThemeManager::Initialize() {
         );
     }
 
-    { // normal: Noto Sans JP (18px)
-        ImFontConfig fontConfig;
-        fontConfig.MergeMode = true;
-        fontConfig.FontDataOwnedByAtlas = false;
-
-        mFonts.normalJP = io.Fonts->AddFontFromMemoryTTF(
-            const_cast<unsigned char*>(NotoSansJP_data), NotoSansJP_length, 18.f, &fontConfig,
-            io.Fonts->GetGlyphRangesJapanese()
-        );
-    }
-
     { // icon: Font Awesome
         static const ImWchar range[] { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
@@ -46,21 +35,13 @@ void ThemeManager::Initialize() {
         );
     }
 
-    { // large: Noto Sans (24px)
+    { // normal: Noto Sans JP (18px)
         ImFontConfig fontConfig;
+        fontConfig.MergeMode = true;
         fontConfig.FontDataOwnedByAtlas = false;
 
-        mFonts.large = io.Fonts->AddFontFromMemoryTTF(
-            const_cast<unsigned char*>(NotoSans_data), NotoSans_length, 24.f, &fontConfig
-        );
-    }
-
-    { // giant: Noto Sans (52px)
-        ImFontConfig fontConfig;
-        fontConfig.FontDataOwnedByAtlas = false;
-
-        mFonts.giant = io.Fonts->AddFontFromMemoryTTF(
-            const_cast<unsigned char*>(NotoSans_data), NotoSans_length, 52.f, &fontConfig
+        mFonts.normalJP = io.Fonts->AddFontFromMemoryTTF(
+            const_cast<unsigned char*>(NotoSansJP_data), NotoSansJP_length, 18.f, &fontConfig
         );
     }
 }

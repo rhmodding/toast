@@ -18,8 +18,6 @@ public:
     struct FontCollection {
         ImFont* normal { nullptr };
         ImFont* normalJP { nullptr };
-        ImFont* large { nullptr };
-        ImFont* giant { nullptr };
         ImFont* icon { nullptr };
     };
 
@@ -29,9 +27,6 @@ public:
 
     const std::array<float, 4>& getWindowClearColor() const {
         return mWindowClearColor;
-    }
-    const FontCollection& getFonts() const {
-        return mFonts;
     }
 
     bool getThemeIsLight() const;
