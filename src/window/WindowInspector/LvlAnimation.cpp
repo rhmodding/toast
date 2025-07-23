@@ -73,15 +73,9 @@ void WindowInspector::Level_Animation() {
 
         ImGui::PopStyleVar();
 
-        ImGui::EndChild();
+    ImGui::EndChild();
 
     ImGui::SeparatorText((const char*)ICON_FA_PENCIL " Properties");
-
-    if (isCtr) {
-        ImGui::Checkbox("Interpolated", &newAnimation.isInterpolated);
-
-        ImGui::Dummy({ 0.f, 5.f });
-    }
 
     UIUtil::Widget::ValueEditor<std::string>("Name", animation.name,
         [&]() { return originalAnimation.name; },
@@ -107,21 +101,31 @@ void WindowInspector::Level_Animation() {
         );
     }
 
+    if (isCtr) {
+        ImGui::Dummy({ 0.f, 1.f });
+
+        ImGui::Checkbox("Interpolated", &newAnimation.isInterpolated);
+    }
+
     ImGui::Dummy({ 0.f, 2.f });
 
-    ImGui::Separator();
+    ImGui::SeparatorText((const char*)ICON_FA_GEAR " Quick Action");
 
-    ImGui::Dummy({ 0.f, 1.f });
-
-    if (ImGui::Button("Swap animation..")) {
+    if (ImGui::Button("Swap animation ..")) {
         Popups::_swapAnimationIdx = animationIndex;
         OPEN_GLOBAL_POPUP("###SwapAnimation");
     }
 
-    if (!isCtr) {
-        ImGui::Dummy({ 0.f, 1.f });
+    ImGui::SameLine();
 
-        ImGui::Separator();
+    if (ImGui::Button("Time scale ..")) {
+
+    }
+
+    if (!isCtr) {
+        // ImGui::Dummy({ 0.f, 1.f });
+
+        // ImGui::Separator();
 
         ImGui::Dummy({ 0.f, 2.f });
 
@@ -130,10 +134,19 @@ void WindowInspector::Level_Animation() {
             ImGui::TextWrapped(
                 "Animation names are not used to map animations in-game; instead, "
                 "the animation index (its order in the list) determines mapping.\n"
-                "To swap animations, use [Swap animation..]."
+                "To swap animations, use [Swap animation ..]."
             );
         ImGui::Unindent();
     }
+
+    ImGui::Dummy({ 0.f, 2.f });
+
+    ImGui::SeparatorText((const char*)ICON_FA_IMAGES " Stats");
+
+    ImGui::Indent();
+        ImGui::BulletText("Key count: %zu", newAnimation.keys.size());
+        ImGui::BulletText("Frame count: %zu", newAnimation.countFrames());
+    ImGui::Unindent(); 
 
     if (newAnimation != originalAnimation) {
         animation = originalAnimation;
