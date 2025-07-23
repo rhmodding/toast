@@ -7,13 +7,15 @@
 
 #include <string_view>
 
+#include <optional>
+
 namespace EditorDataProc {
 
 inline constexpr std::string_view ARCHIVE_FILENAME = "TOAST.TED";
 
 bool Apply(Session& session, const unsigned char* data, size_t dataSize);
 
-std::vector<unsigned char> Create(const Session& session);
+std::optional<std::vector<unsigned char>> Create(const Session& session);
 
 } // namespace EditorDataProc
 

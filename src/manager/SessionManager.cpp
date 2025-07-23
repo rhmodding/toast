@@ -736,10 +736,11 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
     }
 
     // TED file
-    {
+    auto editorDataOpt = EditorDataProc::Create(session);
+    if (editorDataOpt.has_value()) {
         Archive::File file { std::string(EditorDataProc::ARCHIVE_FILENAME) };
 
-        file.data = EditorDataProc::Create(session);
+        file.data = std::move(*editorDataOpt);
 
         directory.AddFile(std::move(file));
     }
@@ -843,10 +844,11 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
     ctpkTextures.clear();
 
     // TED file
-    {
+    auto editorDataOpt = EditorDataProc::Create(session);
+    if (editorDataOpt.has_value()) {
         Archive::File file { std::string(EditorDataProc::ARCHIVE_FILENAME) };
 
-        file.data = EditorDataProc::Create(session);
+        file.data = std::move(*editorDataOpt);
 
         directory.AddFile(std::move(file));
     }

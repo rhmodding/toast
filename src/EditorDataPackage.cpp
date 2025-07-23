@@ -435,7 +435,7 @@ bool EditorDataProc::Apply(Session& session, const unsigned char *data, const si
     return ApplyImpl(session, data, dataSize);
 }
 
-std::vector<unsigned char> EditorDataProc::Create(const Session &session) {
+std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &session) {
     // string - offset into pool
     std::unordered_map<std::string, unsigned> stringPoolMap;
     uint32_t nextStringPoolOffs = 0;
@@ -513,6 +513,10 @@ std::vector<unsigned char> EditorDataProc::Create(const Session &session) {
                 }
             }
         }
+    }
+
+    if (entries.empty()) {
+        return std::nullopt; // Don't bother creating the data.
     }
 
     size_t workDataSize = sizeof(TedWorkHeader);
