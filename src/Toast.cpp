@@ -53,6 +53,8 @@
 #include "BIN/image/toastIcon.png.h"
 #endif // !defined(__APPLE__)
 
+#include "BuildDate.hpp"
+
 #define WINDOW_TITLE "toast"
 
 Toast* Toast::gInstance { nullptr };
@@ -97,6 +99,12 @@ Toast::Toast(int argc, const char** argv) {
 
     if (!glfwInit())
         throw std::runtime_error("Toast:Toast: Failed to init GLFW!");
+
+#ifdef NDEBUG
+    Logging::info << "Release: " << gBuildDate << std::endl;
+#else
+    Logging::info << "Debug: " << gBuildDate << std::endl;
+#endif
 
     MainThreadTaskManager::createSingleton();
     AsyncTaskManager::createSingleton();

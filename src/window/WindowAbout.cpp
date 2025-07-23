@@ -13,6 +13,8 @@
 
 #include "manager/ThemeManager.hpp"
 
+#include "BuildDate.hpp"
+
 enum LineCommand {
     LC_EMPTY_LINE,
     LC_EMPTY_LINE_QUART,
@@ -78,9 +80,9 @@ static const char* githubURLCmd =
 #endif // __APPLE__, _WIN32
     "https://github.com/conhlee/toast";
 
-constexpr ImVec2 windowSize (880.f, 520.f);
+static char sBuildString[64];
 
-constexpr const char buildString[] = "built on: " __DATE__ " " __TIME__;
+constexpr ImVec2 windowSize (880.f, 520.f);
 
 static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, ImGuiWindow* window) {
     float additiveLineHeight { 0.f };
@@ -165,7 +167,7 @@ static void drawHeader(ImVec2& position, ImGuiWindow* window) {
 
     ImGui::PopFont();
 
-    window->DrawList->AddText(position, ImGui::GetColorU32(ImGuiCol_TextDisabled), buildString);
+    window->DrawList->AddText(position, ImGui::GetColorU32(ImGuiCol_TextDisabled), sBuildString);
 
     position.x = startX;
     position.y += ImGui::GetTextLineHeight() / .6f;
@@ -184,6 +186,10 @@ static void drawHeader(ImVec2& position, ImGuiWindow* window) {
         ImGui::SetTooltip("%s", githubTooltip);
 
     position.y += (ImGui::GetTextLineHeight() * 2.f) + 5.f;
+}
+
+WindowAbout::WindowAbout() {
+    std::snprintf(sBuildString, sizeof(sBuildString), "built on: %s", gBuildDate);
 }
 
 void WindowAbout::Update() {

@@ -13,6 +13,8 @@ IF (MSVC)
 ENDIF()
 
 set(SOURCES
+    src/BuildDate.cpp
+
     ext/imgui/imgui.cpp
     ext/imgui/imgui_demo.cpp
     ext/imgui/imgui_draw.cpp
