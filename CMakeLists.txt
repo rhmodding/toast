@@ -112,9 +112,9 @@ set(SOURCES
 )
 
 IF (APPLE)
-    add_executable (toast MACOSX_BUNDLE ${SOURCES} ${HEADERS})
+    add_executable (toast MACOSX_BUNDLE ${SOURCES})
 ELSE()
-    add_executable (toast ${SOURCES} ${HEADERS})
+    add_executable (toast ${SOURCES})
 ENDIF()
 
 target_compile_definitions(toast PRIVATE
