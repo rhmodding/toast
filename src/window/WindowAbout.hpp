@@ -9,6 +9,8 @@ class WindowAbout : public BaseWindow {
 public:
     void Update() override;
 
+    WindowAbout();
+
 public:
     bool mOpen { false };
 
