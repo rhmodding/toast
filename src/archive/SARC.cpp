@@ -260,10 +260,10 @@ std::vector<unsigned char> SARCObject::Serialize() {
 
     size_t fullSize = sizeof(SarcFileHeader) + sizeof(SfatSection) +
         sizeof(SfntSection) + (sizeof(SfatNode) * entries.size());
-    for (size_t i = 0; i < entries.size(); i++) {
+    for (size_t i = 0; i < entries.size(); i++)
         fullSize += ALIGN_UP_4(entries[i].path.size() + 1);
-        fullSize = ALIGN_UP_32(fullSize) + ALIGN_UP_32(entries[i].file->data.size());
-    }
+    for (size_t i = 0; i < entries.size(); i++)
+        fullSize = ALIGN_UP_128(fullSize) + ALIGN_UP_128(entries[i].file->data.size());
     std::vector<unsigned char> result(fullSize);
 
     SarcFileHeader* header = reinterpret_cast<SarcFileHeader*>(result.data());
@@ -302,7 +302,9 @@ std::vector<unsigned char> SARCObject::Serialize() {
 
     // Write the data.
 
-    unsigned char* dataStart = reinterpret_cast<unsigned char*>(currentName);
+    unsigned char* dataStart = result.data() + ALIGN_UP_128(
+        reinterpret_cast<unsigned char*>(currentName) - result.data()
+    );
 
     header->dataStart = static_cast<uint32_t>(dataStart - result.data());
 
@@ -316,7 +318,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
         node->dataOffsetEnd = node->dataOffsetStart + entry.file->data.size();
 
         memcpy(currentData, entry.file->data.data(), entry.file->data.size());
-        currentData += ALIGN_UP_32(entry.file->data.size());
+        currentData += ALIGN_UP_128(entry.file->data.size());
     }
 
     return result;
