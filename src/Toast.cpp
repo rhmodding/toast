@@ -60,7 +60,7 @@
 Toast* Toast::gInstance { nullptr };
 Toast* Toast::getInstance() {
     if (gInstance == nullptr)
-        throw std::runtime_error("Toast:getInstance: Instance of Toast does not exist!");
+        throw std::runtime_error("Toast::getInstance: Instance of Toast does not exist!");
     return gInstance;
 }
 
@@ -86,7 +86,7 @@ static void syncToUpdateRate() {
 
 Toast::Toast(int argc, const char** argv) {
     if (gInstance != nullptr)
-        throw std::runtime_error("Toast:Toast: Instance of Toast already exists!");
+        throw std::runtime_error("Toast::Toast: Instance of Toast already exists!");
     gInstance = this;
 
     mMainThreadId = std::this_thread::get_id();
@@ -98,7 +98,7 @@ Toast::Toast(int argc, const char** argv) {
     });
 
     if (!glfwInit())
-        throw std::runtime_error("Toast:Toast: Failed to init GLFW!");
+        throw std::runtime_error("Toast::Toast: Failed to init GLFW!");
 
 #ifdef NDEBUG
     Logging::info << "Release: " << gBuildDate << std::endl;
@@ -181,7 +181,7 @@ Toast::Toast(int argc, const char** argv) {
         glfwDestroyWindow(mGlfwWindowHndl);
         glfwTerminate();
 
-        throw std::runtime_error("Toast::Toast: Failed to init GLFW!");
+        throw std::runtime_error("Toast::Toast: Failed to init GLEW!");
     }
 #endif
 
