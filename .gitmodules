@@ -2,9 +2,6 @@
 	path = ext/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
-[submodule "ext/zeldamods.zlib-ng"]
-	path = ext/zeldamods.zlib-ng
-	url = https://github.com/zeldamods/zlib-ng/
 [submodule "ext/nlohmann.json"]
 	path = ext/nlohmann.json
 	url = https://github.com/nlohmann/json.git
@@ -14,3 +11,6 @@
 [submodule "ext/rg-etc1"]
 	path = ext/rg-etc1
 	url = https://github.com/conhlee/rg-etc1.git
+[submodule "ext/zlib-ng"]
+	path = ext/zlib-ng
+	url = https://github.com/zlib-ng/zlib-ng.git

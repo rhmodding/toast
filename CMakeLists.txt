@@ -45,6 +45,9 @@ set(SOURCES
     src/cellanim/CellAnim.cpp
     src/cellanim/CellAnimRenderer.cpp
 
+    src/compression/Yaz0/Compress.cpp
+    src/compression/Yaz0/Window.cpp
+
     src/compression/NZlib.cpp
     src/compression/Yaz0.cpp
 
@@ -218,7 +221,7 @@ set(WITH_AVX2 OFF CACHE BOOL "Disable zlib-ng AVX2 optimizations" FORCE)
 set(WITH_AVX512 OFF CACHE BOOL "Disable zlib-ng AVX512 optimizations" FORCE)
 set(WITH_AVX512VNNI OFF CACHE BOOL "Disable zlig-ng AVX512VNNI optimizations" FORCE)
 
-add_subdirectory(ext/zeldamods.zlib-ng)
+add_subdirectory(ext/zlib-ng)
 
 target_link_libraries(toast PRIVATE zlib)
 

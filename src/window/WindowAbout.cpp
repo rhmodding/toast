@@ -53,7 +53,7 @@ static const Line aboutLines[] = {
     { LC_STRING_LINE, "GLFW [Zlib/libpng]" },
     { LC_STRING_LINE, "Various STB libraries (nothings/stb) [public domain]" },
     { LC_STRING_LINE, "zlib-ng [Zlib]" },
-    { LC_STRING_LINE, "syaz0 (zeldamods/syaz0) [GPL-2.0]" },
+    { LC_STRING_LINE, "Orthrus (NWPlayer123/Orthrus) [MPL-2.0]" },
     { LC_STRING_LINE, "rg_etc1 (by Richard Geldreich) [Zlib]" },
     { LC_STRING_LINE, "tinyfiledialogs (by Guillaume Vareille) [Zlib]" },
     { LC_STRING_LINE, "json (nlohmann/json) [MIT]" },

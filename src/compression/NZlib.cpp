@@ -24,54 +24,34 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         return std::nullopt; // return nothing (std::optional)
     }
 
+    auto compressStartTime = std::chrono::high_resolution_clock::now();
+
     std::vector<unsigned char> deflated(
         sizeof(uint32_t) + zng_compressBound(dataSize)
     );
 
     *reinterpret_cast<uint32_t*>(deflated.data()) = BYTESWAP_32(static_cast<uint32_t>(dataSize));
 
-    zng_stream strm {};
-    strm.next_in = data;
-    strm.avail_in = dataSize;
-    strm.next_out = deflated.data() + sizeof(uint32_t);
-    strm.avail_out = deflated.size() - sizeof(uint32_t);
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
+    unsigned char* dest = deflated.data() + sizeof(uint32_t);
+    size_t destLen = deflated.size() - sizeof(uint32_t);
 
-    auto compressStartTime = std::chrono::high_resolution_clock::now();
-
-    // Hack!!! Blame zeldamods, not me!!!
-    const int init = zng_deflateInit2(
-        &strm, std::clamp<int>(compressionLevel, Z_NO_COMPRESSION, Z_BEST_COMPRESSION),
-        8, 15, 8, 0
-    );
-    if (init != Z_OK) {
-        Logging::err << "[NZlib::compress] zng_deflateInit failed!" << std::endl;
+    int compResult = zng_compress2(dest, &destLen, data, dataSize, compressionLevel);
+    if (compResult != Z_OK) {
+        Logging::err << "[NZlib::compress] zng_compress2 failed (code " << compResult << ")!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
-    const int ret = zng_deflate(&strm, Z_FINISH);
-    if (ret != Z_STREAM_END) {
-        Logging::err << "[NZlib::compress] zng_deflate failed: " << ret << std::endl;
-
-        zng_deflateEnd(&strm);
-        return std::nullopt; // return nothing (std::optional)
-    }
-
-    zng_deflateEnd(&strm);
+    deflated.resize(sizeof(uint32_t) + destLen);
 
     auto compressTotalTime = std::chrono::high_resolution_clock::now() - compressStartTime;
 
     auto compressTotalTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(compressTotalTime).count();
 
-    deflated.resize(sizeof(uint32_t) + strm.total_out);
-
-    float reductionRate = ((dataSize - strm.total_out) / static_cast<float>(dataSize)) * 100.f;
+    float reductionRate = ((dataSize - destLen) / static_cast<float>(dataSize)) * 100.f;
 
     Logging::info <<
         "[NZlib::compress] Successfully compressed " << (dataSize / 1000) << "kb of data down to " <<
-        (strm.total_out / 1000) << "kb (" << reductionRate << "% reduction) in " << compressTotalTimeMs <<
+        (destLen / 1000) << "kb (" << reductionRate << "% reduction) in " << compressTotalTimeMs <<
         "ms." << std::endl;
 
     return deflated;
@@ -99,36 +79,30 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
         return std::nullopt; // return nothing (std::optional)
     }
 
-    std::vector<unsigned char> inflated(inflateSize);
-
-    zng_stream strm {};
-    strm.next_in = data + sizeof(uint32_t);
-    strm.avail_in = deflateSize;
-    strm.next_out = inflated.data();
-    strm.avail_out = inflateSize;
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
-
     auto decompressStartTime = std::chrono::high_resolution_clock::now();
 
-    const int init = zng_inflateInit2(&strm, 15);
-    if (init != Z_OK) {
-        Logging::err << "[NZlib::decompress] zng_inflateInit failed!" << std::endl;
-        return std::nullopt; // return nothing (std::optional)
-    }
+    std::vector<unsigned char> inflated(inflateSize);
 
-    const int ret = zng_inflate(&strm, Z_FINISH);
-    zng_inflateEnd(&strm);
+    unsigned char* dest = inflated.data();
+    size_t destLen = inflated.size();
 
-    if (ret != Z_STREAM_END) {
-        Logging::err << "[NZlib::decompress] zng_inflate failed: " << ret << std::endl;
+    const unsigned char* src = data + sizeof(uint32_t);
+    size_t srcLen = deflateSize;
+    
+    int decompResult = zng_uncompress2(dest, &destLen, src, &srcLen);
+    if (decompResult != Z_OK) {
+        Logging::err << "[NZlib::decompress] zng_uncompress2 failed (code " << decompResult << ")!" << std::endl;
         return std::nullopt; // return nothing (std::optional)
     }
 
     auto decompressEndTime = std::chrono::high_resolution_clock::now() - decompressStartTime;
 
     auto decompressWorkTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(decompressEndTime).count();
+
+    if (srcLen < deflateSize) {
+        size_t padLength = deflateSize - srcLen;
+        Logging::warn << "[NZlib::decompress] Compressed data is padded by " << padLength << " bytes; strange.." << std::endl;
+    }
 
     Logging::info <<
             "[NZlib::decompress] Decompressed " << (inflateSize / 1000) << "kb of data in " <<
