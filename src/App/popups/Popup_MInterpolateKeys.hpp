@@ -12,9 +12,14 @@
 #include "cellanim/CellAnim.hpp"
 
 #include "manager/SessionManager.hpp"
+
+#include "command/CompositeCommand.hpp"
+#include "command/CommandModifyArrangements.hpp"
 #include "command/CommandModifyAnimation.hpp"
 
 #include "manager/PlayerManager.hpp"
+
+#include "util/TweenAnimUtil.hpp"
 
 #include "SelectionState.hpp"
 
@@ -23,11 +28,13 @@
 static void _ApplyInterpolation(
     const std::array<float, 4>& curve,
     int interval, // Spacing between frames.
-    const CellAnim::AnimationKey& backKey, const CellAnim::AnimationKey& frontKey,
+    CellAnim::AnimationKey& backKey, const CellAnim::AnimationKey& frontKey,
     const CellAnim::Animation& animation, unsigned animationIndex
 ) {
-    auto& arrangements = SessionManager::getInstance().getCurrentSession()
-        ->getCurrentCellAnim().object->getArrangements();
+    auto currentSession = SessionManager::getInstance().getCurrentSession();
+    auto& cellAnim = currentSession->getCurrentCellAnim().object;
+
+    auto newArrangements = cellAnim->getArrangements();
 
     int addKeysCount = (backKey.holdFrames / interval) - 1;
     if (addKeysCount <= 0)
@@ -35,91 +42,33 @@ static void _ApplyInterpolation(
 
     std::vector<CellAnim::AnimationKey> addKeys(addKeysCount);
 
-    // unsigned totalFrames = interval;
     for (unsigned i = 0; i < addKeysCount; i++) {
-        CellAnim::AnimationKey& newKey = addKeys[i];
-        newKey = backKey;
-
         float t = BezierUtil::ApproxY((((i+1) * interval)) / (float)backKey.holdFrames, curve.data());
 
-        newKey.holdFrames = interval;
-        // totalFrames += interval;
-
-        newKey.transform = newKey.transform.lerp(frontKey.transform, t);
-        newKey.opacity = static_cast<uint8_t>(std::clamp<int>(
-            LERP_INTS(backKey.opacity, frontKey.opacity, t),
-            0x00, 0xFF
-        ));
-
-        newKey.foreColor = newKey.foreColor.lerp(frontKey.foreColor, t);
-        newKey.backColor = newKey.backColor.lerp(frontKey.backColor, t);
-
-        // Create new interpolated arrangement if not equal
-        if (backKey.arrangementIndex != frontKey.arrangementIndex) {
-            CellAnim::Arrangement newArrangement = arrangements.at(backKey.arrangementIndex);
-
-            for (unsigned j = 0; j < newArrangement.parts.size(); j++) {
-                const CellAnim::Arrangement& endArrangement = arrangements.at(frontKey.arrangementIndex);
-
-                auto& part = newArrangement.parts.at(j);
-
-                unsigned jClamp = std::min<unsigned>(j, endArrangement.parts.size() - 1);
-                int nameMatcher = SelectionState::getMatchingNamePartIndex(part, endArrangement, j);
-
-                const auto* endPart = &endArrangement.parts.at(nameMatcher >= 0 ? nameMatcher : jClamp);
-
-                if (nameMatcher < 0 && (
-                    endPart->cellOrigin != part.cellOrigin ||
-                    endPart->cellSize != part.cellSize
-                )) {
-                    int mrpi = SelectionState::getMatchingCellPartIndex(part, endArrangement, j);
-
-                    if (mrpi >= 0)
-                        endPart = &endArrangement.parts.at(mrpi);
-                }
-                part.transform = part.transform.lerp(endPart->transform, t);
-
-                // Flip over if curve Y is over half-point
-                if (t > .5f) {
-                    part.flipX = endPart->flipX;
-                    part.flipY = endPart->flipY;
-
-                    part.cellOrigin = endPart->cellOrigin;
-                    part.cellSize = endPart->cellSize;
-
-                    part.editorVisible = endPart->editorVisible;
-                    part.editorLocked = endPart->editorLocked;
-                }
-
-                part.opacity = std::clamp<int>(
-                    LERP_INTS(part.opacity, endPart->opacity, t),
-                    0x00, 0xFF
-                );
-
-                part.foreColor = part.foreColor.lerp(endPart->foreColor, t);
-                part.backColor = part.backColor.lerp(endPart->backColor, t);
-            }
-
-            newKey.arrangementIndex = arrangements.size();
-            arrangements.push_back(newArrangement);
-        }
+        addKeys[i] = TweenAnimUtil::tweenAnimKeys(newArrangements, backKey, frontKey, t);
+        addKeys[i].holdFrames = interval;
     }
 
-    SessionManager& sessionManager = SessionManager::getInstance();
-
-    unsigned currentKeyIndex = PlayerManager::getInstance().getKeyIndex();
+    unsigned backKeyIndex = &backKey - &animation.keys[0];
 
     CellAnim::Animation newAnim = animation;
-    newAnim.keys.insert(newAnim.keys.begin() + currentKeyIndex + 1, addKeys.begin(), addKeys.end());
+    newAnim.keys.insert(newAnim.keys.begin() + backKeyIndex + 1, addKeys.begin(), addKeys.end());
 
-    newAnim.keys.at(currentKeyIndex).holdFrames = interval;
+    newAnim.keys[backKeyIndex].holdFrames = interval;
 
-    sessionManager.getCurrentSession()->addCommand(
-    std::make_shared<CommandModifyAnimation>(
-        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+    auto composite = std::make_shared<CompositeCommand>();
+
+    composite->addCommand(std::make_shared<CommandModifyArrangements>(
+        currentSession->getCurrentCellAnimIndex(),
+        newArrangements
+    ));
+    composite->addCommand(std::make_shared<CommandModifyAnimation>(
+        currentSession->getCurrentCellAnimIndex(),
         animationIndex,
         newAnim
     ));
+
+    currentSession->addCommand(composite);
 }
 
 static void Popup_MInterpolateKeys() {

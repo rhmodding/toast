@@ -79,11 +79,13 @@ set(SOURCES
     src/texture/TextureEx.cpp
     src/texture/TPL.cpp
 
+    src/util/ArrangePartMatchUtil.cpp
     src/util/BezierUtil.cpp
     src/util/CxxDemangleUtil.cpp
     src/util/FileUtil.cpp
     src/util/ShiftJISUtil.cpp
     src/util/SpritesheetFixUtil.cpp
+    src/util/TweenAnimUtil.cpp
     src/util/UIUtil.cpp
 
     src/window/WindowInspector/LvlAnimation.cpp

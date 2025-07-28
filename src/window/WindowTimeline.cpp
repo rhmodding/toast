@@ -18,8 +18,11 @@
 #include "command/CommandInsertAnimationKey.hpp"
 #include "command/CommandModifyAnimationKey.hpp"
 #include "command/CommandModifyAnimation.hpp"
+#include "command/CommandModifyArrangements.hpp"
 
 #include "command/CompositeCommand.hpp"
+
+#include "util/TweenAnimUtil.hpp"
 
 static const uint32_t u32_one = 1;
 
@@ -372,71 +375,45 @@ void WindowTimeline::ChildKeys() {
                             ->getCurrentCellAnim().object->getArrangements();
 
                     if (i+1 < playerManager.getKeyCount()) {
-                        arrangementA = &arrangements.at(key.arrangementIndex);
-                        arrangementB = &arrangements.at(
-                            playerManager.getAnimation().keys.at(i+1).arrangementIndex
-                        );
-
-                        splitPossible = arrangementA->parts.size() == arrangementB->parts.size();
+                        splitPossible = true;
                     }
 
                     ImGui::BeginDisabled(!splitPossible);
                     if (ImGui::Selectable("Split key (interp, new arrange)")) {
-                        CellAnim::AnimationKey newKey = key;
-                        CellAnim::Arrangement newArrangement = *arrangementA;
+                        auto newArrangements = arrangements;
+                        auto newAnimation = playerManager.getAnimation();
 
-                        unsigned maxParts = std::min(arrangementA->parts.size(), arrangementB->parts.size());
-                        for (unsigned j = 0; j < maxParts; j++) {
-                            newArrangement.parts[j].transform =
-                                arrangementA->parts[j].transform.average(
-                                    arrangementB->parts.at(j).transform
-                                );
+                        CellAnim::AnimationKey& k0 = newAnimation.keys.at(i);
+                        const CellAnim::AnimationKey& k1 = newAnimation.keys.at(i + 1);
 
-                            newArrangement.parts[j].opacity = AVERAGE_UCHARS(
-                                arrangementA->parts[j].opacity,
-                                arrangementB->parts.at(j).opacity
-                            );
-                        }
+                        unsigned totalDuration = k0.holdFrames;
 
-                        arrangements.push_back(newArrangement);
+                        unsigned firstSegment = totalDuration / 2;
+                        unsigned secondSegment = totalDuration - firstSegment;
 
-                        CellAnim::AnimationKey modKey = key;
+                        float tweenT = static_cast<float>(firstSegment) / totalDuration;
 
-                        {
-                            newKey.arrangementIndex = arrangements.size() - 1;
+                        k0.holdFrames = firstSegment;
 
-                            const auto& keyA = key;
-                            const auto& keyB = playerManager.getAnimation().keys.at(i+1);
+                        CellAnim::AnimationKey newKey = TweenAnimUtil::tweenAnimKeys(newArrangements, k0, k1, tweenT);
+                        newKey.holdFrames = secondSegment;
 
-                            newKey.transform = keyA.transform.average(keyB.transform);
-
-                            newKey.opacity = AVERAGE_UCHARS(keyA.opacity, keyB.opacity);
-
-                            int base = keyA.holdFrames - 1;
-
-                            int first = base / 2;
-                            int second = base - first;
-
-                            modKey.holdFrames = std::max(first, 1);
-                            newKey.holdFrames = std::max(second, 1);
-                        }
+                        newAnimation.keys.insert(newAnimation.keys.begin() + i + 1, newKey);
 
                         auto composite = std::make_shared<CompositeCommand>();
 
-                        composite->addCommand(std::make_shared<CommandModifyAnimationKey>(
+                        composite->addCommand(std::make_shared<CommandModifyArrangements>(
                             sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                            playerManager.getAnimationIndex(),
-                            i,
-                            modKey
+                            newArrangements
                         ));
-                        composite->addCommand(std::make_shared<CommandInsertAnimationKey>(
+                        composite->addCommand(std::make_shared<CommandModifyAnimation>(
                             sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                             playerManager.getAnimationIndex(),
-                            i + 1,
-                            newKey
+                            newAnimation
                         ));
 
                         sessionManager.getCurrentSession()->addCommand(composite);
+
                         playerManager.setKeyIndex(i + 1);
                     }
                     ImGui::EndDisabled();
