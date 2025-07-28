@@ -4,6 +4,11 @@
 
 #include <cstdio>
 
+#include <imgui.h>
+#include <imgui_internal.h>
+
+#include "util/CRC32Util.hpp"
+
 #include "util/UIUtil.hpp"
 
 uint32_t PromptPopupManager::sNextId { 0 };
@@ -12,7 +17,8 @@ struct ResponseEntry {
     PromptPopup::ResponseFlags flag;
     const char* label;
 };
-static constexpr ResponseEntry scResponseEntries[] = {
+
+static const ResponseEntry sResponseEntries[] = {
     { PromptPopup::RESPONSE_OK,     "OK"     },
     { PromptPopup::RESPONSE_YES,    "Yes"    },
     { PromptPopup::RESPONSE_CANCEL, "Cancel" },
@@ -21,18 +27,21 @@ static constexpr ResponseEntry scResponseEntries[] = {
     { PromptPopup::RESPONSE_ABORT,  "Abort"  },
 };
 
-void PromptPopup::Show() {
+bool PromptPopup::Show() {
+    bool didShow = false;
+
     const std::string popupName = this->title + "###PromptPopup_" + std::to_string(this->id);
 
-    ImGui::OpenPopup(popupName.c_str(), ImGuiPopupFlags_NoOpenOverExistingPopup);
+    ImGui::OpenPopup(popupName.c_str());
 
-    // Center.
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
     );
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 15.f });
     if (ImGui::BeginPopupModal(popupName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        didShow = true;
+
         ImGui::Dummy({ ImGui::CalcTextSize(this->title.c_str()).x - 30.f, 0.f });
 
         ImGui::TextUnformatted(this->message.c_str());
@@ -47,7 +56,7 @@ void PromptPopup::Show() {
         ImGui::Dummy({ 0.f, 5.f });
 
         bool isFirst = true;
-        for (const auto& entry : scResponseEntries) {
+        for (const auto& entry : sResponseEntries) {
             if (this->availableResponseFlags & entry.flag) {
                 if (!isFirst) {
                     ImGui::SameLine();
@@ -72,12 +81,14 @@ void PromptPopup::Show() {
         ImGui::EndPopup();
     }
     ImGui::PopStyleVar();
+
+    return didShow;
 }
 
 void PromptPopupManager::Update() {
     FlushQueue();
 
-    ImGui::PushID("PromptPopups");
+    ImGui::PushOverrideID(CRC32Util::compute("PromptPopups"));
     for (auto& popup : mActivePopups) {
         popup.Show();
     }

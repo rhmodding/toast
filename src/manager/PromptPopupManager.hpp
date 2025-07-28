@@ -51,7 +51,7 @@ public:
     bool hasEnded { false };
 
 public:
-    void Show();
+    bool Show();
 
 private:
     void DoCallback(Response selectedRes) {
