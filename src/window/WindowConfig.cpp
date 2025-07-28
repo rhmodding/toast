@@ -149,7 +149,7 @@ void WindowConfig::Update() {
                 }
 
                 if (ImGui::SliderInt(
-                    "Archive compression level",
+                    "Zlib compression level",
                     &selectedCompLevelIndex,
                     0,
                     static_cast<int>(AbstrCompressionLevel::Count) - 1,
