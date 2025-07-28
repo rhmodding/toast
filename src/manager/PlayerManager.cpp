@@ -4,6 +4,8 @@
 
 #include "PlayerManager.hpp"
 
+#include "util/ArrangePartMatchUtil.hpp"
+
 static CellAnim::Animation arrangementModeAnim {
     .keys = std::vector<CellAnim::AnimationKey>({
         CellAnim::AnimationKey {}
@@ -14,9 +16,16 @@ static void matchSelectedParts(const CellAnim::Arrangement& before, const CellAn
     auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
 
     for (auto& part : selectionState.mSelectedParts) {
-        int p = selectionState.getMatchingNamePartIndex(before.parts.at(part.index), after, part.index);
-        if (p >= 0)
-            part.index = p;
+        const auto& beforePart = before.parts.at(part.index);
+
+        int matcher = ArrangePartMatchUtil::tryMatchByName(beforePart, after, part.index);
+        if (matcher < 0) {
+            matcher = ArrangePartMatchUtil::tryMatchById(beforePart, after, part.index);
+        }
+
+        if (matcher >= 0) {
+            part.index = matcher;
+        }
     }
 
     selectionState.correctSelectedParts();

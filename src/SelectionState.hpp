@@ -7,18 +7,6 @@
 
 class SelectionState {
 public:
-    static int getMatchingNamePartIndex(
-        const CellAnim::ArrangementPart& part,
-        const CellAnim::Arrangement& arrangement,
-        int partIndex
-    );
-    static int getMatchingCellPartIndex(
-        const CellAnim::ArrangementPart& part,
-        const CellAnim::Arrangement& arrangement,
-        int partIndex
-    );
-
-public:
     SelectionState() = default;
     ~SelectionState() = default;
 
