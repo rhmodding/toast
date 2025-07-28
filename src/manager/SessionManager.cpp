@@ -508,10 +508,8 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
     Logging::info <<
         "[SessionManager::CreateSession] Creating session from path \"" << filePath << "\".." << std::endl;
 
-    std::vector<unsigned char> data;
-
-    auto _data = FileUtil::openFileData(filePath);
-    if (!_data.has_value()) {
+    auto data = FileUtil::openFileData(filePath);
+    if (!data.has_value()) {
         Logging::err << "[SessionManager::CreateSession] Error opening file at path: " << filePath << std::endl;
 
         PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
@@ -522,15 +520,13 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
         return -1;
     }
 
-    data = std::move(*_data);
-
     CellAnim::CellAnimType type { CellAnim::CELLANIM_TYPE_INVALID };
 
     // We check for Yaz0 first since it has a magic value.
-    if (Yaz0::checkDataValid(data.data(), data.size())) {
+    if (Yaz0::checkDataValid(data->data(), data->size())) {
         type = CellAnim::CELLANIM_TYPE_RVL;
 
-        const auto decompressedData = Yaz0::decompress(data.data(), data.size());
+        const auto decompressedData = Yaz0::decompress(data->data(), data->size());
         if (!decompressedData.has_value()) {
             PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
@@ -539,12 +535,12 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
             return -1;
         }
 
-        data = std::move(*decompressedData);
+        data = std::move(decompressedData);
     }
-    else if (NZlib::checkDataValid(data.data(), data.size())) {
+    else if (NZlib::checkDataValid(data->data(), data->size())) {
         type = CellAnim::CELLANIM_TYPE_CTR;
 
-        const auto decompressedData = NZlib::decompress(data.data(), data.size());
+        const auto decompressedData = NZlib::decompress(data->data(), data->size());
         if (!decompressedData.has_value()) {
             PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
@@ -553,7 +549,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
             return -1;
         }
 
-        data = std::move(*decompressedData);
+        data = std::move(decompressedData);
     }
     else {
         PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
@@ -569,7 +565,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
     switch (type) {
     case CellAnim::CELLANIM_TYPE_RVL: {
         Archive::DARCHObject archive = Archive::DARCHObject(
-            data.data(), data.size()
+            data->data(), data->size()
         );
 
         if (!archive.isInitialized()) {
@@ -584,32 +580,34 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
         initOk = InitRvlSession(newSession, archive);
     } break;
     case CellAnim::CELLANIM_TYPE_CTR: {
-        Archive::SARCObject archive = Archive::SARCObject(data.data(), data.size());
+        Archive::SARCObject archive = Archive::SARCObject(data->data(), data->size());
 
         if (!archive.isInitialized()) {
             initOk = false;
 
-            const uint32_t observedMagic = *reinterpret_cast<const uint32_t*>(data.data());
-            switch (observedMagic) {
-            case IDENTIFIER_TO_U32('C','G','F','X'):
-                PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
-                    std::string(CREATE_SESSION_ERR_POPUP_TITLE),
-                    "The selected file is a BCRES; please choose a cellanim archive instead."
-                ));
-                break;
-            case IDENTIFIER_TO_U32('S','P','B','D'):
-                PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
-                    std::string(CREATE_SESSION_ERR_POPUP_TITLE),
-                    "The selected file is an effect file; please choose a cellanim archive instead."
-                ));
-                break;
+            if (data->size() >= 4) {
+                const uint32_t observedMagic = *reinterpret_cast<const uint32_t*>(data->data());
+                switch (observedMagic) {
+                case IDENTIFIER_TO_U32('C','G','F','X'):
+                    PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                        std::string(CREATE_SESSION_ERR_POPUP_TITLE),
+                        "The selected file is a BCRES; please choose a cellanim archive instead."
+                    ));
+                    break;
+                case IDENTIFIER_TO_U32('S','P','B','D'):
+                    PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                        std::string(CREATE_SESSION_ERR_POPUP_TITLE),
+                        "The selected file is an effect file; please choose a cellanim archive instead."
+                    ));
+                    break;
 
-            default:
-                PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
-                    std::string(CREATE_SESSION_ERR_POPUP_TITLE),
-                    "The archive data could not be deserialized: are you sure this is a cellanim archive?"
-                ));
-                break;
+                default:
+                    PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                        std::string(CREATE_SESSION_ERR_POPUP_TITLE),
+                        "The archive data could not be deserialized: are you sure this is a cellanim archive?"
+                    ));
+                    break;
+                }
             }
 
             break;
