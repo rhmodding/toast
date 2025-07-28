@@ -21,7 +21,7 @@ enum LineCommand {
     LC_STRING_LINE,
     LC_SEPARATOR,
     LC_NEXT_ROW,
-    LC_NEXT_COLUMN
+    LC_NEXT_COLUMN,
 };
 struct Line {
     LineCommand command;
@@ -36,13 +36,22 @@ static const char* headerDesc  =
 static const Line aboutLines[] = {
     { LC_SEPARATOR },
 
-    { LC_STRING_LINE, (const char*)ICON_FA_WRENCH "  Initial testing" },
+    { LC_STRING_LINE, (const char*)ICON_FA_WRENCH "  Development" },
     { LC_EMPTY_LINE_QUART },
+    
+    { LC_STRING_LINE, "conhlee" },
 
-    { LC_STRING_LINE, "Placeholder" },
-    { LC_STRING_LINE, "Placeholder Placeholder" },
-    { LC_STRING_LINE, "Placeholder" },
-    { LC_STRING_LINE, "Placeholder Placeholder" },
+    // Padding
+    { LC_STRING_LINE, "                                             " },
+
+    { LC_STRING_LINE, (const char*)ICON_FA_MAGNIFYING_GLASS "  Debug" },
+    { LC_EMPTY_LINE_QUART },
+    
+    { LC_STRING_LINE, "Kevbaum" },
+    { LC_STRING_LINE, "Kievit" },
+    { LC_STRING_LINE, "HaiKaede" },
+    { LC_STRING_LINE, "BobTheNerd10" },
+    { LC_STRING_LINE, "Deni_iguess" },
 
     { LC_NEXT_ROW },
 
@@ -65,6 +74,8 @@ static const Line aboutLines[] = {
     { LC_STRING_LINE, "Chrislo (a.k.a. chrislo27)" },
     { LC_STRING_LINE, "patataofcourse" },
     { LC_STRING_LINE, "TheAlternateDoctor" },
+    { LC_STRING_LINE, "EstexNT" },
+    { LC_STRING_LINE, ".. and the rest of the RHModding community!" },
 };
 
 static const char* githubButton  = (const char*)ICON_FA_CODE "";
@@ -142,7 +153,8 @@ static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, I
 
         additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;
 
-        totalLineWidth = std::max(totalLineWidth, ImGui::CalcTextSize(line->string).x);
+        if (line->string != nullptr)
+            totalLineWidth = std::max(totalLineWidth, ImGui::CalcTextSize(line->string).x);
     }
 }
 
@@ -234,7 +246,7 @@ void WindowAbout::Update() {
 
     ImVec2 currentPosition (
         imageBottomRight.x + 10.f,
-        canvasTopLeft.y + 10.f
+        canvasTopLeft.y + 5.f
     );
 
     drawHeader(currentPosition, window);
