@@ -27,7 +27,7 @@ ImVec2 BezierUtil::Approx(const float x, const float P[4], unsigned maxIteration
                     + 6.f * u * t * (P[2] - P[0])
                     + 3.f * tt * (1.f - P[2]);
 
-        if (std::fabsf(dBezX) < 1e-5f)
+        if (std::fabs(dBezX) < 1e-5f)
             break;
 
         float delta = bezX - x;

@@ -186,9 +186,9 @@ struct CTRColor {
         );
 
         // Make sure (channel * 255.f) is an exact integer in the range 0..255.
-        color.r = std::clamp(static_cast<float>(std::lroundf(color.r * 255.f)) * (1.f / 255.f), 0.f, 1.f);
-        color.g = std::clamp(static_cast<float>(std::lroundf(color.g * 255.f)) * (1.f / 255.f), 0.f, 1.f);
-        color.b = std::clamp(static_cast<float>(std::lroundf(color.b * 255.f)) * (1.f / 255.f), 0.f, 1.f);
+        color.r = std::clamp(static_cast<float>(std::lround(color.r * 255.f)) * (1.f / 255.f), 0.f, 1.f);
+        color.g = std::clamp(static_cast<float>(std::lround(color.g * 255.f)) * (1.f / 255.f), 0.f, 1.f);
+        color.b = std::clamp(static_cast<float>(std::lround(color.b * 255.f)) * (1.f / 255.f), 0.f, 1.f);
 
         return color;
     }
