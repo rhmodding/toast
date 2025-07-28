@@ -231,8 +231,8 @@ void WindowAbout::Update() {
     const ImVec2 imageTopLeft {
         canvasTopLeft.x - 20.f,
 
-        canvasTopLeft.y + ((canvasSize.y - imageSize.y) / 2) -
-        ((std::cos(ImGui::GetTime()) + 1) * 15.f) + 8.f
+        canvasTopLeft.y + ((canvasSize.y - imageSize.y) / 2.f) -
+        ((std::cos(static_cast<float>(ImGui::GetTime())) + 1.f) * 15.f) + 8.f
     };
     const ImVec2 imageBottomRight {
         imageTopLeft.x + imageSize.x,
