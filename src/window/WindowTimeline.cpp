@@ -215,53 +215,52 @@ void WindowTimeline::ChildToolbar() {
 
 static void drawFrameIndic(float height, float keyWidth, float holdWidth, float keySpacing) {
     PlayerManager& playerManager = PlayerManager::getInstance();
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-
-    ImGui::BeginChild("FrameIndic", { 0.f, height }, ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
     const auto& animation = playerManager.getAnimation();
 
     unsigned currentFrame = 1;
-    for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+
+    ImGui::BeginGroup();
+
+    ImVec2 startPos = ImGui::GetCursorScreenPos();
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    float cursorX = startPos.x;
+
+    for (unsigned i = 0; i < playerManager.getKeyCount(); ++i) {
         unsigned keyDuration = animation.keys[i].holdFrames;
+
         if (keyDuration == 0) {
-            ImGui::Dummy({ keyWidth, 0.f });
-            ImGui::SameLine();
+            cursorX += keyWidth + keySpacing;
             continue;
         }
 
-        for (unsigned j = 0; j < keyDuration; j++) {
+        for (unsigned j = 0; j < keyDuration; ++j) {
             float width = (j == 0) ? keyWidth : holdWidth;
             float spacing = (j == 0 || j == (keyDuration - 1)) ? keySpacing : 0.f;
 
-            char textFormat[16];
-            std::snprintf(textFormat, sizeof(textFormat), "%u", currentFrame);
+            char textBuf[16];
+            std::snprintf(textBuf, sizeof(textBuf), "%u", currentFrame++);
+            ImVec2 textSize = ImGui::CalcTextSize(textBuf);
 
-            ImVec2 textSize = ImGui::CalcTextSize(textFormat);
+            float textX = cursorX + (width - textSize.x) / 2.0f;
+            float textY = startPos.y + (height - textSize.y) / 2.0f;
 
-            float firstPad = (width - textSize.x) / 2.0f;
+            ImGui::SetCursorScreenPos({ cursorX, startPos.y });
+            ImGui::Dummy({ width, height });
 
-            ImGui::Dummy({ firstPad, 0.f });
-            ImGui::SameLine();
+            drawList->AddText({ textX, textY }, ImGui::GetColorU32(ImGuiCol_TextDisabled), textBuf);
 
-            ImGui::TextUnformatted(textFormat);
-            ImGui::SameLine();
 
-            float remainingPad = (width - firstPad - textSize.x) + spacing;
-
-            ImGui::Dummy({ remainingPad, 0.f });
-            ImGui::SameLine();
-
-            currentFrame++;
+            cursorX += width + spacing;
         }
     }
 
-    ImGui::EndChild();
+    ImGui::EndGroup();
 
-    ImGui::PopStyleColor(1);
+    ImGui::PopStyleColor();
     ImGui::PopStyleVar(2);
 }
 
