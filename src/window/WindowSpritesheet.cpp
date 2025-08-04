@@ -100,7 +100,9 @@ void WindowSpritesheet::RunEditor() {
 void WindowSpritesheet::FormatPopup() {
     BEGIN_GLOBAL_POPUP();
 
-    CENTER_NEXT_WINDOW();
+    ImGui::SetNextWindowPos(
+        ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
+    );
 
     ImGui::SetNextWindowSize({ 800.f, 550.f }, ImGuiCond_Appearing);
 

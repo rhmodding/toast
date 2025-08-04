@@ -24,7 +24,9 @@ static void Popup_SwapAnimation(int animationIndex) {
 
     SessionManager& sessionManager = SessionManager::getInstance();
 
-    CENTER_NEXT_WINDOW();
+    ImGui::SetNextWindowPos(
+        ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
+    );
 
     if (ImGui::BeginPopupModal("Swap animations###SwapAnimation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         static float animationBegin { static_cast<float>(ImGui::GetTime()) };

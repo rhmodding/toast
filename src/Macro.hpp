@@ -74,13 +74,6 @@
     ROUND_FLOAT((vec).x), ROUND_FLOAT((vec).y) \
 ))
 
-#define CENTER_NEXT_WINDOW() \
-    do { \
-        ImGui::SetNextWindowPos( \
-            ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f) \
-        ); \
-    } while (0)
-
 #if !defined(NDEBUG)
 
 #define NONFATAL_ASSERT_RET(condition, shouldReturn) \

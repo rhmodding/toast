@@ -19,7 +19,9 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
 
     static std::string newName;
 
-    CENTER_NEXT_WINDOW();
+    ImGui::SetNextWindowPos(
+        ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
+    );
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
     bool open = ImGui::BeginPopupModal("Edit part editor name###EditPartName", nullptr, ImGuiWindowFlags_AlwaysAutoResize);

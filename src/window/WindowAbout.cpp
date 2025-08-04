@@ -211,7 +211,9 @@ void WindowAbout::Update() {
     if (mImage.getTextureId() == Texture::INVALID_TEXTURE_ID)
         mImage.LoadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
 
-    CENTER_NEXT_WINDOW();
+    ImGui::SetNextWindowPos(
+        ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
+    );
     ImGui::SetNextWindowSize(windowSize);
 
     ImGui::Begin("About", &mOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking);

@@ -36,7 +36,9 @@ void WindowConfig::Update() {
         mFirstOpen = false;
     }
 
-    CENTER_NEXT_WINDOW();
+    ImGui::SetNextWindowPos(
+        ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
+    );
 
     ImGui::SetNextWindowSize({ 500.f, 440.f }, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Config", &mOpen, ImGuiWindowFlags_MenuBar)) {

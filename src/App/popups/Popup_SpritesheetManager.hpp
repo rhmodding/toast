@@ -14,7 +14,9 @@ static void Popup_SpritesheetManager() {
     if (sessionManager.getCurrentSession() == nullptr)
         return;
 
-    CENTER_NEXT_WINDOW();
+    ImGui::SetNextWindowPos(
+        ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
+    );
 
     bool shouldStayOpen = true;
     if (ImGui::BeginPopupModal("Spritesheet Manager###SpritesheetManager", &shouldStayOpen)) {
