@@ -428,7 +428,7 @@ void WindowTimeline::ChildKeys() {
                         sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getAnimationIndex(),
                         i + 1,
-                        notHoldAlt ? key : CellAnim::AnimationKey()
+                        notHoldAlt ? CellAnim::AnimationKey() : key
                     ));
 
                     playerManager.setKeyIndex(i + 1);
@@ -440,7 +440,7 @@ void WindowTimeline::ChildKeys() {
                         sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                         playerManager.getAnimationIndex(),
                         i,
-                        notHoldAlt ? key : CellAnim::AnimationKey()
+                        notHoldAlt ? CellAnim::AnimationKey() : key
                     ));
 
                     playerManager.setKeyIndex(i);
