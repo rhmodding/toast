@@ -31,7 +31,7 @@ struct Line {
 static const char* headerTitle = "toast";
 static const char* headerDesc  =
     "the ultimate cellanim modding tool for\n"
-    "Rhythm Heaven Fever / Beat the Beat: Rhythm Paradise";
+    "Rhythm Heaven Fever / Rhythm Heaven Megamix";
 
 static const Line aboutLines[] = {
     { LC_SEPARATOR },
@@ -104,14 +104,14 @@ static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, I
         const Line* line = lines + i;
 
         switch (line->command) {
-        case LC_STRING_LINE:
+        case LC_STRING_LINE: {
             window->DrawList->AddText(
                 { position.x + additiveLineX, position.y + additiveLineHeight },
                 ImGui::GetColorU32(ImGuiCol_Text), line->string
             );
-            break;
+        } break;
 
-        case LC_SEPARATOR:
+        case LC_SEPARATOR: {
             position.y += ImGui::GetTextLineHeight();
 
             window->DrawList->AddRectFilled(
@@ -125,30 +125,31 @@ static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, I
                 },
                 ImGui::GetColorU32(ImGuiCol_Separator)
             );
-            continue;
+        } continue;
 
-        case LC_NEXT_ROW:
+        case LC_NEXT_ROW: {
             additiveLineX += totalLineWidth + 25.f;
             totalLineWidth = 0.f;
 
             additiveLineHeight = 0.f;
-            continue;
-        case LC_NEXT_COLUMN:
+        } continue;
+        case LC_NEXT_COLUMN: {
             position.y += additiveLineHeight + ImGui::GetTextLineHeight() + 6.f;
             additiveLineHeight = 0.f;
 
             totalLineWidth = 0.f;
 
             additiveLineX = 0.f;
-            continue;
+        } continue;
 
-        case LC_EMPTY_LINE_QUART:
+        case LC_EMPTY_LINE_QUART: {
             additiveLineHeight += (ImGui::GetTextLineHeight() / 4.f) + 2.f;
-            continue;
+        } continue;
 
         case LC_EMPTY_LINE:
-        default:
+        default: {
             break;
+        }
         }
 
         additiveLineHeight += ImGui::GetTextLineHeight() + 2.f;
