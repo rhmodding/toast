@@ -225,7 +225,7 @@ set(WITH_AVX512VNNI OFF CACHE BOOL "Disable zlig-ng AVX512VNNI optimizations" FO
 
 add_subdirectory(ext/zlib-ng)
 
-target_link_libraries(toast PRIVATE zlib)
+target_link_libraries(toast PRIVATE zlibstatic)
 
 # JSON library
 add_subdirectory(ext/nlohmann.json)
