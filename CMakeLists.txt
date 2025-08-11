@@ -31,6 +31,9 @@ set(SOURCES
     src/App/Popups.cpp
     src/App/Shortcuts.cpp
 
+    src/App/popups/Popup.cpp
+    src/App/popups/SheetRepackFailed.cpp
+
     src/archive/Archive.cpp
     src/archive/DARCH.cpp
     src/archive/SARC.cpp

@@ -1,5 +1,7 @@
 #include "TPL.hpp"
 
+#include <algorithm>
+
 #include "Logging.hpp"
 
 #include "manager/MainThreadTaskManager.hpp"

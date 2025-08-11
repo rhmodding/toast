@@ -1,4 +1,9 @@
+#include <list>
+
 #include "Popups.hpp"
+
+#include "popups/Popup.hpp"
+#include "popups/SheetRepackFailed.hpp"
 
 namespace Popups {
 
@@ -11,6 +16,12 @@ int _oldTextureSizeY { -1 };
 int _editPartNameArrangeIdx { -1 };
 int _editPartNamePartIdx { -1 };
 
+static SheetRepackFailed sheetRepackFailed = SheetRepackFailed();
+
+static std::list<Popup*> popups = {
+    static_cast<Popup*>(&sheetRepackFailed)
+};
+
 } // namespace Popups
 
 #include "manager/AppState.hpp"
@@ -21,8 +32,6 @@ int _editPartNamePartIdx { -1 };
 #include "popups/Popup_MPadRegion.hpp"
 #include "popups/Popup_MOptimizeGlobal.hpp"
 #include "popups/Popup_MInterpolateKeys.hpp"
-
-#include "popups/Popup_SheetRepackFailed.hpp"
 
 #include "popups/Popup_ModifiedTextureSize.hpp"
 
@@ -38,14 +47,16 @@ int _editPartNamePartIdx { -1 };
 void Popups::Update() {
     BEGIN_GLOBAL_POPUP();
 
+    for (Popup* p: popups) {
+        p->Update();
+    }
+
     Popup_MTransformCellanim();
     Popup_MTransformAnimation();
     Popup_MTransformArrangement();
     Popup_MPadRegion();
     Popup_MOptimizeGlobal();
     Popup_MInterpolateKeys();
-
-    Popup_SheetRepackFailed();
 
     Popup_ModifiedTextureSize(_oldTextureSizeX, _oldTextureSizeY);
 

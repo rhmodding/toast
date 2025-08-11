@@ -1,11 +1,6 @@
-#ifndef POPUP_SHEETREPACKFAILED_HPP
-#define POPUP_SHEETREPACKFAILED_HPP
+#include "SheetRepackFailed.hpp"
 
-#include <imgui.h>
-
-#include "Macro.hpp"
-
-static void Popup_SheetRepackFailed() {
+void Popups::SheetRepackFailed::Update() {
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
     );
@@ -27,5 +22,3 @@ static void Popup_SheetRepackFailed() {
     }
     ImGui::PopStyleVar();
 }
-
-#endif // POPUP_SHEETREPACKFAILED_HPP
