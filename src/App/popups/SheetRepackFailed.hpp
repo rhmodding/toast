@@ -1,16 +1,17 @@
 #ifndef POPUP_SHEETREPACKFAILED_HPP
 #define POPUP_SHEETREPACKFAILED_HPP
 
-#include <imgui.h>
-
-#include "Macro.hpp"
+#include "manager/Singleton.hpp"
 
 #include "Popup.hpp"
 
 namespace Popups {
-    class SheetRepackFailed : public Popup {
+    class SheetRepackFailed : public Popup, public Singleton<SheetRepackFailed> {
+        friend class Singleton<SheetRepackFailed>;
         public:
             virtual void Update();
+        private:
+            SheetRepackFailed() = default;
     };
 };
 

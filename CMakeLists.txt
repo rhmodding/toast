@@ -33,6 +33,7 @@ set(SOURCES
 
     src/App/popups/Popup.cpp
     src/App/popups/SheetRepackFailed.cpp
+    src/App/popups/EditAnimationName.cpp
 
     src/archive/Archive.cpp
     src/archive/DARCH.cpp

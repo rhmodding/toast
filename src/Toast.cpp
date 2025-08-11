@@ -45,6 +45,7 @@
 #include "App/Shortcuts.hpp"
 
 #include "App/Popups.hpp"
+#include "App/popups/EditAnimationName.hpp"
 
 // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
@@ -114,6 +115,7 @@ Toast::Toast(int argc, const char** argv) {
     PlayerManager::createSingleton();
     SessionManager::createSingleton();
     PromptPopupManager::createSingleton();
+    Popups::createSingletons();
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
     // GL ES 2.0 + GLSL 100
@@ -505,7 +507,7 @@ void Toast::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Edit name ..")) {
-                Popups::_editAnimationNameIdx = animIndex;
+                Popups::EditAnimationName::getInstance().setAnimIndex(animIndex);
                 OPEN_GLOBAL_POPUP("###EditAnimationName");
             }
 

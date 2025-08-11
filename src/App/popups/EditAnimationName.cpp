@@ -1,5 +1,4 @@
-#ifndef POPUP_EDITANIMATIONNAME_HPP
-#define POPUP_EDITANIMATIONNAME_HPP
+#include "EditAnimationName.hpp"
 
 #include <imgui.h>
 
@@ -12,7 +11,7 @@
 
 #include "Macro.hpp"
 
-static void Popup_EditAnimationName(int animationIndex) {
+void Popups::EditAnimationName::Update() {
     if (animationIndex < 0)
         return;
 
@@ -101,5 +100,3 @@ static void Popup_EditAnimationName(int animationIndex) {
 
     lateOpen = open;
 }
-
-#endif // POPUP_EDITANIMATIONNAME_HPP

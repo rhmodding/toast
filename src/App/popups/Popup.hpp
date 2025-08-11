@@ -3,9 +3,9 @@
 
 class Popup {
     public:
-        Popup();
-        virtual ~Popup() = default;
         virtual void Update() = 0;
+    protected:
+        Popup();
 };
 
 #endif

@@ -1,13 +1,13 @@
-#include <list>
+#include <array>
 
 #include "Popups.hpp"
 
 #include "popups/Popup.hpp"
 #include "popups/SheetRepackFailed.hpp"
+#include "popups/EditAnimationName.hpp"
 
 namespace Popups {
 
-int  _editAnimationNameIdx { -1 };
 int  _swapAnimationIdx { -1 };
 
 int _oldTextureSizeX { -1 };
@@ -16,11 +16,18 @@ int _oldTextureSizeY { -1 };
 int _editPartNameArrangeIdx { -1 };
 int _editPartNamePartIdx { -1 };
 
-static SheetRepackFailed sheetRepackFailed = SheetRepackFailed();
 
-static std::list<Popup*> popups = {
-    static_cast<Popup*>(&sheetRepackFailed)
-};
+static std::array<Popup*, 2> popups;
+
+void createSingletons() {
+    SheetRepackFailed::createSingleton();
+    EditAnimationName::createSingleton();
+    popups = {
+        static_cast<Popup*>(&EditAnimationName::getInstance()),
+
+        static_cast<Popup*>(&SheetRepackFailed::getInstance()),
+    };
+}
 
 } // namespace Popups
 
@@ -37,7 +44,6 @@ static std::list<Popup*> popups = {
 
 #include "popups/Popup_WaitForModifiedTexture.hpp"
 
-#include "popups/Popup_EditAnimationName.hpp"
 #include "popups/Popup_SwapAnimation.hpp"
 
 #include "popups/Popup_EditPartName.hpp"
@@ -62,7 +68,6 @@ void Popups::Update() {
 
     Popup_WaitForModifiedTexture();
 
-    Popup_EditAnimationName(_editAnimationNameIdx);
     Popup_SwapAnimation(_swapAnimationIdx);
 
     Popup_EditPartName(_editPartNameArrangeIdx, _editPartNamePartIdx);
