@@ -15,7 +15,7 @@
 template<typename T>
 class Singleton {
 public:
-    static void createSingleton();
+    static T& createSingleton();
     static void destroySingleton();
 
     static T& getInstance();
@@ -42,7 +42,7 @@ template<typename T>
 std::mutex Singleton<T>::mutex_;
 
 template<typename T>
-void Singleton<T>::createSingleton() {
+T& Singleton<T>::createSingleton() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (instance_) {
         throw std::runtime_error(
@@ -50,6 +50,8 @@ void Singleton<T>::createSingleton() {
         );
     }
     instance_ = std::unique_ptr<T>(new T());
+
+    return *instance_;
 }
 
 template<typename T>

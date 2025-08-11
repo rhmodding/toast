@@ -20,12 +20,10 @@ int _editPartNamePartIdx { -1 };
 static std::array<Popup*, 2> popups;
 
 void createSingletons() {
-    SheetRepackFailed::createSingleton();
-    EditAnimationName::createSingleton();
     popups = {
-        static_cast<Popup*>(&EditAnimationName::getInstance()),
+        static_cast<Popup*>(&EditAnimationName::createSingleton()),
 
-        static_cast<Popup*>(&SheetRepackFailed::getInstance()),
+        static_cast<Popup*>(&SheetRepackFailed::createSingleton()),
     };
 }
 
