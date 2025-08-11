@@ -54,7 +54,7 @@ void ThemeManager::applyTheming() {
         mWindowClearColor = std::array<float, 4>({ 24 / 255.f, 24 / 255.f, 24 / 255.f, 1.f });
         break;
     case ThemeChoice::Light:
-        mWindowClearColor = std::array<float, 4>({ 248 / 255.f, 248 / 255.f, 248 / 255.f, 1.f });
+        mWindowClearColor = std::array<float, 4>({ 232 / 255.f, 232 / 255.f, 232 / 255.f, 1.f });
         break;
     default:
         Logging::warn << "[ThemeManager::applyTheming] Invalid theme: " << static_cast<int>(config.theme) << std::endl;
@@ -62,20 +62,22 @@ void ThemeManager::applyTheming() {
     }
 
     MainThreadTaskManager::getInstance().QueueTask([theme = config.theme]() {
+        ImGuiStyle& style = ImGui::GetStyle();
+
         switch (theme) {
-        case ThemeChoice::Dark:
+        case ThemeChoice::Dark: {
             ImGui::StyleColorsDark();
-            break;
-        case ThemeChoice::Light:
+        } break;
+        case ThemeChoice::Light: {
             ImGui::StyleColorsLight();
-            break;
+        } break;
         default:
             break;
         }
 
-        ImGuiStyle& style = ImGui::GetStyle();
-
         style.Colors[ImGuiCol_WindowBg].w = 1.f;
+
+        style.Colors[ImGuiCol_ChildBg].w = 0.0f;
 
         style.Colors[ImGuiCol_TabSelectedOverline].w = 0.f;
         style.Colors[ImGuiCol_TabDimmedSelectedOverline].w = 0.f;
