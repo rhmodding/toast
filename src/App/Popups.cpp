@@ -5,6 +5,8 @@
 #include "popups/Popup.hpp"
 #include "popups/SheetRepackFailed.hpp"
 #include "popups/EditAnimationName.hpp"
+#include "popups/EditPartName.hpp"
+#include "popups/SpritesheetManager.hpp"
 
 namespace Popups {
 
@@ -13,17 +15,15 @@ int  _swapAnimationIdx { -1 };
 int _oldTextureSizeX { -1 };
 int _oldTextureSizeY { -1 };
 
-int _editPartNameArrangeIdx { -1 };
-int _editPartNamePartIdx { -1 };
 
-
-static std::array<Popup*, 2> popups;
+static std::array<Popup*, 4> popups;
 
 void createSingletons() {
     popups = {
         static_cast<Popup*>(&EditAnimationName::createSingleton()),
-
         static_cast<Popup*>(&SheetRepackFailed::createSingleton()),
+        static_cast<Popup*>(&EditPartName::createSingleton()),
+        static_cast<Popup*>(&SpritesheetManager::createSingleton()),
     };
 }
 
@@ -44,10 +44,6 @@ void createSingletons() {
 
 #include "popups/Popup_SwapAnimation.hpp"
 
-#include "popups/Popup_EditPartName.hpp"
-
-#include "popups/Popup_SpritesheetManager.hpp"
-
 void Popups::Update() {
     BEGIN_GLOBAL_POPUP();
 
@@ -67,10 +63,6 @@ void Popups::Update() {
     Popup_WaitForModifiedTexture();
 
     Popup_SwapAnimation(_swapAnimationIdx);
-
-    Popup_EditPartName(_editPartNameArrangeIdx, _editPartNamePartIdx);
-
-    Popup_SpritesheetManager();
 
     END_GLOBAL_POPUP();
 }

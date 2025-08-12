@@ -1,5 +1,4 @@
-#ifndef POPUP_EDITPARTNAME_HPP
-#define POPUP_EDITPARTNAME_HPP
+#include "EditPartName.hpp"
 
 #include <imgui.h>
 
@@ -11,7 +10,7 @@
 
 #include "Macro.hpp"
 
-static void Popup_EditPartName(int arrangementIndex, int partIndex) {
+void Popups::EditPartName::Update() {
     if (arrangementIndex < 0 || partIndex < 0)
         return;
 
@@ -78,5 +77,3 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
 
     lateOpen = open;
 }
-
-#endif // POPUP_EDITPARTNAME_HPP
