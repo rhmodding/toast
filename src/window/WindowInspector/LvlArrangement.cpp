@@ -424,16 +424,18 @@ void WindowInspector::Level_Arrangement() {
                 auto& part = arrangement.parts[n];
 
                 char selectableLabel[128];
-                if (part.editorName.empty())
+                if (part.editorName.empty()) {
                     std::snprintf(
                         selectableLabel, sizeof(selectableLabel),
                         "Part no. %u", n+1
                     );
-                else
+                }
+                else {
                     std::snprintf(
                         selectableLabel, sizeof(selectableLabel),
                         "Part no. %u (%s)", n+1, part.editorName.c_str()
                     );
+                }
 
                 const bool isPartSelected = selectionState.isPartSelected(n);
 
@@ -821,6 +823,47 @@ void WindowInspector::Level_Arrangement() {
         else {
             if (ImGui::Selectable("Click here to create a new part."))
                 insertNewPart = 0;
+
+            if (ImGui::BeginPopupContextItem()) {
+                char label[128];
+
+                ImGui::TextUnformatted("No parts selected.");
+
+                ImGui::Separator();
+
+                if (ImGui::Selectable("Insert new part"))
+                    insertNewPart = 0;
+
+                ImGui::Separator();
+
+                std::snprintf(
+                    label, sizeof(label),
+                    "Paste %zu part%s",
+                    copyParts.size(), copyParts.size() == 1 ? "" : "s"
+                );
+
+                if (ImGui::MenuItem(label, nullptr, false, !copyParts.empty())) {
+                    auto newArrangement = playerManager.getArrangement();
+                    newArrangement.parts.insert(
+                        newArrangement.parts.begin(),
+                        copyParts.begin(),
+                        copyParts.end()
+                    );
+
+                    sessionManager.getCurrentSession()->addCommand(
+                    std::make_shared<CommandModifyArrangement>(
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                        playerManager.getArrangementIndex(),
+                        newArrangement
+                    ));
+
+                    selectionState.clearSelectedParts();
+                    for (size_t i = 0; i < copyParts.size(); i++)
+                        selectionState.setPartSelected(i, true);
+                }
+
+                ImGui::EndPopup();
+            }
         }
 
         if (selDeleteSingle >= 0) {
