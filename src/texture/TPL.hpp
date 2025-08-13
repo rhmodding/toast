@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#include <algorithm>
+
 #include "glInclude.hpp"
 
 namespace TPL {
