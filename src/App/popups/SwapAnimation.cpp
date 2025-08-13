@@ -18,7 +18,7 @@
 #include "Macro.hpp"
 
 void Popups::SwapAnimation::Update() {
-    if (animationIndex < 0)
+    if (mAnimationIndex < 0)
         return;
 
     SessionManager& sessionManager = SessionManager::getInstance();
@@ -71,7 +71,7 @@ void Popups::SwapAnimation::Update() {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandSwapAnimations>(
                     sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                    animationIndex,
+                    mAnimationIndex,
                     swapAnim,
                     swapNames
                 ));
@@ -104,7 +104,7 @@ void Popups::SwapAnimation::Update() {
             for (int n = 0; n < static_cast<int>(animations.size()); n++) {
                 std::ostringstream fmtStream;
 
-                int nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
+                int nI = swapAnim != -1 ? n == mAnimationIndex ? swapAnim : n == swapAnim ? mAnimationIndex : n : n;
 
                 const char* animName = animations.at(swapNames ? n : nI).name.c_str();
                 if (animName[0] == '\0')
@@ -126,7 +126,7 @@ void Popups::SwapAnimation::Update() {
                 float animProgression = std::clamp<float>((ImGui::GetTime() - animationBegin) / animationTime, 0.f, 1.f);
                 ImGui::SetCursorPosY(std::lerp(positionOrig, positionNew, EaseUtil::InOut(animProgression)));
 
-                if (ImGui::Selectable(fmtStream.str().c_str(), animationIndex == n || swapAnim == n, ImGuiSelectableFlags_NoAutoClosePopups)) {
+                if (ImGui::Selectable(fmtStream.str().c_str(), mAnimationIndex == n || swapAnim == n, ImGuiSelectableFlags_NoAutoClosePopups)) {
                     swapAnim = n;
 
                     animationBegin = ImGui::GetTime();

@@ -11,7 +11,7 @@
 #include "Macro.hpp"
 
 void Popups::EditPartName::Update() {
-    if (arrangementIndex < 0 || partIndex < 0)
+    if (mArrangementIndex < 0 || mPartIndex < 0)
         return;
 
     static bool lateOpen { false };
@@ -32,7 +32,7 @@ void Popups::EditPartName::Update() {
         const CellAnim::ArrangementPart& part =
             sessionManager.getCurrentSession()
                 ->getCurrentCellAnim().object
-                ->getArrangement(arrangementIndex).parts.at(partIndex);
+                ->getArrangement(mArrangementIndex).parts.at(mPartIndex);
 
         if (!part.editorName.empty())
             newName = part.editorName;
@@ -41,7 +41,7 @@ void Popups::EditPartName::Update() {
     }
 
     if (open) {
-        ImGui::Text("Edit name for part no. %u (arrangement no. %u):", partIndex + 1, arrangementIndex + 1);
+        ImGui::Text("Edit name for part no. %u (arrangement no. %u):", mPartIndex + 1, mArrangementIndex + 1);
 
         UIUtil::Widget::StdStringTextInput("##Input", newName);
 
@@ -53,14 +53,14 @@ void Popups::EditPartName::Update() {
             CellAnim::ArrangementPart newPart =
                 sessionManager.getCurrentSession()
                 ->getCurrentCellAnim().object
-                ->getArrangement(arrangementIndex).parts.at(partIndex);
+                ->getArrangement(mArrangementIndex).parts.at(mPartIndex);
 
             newPart.editorName = newName;
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
                 sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                arrangementIndex, partIndex,
+                mArrangementIndex, mPartIndex,
                 newPart
             ));
 

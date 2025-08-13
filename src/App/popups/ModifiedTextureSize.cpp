@@ -9,7 +9,7 @@
 #include "Macro.hpp"
 
 void Popups::ModifiedTextureSize::Update() {
-    if (oldTextureSizeX < 0 || oldTextureSizeY < 0)
+    if (mOldTextureSizeX < 0 || mOldTextureSizeY < 0)
         return;
 
     ImGui::SetNextWindowPos(
@@ -49,10 +49,10 @@ void Popups::ModifiedTextureSize::Update() {
 
             float scaleX =
                 static_cast<float>(currentSession->getCurrentCellAnimSheet()->getWidth()) /
-                oldTextureSizeX;
+                mOldTextureSizeX;
             float scaleY =
                 static_cast<float>(currentSession->getCurrentCellAnimSheet()->getHeight()) /
-                oldTextureSizeY;
+                mOldTextureSizeY;
 
             for (auto& arrangement : newArrangements) {
                 for (auto& part : arrangement.parts) {

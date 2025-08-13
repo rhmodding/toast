@@ -12,7 +12,7 @@
 #include "Macro.hpp"
 
 void Popups::EditAnimationName::Update() {
-    if (animationIndex < 0)
+    if (mAnimationIndex < 0)
         return;
 
     static bool lateOpen { false };
@@ -32,14 +32,14 @@ void Popups::EditAnimationName::Update() {
     if (!lateOpen && open) {
         const auto& animation =
             sessionManager.getCurrentSession()->getCurrentCellAnim().object
-                ->getAnimation(animationIndex);
+                ->getAnimation(mAnimationIndex);
 
         strncpy(newName, animation.name.c_str(), sizeof(newName) - 1);
         newName[sizeof(newName) - 1] = '\0';
     }
 
     if (open) {
-        ImGui::Text("Edit name for animation no. %u:", animationIndex + 1);
+        ImGui::Text("Edit name for animation no. %u:", mAnimationIndex + 1);
         ImGui::InputText("##Input", newName, sizeof(newName));
 
         ImGui::Dummy({ 0.f, 15.f });
@@ -83,7 +83,7 @@ void Popups::EditAnimationName::Update() {
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyAnimationName>(
                 sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                animationIndex,
+                mAnimationIndex,
                 newName
             ));
 
