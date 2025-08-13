@@ -36,6 +36,9 @@ set(SOURCES
     src/App/popups/EditAnimationName.cpp
     src/App/popups/EditPartName.cpp
     src/App/popups/SpritesheetManager.cpp
+    src/App/popups/SwapAnimation.cpp
+    src/App/popups/WaitForModifiedTexture.cpp
+    src/App/popups/ModifiedTextureSize.cpp
 
     src/archive/Archive.cpp
     src/archive/DARCH.cpp

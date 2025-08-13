@@ -1,5 +1,4 @@
-#ifndef POPUP_SWAPANIMATION_HPP
-#define POPUP_SWAPANIMATION_HPP
+#include "SwapAnimation.hpp"
 
 #include <imgui.h>
 
@@ -18,7 +17,7 @@
 
 #include "Macro.hpp"
 
-static void Popup_SwapAnimation(int animationIndex) {
+void Popups::SwapAnimation::Update() {
     if (animationIndex < 0)
         return;
 
@@ -140,5 +139,3 @@ static void Popup_SwapAnimation(int animationIndex) {
         ImGui::EndPopup();
     }
 }
-
-#endif // POPUP_SWAPANIMATION_HPP

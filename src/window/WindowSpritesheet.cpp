@@ -41,6 +41,7 @@
 #include "command/CompositeCommand.hpp"
 
 #include "App/Popups.hpp"
+#include "App/popups/ModifiedTextureSize.hpp"
 
 #include "util/EaseUtil.hpp"
 
@@ -637,8 +638,7 @@ void WindowSpritesheet::Update() {
                             newTexture->getWidth()  != cellanimSheet->getWidth() ||
                             newTexture->getHeight() != cellanimSheet->getHeight();
 
-                        Popups::_oldTextureSizeX = cellanimSheet->getWidth();
-                        Popups::_oldTextureSizeY = cellanimSheet->getHeight();
+                        Popups::ModifiedTextureSize::getInstance().setOldTextureSizes(cellanimSheet->getWidth(), cellanimSheet->getHeight());
 
                         newTexture->setName(cellanimSheet->getName());
 

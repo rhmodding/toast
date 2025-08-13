@@ -1,5 +1,4 @@
-#ifndef POPUP_MODIFIEDTEXTURESIZE_HPP
-#define POPUP_MODIFIEDTEXTURESIZE_HPP
+#include "ModifiedTextureSize.hpp"
 
 #include <imgui.h>
 
@@ -9,7 +8,7 @@
 
 #include "Macro.hpp"
 
-static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) {
+void Popups::ModifiedTextureSize::Update() {
     if (oldTextureSizeX < 0 || oldTextureSizeY < 0)
         return;
 
@@ -81,5 +80,3 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
         ImGui::EndPopup();
     }
 }
-
-#endif // POPUP_MODIFIEDTEXTURESIZE_HPP

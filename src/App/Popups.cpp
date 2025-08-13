@@ -7,25 +7,25 @@
 #include "popups/EditAnimationName.hpp"
 #include "popups/EditPartName.hpp"
 #include "popups/SpritesheetManager.hpp"
+#include "popups/SwapAnimation.hpp"
+#include "popups/WaitForModifiedTexture.hpp"
+#include "popups/ModifiedTextureSize.hpp"
 
 namespace Popups {
 
-int  _swapAnimationIdx { -1 };
+    static std::array<Popup*, 7> popups;
 
-int _oldTextureSizeX { -1 };
-int _oldTextureSizeY { -1 };
-
-
-static std::array<Popup*, 4> popups;
-
-void createSingletons() {
-    popups = {
-        static_cast<Popup*>(&EditAnimationName::createSingleton()),
-        static_cast<Popup*>(&SheetRepackFailed::createSingleton()),
-        static_cast<Popup*>(&EditPartName::createSingleton()),
-        static_cast<Popup*>(&SpritesheetManager::createSingleton()),
-    };
-}
+    void createSingletons() {
+        popups = {
+            static_cast<Popup*>(&EditAnimationName::createSingleton()),
+            static_cast<Popup*>(&SheetRepackFailed::createSingleton()),
+            static_cast<Popup*>(&EditPartName::createSingleton()),
+            static_cast<Popup*>(&WaitForModifiedTexture::createSingleton()),
+            static_cast<Popup*>(&ModifiedTextureSize::createSingleton()),
+            static_cast<Popup*>(&SwapAnimation::createSingleton()),
+            static_cast<Popup*>(&SpritesheetManager::createSingleton()),
+        };
+    }
 
 } // namespace Popups
 
@@ -38,16 +38,10 @@ void createSingletons() {
 #include "popups/Popup_MOptimizeGlobal.hpp"
 #include "popups/Popup_MInterpolateKeys.hpp"
 
-#include "popups/Popup_ModifiedTextureSize.hpp"
-
-#include "popups/Popup_WaitForModifiedTexture.hpp"
-
-#include "popups/Popup_SwapAnimation.hpp"
-
 void Popups::Update() {
     BEGIN_GLOBAL_POPUP();
 
-    for (Popup* p: popups) {
+    for (Popup* p : popups) {
         p->Update();
     }
 
@@ -57,12 +51,6 @@ void Popups::Update() {
     Popup_MPadRegion();
     Popup_MOptimizeGlobal();
     Popup_MInterpolateKeys();
-
-    Popup_ModifiedTextureSize(_oldTextureSizeX, _oldTextureSizeY);
-
-    Popup_WaitForModifiedTexture();
-
-    Popup_SwapAnimation(_swapAnimationIdx);
 
     END_GLOBAL_POPUP();
 }

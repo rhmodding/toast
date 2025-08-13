@@ -46,6 +46,7 @@
 
 #include "App/Popups.hpp"
 #include "App/popups/EditAnimationName.hpp"
+#include "App/popups/SwapAnimation.hpp"
 
 // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
@@ -514,7 +515,7 @@ void Toast::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Swap index ..")) {
-                Popups::_swapAnimationIdx = animIndex;
+                Popups::SwapAnimation::getInstance().setAnimationIndex(animIndex);
                 OPEN_GLOBAL_POPUP("###SwapAnimation");
             }
 
