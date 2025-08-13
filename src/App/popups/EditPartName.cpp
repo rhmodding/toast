@@ -41,7 +41,7 @@ void Popups::EditPartName::Update() {
     }
 
     if (open) {
-        ImGui::Text("Edit name for part no. %u (arrangement no. %u):", mPartIndex + 1, mArrangementIndex + 1);
+        ImGui::Text("Edit name for part no. %d (arrangement no. %d):", mPartIndex + 1, mArrangementIndex + 1);
 
         UIUtil::Widget::StdStringTextInput("##Input", newName);
 
