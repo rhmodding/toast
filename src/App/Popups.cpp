@@ -17,13 +17,13 @@ namespace Popups {
 
     void createSingletons() {
         popups = {
-            static_cast<Popup*>(&EditAnimationName::createSingleton()),
-            static_cast<Popup*>(&SheetRepackFailed::createSingleton()),
-            static_cast<Popup*>(&EditPartName::createSingleton()),
-            static_cast<Popup*>(&WaitForModifiedTexture::createSingleton()),
-            static_cast<Popup*>(&ModifiedTextureSize::createSingleton()),
-            static_cast<Popup*>(&SwapAnimation::createSingleton()),
-            static_cast<Popup*>(&SpritesheetManager::createSingleton()),
+            &EditAnimationName::createSingleton(),
+            &SheetRepackFailed::createSingleton(),
+            &EditPartName::createSingleton(),
+            &WaitForModifiedTexture::createSingleton(),
+            &ModifiedTextureSize::createSingleton(),
+            &SwapAnimation::createSingleton(),
+            &SpritesheetManager::createSingleton(),
         };
     }
 
