@@ -8,14 +8,14 @@
 namespace Popups {
     class EditAnimationName : public Popup, public Singleton<EditAnimationName> {
         friend class Singleton<EditAnimationName>;
-        public:
-            virtual void Update();
-            void setAnimIndex(int index) {
-                animationIndex = index;
-            }
-        private:
-            EditAnimationName() = default;
-            int animationIndex = -1;
+    public:
+        virtual void Update();
+        void setAnimIndex(int index) {
+            mAnimationIndex = index;
+        }
+    private:
+        EditAnimationName() = default;
+        int mAnimationIndex = -1;
     };
 }
 

@@ -8,10 +8,10 @@
 namespace Popups {
     class SpritesheetManager: public Popup, public Singleton<SpritesheetManager> {
         friend class Singleton<SpritesheetManager>;
-        public:
-            void Update();
-        private:
-            SpritesheetManager() = default;
+    public:
+        void Update();
+    private:
+        SpritesheetManager() = default;
     };
 }
 

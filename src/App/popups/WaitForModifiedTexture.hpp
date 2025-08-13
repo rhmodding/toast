@@ -8,10 +8,10 @@
 namespace Popups {
     class WaitForModifiedTexture: public Popup, public Singleton<WaitForModifiedTexture> {
         friend class Singleton<WaitForModifiedTexture>;
-        public:
-            void Update();
-        private:
-            WaitForModifiedTexture() = default;
+    public:
+        void Update();
+    private:
+        WaitForModifiedTexture() = default;
     };
 }
 

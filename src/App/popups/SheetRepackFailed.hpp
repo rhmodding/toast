@@ -8,10 +8,10 @@
 namespace Popups {
     class SheetRepackFailed : public Popup, public Singleton<SheetRepackFailed> {
         friend class Singleton<SheetRepackFailed>;
-        public:
-            virtual void Update();
-        private:
-            SheetRepackFailed() = default;
+    public:
+        virtual void Update();
+    private:
+        SheetRepackFailed() = default;
     };
 };
 

@@ -8,16 +8,16 @@
 namespace Popups {
     class ModifiedTextureSize: public Popup, public Singleton<ModifiedTextureSize> {
         friend class Singleton<ModifiedTextureSize>;
-        public:
-            void Update();
-            void setOldTextureSizes(int oldSizeX, int oldSizeY) {
-                oldTextureSizeX = oldSizeX;
-                oldTextureSizeY = oldSizeY;
-            }
-        private:
-            ModifiedTextureSize() = default;
-            int oldTextureSizeX = -1;
-            int oldTextureSizeY = -1;
+    public:
+        void Update();
+        void setOldTextureSizes(int oldSizeX, int oldSizeY) {
+            mOldTextureSizeX = oldSizeX;
+            mOldTextureSizeY = oldSizeY;
+        }
+    private:
+        ModifiedTextureSize() = default;
+        int mOldTextureSizeX = -1;
+        int mOldTextureSizeY = -1;
     };
 }
 

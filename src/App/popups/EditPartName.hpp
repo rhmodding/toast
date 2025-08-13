@@ -11,19 +11,19 @@ namespace Popups {
         public:
             void Update();
             void setArrangementIndex(int index) {
-                arrangementIndex = index;
+                mArrangementIndex = index;
             }
             void setPartIndex(int index) {
-                partIndex = index;
+                mPartIndex = index;
             }
             void setIndices(int arrIndex, int pIndex) {
-                arrangementIndex = arrIndex;
-                partIndex = pIndex;
+                mArrangementIndex = arrIndex;
+                mPartIndex = pIndex;
             }
         private:
             EditPartName() = default;
-            int arrangementIndex = -1;
-            int partIndex = -1;
+            int mArrangementIndex = -1;
+            int mPartIndex = -1;
     };
 }
 
