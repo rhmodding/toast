@@ -67,32 +67,79 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
         return false;
 
     const unsigned pixelCount = cellanimSheet->getPixelCount();
+
     std::unique_ptr<unsigned char[]> newImage(new unsigned char[pixelCount * 4]);
+    std::memset(newImage.get(), 0x00, (pixelCount * 4));
+
     std::unique_ptr<unsigned char[]> srcImage(new unsigned char[pixelCount * 4]);
     cellanimSheet->GetRGBA32(srcImage.get());
 
-    for (unsigned i = 0; i < numRects; ++i) {
+    for (unsigned i = 0; i < numRects; i++) {
         const auto& rect = sortedRects[i];
         const auto& origRect = originalRects[i];
 
-        const int ox = origRect.x, oy = origRect.y, nx = rect.x, ny = rect.y;
-        const int w = origRect.w, h = origRect.h;
+        int ox = origRect.x;
+        int oy = origRect.y;
+        int nx = rect.x;
+        int ny = rect.y;
+        int w  = origRect.w;
+        int h  = origRect.h;
 
-        for (int row = 0; row < h; ++row) {
-            auto* src = srcImage.get() + ((oy + row) * cellanimSheet->getWidth() + ox) * 4;
-            auto* dst = newImage.get() + ((ny + row) * cellanimSheet->getWidth() + nx) * 4;
-            std::memcpy(dst, src, w * 4);
+        const int texW = cellanimSheet->getWidth();
+        const int texH = cellanimSheet->getHeight();
+
+        int srcX0 = std::max(0, ox);
+        int srcY0 = std::max(0, oy);
+        int srcX1 = std::min(texW, ox + w);
+        int srcY1 = std::min(texH, oy + h);
+
+        int dstX0 = std::max(0, nx);
+        int dstY0 = std::max(0, ny);
+        int dstX1 = std::min(texW, nx + w);
+        int dstY1 = std::min(texH, ny + h);
+
+        int copyW = std::min(srcX1 - srcX0, dstX1 - dstX0);
+        int copyH = std::min(srcY1 - srcY0, dstY1 - dstY0);
+
+        if (copyW > 0 && copyH > 0) {
+            for (int row = 0; row < copyH; row++) {
+                void* src = srcImage.get() + ((srcY0 + row) * texW + srcX0) * 4;
+                void* dst = newImage.get() + ((dstY0 + row) * texW + dstX0) * 4;
+                std::memcpy(dst, src, copyW * 4);
+            }
         }
 
         uint32_t* pixelData = reinterpret_cast<uint32_t*>(newImage.get());
 
-        for (int col = 0; col < w; ++col) {
-            pixelData[ny * cellanimSheet->getWidth() + nx + col] = BORDER_COLOR;
-            pixelData[(ny + h - 1) * cellanimSheet->getWidth() + nx + col] = BORDER_COLOR;
+        for (int col = 0; col < copyW; col++) {
+            if (
+                (dstY0 >= 0 && dstY0 < texH) &&
+                ((dstX0 + col) >= 0) && ((dstX0 + col) < texW)
+            ) {
+                pixelData[dstY0 * texW + dstX0 + col] = BORDER_COLOR;
+            }
+
+            if (
+                ((dstY0 + copyH - 1) >= 0) && ((dstY0 + copyH - 1) < texH) &&
+                ((dstX0 + col) >= 0) && ((dstX0 + col) < texW)
+            ) {
+                pixelData[(dstY0 + copyH - 1) * texW + dstX0 + col] = BORDER_COLOR;
+            }
         }
-        for (int row = 0; row < h; ++row) {
-            pixelData[(ny + row) * cellanimSheet->getWidth() + nx] = BORDER_COLOR;
-            pixelData[(ny + row) * cellanimSheet->getWidth() + nx + w - 1] = BORDER_COLOR;
+        for (int row = 0; row < copyH; row++) {
+            if (
+                ((dstY0 + row) >= 0) && ((dstY0 + row) < texH) &&
+                dstX0 >= 0 && dstX0 < texW
+            ) {
+                pixelData[(dstY0 + row) * texW + dstX0] = BORDER_COLOR;
+            }
+
+            if (
+                ((dstY0 + row) >= 0) && ((dstY0 + row) < texH) &&
+                ((dstX0 + copyW - 1) >= 0) && ((dstX0 + copyW - 1) < texW)
+            ) {
+                pixelData[(dstY0 + row) * texW + dstX0 + copyW - 1] = BORDER_COLOR;
+            }
         }
     }
 
