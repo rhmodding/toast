@@ -18,21 +18,9 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-static constexpr ImGuiID GLOBAL_POPUP_ID = 0xBEEFAB1E;
-
-#define BEGIN_GLOBAL_POPUP() \
-    do { \
-        ImGui::PushOverrideID(GLOBAL_POPUP_ID); \
-    } while (0)
-
-#define END_GLOBAL_POPUP() \
-    do { \
-        ImGui::PopID(); \
-    } while (0)
-
 #define OPEN_GLOBAL_POPUP(popupId) \
     do { \
-        ImGui::PushOverrideID(GLOBAL_POPUP_ID); \
+        ImGui::PushOverrideID(Popups::GLOBAL_POPUP_ID); \
         ImGui::OpenPopup(popupId); \
         ImGui::PopID(); \
     } while (0)

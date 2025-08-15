@@ -19,10 +19,13 @@
 
 #include "manager/AppState.hpp"
 
-static std::array<Popup*, 13> popups;
+static std::array<Popup*, 13> sPopups;
+static bool sPopupsInitialized = false;
 
 void Popups::createSingletons() {
-    popups = {
+    if (sPopupsInitialized)
+        return;
+    sPopups = {
         &EditAnimationName::createSingleton(),
         &SheetRepackFailed::createSingleton(),
         &EditPartName::createSingleton(),
@@ -37,14 +40,43 @@ void Popups::createSingletons() {
         &SwapAnimation::createSingleton(),
         &SpritesheetManager::createSingleton(),
     };
+    sPopupsInitialized = true;
+}
+
+void Popups::destroySingletons() {
+    if (!sPopupsInitialized)
+        return;
+    for (int i = 0; i < sPopups.size(); i++)
+        sPopups[i] = nullptr;
+
+    EditAnimationName::destroySingleton();
+    SheetRepackFailed::destroySingleton();
+    EditPartName::destroySingleton();
+    MTransformCellanim::destroySingleton();
+    MTransformAnimation::destroySingleton();
+    MTransformArrangement::destroySingleton();
+    MPadRegion::destroySingleton();
+    MOptimizeGlobal::destroySingleton();
+    MInterpolateKeys::destroySingleton();
+    WaitForModifiedTexture::destroySingleton();
+    ModifiedTextureSize::destroySingleton();
+    SwapAnimation::destroySingleton();
+    SpritesheetManager::destroySingleton();
+
+    sPopupsInitialized = false;
 }
 
 void Popups::update() {
-    BEGIN_GLOBAL_POPUP();
+    if (!sPopupsInitialized) {
+        printf("Tried to update popups while they were not initialized - what\n");
+        return;
+    }
 
-    for (Popup* p : popups) {
+    ImGui::PushOverrideID(GLOBAL_POPUP_ID);
+
+    for (Popup* p : sPopups) {
         p->Update();
     }
 
-    END_GLOBAL_POPUP();
+    ImGui::PopID();
 }

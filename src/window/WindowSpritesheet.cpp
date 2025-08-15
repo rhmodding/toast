@@ -99,7 +99,7 @@ void WindowSpritesheet::RunEditor() {
 }
 
 void WindowSpritesheet::FormatPopup() {
-    BEGIN_GLOBAL_POPUP();
+    ImGui::PushOverrideID(Popups::GLOBAL_POPUP_ID);
 
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
@@ -529,7 +529,7 @@ void WindowSpritesheet::FormatPopup() {
     else
         lateOpen = false;
 
-    END_GLOBAL_POPUP();
+        ImGui::PopID();
 }
 
 void WindowSpritesheet::Update() {

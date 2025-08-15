@@ -267,6 +267,7 @@ Toast::~Toast() {
     AsyncTaskManager::destroySingleton();
     MainThreadTaskManager::destroySingleton();
     PromptPopupManager::destroySingleton();
+    Popups::destroySingletons();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

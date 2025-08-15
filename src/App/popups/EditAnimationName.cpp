@@ -39,7 +39,7 @@ void Popups::EditAnimationName::Update() {
     }
 
     if (open) {
-        ImGui::Text("Edit name for animation no. %u:", mAnimationIndex + 1);
+        ImGui::Text("Edit name for animation no. %d:", mAnimationIndex + 1);
         ImGui::InputText("##Input", newName, sizeof(newName));
 
         ImGui::Dummy({ 0.f, 15.f });
