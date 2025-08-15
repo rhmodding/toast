@@ -1,5 +1,4 @@
-#ifndef POPUP_WAITFORMODIFIEDTEXTURE_HPP
-#define POPUP_WAITFORMODIFIEDTEXTURE_HPP
+#include "WaitForModifiedTexture.hpp"
 
 #include <imgui.h>
 
@@ -14,7 +13,9 @@
 
 #include "Macro.hpp"
 
-static void Popup_WaitForModifiedTexture() {
+#include "ModifiedTextureSize.hpp"
+
+void Popups::WaitForModifiedTexture::update() {
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
     );
@@ -62,8 +63,7 @@ static void Popup_WaitForModifiedTexture() {
                     newTexture->getWidth()  != cellanimSheet->getWidth() ||
                     newTexture->getHeight() != cellanimSheet->getHeight();
 
-                Popups::_oldTextureSizeX = cellanimSheet->getWidth();
-                Popups::_oldTextureSizeY = cellanimSheet->getHeight();
+                Popups::ModifiedTextureSize::getInstance().setOldTextureSizes(cellanimSheet->getWidth(), cellanimSheet->getHeight());
 
                 newTexture->setName(cellanimSheet->getName());
 
@@ -78,7 +78,7 @@ static void Popup_WaitForModifiedTexture() {
                 ImGui::CloseCurrentPopup();
 
                 if (diffSize)
-                    OPEN_GLOBAL_POPUP("###ModifiedTextureSize");
+                    Popups::ModifiedTextureSize::getInstance().open();
             }
             else
                 ImGui::CloseCurrentPopup();
@@ -93,5 +93,3 @@ static void Popup_WaitForModifiedTexture() {
     }
     ImGui::PopStyleVar();
 }
-
-#endif // POPUP_WAITFORMODIFIEDTEXTURE_HPP

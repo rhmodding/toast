@@ -1,5 +1,4 @@
-#ifndef POPUP_MODIFIEDTEXTURESIZE_HPP
-#define POPUP_MODIFIEDTEXTURESIZE_HPP
+#include "ModifiedTextureSize.hpp"
 
 #include <imgui.h>
 
@@ -9,8 +8,8 @@
 
 #include "Macro.hpp"
 
-static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) {
-    if (oldTextureSizeX < 0 || oldTextureSizeY < 0)
+void Popups::ModifiedTextureSize::update() {
+    if (mOldTextureSizeX < 0 || mOldTextureSizeY < 0)
         return;
 
     ImGui::SetNextWindowPos(
@@ -50,10 +49,10 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
 
             float scaleX =
                 static_cast<float>(currentSession->getCurrentCellAnimSheet()->getWidth()) /
-                oldTextureSizeX;
+                mOldTextureSizeX;
             float scaleY =
                 static_cast<float>(currentSession->getCurrentCellAnimSheet()->getHeight()) /
-                oldTextureSizeY;
+                mOldTextureSizeY;
 
             for (auto& arrangement : newArrangements) {
                 for (auto& part : arrangement.parts) {
@@ -81,5 +80,3 @@ static void Popup_ModifiedTextureSize(int oldTextureSizeX, int oldTextureSizeY) 
         ImGui::EndPopup();
     }
 }
-
-#endif // POPUP_MODIFIEDTEXTURESIZE_HPP

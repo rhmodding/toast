@@ -1,5 +1,4 @@
-#ifndef POPUP_SWAPANIMATION_HPP
-#define POPUP_SWAPANIMATION_HPP
+#include "SwapAnimation.hpp"
 
 #include <imgui.h>
 
@@ -18,8 +17,8 @@
 
 #include "Macro.hpp"
 
-static void Popup_SwapAnimation(int animationIndex) {
-    if (animationIndex < 0)
+void Popups::SwapAnimation::update() {
+    if (mAnimationIndex < 0)
         return;
 
     SessionManager& sessionManager = SessionManager::getInstance();
@@ -72,7 +71,7 @@ static void Popup_SwapAnimation(int animationIndex) {
                 sessionManager.getCurrentSession()->addCommand(
                 std::make_shared<CommandSwapAnimations>(
                     sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                    animationIndex,
+                    mAnimationIndex,
                     swapAnim,
                     swapNames
                 ));
@@ -105,7 +104,7 @@ static void Popup_SwapAnimation(int animationIndex) {
             for (int n = 0; n < static_cast<int>(animations.size()); n++) {
                 std::ostringstream fmtStream;
 
-                int nI = swapAnim != -1 ? n == animationIndex ? swapAnim : n == swapAnim ? animationIndex : n : n;
+                int nI = swapAnim != -1 ? n == mAnimationIndex ? swapAnim : n == swapAnim ? mAnimationIndex : n : n;
 
                 const char* animName = animations.at(swapNames ? n : nI).name.c_str();
                 if (animName[0] == '\0')
@@ -127,7 +126,7 @@ static void Popup_SwapAnimation(int animationIndex) {
                 float animProgression = std::clamp<float>((ImGui::GetTime() - animationBegin) / animationTime, 0.f, 1.f);
                 ImGui::SetCursorPosY(std::lerp(positionOrig, positionNew, EaseUtil::InOut(animProgression)));
 
-                if (ImGui::Selectable(fmtStream.str().c_str(), animationIndex == n || swapAnim == n, ImGuiSelectableFlags_NoAutoClosePopups)) {
+                if (ImGui::Selectable(fmtStream.str().c_str(), mAnimationIndex == n || swapAnim == n, ImGuiSelectableFlags_NoAutoClosePopups)) {
                     swapAnim = n;
 
                     animationBegin = ImGui::GetTime();
@@ -140,5 +139,3 @@ static void Popup_SwapAnimation(int animationIndex) {
         ImGui::EndPopup();
     }
 }
-
-#endif // POPUP_SWAPANIMATION_HPP

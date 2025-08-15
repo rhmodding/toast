@@ -1,5 +1,4 @@
-#ifndef POPUP_MTRANSFORMANIMATION_HPP
-#define POPUP_MTRANSFORMANIMATION_HPP
+#include "MTransformCellanim.hpp"
 
 #include <imgui.h>
 
@@ -7,13 +6,12 @@
 
 #include "manager/SessionManager.hpp"
 
-#include "command/CommandModifyAnimation.hpp"
+#include "command/CommandModifyAnimations.hpp"
 
 #include "Macro.hpp"
 
-static void Popup_MTransformAnimation() {
+void Popups::MTransformCellanim::update() {
     SessionManager& sessionManager = SessionManager::getInstance();
-    PlayerManager& playerManager = PlayerManager::getInstance();
 
     if (!sessionManager.isSessionAvailable())
         return;
@@ -21,7 +19,7 @@ static void Popup_MTransformAnimation() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };
-    const bool active = ImGui::BeginPopup("MTransformAnimation");
+    const bool active = ImGui::BeginPopup("MTransformCellanim");
 
     if (!active && lateOpen)
         lateOpen = false;
@@ -29,7 +27,7 @@ static void Popup_MTransformAnimation() {
     if (active) {
         lateOpen = true;
 
-        ImGui::SeparatorText("Transform Animation");
+        ImGui::SeparatorText("Transform Cellanim");
 
         static CellAnim::IntVec2 offset { 0, 0 };
         static CellAnim::FltVec2 scale { 1.f, 1.f };
@@ -56,18 +54,20 @@ static void Popup_MTransformAnimation() {
         ImGui::Separator();
 
         if (ImGui::Button("Apply")) {
-            auto animation = playerManager.getAnimation();
+            auto newAnimations = sessionManager.getCurrentSession()
+                ->getCurrentCellAnim().object->getAnimations();
 
-            for (auto& key : animation.keys) {
-                key.transform.position += offset;
-                key.transform.scale *= scale;
+            for (auto& animation : newAnimations) {
+                for (auto& key : animation.keys) {
+                    key.transform.position += offset;
+                    key.transform.scale *= scale;
+                }
             }
 
             sessionManager.getCurrentSession()->addCommand(
-            std::make_shared<CommandModifyAnimation>(
+            std::make_shared<CommandModifyAnimations>(
                 sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                playerManager.getAnimationIndex(),
-                animation
+                newAnimations
             ));
 
             offset = { 0, 0 };
@@ -91,5 +91,3 @@ static void Popup_MTransformAnimation() {
 
     ImGui::PopStyleVar();
 }
-
-#endif // POPUP_MTRANSFORMANIMATION_HPP

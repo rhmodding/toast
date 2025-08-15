@@ -1,5 +1,4 @@
-#ifndef POPUP_MTRANSFORMARRANGEMENT_HPP
-#define POPUP_MTRANSFORMARRANGEMENT_HPP
+#include "MTransformArrangement.hpp"
 
 #include <imgui.h>
 
@@ -11,7 +10,7 @@
 
 #include "Macro.hpp"
 
-static void Popup_MTransformArrangement() {
+void Popups::MTransformArrangement::update() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };
@@ -116,5 +115,3 @@ static void Popup_MTransformArrangement() {
 
     ImGui::PopStyleVar();
 }
-
-#endif // POPUP_MTRANSFORMARRANGEMENT_HPP

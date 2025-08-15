@@ -1,5 +1,4 @@
-#ifndef POPUP_SPRITESHEETMANAGER_HPP
-#define POPUP_SPRITESHEETMANAGER_HPP
+#include "SpritesheetManager.hpp"
 
 #include <imgui.h>
 
@@ -7,7 +6,7 @@
 
 #include "Macro.hpp"
 
-static void Popup_SpritesheetManager() {
+void Popups::SpritesheetManager::update() {
     static unsigned selectedSheet { 0 };
 
     SessionManager& sessionManager = SessionManager::getInstance();
@@ -99,5 +98,3 @@ static void Popup_SpritesheetManager() {
         ImGui::EndPopup();
     }
 }
-
-#endif // POPUP_SPRITESHEETMANAGER_HPP

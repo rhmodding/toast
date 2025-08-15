@@ -40,7 +40,6 @@ void AsyncTaskExportSession::Run() {
 
 void AsyncTaskExportSession::Effect() {
     if (!mResult) {
-        OPEN_GLOBAL_POPUP("###SessionErr");
         return;
     }
 

@@ -1,13 +1,13 @@
-#ifndef POPUP_MPADREGION_HPP
-#define POPUP_MPADREGION_HPP
+#include "MPadRegion.hpp"
 
 #include <imgui.h>
 
 #include "manager/SessionManager.hpp"
+#include "manager/PlayerManager.hpp"
 
 #include "command/CommandModifyArrangementPart.hpp"
 
-static void Popup_MPadRegion() {
+void Popups::MPadRegion::update() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };
@@ -132,5 +132,3 @@ static void Popup_MPadRegion() {
 
     ImGui::PopStyleVar();
 }
-
-#endif // POPUP_MPADREGION_HPP

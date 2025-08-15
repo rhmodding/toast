@@ -1,5 +1,4 @@
-#ifndef POPUP_MINTERPOLATEKEYS_HPP
-#define POPUP_MINTERPOLATEKEYS_HPP
+#include "MInterpolateKeys.hpp"
 
 #include <imgui.h>
 
@@ -71,7 +70,7 @@ static void _ApplyInterpolation(
     currentSession->addCommand(composite);
 }
 
-static void Popup_MInterpolateKeys() {
+void Popups::MInterpolateKeys::update() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };
@@ -259,5 +258,3 @@ static void Popup_MInterpolateKeys() {
 
     ImGui::PopStyleVar();
 }
-
-#endif // POPUP_MINTERPOLATEKEYS_HPP

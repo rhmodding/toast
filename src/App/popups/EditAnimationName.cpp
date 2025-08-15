@@ -1,5 +1,4 @@
-#ifndef POPUP_EDITANIMATIONNAME_HPP
-#define POPUP_EDITANIMATIONNAME_HPP
+#include "EditAnimationName.hpp"
 
 #include <imgui.h>
 
@@ -12,8 +11,8 @@
 
 #include "Macro.hpp"
 
-static void Popup_EditAnimationName(int animationIndex) {
-    if (animationIndex < 0)
+void Popups::EditAnimationName::update() {
+    if (mAnimationIndex < 0)
         return;
 
     static bool lateOpen { false };
@@ -33,14 +32,14 @@ static void Popup_EditAnimationName(int animationIndex) {
     if (!lateOpen && open) {
         const auto& animation =
             sessionManager.getCurrentSession()->getCurrentCellAnim().object
-                ->getAnimation(animationIndex);
+                ->getAnimation(mAnimationIndex);
 
         strncpy(newName, animation.name.c_str(), sizeof(newName) - 1);
         newName[sizeof(newName) - 1] = '\0';
     }
 
     if (open) {
-        ImGui::Text("Edit name for animation no. %u:", animationIndex + 1);
+        ImGui::Text("Edit name for animation no. %d:", mAnimationIndex + 1);
         ImGui::InputText("##Input", newName, sizeof(newName));
 
         ImGui::Dummy({ 0.f, 15.f });
@@ -84,7 +83,7 @@ static void Popup_EditAnimationName(int animationIndex) {
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyAnimationName>(
                 sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                animationIndex,
+                mAnimationIndex,
                 newName
             ));
 
@@ -101,5 +100,3 @@ static void Popup_EditAnimationName(int animationIndex) {
 
     lateOpen = open;
 }
-
-#endif // POPUP_EDITANIMATIONNAME_HPP

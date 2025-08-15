@@ -1,5 +1,4 @@
-#ifndef POPUP_EDITPARTNAME_HPP
-#define POPUP_EDITPARTNAME_HPP
+#include "EditPartName.hpp"
 
 #include <imgui.h>
 
@@ -11,8 +10,8 @@
 
 #include "Macro.hpp"
 
-static void Popup_EditPartName(int arrangementIndex, int partIndex) {
-    if (arrangementIndex < 0 || partIndex < 0)
+void Popups::EditPartName::update() {
+    if (mArrangementIndex < 0 || mPartIndex < 0)
         return;
 
     static bool lateOpen { false };
@@ -33,7 +32,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
         const CellAnim::ArrangementPart& part =
             sessionManager.getCurrentSession()
                 ->getCurrentCellAnim().object
-                ->getArrangement(arrangementIndex).parts.at(partIndex);
+                ->getArrangement(mArrangementIndex).parts.at(mPartIndex);
 
         if (!part.editorName.empty())
             newName = part.editorName;
@@ -42,7 +41,7 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
     }
 
     if (open) {
-        ImGui::Text("Edit name for part no. %u (arrangement no. %u):", partIndex + 1, arrangementIndex + 1);
+        ImGui::Text("Edit name for part no. %d (arrangement no. %d):", mPartIndex + 1, mArrangementIndex + 1);
 
         UIUtil::Widget::StdStringTextInput("##Input", newName);
 
@@ -54,14 +53,14 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
             CellAnim::ArrangementPart newPart =
                 sessionManager.getCurrentSession()
                 ->getCurrentCellAnim().object
-                ->getArrangement(arrangementIndex).parts.at(partIndex);
+                ->getArrangement(mArrangementIndex).parts.at(mPartIndex);
 
             newPart.editorName = newName;
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
                 sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                arrangementIndex, partIndex,
+                mArrangementIndex, mPartIndex,
                 newPart
             ));
 
@@ -78,5 +77,3 @@ static void Popup_EditPartName(int arrangementIndex, int partIndex) {
 
     lateOpen = open;
 }
-
-#endif // POPUP_EDITPARTNAME_HPP

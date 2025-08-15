@@ -8,7 +8,8 @@
 
 #include "command/CommandModifyAnimation.hpp"
 
-#include "App/Popups.hpp"
+#include "App/PopupHandler.hpp"
+#include "App/popups/SwapAnimation.hpp"
 
 #include "util/UIUtil.hpp"
 
@@ -112,8 +113,8 @@ void WindowInspector::Level_Animation() {
     ImGui::SeparatorText((const char*)ICON_FA_GEAR " Quick Action");
 
     if (ImGui::Button("Swap animation ..")) {
-        Popups::_swapAnimationIdx = animationIndex;
-        OPEN_GLOBAL_POPUP("###SwapAnimation");
+        Popups::SwapAnimation::getInstance().setAnimationIndex(animationIndex);
+        Popups::SwapAnimation::getInstance().open();
     }
 
     ImGui::SameLine();

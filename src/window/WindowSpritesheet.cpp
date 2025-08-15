@@ -18,6 +18,7 @@
 #include <thread>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <tinyfiledialogs.h>
 
@@ -40,7 +41,10 @@
 
 #include "command/CompositeCommand.hpp"
 
-#include "App/Popups.hpp"
+#include "App/PopupHandler.hpp"
+#include "App/popups/ModifiedTextureSize.hpp"
+#include "App/popups/SheetRepackFailed.hpp"
+#include "App/popups/WaitForModifiedTexture.hpp"
 
 #include "util/EaseUtil.hpp"
 
@@ -98,7 +102,7 @@ void WindowSpritesheet::RunEditor() {
 }
 
 void WindowSpritesheet::FormatPopup() {
-    BEGIN_GLOBAL_POPUP();
+    ImGui::PushOverrideID(Popups::GLOBAL_POPUP_ID);
 
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
@@ -528,7 +532,7 @@ void WindowSpritesheet::FormatPopup() {
     else
         lateOpen = false;
 
-    END_GLOBAL_POPUP();
+        ImGui::PopID();
 }
 
 void WindowSpritesheet::Update() {
@@ -604,7 +608,7 @@ void WindowSpritesheet::Update() {
                 const ConfigManager& configManager = ConfigManager::getInstance();
 
                 if (cellanimSheet->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
-                    OPEN_GLOBAL_POPUP("###WaitForModifiedTexture");
+                    Popups::WaitForModifiedTexture::getInstance().open();
                     RunEditor();
                 }
                 else {
@@ -637,8 +641,7 @@ void WindowSpritesheet::Update() {
                             newTexture->getWidth()  != cellanimSheet->getWidth() ||
                             newTexture->getHeight() != cellanimSheet->getHeight();
 
-                        Popups::_oldTextureSizeX = cellanimSheet->getWidth();
-                        Popups::_oldTextureSizeY = cellanimSheet->getHeight();
+                        Popups::ModifiedTextureSize::getInstance().setOldTextureSizes(cellanimSheet->getWidth(), cellanimSheet->getHeight());
 
                         newTexture->setName(cellanimSheet->getName());
 
@@ -650,7 +653,7 @@ void WindowSpritesheet::Update() {
                         ));
 
                         if (diffSize) {
-                            OPEN_GLOBAL_POPUP("###ModifiedTextureSize");
+                            Popups::ModifiedTextureSize::getInstance().open();
                         }
                     }
                 }
@@ -671,7 +674,7 @@ void WindowSpritesheet::Update() {
 
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
                 if (!SpritesheetFixUtil::FixRepack(*sessionManager.getCurrentSession()))
-                    OPEN_GLOBAL_POPUP("###SheetRepackFailed");
+                    Popups::SheetRepackFailed::getInstance().open();
             }
 
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Fix sheet alpha bleeding", nullptr, false)) {
@@ -694,7 +697,10 @@ void WindowSpritesheet::Update() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Re-encode (change format)..")) {
-                OPEN_GLOBAL_POPUP("###ReencodePopup");
+                // shitty solution for a shitty problem - best idea is probably to redefine this in App/popups
+                ImGui::PushOverrideID(Popups::GLOBAL_POPUP_ID);
+                ImGui::OpenPopup("###ReencodePopup");
+                ImGui::PopID();
             }
 
             ImGui::EndMenu();

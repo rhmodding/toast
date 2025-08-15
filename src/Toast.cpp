@@ -44,7 +44,8 @@
 #include "App/Actions.hpp"
 #include "App/Shortcuts.hpp"
 
-#include "App/Popups.hpp"
+#include "App/PopupHandler.hpp"
+#include "App/popups/AllPopups.hpp"
 
 // macOS doesn't support assigning a window icon
 #if !defined(__APPLE__)
@@ -114,6 +115,7 @@ Toast::Toast(int argc, const char** argv) {
     PlayerManager::createSingleton();
     SessionManager::createSingleton();
     PromptPopupManager::createSingleton();
+    Popups::createSingletons();
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
     // GL ES 2.0 + GLSL 100
@@ -264,6 +266,7 @@ Toast::~Toast() {
     AsyncTaskManager::destroySingleton();
     MainThreadTaskManager::destroySingleton();
     PromptPopupManager::destroySingleton();
+    Popups::destroySingletons();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -480,19 +483,19 @@ void Toast::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Optimize .."))
-                OPEN_GLOBAL_POPUP("###MOptimizeGlobal");
+                Popups::MOptimizeGlobal::getInstance().open();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Transform .."))
-                OPEN_GLOBAL_POPUP("MTransformCellanim");
+                Popups::MTransformCellanim::getInstance().open();
 
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Spritesheets", sessionAvaliable)) {
             if (ImGui::MenuItem("Open spritesheet manager .."))
-                OPEN_GLOBAL_POPUP("###SpritesheetManager");
+                Popups::SpritesheetManager::getInstance().open();
 
             ImGui::EndMenu();
         }
@@ -505,21 +508,21 @@ void Toast::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Edit name ..")) {
-                Popups::_editAnimationNameIdx = animIndex;
-                OPEN_GLOBAL_POPUP("###EditAnimationName");
+                Popups::EditAnimationName::getInstance().setAnimIndex(animIndex);
+                Popups::EditAnimationName::getInstance().open();
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Swap index ..")) {
-                Popups::_swapAnimationIdx = animIndex;
-                OPEN_GLOBAL_POPUP("###SwapAnimation");
+                Popups::SwapAnimation::getInstance().setAnimationIndex(animIndex);
+                Popups::SwapAnimation::getInstance().open();
             }
 
             ImGui::Separator();
 
             if (ImGui::MenuItem("Transform .."))
-                OPEN_GLOBAL_POPUP("MTransformAnimation");
+                Popups::MTransformAnimation::getInstance().open();
 
             ImGui::EndMenu();
         }
@@ -544,7 +547,7 @@ void Toast::Menubar() {
                 nullptr, nullptr,
                 keyIndex + 1 < playerManager.getKeyCount()
             ))
-                OPEN_GLOBAL_POPUP("MInterpolateKeys");
+                Popups::MInterpolateKeys::getInstance().open();
 
             ImGui::Separator();
 
@@ -675,7 +678,7 @@ void Toast::Menubar() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Transform as whole .."))
-                OPEN_GLOBAL_POPUP("MTransformArrangement");
+                Popups::MTransformArrangement::getInstance().open();
 
             ImGui::Separator();
 
@@ -719,7 +722,7 @@ void Toast::Menubar() {
 
             if (ImGui::BeginMenu("Cell")) {
                 if (ImGui::MenuItem("Pad (Expand/Contract) .."))
-                    OPEN_GLOBAL_POPUP("MPadRegion");
+                    Popups::MPadRegion::getInstance().open();
 
                 ImGui::EndMenu();
             }
@@ -960,7 +963,7 @@ void Toast::Update() {
 
     PromptPopupManager::getInstance().Update();
 
-    Popups::Update();
+    Popups::update();
 
     // End main window.
     ImGui::End();

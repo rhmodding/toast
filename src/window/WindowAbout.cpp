@@ -40,6 +40,7 @@ static const Line aboutLines[] = {
     { LC_EMPTY_LINE_QUART },
     
     { LC_STRING_LINE, "conhlee" },
+    { LC_STRING_LINE, "patataofcourse" },
 
     // Padding
     { LC_STRING_LINE, "                                             " },

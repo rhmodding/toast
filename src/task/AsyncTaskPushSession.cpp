@@ -18,7 +18,6 @@ void AsyncTaskPushSession::Run() {
 
 void AsyncTaskPushSession::Effect() {
     if (mResult < 0) {
-        OPEN_GLOBAL_POPUP("###SessionErr");
         return;
     }
 

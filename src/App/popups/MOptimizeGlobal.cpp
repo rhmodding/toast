@@ -1,5 +1,4 @@
-#ifndef POPUP_MOPTIMIZEGLOBAL_HPP
-#define POPUP_MOPTIMIZEGLOBAL_HPP
+#include "MOptimizeGlobal.hpp"
 
 #include <imgui.h>
 
@@ -8,7 +7,7 @@
 
 #include "task/AsyncTaskOptimizeCellanim.hpp"
 
-static void Popup_MOptimizeGlobal() {
+void Popups::MOptimizeGlobal::update() {
     static OptimizeCellanimOptions options {};
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });
@@ -84,5 +83,3 @@ static void Popup_MOptimizeGlobal() {
     }
     ImGui::PopStyleVar();
 }
-
-#endif // POPUP_MOPTIMIZEGLOBAL_HPP
