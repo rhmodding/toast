@@ -59,7 +59,7 @@ void Popups::destroySingletons() {
 
 void Popups::update() {
     if (!sPopupsInitialized) {
-        throw new std::runtime_error("Tried to update popups while they were not initialized - what");
+        throw new std::runtime_error("Popups::update: popups not (yet) initialized!");
     }
 
     ImGui::PushOverrideID(GLOBAL_POPUP_ID);
