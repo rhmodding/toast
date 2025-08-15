@@ -5,7 +5,7 @@ class Popup {
 public:
     virtual void Update() = 0;
 protected:
-    Popup();
+    Popup() = default;
 };
 
 #endif

@@ -44,7 +44,7 @@
 #include "App/Actions.hpp"
 #include "App/Shortcuts.hpp"
 
-#include "App/Popups.hpp"
+#include "App/PopupHandler.hpp"
 #include "App/popups/EditAnimationName.hpp"
 #include "App/popups/SwapAnimation.hpp"
 
@@ -953,7 +953,7 @@ void Toast::Update() {
 
     PromptPopupManager::getInstance().Update();
 
-    Popups::Update();
+    Popups::update();
 
     // End main window.
     ImGui::End();

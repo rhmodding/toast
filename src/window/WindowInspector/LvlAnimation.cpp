@@ -8,7 +8,7 @@
 
 #include "command/CommandModifyAnimation.hpp"
 
-#include "App/Popups.hpp"
+#include "App/PopupHandler.hpp"
 #include "App/popups/SwapAnimation.hpp"
 
 #include "util/UIUtil.hpp"

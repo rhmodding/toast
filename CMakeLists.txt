@@ -28,10 +28,9 @@ set(SOURCES
     ext/tinyfiledialogs/tinyfiledialogs.c
 
     src/App/Actions.cpp
-    src/App/Popups.cpp
+    src/App/PopupHandler.cpp
     src/App/Shortcuts.cpp
 
-    src/App/popups/Popup.cpp
     src/App/popups/SheetRepackFailed.cpp
     src/App/popups/EditAnimationName.cpp
     src/App/popups/EditPartName.cpp
@@ -42,6 +41,9 @@ set(SOURCES
     src/App/popups/MInterpolateKeys.cpp
     src/App/popups/MOptimizeGlobal.cpp
     src/App/popups/MPadRegion.cpp
+    src/App/popups/MTransformAnimation.cpp
+    src/App/popups/MTransformArrangement.cpp
+    src/App/popups/MTransformCellanim.cpp
 
     src/archive/Archive.cpp
     src/archive/DARCH.cpp

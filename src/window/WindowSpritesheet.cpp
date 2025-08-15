@@ -40,7 +40,7 @@
 
 #include "command/CompositeCommand.hpp"
 
-#include "App/Popups.hpp"
+#include "App/PopupHandler.hpp"
 #include "App/popups/ModifiedTextureSize.hpp"
 
 #include "util/EaseUtil.hpp"

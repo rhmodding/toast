@@ -1,6 +1,6 @@
-#include <array>
+#include "PopupHandler.hpp"
 
-#include "Popups.hpp"
+#include <array>
 
 #include "popups/Popup.hpp"
 #include "popups/SheetRepackFailed.hpp"
@@ -13,16 +13,22 @@
 #include "popups/MInterpolateKeys.hpp"
 #include "popups/MOptimizeGlobal.hpp"
 #include "popups/MPadRegion.hpp"
+#include "popups/MTransformAnimation.hpp"
+#include "popups/MTransformArrangement.hpp"
+#include "popups/MTransformCellanim.hpp"
 
-namespace Popups {
+#include "manager/AppState.hpp"
 
-static std::array<Popup*, 10> popups;
+static std::array<Popup*, 13> popups;
 
-void createSingletons() {
+void Popups::createSingletons() {
     popups = {
         &EditAnimationName::createSingleton(),
         &SheetRepackFailed::createSingleton(),
         &EditPartName::createSingleton(),
+        &MTransformCellanim::createSingleton(),
+        &MTransformAnimation::createSingleton(),
+        &MTransformArrangement::createSingleton(),
         &MPadRegion::createSingleton(),
         &MOptimizeGlobal::createSingleton(),
         &MInterpolateKeys::createSingleton(),
@@ -33,24 +39,12 @@ void createSingletons() {
     };
 }
 
-} // namespace Popups
-
-#include "manager/AppState.hpp"
-
-#include "popups/Popup_MTransformCellanim.hpp"
-#include "popups/Popup_MTransformAnimation.hpp"
-#include "popups/Popup_MTransformArrangement.hpp"
-
-void Popups::Update() {
+void Popups::update() {
     BEGIN_GLOBAL_POPUP();
 
     for (Popup* p : popups) {
         p->Update();
     }
-
-    Popup_MTransformCellanim();
-    Popup_MTransformAnimation();
-    Popup_MTransformArrangement();
 
     END_GLOBAL_POPUP();
 }
