@@ -773,11 +773,21 @@ void Toast::Menubar() {
         }
 
         if (ImGui::BeginMenu("Windows")) {
+            const bool shiftHeld = ImGui::GetIO().KeyShift;
+
+            // TODO: In which other menus should shift inhibit closing on click?
+            // XXX: when this is removed, remove the respective PopItemFlag below
+            if (shiftHeld)
+                ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
+
             mWindowCanvas.UIShyToggle("Canvas");
             mWindowHybridList.UIShyToggle("Animation / Arrangement List");
             mWindowInspector.UIShyToggle("Inspector");
             mWindowSpritesheet.UIShyToggle("Spritesheet");
             mWindowTimeline.UIShyToggle("Timeline");
+
+            if (shiftHeld)
+                ImGui::PopItemFlag();
 
             ImGui::Separator();
 
