@@ -1,6 +1,11 @@
 #ifndef POPUP_HPP
 #define POPUP_HPP
 
+#include <imgui.h>
+#include <imgui_internal.h>
+
+#include "../PopupHandler.hpp"
+
 class Popup {
 public:
     virtual void update() = 0;

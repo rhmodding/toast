@@ -15,9 +15,6 @@
 
 #include <cstdint>
 
-#include <imgui.h>
-#include <imgui_internal.h>
-
 class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>;
 

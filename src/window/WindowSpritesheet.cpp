@@ -18,6 +18,7 @@
 #include <thread>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <tinyfiledialogs.h>
 
@@ -696,7 +697,10 @@ void WindowSpritesheet::Update() {
             ImGui::Separator();
 
             if (ImGui::MenuItem("Re-encode (change format)..")) {
-                OPEN_GLOBAL_POPUP("###ReencodePopup");
+                // shitty solution for a shitty problem - best idea is probably to redefine this in App/popups
+                ImGui::PushOverrideID(Popups::GLOBAL_POPUP_ID);
+                ImGui::OpenPopup("###ReencodePopup");
+                ImGui::PopID();
             }
 
             ImGui::EndMenu();

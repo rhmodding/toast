@@ -2,6 +2,9 @@
 
 #include <array>
 
+#include <imgui.h>
+#include <imgui_internal.h>
+
 #include "popups/Popup.hpp"
 #include "popups/AllPopups.hpp"
 
