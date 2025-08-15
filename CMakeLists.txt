@@ -40,6 +40,8 @@ set(SOURCES
     src/App/popups/WaitForModifiedTexture.cpp
     src/App/popups/ModifiedTextureSize.cpp
     src/App/popups/MInterpolateKeys.cpp
+    src/App/popups/MOptimizeGlobal.cpp
+    src/App/popups/MPadRegion.cpp
 
     src/archive/Archive.cpp
     src/archive/DARCH.cpp
