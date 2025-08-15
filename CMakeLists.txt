@@ -39,6 +39,7 @@ set(SOURCES
     src/App/popups/SwapAnimation.cpp
     src/App/popups/WaitForModifiedTexture.cpp
     src/App/popups/ModifiedTextureSize.cpp
+    src/App/popups/MInterpolateKeys.cpp
 
     src/archive/Archive.cpp
     src/archive/DARCH.cpp

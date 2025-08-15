@@ -10,22 +10,24 @@
 #include "popups/SwapAnimation.hpp"
 #include "popups/WaitForModifiedTexture.hpp"
 #include "popups/ModifiedTextureSize.hpp"
+#include "popups/MInterpolateKeys.hpp"
 
 namespace Popups {
 
-    static std::array<Popup*, 7> popups;
+static std::array<Popup*, 8> popups;
 
-    void createSingletons() {
-        popups = {
-            &EditAnimationName::createSingleton(),
-            &SheetRepackFailed::createSingleton(),
-            &EditPartName::createSingleton(),
-            &WaitForModifiedTexture::createSingleton(),
-            &ModifiedTextureSize::createSingleton(),
-            &SwapAnimation::createSingleton(),
-            &SpritesheetManager::createSingleton(),
-        };
-    }
+void createSingletons() {
+    popups = {
+        &EditAnimationName::createSingleton(),
+        &SheetRepackFailed::createSingleton(),
+        &EditPartName::createSingleton(),
+        &MInterpolateKeys::createSingleton(),
+        &WaitForModifiedTexture::createSingleton(),
+        &ModifiedTextureSize::createSingleton(),
+        &SwapAnimation::createSingleton(),
+        &SpritesheetManager::createSingleton(),
+    };
+}
 
 } // namespace Popups
 
@@ -36,7 +38,6 @@ namespace Popups {
 #include "popups/Popup_MTransformArrangement.hpp"
 #include "popups/Popup_MPadRegion.hpp"
 #include "popups/Popup_MOptimizeGlobal.hpp"
-#include "popups/Popup_MInterpolateKeys.hpp"
 
 void Popups::Update() {
     BEGIN_GLOBAL_POPUP();
@@ -50,7 +51,6 @@ void Popups::Update() {
     Popup_MTransformArrangement();
     Popup_MPadRegion();
     Popup_MOptimizeGlobal();
-    Popup_MInterpolateKeys();
 
     END_GLOBAL_POPUP();
 }
