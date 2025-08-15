@@ -11,7 +11,7 @@
 
 #include "Macro.hpp"
 
-void Popups::EditAnimationName::Update() {
+void Popups::EditAnimationName::update() {
     if (mAnimationIndex < 0)
         return;
 

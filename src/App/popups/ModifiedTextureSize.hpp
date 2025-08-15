@@ -10,10 +10,14 @@ namespace Popups {
 class ModifiedTextureSize: public Popup, public Singleton<ModifiedTextureSize> {
     friend class Singleton<ModifiedTextureSize>;
 public:
-    void Update();
+    void update();
     void setOldTextureSizes(int oldSizeX, int oldSizeY) {
         mOldTextureSizeX = oldSizeX;
         mOldTextureSizeY = oldSizeY;
+    }
+protected:
+    const char* strId() {
+        return "###ModifiedTextureSize";
     }
 private:
     ModifiedTextureSize() = default;

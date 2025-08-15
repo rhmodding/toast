@@ -10,9 +10,13 @@ namespace Popups {
 class SwapAnimation : public Popup, public Singleton<SwapAnimation> {
     friend class Singleton<SwapAnimation>;
 public:
-    void Update();
+    void update();
     void setAnimationIndex(int index) {
         mAnimationIndex = index;
+    }
+protected:
+    const char* strId() {
+        return "###SwapAnimation";
     }
 private:
     SwapAnimation() = default;

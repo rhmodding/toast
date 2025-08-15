@@ -10,7 +10,11 @@ namespace Popups {
 class MOptimizeGlobal : public Popup, public Singleton<MOptimizeGlobal> {
     friend class Singleton<MOptimizeGlobal>;
 public:
-    void Update();
+    void update();
+protected:
+    const char* strId() {
+        return "###MOptimizeGlobal";
+    }
 private:
     MOptimizeGlobal() = default;
 };

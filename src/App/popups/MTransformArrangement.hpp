@@ -10,7 +10,11 @@ namespace Popups {
 class MTransformArrangement: public Popup, public Singleton<MTransformArrangement> {
     friend class Singleton<MTransformArrangement>;
 public:
-    void Update();
+    void update();
+protected:
+    const char* strId() {
+        return "MTransformArrangement";
+    }
 private:
     MTransformArrangement() = default;
 };

@@ -10,7 +10,7 @@
 
 #include "Macro.hpp"
 
-void Popups::MTransformCellanim::Update() {
+void Popups::MTransformCellanim::update() {
     SessionManager& sessionManager = SessionManager::getInstance();
 
     if (!sessionManager.isSessionAvailable())

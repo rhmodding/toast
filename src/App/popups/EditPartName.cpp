@@ -10,7 +10,7 @@
 
 #include "Macro.hpp"
 
-void Popups::EditPartName::Update() {
+void Popups::EditPartName::update() {
     if (mArrangementIndex < 0 || mPartIndex < 0)
         return;
 

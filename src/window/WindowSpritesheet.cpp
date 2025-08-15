@@ -42,6 +42,8 @@
 
 #include "App/PopupHandler.hpp"
 #include "App/popups/ModifiedTextureSize.hpp"
+#include "App/popups/SheetRepackFailed.hpp"
+#include "App/popups/WaitForModifiedTexture.hpp"
 
 #include "util/EaseUtil.hpp"
 
@@ -605,7 +607,7 @@ void WindowSpritesheet::Update() {
                 const ConfigManager& configManager = ConfigManager::getInstance();
 
                 if (cellanimSheet->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
-                    OPEN_GLOBAL_POPUP("###WaitForModifiedTexture");
+                    Popups::WaitForModifiedTexture::getInstance().open();
                     RunEditor();
                 }
                 else {
@@ -650,7 +652,7 @@ void WindowSpritesheet::Update() {
                         ));
 
                         if (diffSize) {
-                            OPEN_GLOBAL_POPUP("###ModifiedTextureSize");
+                            Popups::ModifiedTextureSize::getInstance().open();
                         }
                     }
                 }
@@ -671,7 +673,7 @@ void WindowSpritesheet::Update() {
 
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
                 if (!SpritesheetFixUtil::FixRepack(*sessionManager.getCurrentSession()))
-                    OPEN_GLOBAL_POPUP("###SheetRepackFailed");
+                    Popups::SheetRepackFailed::getInstance().open();
             }
 
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Fix sheet alpha bleeding", nullptr, false)) {

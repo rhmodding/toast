@@ -6,7 +6,7 @@
 
 #include "Macro.hpp"
 
-void Popups::SpritesheetManager::Update() {
+void Popups::SpritesheetManager::update() {
     static unsigned selectedSheet { 0 };
 
     SessionManager& sessionManager = SessionManager::getInstance();

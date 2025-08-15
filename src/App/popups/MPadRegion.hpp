@@ -10,7 +10,11 @@ namespace Popups {
 class MPadRegion : public Popup, public Singleton<MPadRegion> {
     friend class Singleton<MPadRegion>;
 public:
-    void Update();
+    void update();
+protected:
+    const char* strId() {
+        return "MPadRegion";
+    }
 private:
     MPadRegion() = default;
 };

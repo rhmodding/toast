@@ -114,7 +114,7 @@ void WindowInspector::Level_Animation() {
 
     if (ImGui::Button("Swap animation ..")) {
         Popups::SwapAnimation::getInstance().setAnimationIndex(animationIndex);
-        OPEN_GLOBAL_POPUP("###SwapAnimation");
+        Popups::SwapAnimation::getInstance().open();
     }
 
     ImGui::SameLine();

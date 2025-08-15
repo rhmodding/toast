@@ -10,7 +10,11 @@ namespace Popups {
 class WaitForModifiedTexture: public Popup, public Singleton<WaitForModifiedTexture> {
     friend class Singleton<WaitForModifiedTexture>;
 public:
-    void Update();
+    void update();
+protected:
+    const char* strId() {
+        return "###WaitForModifiedTexture";
+    }
 private:
     WaitForModifiedTexture() = default;
 };

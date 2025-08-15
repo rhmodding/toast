@@ -7,7 +7,7 @@
 
 #include "command/CommandModifyArrangementPart.hpp"
 
-void Popups::MPadRegion::Update() {
+void Popups::MPadRegion::update() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };

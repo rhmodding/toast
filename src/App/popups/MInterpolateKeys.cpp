@@ -70,7 +70,7 @@ static void _ApplyInterpolation(
     currentSession->addCommand(composite);
 }
 
-void Popups::MInterpolateKeys::Update() {
+void Popups::MInterpolateKeys::update() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };

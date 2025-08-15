@@ -3,19 +3,7 @@
 #include <array>
 
 #include "popups/Popup.hpp"
-#include "popups/SheetRepackFailed.hpp"
-#include "popups/EditAnimationName.hpp"
-#include "popups/EditPartName.hpp"
-#include "popups/SpritesheetManager.hpp"
-#include "popups/SwapAnimation.hpp"
-#include "popups/WaitForModifiedTexture.hpp"
-#include "popups/ModifiedTextureSize.hpp"
-#include "popups/MInterpolateKeys.hpp"
-#include "popups/MOptimizeGlobal.hpp"
-#include "popups/MPadRegion.hpp"
-#include "popups/MTransformAnimation.hpp"
-#include "popups/MTransformArrangement.hpp"
-#include "popups/MTransformCellanim.hpp"
+#include "popups/AllPopups.hpp"
 
 #include "manager/AppState.hpp"
 
@@ -68,14 +56,13 @@ void Popups::destroySingletons() {
 
 void Popups::update() {
     if (!sPopupsInitialized) {
-        printf("Tried to update popups while they were not initialized - what\n");
-        return;
+        throw new std::runtime_error("Tried to update popups while they were not initialized - what");
     }
 
     ImGui::PushOverrideID(GLOBAL_POPUP_ID);
 
     for (Popup* p : sPopups) {
-        p->Update();
+        p->update();
     }
 
     ImGui::PopID();

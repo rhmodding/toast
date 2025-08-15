@@ -10,9 +10,13 @@ namespace Popups {
 class EditAnimationName : public Popup, public Singleton<EditAnimationName> {
     friend class Singleton<EditAnimationName>;
 public:
-    virtual void Update();
+    void update();
     void setAnimIndex(int index) {
         mAnimationIndex = index;
+    }
+protected:
+    const char* strId() {
+        return "###EditAnimationName";
     }
 private:
     EditAnimationName() = default;

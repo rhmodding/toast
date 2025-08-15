@@ -10,7 +10,11 @@ namespace Popups {
 class MTransformCellanim: public Popup, public Singleton<MTransformCellanim> {
     friend class Singleton<MTransformCellanim>;
 public:
-    void Update();
+    void update();
+protected:
+    const char* strId() {
+        return "MTransformCellanim";
+    }
 private:
     MTransformCellanim() = default;
 };

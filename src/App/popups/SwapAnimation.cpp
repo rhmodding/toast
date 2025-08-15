@@ -17,7 +17,7 @@
 
 #include "Macro.hpp"
 
-void Popups::SwapAnimation::Update() {
+void Popups::SwapAnimation::update() {
     if (mAnimationIndex < 0)
         return;
 

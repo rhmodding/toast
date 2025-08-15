@@ -10,7 +10,7 @@
 
 #include "Macro.hpp"
 
-void Popups::MTransformArrangement::Update() {
+void Popups::MTransformArrangement::update() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });
 
     static bool lateOpen { false };

@@ -18,13 +18,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#define OPEN_GLOBAL_POPUP(popupId) \
-    do { \
-        ImGui::PushOverrideID(Popups::GLOBAL_POPUP_ID); \
-        ImGui::OpenPopup(popupId); \
-        ImGui::PopID(); \
-    } while (0)
-
 class AppState : public Singleton<AppState> {
     friend class Singleton<AppState>;
 

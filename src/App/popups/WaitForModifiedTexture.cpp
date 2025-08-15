@@ -15,7 +15,7 @@
 
 #include "ModifiedTextureSize.hpp"
 
-void Popups::WaitForModifiedTexture::Update() {
+void Popups::WaitForModifiedTexture::update() {
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
     );
@@ -78,7 +78,7 @@ void Popups::WaitForModifiedTexture::Update() {
                 ImGui::CloseCurrentPopup();
 
                 if (diffSize)
-                    OPEN_GLOBAL_POPUP("###ModifiedTextureSize");
+                    Popups::ModifiedTextureSize::getInstance().open();
             }
             else
                 ImGui::CloseCurrentPopup();

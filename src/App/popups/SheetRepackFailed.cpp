@@ -1,6 +1,6 @@
 #include "SheetRepackFailed.hpp"
 
-void Popups::SheetRepackFailed::Update() {
+void Popups::SheetRepackFailed::update() {
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)
     );

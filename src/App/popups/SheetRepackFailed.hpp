@@ -10,7 +10,11 @@ namespace Popups {
 class SheetRepackFailed : public Popup, public Singleton<SheetRepackFailed> {
     friend class Singleton<SheetRepackFailed>;
 public:
-    virtual void Update();
+    void update();
+protected:
+    const char* strId() {
+        return "###SheetRepackFailed";
+    }
 private:
     SheetRepackFailed() = default;
 };

@@ -10,7 +10,11 @@ namespace Popups {
 class MInterpolateKeys : public Popup, public Singleton<MInterpolateKeys> {
     friend class Singleton<MInterpolateKeys>;
 public:
-    void Update();
+    void update();
+protected:
+    const char* strId() {
+        return "MInterpolateKeys";
+    }
 private:
     MInterpolateKeys() = default;
 };

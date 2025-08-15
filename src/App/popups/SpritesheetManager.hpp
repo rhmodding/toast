@@ -10,7 +10,11 @@ namespace Popups {
 class SpritesheetManager: public Popup, public Singleton<SpritesheetManager> {
     friend class Singleton<SpritesheetManager>;
 public:
-    void Update();
+    void update();
+protected:
+    const char* strId() {
+        return "###SpritesheetManager";
+    }
 private:
     SpritesheetManager() = default;
 };

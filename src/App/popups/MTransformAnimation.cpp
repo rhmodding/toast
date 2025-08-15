@@ -10,7 +10,7 @@
 
 #include "Macro.hpp"
 
-void Popups::MTransformAnimation::Update() {
+void Popups::MTransformAnimation::update() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 

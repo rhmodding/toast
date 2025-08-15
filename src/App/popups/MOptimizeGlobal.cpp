@@ -7,7 +7,7 @@
 
 #include "task/AsyncTaskOptimizeCellanim.hpp"
 
-void Popups::MOptimizeGlobal::Update() {
+void Popups::MOptimizeGlobal::update() {
     static OptimizeCellanimOptions options {};
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 25.f, 20.f });

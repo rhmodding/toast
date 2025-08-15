@@ -10,7 +10,7 @@ namespace Popups {
 class EditPartName : public Popup, public Singleton<EditPartName> {
     friend class Singleton<EditPartName>;
 public:
-    void Update();
+    void update();
     void setArrangementIndex(int index) {
         mArrangementIndex = index;
     }
@@ -20,6 +20,10 @@ public:
     void setIndices(int arrIndex, int pIndex) {
         mArrangementIndex = arrIndex;
         mPartIndex = pIndex;
+    }
+protected:
+    const char* strId() {
+        return "###EditPartName";
     }
 private:
     EditPartName() = default;

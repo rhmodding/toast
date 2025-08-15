@@ -8,7 +8,7 @@
 
 #include "Macro.hpp"
 
-void Popups::ModifiedTextureSize::Update() {
+void Popups::ModifiedTextureSize::update() {
     if (mOldTextureSizeX < 0 || mOldTextureSizeY < 0)
         return;
 
