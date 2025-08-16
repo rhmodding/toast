@@ -41,6 +41,7 @@ static const Line aboutLines[] = {
     
     { LC_STRING_LINE, "conhlee" },
     { LC_STRING_LINE, "patataofcourse" },
+    { LC_STRING_LINE, "0xAdk" },
 
     // Padding
     { LC_STRING_LINE, "                                             " },
@@ -68,7 +69,7 @@ static const Line aboutLines[] = {
     { LC_STRING_LINE, "tinyfiledialogs (by Guillaume Vareille) [Zlib]" },
     { LC_STRING_LINE, "json (nlohmann/json) [MIT]" },
 
-    { LC_NEXT_COLUMN },
+    { LC_EMPTY_LINE },
 
     { LC_STRING_LINE, (const char*)ICON_FA_STAR "  Special thanks" },
     { LC_EMPTY_LINE_QUART },
