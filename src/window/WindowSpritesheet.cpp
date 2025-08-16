@@ -94,7 +94,7 @@ void WindowSpritesheet::RunEditor() {
 #endif // _WIN32
 
     std::string command = commandStream.str();
-    Logging::info << "[WindowSpritesheet::RunEditor] Running command: " << command << std::endl;
+    Logging::info("[WindowSpritesheet::RunEditor] Running command: {}", command);
 
     std::thread([command]() {
         std::system(command.c_str());

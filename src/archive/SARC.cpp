@@ -107,35 +107,36 @@ namespace Archive {
 
 SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(SarcFileHeader)) {
-        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: data size smaller than header size!" << std::endl;
+        Logging::error("[SARCObject::SARCObject] Invalid SARC binary: data size smaller than header size!");
         return;
     }
 
     const SarcFileHeader* header = reinterpret_cast<const SarcFileHeader*>(data);
     if (header->magic != SARC_MAGIC) {
-        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: header magic is nonmatching!" << std::endl;
+        Logging::error("[SARCObject::SARCObject] Invalid SARC binary: header magic is nonmatching!");
         return;
     }
 
     if (header->byteOrder == SARC_BYTEORDER_BIG) {
-        Logging::err << "[SARCObject::SARCObject] Big-endian SARC is not supported!" << std::endl;
+        Logging::error("[SARCObject::SARCObject] Big-endian SARC is not supported!");
         return;
     }
     if (header->byteOrder != SARC_BYTEORDER_LITTLE) {
-        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: byte order mark is invalid!" << std::endl;
+        Logging::error("[SARCObject::SARCObject] Invalid SARC binary: byte order mark is invalid!");
         return;
     }
 
     if (header->formatVersion != SARC_VERSION) {
-        Logging::err << "[SARCObject::SARCObject] Expected SARC version 0x" <<
-            std::hex << SARC_VERSION << ", got version 0x" <<
-            header->formatVersion  << " instead!" << std::endl;
+        Logging::error(
+            "[SARCObject::SARCObject] Expected SARC version {:#x}, got version {:#x} instead!",
+            SARC_VERSION, header->formatVersion
+        );
         return;
     }
 
     const SfatSection* sfatSection = reinterpret_cast<const SfatSection*>(data + header->headerSize);
     if (sfatSection->magic != SFAT_MAGIC) {
-        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: SFAT section magic is nonmatching!" << std::endl;
+        Logging::error("[SARCObject::SARCObject] Invalid SARC binary: SFAT section magic is nonmatching!");
         return;
     }
 
@@ -143,7 +144,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
         sfatSection->nodes + sfatSection->nodeCount
     );
     if (sfntSection->magic != SFNT_MAGIC) {
-        Logging::err << "[SARCObject::SARCObject] Invalid SARC binary: SFNT section magic is nonmatching!" << std::endl;
+        Logging::error("[SARCObject::SARCObject] Invalid SARC binary: SFNT section magic is nonmatching!");
         return;
     }
 

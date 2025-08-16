@@ -16,17 +16,20 @@ static void onTerminate() {
         if (exceptionPointer)
             std::rethrow_exception(exceptionPointer);
         else
-            Logging::err << "The terminate handler was invoked with no exception." << std::endl;
+            Logging::error("The terminate handler was invoked with no exception.");
     }
     catch (const std::exception& ex) {
-        Logging::err <<
-            "An exception of type " << CxxDemangleUtil::Demangle(typeid(ex).name()) << " was caught: " << ex.what() << std::endl;
+        Logging::error(
+            "An exception of type {} was caught: {}",
+            CxxDemangleUtil::Demangle(typeid(ex).name()),
+            ex.what()
+        );
     }
     catch (...) {
-        Logging::err << "An unknown exception was thrown." << std::endl;
+        Logging::error("An unknown exception was thrown.");
     }
 
-    Logging::err << "This is a fatal error; toast will now be closed." << std::endl;
+    Logging::error("This is a fatal error; toast will now be closed.");
 
     tinyfd_messageBox( \
         "toast has crashed", \

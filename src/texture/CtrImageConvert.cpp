@@ -206,7 +206,10 @@ bool CtrImageConvert::toRGBA32(
         break;
 
     default:
-        Logging::err << "[CtrImageConvert::toRGBA32] Cannot convert texture: invalid format (" << format << ')' << std::endl;
+        Logging::error(
+            "[CtrImageConvert::toRGBA32] Cannot convert texture: invalid format ({})",
+            static_cast<uint32_t>(format)
+        );
         return false;
     }
 
@@ -298,7 +301,7 @@ unsigned CtrImageConvert::getImageByteSize(const ImageFormat type, unsigned widt
     } break;
 
     default:
-        Logging::err << "[CtrImageConvert::getImageByteSize] Invalid format passed (" << static_cast<int>(type) << ')' << std::endl;
+        Logging::error("[CtrImageConvert::getImageByteSize] Invalid format passed ({})", static_cast<int>(type));
         break;
     }
 

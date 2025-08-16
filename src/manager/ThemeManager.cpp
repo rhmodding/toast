@@ -57,7 +57,7 @@ void ThemeManager::applyTheming() {
         mWindowClearColor = std::array<float, 4>({ 232 / 255.f, 232 / 255.f, 232 / 255.f, 1.f });
         break;
     default:
-        Logging::warn << "[ThemeManager::applyTheming] Invalid theme: " << static_cast<int>(config.theme) << std::endl;
+        Logging::warn("[ThemeManager::applyTheming] Invalid theme: {}", static_cast<int>(config.theme));
         break;
     }
 

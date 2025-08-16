@@ -50,7 +50,7 @@ void Texture::setMagFilter(GLint magFilter) {
 
 void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned height) {
     if (data == nullptr) {
-        Logging::err << "[Texture::LoadRGBA32] Failed to load image data: data is NULL" << std::endl;
+        Logging::error("[Texture::LoadRGBA32] Failed to load image data: data is NULL");
         return;
     }
 
@@ -78,7 +78,7 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
 
 bool Texture::LoadSTBMem(const unsigned char* data, int dataSize) {
     if (data == nullptr) {
-        Logging::err << "[Texture::LoadSTBFile] Failed to load image data: data is NULL" << std::endl;
+        Logging::error("[Texture::LoadSTBFile] Failed to load image data: data is NULL");
         return false;
     }
 
@@ -86,7 +86,7 @@ bool Texture::LoadSTBMem(const unsigned char* data, int dataSize) {
     unsigned char* imageData = stbi_load_from_memory(data, dataSize, &w, &h, nullptr, 4);
 
     if (imageData == nullptr) {
-        Logging::err << "[Texture::LoadSTBMem] Failed to load image data from memory location " << data << std::endl;
+        Logging::error("[Texture::LoadSTBMem] Failed to load image data from memory location {}", reinterpret_cast<const void *>(data));
         return false;
     }
 
@@ -99,7 +99,7 @@ bool Texture::LoadSTBMem(const unsigned char* data, int dataSize) {
 
 bool Texture::LoadSTBFile(std::string_view filename) {
     if (filename.empty()) {
-        Logging::err << "[Texture::LoadSTBFile] Failed to export to file: filename is empty" << std::endl;
+        Logging::error("[Texture::LoadSTBFile] Failed to export to file: filename is empty");
         return false;
     }
 
@@ -107,7 +107,7 @@ bool Texture::LoadSTBFile(std::string_view filename) {
     unsigned char* imageData = stbi_load(filename.data(), &imageWidth, &imageHeight, nullptr, 4);
 
     if (imageData == nullptr) {
-        Logging::err << "[Texture::LoadSTBFile] Failed to load image data from file path \"" << filename << "\"!" << std::endl;
+        Logging::error("[Texture::LoadSTBFile] Failed to load image data from file path \"{}\"!", filename);
         return false;
     }
 
@@ -120,12 +120,12 @@ bool Texture::LoadSTBFile(std::string_view filename) {
 
 bool Texture::GetRGBA32(unsigned char* buffer) {
     if (buffer == nullptr) {
-        Logging::err << "[Texture::GetRGBA32] Failed to download image data: buffer is NULL" << std::endl;
+        Logging::error("[Texture::GetRGBA32] Failed to download image data: buffer is NULL");
         return false;
     }
 
     if (mTextureId == INVALID_TEXTURE_ID) {
-        Logging::err << "[Texture::GetRGBA32] Failed to download image data: textureId is invalid" << std::endl;
+        Logging::error("[Texture::GetRGBA32] Failed to download image data: textureId is invalid");
         return false;
     }
 
@@ -137,7 +137,7 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
         glBindTexture(GL_TEXTURE_2D, 0);
     }).get();
 
-    return true;  
+    return true;
 }
 
 unsigned char* Texture::GetRGBA32() {
@@ -153,13 +153,13 @@ unsigned char* Texture::GetRGBA32() {
 
 bool Texture::ExportToFile(std::string_view filename) {
     if (filename.empty()) {
-        Logging::err << "[Texture::ExportToFile] Failed to export to file: filename is empty" << std::endl;
+        Logging::error("[Texture::ExportToFile] Failed to export to file: filename is empty");
         return false;
     }
 
     unsigned char* imageData = GetRGBA32();
     if (imageData == nullptr) {
-        Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": GetRGBA32 failed" << std::endl;
+        Logging::error("[Texture::ExportToFile] Failed to export to file \"{}\": GetRGBA32 failed", filename);
         return false;
     }
 
@@ -174,7 +174,7 @@ bool Texture::ExportToFile(std::string_view filename) {
     delete[] imageData;
 
     if (!write) {
-        Logging::err << "[Texture::ExportToFile] Failed to export to file \"" << filename << "\": stbi_write_png failed" << std::endl;
+        Logging::error("[Texture::ExportToFile] Failed to export to file \"{}\": stbi_write_png failed", filename);
         return false;
     }
 

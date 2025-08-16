@@ -6,7 +6,7 @@
 
 std::optional<TPL::TPLTexture> TextureEx::TPLTexture() {
     if (mTextureId == INVALID_TEXTURE_ID) {
-        Logging::err << "[TextureEx::TPLTexture] Failed to construct TPLTexture: textureId is invalid" << std::endl;
+        Logging::error("[TextureEx::TPLTexture] Failed to construct TPLTexture: textureId is invalid");
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -46,7 +46,7 @@ std::optional<TPL::TPLTexture> TextureEx::TPLTexture() {
 
 std::optional<CTPK::CTPKTexture> TextureEx::CTPKTexture() {
     if (mTextureId == INVALID_TEXTURE_ID) {
-        Logging::err << "[TextureEx::CTPKTexture] Failed to construct CTPKTexture: textureId is invalid" << std::endl;
+        Logging::error("[TextureEx::CTPKTexture] Failed to construct CTPKTexture: textureId is invalid");
         return std::nullopt; // return nothing (std::optional)
     }
 

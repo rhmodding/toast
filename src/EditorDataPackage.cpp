@@ -138,28 +138,34 @@ static CellAnim::ArrangementPart* getPart(
     unsigned cellIndex, unsigned arrngIndex, unsigned partIndex
 ) {
     if (cellIndex >= session.cellanims.size()) {
-            Logging::err <<
+            Logging::error(
                 "[TedApply] Invalid editor data binary: oob cellanim index!:\n"
-                "   - Cellanim Index: " << cellIndex << std::endl;
+                "   - Cellanim Index: {}",
+                cellIndex
+            );
             return nullptr;
         }
 
         auto& arrangements = session.cellanims.at(cellIndex).object->getArrangements();
         if (arrngIndex >= arrangements.size()) {
-            Logging::err <<
-                "[TedApply] Invalid editor data binary: oob arrangement index!:"
-                "   - Cellanim Index: " << cellIndex << "\n"
-                "   - Arrangement Index: " << arrngIndex << std::endl;
+            Logging::error(
+                "[TedApply] Invalid editor data binary: oob arrangement index!:\n"
+                "   - Cellanim Index: {}\n"
+                "   - Arrangement Index: {}",
+                cellIndex, arrngIndex
+            );
             return nullptr;
         }
 
         auto& arrangement = arrangements.at(arrngIndex);
         if (partIndex >= arrangement.parts.size()) {
-            Logging::err <<
-                "[TedApply] Invalid editor data binary: oob part index!:"
-                "   - Cellanim Index: " << cellIndex << "\n"
-                "   - Arrangement Index: " << arrngIndex << "\n"
-                "   - Part Index: " << partIndex << std::endl;
+            Logging::error(
+                "[TedApply] Invalid editor data binary: oob part index!:\n"
+                "   - Cellanim Index: {}" "\n"
+                "   - Arrangement Index: {}" "\n"
+                "   - Part Index: {}",
+                cellIndex, arrngIndex, partIndex
+            );
             return nullptr;
         }
 
@@ -185,7 +191,7 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
 
         const int init = zng_inflateInit2(&strm, 15);
         if (init != Z_OK) {
-            Logging::err << "[EditorDataProc::Apply] zng_inflateInit failed!" << std::endl;
+            Logging::error("[EditorDataProc::Apply] zng_inflateInit failed!");
             return false;
         }
 
@@ -193,7 +199,7 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
         zng_inflateEnd(&strm);
 
         if (ret != Z_STREAM_END) {
-            Logging::err << "[EditorDataProc::Apply] zng_inflate failed: " << ret << std::endl;
+            Logging::error("[EditorDataProc::Apply] zng_inflate failed: {}", ret);
             return false;
         }
     }
@@ -265,8 +271,8 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
 
 // TODO: remove on public release
 static bool ApplyImpl_Old(Session& session, const unsigned char *data, const size_t dataSize) {
-    Logging::warn << "[EditorDataProc::Apply] ---   <<-- USING MALFORM TED HACK -->>   ---" << std::endl;
-    Logging::warn << "[EditorDataProc::Apply] TED size is " << (dataSize / 1000) << "kb long" << std::endl;
+    Logging::warn("[EditorDataProc::Apply] ---   <<-- USING MALFORM TED HACK -->>   ---");
+    Logging::warn("[EditorDataProc::Apply] TED size is {}kb long", dataSize / 1000);
 
     const TedFileHeaderOld* fileHeader = reinterpret_cast<const TedFileHeaderOld*>(data);
 
@@ -278,7 +284,7 @@ static bool ApplyImpl_Old(Session& session, const unsigned char *data, const siz
 
     for (uint32_t i = 0; i < entryCount; i++) {
         if ((unsigned char*)currentHeader >= (data + dataSize)) {
-            Logging::warn << "[EditorDataProc::Apply] Stopped processing early: current entry exceeds end of data" << std::endl;
+            Logging::warn("[EditorDataProc::Apply] Stopped processing early: current entry exceeds end of data");
             break;
         }
 
@@ -387,11 +393,13 @@ static bool ApplyImpl_Old(Session& session, const unsigned char *data, const siz
         } break;
 
         default: {
-            Logging::err << "[EditorDataProc::Apply] Unimplemented entry type: " <<
-                ((char*)&currentHeader->identifier)[0] <<
-                ((char*)&currentHeader->identifier)[1] <<
-                ((char*)&currentHeader->identifier)[2] <<
-                ((char*)&currentHeader->identifier)[3] << std::endl;
+            Logging::error(
+                "[EditorDataProc::Apply] Unimplemented entry type: {}{}{}{}",
+                ((char*)&currentHeader->identifier)[0],
+                ((char*)&currentHeader->identifier)[1],
+                ((char*)&currentHeader->identifier)[2],
+                ((char*)&currentHeader->identifier)[3]
+            );
         } break;
         }
 
@@ -415,7 +423,7 @@ bool EditorDataProc::Apply(Session& session, const unsigned char *data, const si
             isOldFormat = true;
         }
         else {
-            Logging::err << "[EditorDataProc::Apply] Invalid editor data binary: header magic failed check!" << std::endl;
+            Logging::error("[EditorDataProc::Apply] Invalid editor data binary: header magic failed check!");
             return false;
         }
     }
@@ -425,10 +433,11 @@ bool EditorDataProc::Apply(Session& session, const unsigned char *data, const si
     }
 
     if (fileHeader->majorVersion != TED_VERSION_MAJOR) {
-        Logging::err <<
-            "[EditorDataProc::Apply] Invalid editor data binary: version not supported (expected "
-            << TED_VERSION_MAJOR << ".xx, got " << (unsigned)fileHeader->majorVersion << '.' <<
-            (unsigned)fileHeader->minorVersion << ')' << std::endl;
+        Logging::error(
+            "[EditorDataProc::Apply] Invalid editor data binary: version not supported (expected {}.xx, got {}.{})",
+            TED_VERSION_MAJOR,
+            (unsigned)fileHeader->majorVersion, (unsigned)fileHeader->minorVersion
+        );
         return false;
     }
 
@@ -564,13 +573,13 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
     const int init = zng_deflateInit2(&strm, Z_BEST_COMPRESSION, 8, 15, 8, 0);
     if (init != Z_OK) {
-        Logging::err << "[EditorDataProc::Create] zng_deflateInit failed!" << std::endl;
+        Logging::error("[EditorDataProc::Create] zng_deflateInit failed!");
         return std::vector<unsigned char>();
     }
 
     const int ret = zng_deflate(&strm, Z_FINISH);
     if (ret != Z_STREAM_END) {
-        Logging::err << "[EditorDataProc::Create] zng_deflate failed: " << ret << std::endl;
+        Logging::error("[EditorDataProc::Create] zng_deflate failed: {}", ret);
 
         zng_deflateEnd(&strm);
         return std::vector<unsigned char>();
@@ -600,8 +609,10 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
     auto createTotalTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(createTotalTime).count();
 
-    Logging::info << "[EditorDataProc::Create] Created compressed editor data package (" << (workDataSize / 1000) <<
-                     "kb of data down to " << (resultData.size() / 1000) << "kb) in " << createTotalTimeMs << "ms." << std::endl;
+    Logging::info(
+        "[EditorDataProc::Create] Created compressed editor data package ({}kb of data down to {}kb) in {}ms.",
+        workDataSize / 1000, resultData.size() / 1000, createTotalTimeMs
+    );
 
     return resultData;
 }

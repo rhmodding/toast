@@ -78,13 +78,13 @@ namespace Archive {
 
 DARCHObject::DARCHObject(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(DARCHHeader)) {
-        Logging::err << "[DARCHObject::DARCHObject] Invalid DARCH binary: data size smaller than header size!" << std::endl;
+        Logging::error("[DARCHObject::DARCHObject] Invalid DARCH binary: data size smaller than header size!");
         return;
     }
 
     const DARCHHeader* header = reinterpret_cast<const DARCHHeader*>(data);
     if (header->magic != DARCH_MAGIC) {
-        Logging::err << "[DARCHObject::DARCHObject] Invalid DARCH binary: header magic failed check!" << std::endl;
+        Logging::error("[DARCHObject::DARCHObject] Invalid DARCH binary: header magic failed check!");
         return;
     }
 

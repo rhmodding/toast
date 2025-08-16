@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 
+#include <memory>
 #include <sstream>
 #include <ostream>
 
@@ -12,52 +13,49 @@
 
 #include <mutex>
 
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
+
 class Logging {
 private:
     Logging() = default;
 public:
     ~Logging() = default;
 
-    class LogStream {
-    public:
-        LogStream(std::ostream& out, std::string_view prefix) :
-            mOutStream(out), mLogPrefix(prefix)
-        {}
-
-        template <typename T>
-        LogStream& operator<<(const T& msg) {
-            std::lock_guard<std::mutex> lock(mtx);
-            mBuffer << msg;
-            return *this;
-        }
-
-        LogStream& operator<<(std::ostream& (*manip)(std::ostream&));
-
-    private:
-        static std::string getTimestamp();
-
-        void flush();
-
-    private:
-        static std::mutex mtx;
-
-        std::ostream& mOutStream;
-        std::ostringstream mBuffer;
-
-        std::string mLogPrefix;
-    };
-
     static void Open(std::string_view filename);
     static void Close();
 
-    static LogStream info;
-    static LogStream warn;
-    static LogStream err;
+    template <typename... Args>
+    static inline void info(spdlog::format_string_t<Args...> fmt, Args &&...args) {
+        if (sStdoutLogger != nullptr)
+            sStdoutLogger->info(fmt, std::forward<Args>(args)...);
+
+        if (sFileLogger != nullptr)
+            sFileLogger->info(fmt, std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    static inline void warn(spdlog::format_string_t<Args...> fmt, Args &&...args) {
+        if (sStdoutLogger != nullptr)
+            sStdoutLogger->warn(fmt, std::forward<Args>(args)...);
+
+        if (sFileLogger != nullptr)
+            sFileLogger->warn(fmt, std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    static inline void error(spdlog::format_string_t<Args...> fmt, Args &&...args) {
+        if (sStderrLogger != nullptr)
+            sStderrLogger->error(fmt, std::forward<Args>(args)...);
+
+        if (sFileLogger != nullptr)
+            sFileLogger->error(fmt, std::forward<Args>(args)...);
+    }
 
 private:
-    static std::ofstream logFile;
-
-    static std::mutex mtx;
+    static std::shared_ptr<spdlog::logger> sStdoutLogger;
+    static std::shared_ptr<spdlog::logger> sStderrLogger;
+    static std::shared_ptr<spdlog::logger> sFileLogger;
 };
 
 #endif // LOGGING_HPP
