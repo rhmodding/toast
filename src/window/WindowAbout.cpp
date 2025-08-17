@@ -38,17 +38,17 @@ static const Line aboutLines[] = {
 
     { LC_STRING_LINE, (const char*)ICON_FA_WRENCH "  Development" },
     { LC_EMPTY_LINE_QUART },
-    
+
     { LC_STRING_LINE, "conhlee" },
     { LC_STRING_LINE, "patataofcourse" },
-    { LC_STRING_LINE, "0xAdk" },
+    { LC_STRING_LINE, "adk" },
 
     // Padding
     { LC_STRING_LINE, "                                             " },
 
     { LC_STRING_LINE, (const char*)ICON_FA_MAGNIFYING_GLASS "  Debug" },
     { LC_EMPTY_LINE_QUART },
-    
+
     { LC_STRING_LINE, "Kevbaum" },
     { LC_STRING_LINE, "Kievit" },
     { LC_STRING_LINE, "HaiKaede" },
