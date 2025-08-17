@@ -68,6 +68,7 @@ static const Line aboutLines[] = {
     { LC_STRING_LINE, "rg_etc1 (by Richard Geldreich) [Zlib]" },
     { LC_STRING_LINE, "tinyfiledialogs (by Guillaume Vareille) [Zlib]" },
     { LC_STRING_LINE, "json (nlohmann/json) [MIT]" },
+    { LC_STRING_LINE, "spdlog (gabime/spdlog) [MIT]" },
 
     { LC_EMPTY_LINE },
 
