@@ -26,8 +26,8 @@ void Logging::Open(std::string_view filename) {
     try {
         sFileLogger = makeDedupedLogger<sink::basic_file_sink_mt>("file_logger", std::string { filename });
     } catch (const spdlog::spdlog_ex &ex) {
-        std::cerr << "[Logging::Open] Failed to open logfile at path \"" << filename << "\"!" << std::endl;
-        std::cerr << "[Logging::Open] " << ex.what() << std::endl;
+        sStderrLogger->error("[Logging::Open] Failed to open logfile at path \"{}\"!", filename);
+        sStderrLogger->error("[Logging::Open] {}", ex.what());
     }
 }
 void Logging::Close() {
