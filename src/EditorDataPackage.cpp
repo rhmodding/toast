@@ -176,35 +176,29 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
 
     const unsigned char* compressedStart = data + fileHeader->headerSize;
-    const unsigned char* compressedEnd = compressedStart + fileHeader->dataSize;
+    const size_t compressedSize = fileHeader->dataSize;
 
     std::vector<unsigned char> workData (fileHeader->decompressedSize);
     if (fileHeader->flags & TED_FLAG_COMPRESSED_ZLIB) {
-        zng_stream strm {};
-        strm.next_in = compressedStart;
-        strm.avail_in = compressedEnd - compressedStart;
-        strm.next_out = workData.data();
-        strm.avail_out = workData.size();
-        strm.zalloc = Z_NULL;
-        strm.zfree = Z_NULL;
-        strm.opaque = Z_NULL;
+        unsigned char* dest = workData.data();
+        size_t destLen = workData.size();
 
-        const int init = zng_inflateInit2(&strm, 15);
-        if (init != Z_OK) {
-            Logging::error("[EditorDataProc::Apply] zng_inflateInit failed!");
+        const unsigned char* src = compressedStart;
+        size_t srcLen = compressedSize;
+
+        int decompResult = zng_uncompress2(dest, &destLen, src, &srcLen);
+        if (decompResult != Z_OK) {
+            Logging::error("[EditorDataProc::Apply] zng_uncompress2 failed (code {})!", decompResult);
             return false;
         }
 
-        const int ret = zng_inflate(&strm, Z_FINISH);
-        zng_inflateEnd(&strm);
-
-        if (ret != Z_STREAM_END) {
-            Logging::error("[EditorDataProc::Apply] zng_inflate failed: {}", ret);
-            return false;
+        if (srcLen < compressedSize) {
+            size_t padLength = compressedSize - srcLen;
+            Logging::warn("[EditorDataProc::Apply] Compressed data is padded by {} bytes; strange..", padLength);
         }
     }
     else {
-        workData.assign(compressedStart, compressedEnd);
+        workData.assign(compressedStart, compressedStart + compressedSize);
     }
 
     const TedWorkHeader* workHeader = reinterpret_cast<const TedWorkHeader*>(workData.data());
@@ -562,32 +556,16 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
     std::vector<unsigned char> compressedWork (zng_compressBound(workDataSize));
 
-    zng_stream strm {};
-    strm.next_in = workData.data();
-    strm.avail_in = workData.size();
-    strm.next_out = compressedWork.data();
-    strm.avail_out = compressedWork.size();
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
+    unsigned char* dest = compressedWork.data();
+    size_t destLen = compressedWork.size();
 
-    const int init = zng_deflateInit2(&strm, Z_BEST_COMPRESSION, 8, 15, 8, 0);
-    if (init != Z_OK) {
-        Logging::error("[EditorDataProc::Create] zng_deflateInit failed!");
+    int compResult = zng_compress2(dest, &destLen, workData.data(), workDataSize, Z_BEST_COMPRESSION);
+    if (compResult != Z_OK) {
+        Logging::error("[EditorDataProc::Create] zng_compress2 failed (code {})!", compResult);
         return std::vector<unsigned char>();
     }
 
-    const int ret = zng_deflate(&strm, Z_FINISH);
-    if (ret != Z_STREAM_END) {
-        Logging::error("[EditorDataProc::Create] zng_deflate failed: {}", ret);
-
-        zng_deflateEnd(&strm);
-        return std::vector<unsigned char>();
-    }
-
-    zng_deflateEnd(&strm);
-
-    compressedWork.resize(strm.total_out);
+    compressedWork.resize(destLen);
 
     workData.clear(); // Done using it.
 
