@@ -246,6 +246,11 @@ add_subdirectory(ext/nlohmann.json)
 
 target_link_libraries(toast PRIVATE nlohmann_json::nlohmann_json)
 
+# Logging library
+add_subdirectory(ext/spdlog)
+
+target_link_libraries(toast PRIVATE spdlog::spdlog)
+
 # Flags
 target_compile_options(toast PRIVATE -O3)
 

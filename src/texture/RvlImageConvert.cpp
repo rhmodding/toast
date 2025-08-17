@@ -588,7 +588,7 @@ static void IMPLEMENTATION_TO_C8(unsigned char* result, uint32_t* paletteOut, un
 
                     if (colorToIndex.find(readPixel) == colorToIndex.end()) {
                         if (nextColorIndex >= 256) {
-                            Logging::err << "[IMPLEMENTATION_TO_C8] Palette index limit reached (256), processing cannot continue." << std::endl;
+                            Logging::error("[IMPLEMENTATION_TO_C8] Palette index limit reached (256), processing cannot continue.");
                             return;
                         }
 
@@ -631,7 +631,7 @@ static void IMPLEMENTATION_TO_C14X2(unsigned char* result, uint32_t* paletteOut,
 
                     if (colorToIndex.find(readPixel) == colorToIndex.end()) {
                         if (nextColorIndex >= 16384) {
-                            Logging::err << "[IMPLEMENTATION_TO_C14X2] Palette index limit reached (16384), processing cannot continue." << std::endl;
+                            Logging::error("[IMPLEMENTATION_TO_C14X2] Palette index limit reached (16384), processing cannot continue.");
                             return;
                         }
 
@@ -691,7 +691,7 @@ bool RvlImageConvert::toRGBA32(
 
     case ImageFormat::TPL_IMAGE_FORMAT_C8:
         if (!palette) {
-            Logging::err << "[RvlImageConvert::toRGBA32] Cannot convert C8 texture: palette is NULL" << std::endl;
+            Logging::error("[RvlImageConvert::toRGBA32] Cannot convert C8 texture: palette is NULL");
             return false;
         }
 
@@ -699,7 +699,7 @@ bool RvlImageConvert::toRGBA32(
         break;
     case ImageFormat::TPL_IMAGE_FORMAT_C14X2:
         if (!palette) {
-            Logging::err << "[RvlImageConvert::toRGBA32] Cannot convert C14X2 texture: palette is NULL" << std::endl;
+            Logging::error("[RvlImageConvert::toRGBA32] Cannot convert C14X2 texture: palette is NULL");
             return false;
         }
 
@@ -711,7 +711,10 @@ bool RvlImageConvert::toRGBA32(
         break;
 
     default:
-        Logging::err << "[RvlImageConvert::toRGBA32] Cannot convert texture: invalid format (" << format << ")" << std::endl;
+        Logging::error(
+            "[RvlImageConvert::toRGBA32] Cannot convert texture: invalid format ({})",
+            static_cast<uint32_t>(format)
+        );
         return false;
     }
 
@@ -758,7 +761,7 @@ bool RvlImageConvert::fromRGBA32(
 
     case ImageFormat::TPL_IMAGE_FORMAT_C8:
         if (!paletteOut) {
-            Logging::err << "[RvlImageConvert::fromRGBA32] Couldn't convert to C8 format: no color palette passed." << std::endl;
+            Logging::error("[RvlImageConvert::fromRGBA32] Couldn't convert to C8 format: no color palette passed.");
             return false;
         }
 
@@ -767,7 +770,7 @@ bool RvlImageConvert::fromRGBA32(
         break;
     case ImageFormat::TPL_IMAGE_FORMAT_C14X2:
         if (!paletteOut) {
-            Logging::err << "[RvlImageConvert::fromRGBA32] Couldn't convert to C14X2 format: no color palette passed." << std::endl;
+            Logging::error("[RvlImageConvert::fromRGBA32] Couldn't convert to C14X2 format: no color palette passed.");
             return false;
         }
 
@@ -876,7 +879,7 @@ unsigned RvlImageConvert::getImageByteSize(const ImageFormat type, const unsigne
         return ImageByteSize_CMPR(width, height);
 
     default:
-        Logging::err << "[RvlImageConvert::getImageByteSize] Invalid format passed (" << static_cast<int>(type) << ')' << std::endl;
+        Logging::error("[RvlImageConvert::getImageByteSize] Invalid format passed ({})", static_cast<int>(type));
         return 0;
     }
 

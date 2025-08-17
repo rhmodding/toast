@@ -95,16 +95,16 @@ Toast::Toast(int argc, const char** argv) {
     Logging::Open("toast.log");
 
     glfwSetErrorCallback([](int code, const char* message) {
-        Logging::err << "GLFW threw an error (code " << code << "): " << message << std::endl;
+        Logging::error("GLFW threw an error (code {}): {}", code, message);
     });
 
     if (!glfwInit())
         throw std::runtime_error("Toast::Toast: Failed to init GLFW!");
 
 #ifdef NDEBUG
-    Logging::info << "Release: " << gBuildDate << std::endl;
+    Logging::info("Release: {}", gBuildDate);
 #else
-    Logging::info << "Debug: " << gBuildDate << std::endl;
+    Logging::info("Debug: {}", gBuildDate);
 #endif
 
     MainThreadTaskManager::createSingleton();
@@ -237,7 +237,7 @@ Toast::Toast(int argc, const char** argv) {
         }
     }
 
-    Logging::info << "[Toast::Toast] Finished initializing." << std::endl;
+    Logging::info("[Toast::Toast] Finished initializing.");
 }
 
 Toast::~Toast() {
@@ -275,7 +275,7 @@ Toast::~Toast() {
     glfwDestroyWindow(mGlfwWindowHndl);
     glfwTerminate();
 
-    Logging::info << "[Toast::Toast] Finished deinitializing." << std::endl;
+    Logging::info("[Toast::Toast] Finished deinitializing.");
 
     Logging::Close();
 

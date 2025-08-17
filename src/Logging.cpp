@@ -1,74 +1,38 @@
 #include "Logging.hpp"
 
-#include <chrono>
-#include <ctime>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/dup_filter_sink.h>
+#include <spdlog/spdlog.h>
 
-#include <iomanip>
+namespace sink = spdlog::sinks;
 
-std::ofstream Logging::logFile;
-std::mutex Logging::mtx;
-
-std::mutex Logging::LogStream::mtx;
-
-Logging::LogStream Logging::info(std::cout, "[INFO] ");
-Logging::LogStream Logging::warn(std::cout, "[WARN] ");
-Logging::LogStream Logging::err(std::cerr, "[ERROR] ");
-
-Logging::LogStream& Logging::LogStream::operator<<(
-    std::ostream& (*manip)(std::ostream&)
-) {
-    std::lock_guard<std::mutex> lock(mtx);
-
-    if (manip == static_cast<std::ostream& (*)(std::ostream&)>(std::endl))
-        flush();
-    return *this;
+template<typename T, typename... Args>
+static std::shared_ptr<spdlog::logger> makeDedupedLogger(std::string name, Args &&...args) {
+    auto dedup_sink = std::make_shared<sink::dup_filter_sink_mt>(std::chrono::seconds(10));
+    dedup_sink->add_sink(std::make_shared<T>(std::forward<Args>(args)...));
+    dedup_sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%L%$] %v");
+    return std::make_shared<spdlog::logger>(std::move(name), dedup_sink);
 }
 
-std::string Logging::LogStream::getTimestamp() {
-    const auto now = std::chrono::system_clock::now();
-    const std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
-
-    std::tm localTm;
-#if defined(_WIN32)
-    localtime_s(&localTm, &nowTime);
-#else
-    localtime_r(&nowTime, &localTm);
-#endif
-
-    std::ostringstream oss;
-    oss << std::put_time(&localTm, "[%Y-%m-%d %H:%M:%S]");
-
-    return oss.str();
-}
-
-void Logging::LogStream::flush() {
-    const std::string timestamp = getTimestamp();
-    const std::string finalMessage = timestamp + " " + mLogPrefix + mBuffer.str();
-
-    if (mOutStream) {
-        mOutStream << finalMessage << '\n';
-        mOutStream.flush();
-    }
-
-    if (logFile.is_open()) {
-        logFile << finalMessage << '\n';
-        logFile.flush();
-    }
-
-    mBuffer.str({});
-    mBuffer.clear();
-}
+std::shared_ptr<spdlog::logger> Logging::sStdoutLogger = nullptr;
+std::shared_ptr<spdlog::logger> Logging::sStderrLogger = nullptr;
+std::shared_ptr<spdlog::logger> Logging::sFileLogger = nullptr;
 
 void Logging::Open(std::string_view filename) {
-    std::lock_guard<std::mutex> lock(mtx);
+    sStdoutLogger = makeDedupedLogger<sink::stdout_color_sink_mt>("stdout_logger");
+    sStderrLogger = makeDedupedLogger<sink::stderr_color_sink_mt>("stderr_logger");
 
-    logFile.open(filename.data(), std::ios::out | std::ios::app);
-    if (!logFile.is_open())
-        std::cerr << "[Logging::Open] Failed to open logfile at path \"" << filename << "\"!" << std::endl;
+    try {
+        sFileLogger = makeDedupedLogger<sink::basic_file_sink_mt>("file_logger", std::string { filename });
+    } catch (const spdlog::spdlog_ex &ex) {
+        sStderrLogger->error("[Logging::Open] Failed to open logfile at path \"{}\"!", filename);
+        sStderrLogger->error("[Logging::Open] {}", ex.what());
+    }
 }
 void Logging::Close() {
-    std::lock_guard<std::mutex> lock(mtx);
-
-    if (logFile.is_open())
-        logFile.close();
+    sStdoutLogger = nullptr;
+    sStderrLogger = nullptr;
+    sFileLogger = nullptr;
+    spdlog::drop_all();
 }

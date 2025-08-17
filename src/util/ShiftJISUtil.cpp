@@ -17,7 +17,7 @@ std::string ShiftJISUtil::convertToUTF8(const char* string, const size_t stringS
 #if defined(_WIN32)
     const int wideLen = MultiByteToWideChar(932, 0, string, static_cast<int>(stringSize), nullptr, 0);
     if (wideLen == 0) {
-        Logging::err << "[ShiftJISUtil::convertToUTF8] MultiByteToWideChar failed: " << GetLastError() << std::endl;
+        Logging::error("[ShiftJISUtil::convertToUTF8] MultiByteToWideChar failed: {}", GetLastError() );
         return "";
     }
 
@@ -26,7 +26,7 @@ std::string ShiftJISUtil::convertToUTF8(const char* string, const size_t stringS
 
     const int utf8Len = WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), wideLen, nullptr, 0, nullptr, nullptr);
     if (utf8Len == 0) {
-        Logging::err << "[ShiftJISUtil::convertToUTF8] WideCharToMultiByte failed: " << GetLastError() << std::endl;
+        Logging::error("[ShiftJISUtil::convertToUTF8] WideCharToMultiByte failed: {}", GetLastError());
         return "";
     }
 
@@ -36,7 +36,7 @@ std::string ShiftJISUtil::convertToUTF8(const char* string, const size_t stringS
 #else
     iconv_t convDesc = iconv_open("UTF-8", "SHIFT-JIS");
     if (convDesc == (iconv_t)-1) {
-        Logging::err << "[ShiftJISUtil::convertToUTF8] iconv_open failed: " << std::strerror(errno) << std::endl;
+        Logging::error("[ShiftJISUtil::convertToUTF8] iconv_open failed: {}", std::strerror(errno));
         return "";
     }
 
@@ -52,7 +52,7 @@ std::string ShiftJISUtil::convertToUTF8(const char* string, const size_t stringS
     iconv_close(convDesc);
 
     if (convRes == (size_t)-1) {
-        Logging::err << "[ShiftJISUtil::convertToUTF8] iconv failed: " << std::strerror(errno) << std::endl;
+        Logging::error("[ShiftJISUtil::convertToUTF8] iconv failed: {}", std::strerror(errno));
         return "";
     }
 
@@ -64,7 +64,7 @@ std::string ShiftJISUtil::convertToShiftJIS(const char* string, const size_t str
 #if defined(_WIN32)
     const int wideLen = MultiByteToWideChar(CP_UTF8, 0, string, static_cast<int>(stringSize), nullptr, 0);
     if (wideLen == 0) {
-        Logging::err << "[ShiftJISUtil::convertToShiftJIS] MultiByteToWideChar failed: " << GetLastError() << std::endl;
+        Logging::error("[ShiftJISUtil::convertToShiftJIS] MultiByteToWideChar failed: {}", GetLastError());
         return "";
     }
 
@@ -73,7 +73,7 @@ std::string ShiftJISUtil::convertToShiftJIS(const char* string, const size_t str
 
     const int sjisLen = WideCharToMultiByte(932, 0, wideStr.c_str(), wideLen, nullptr, 0, nullptr, nullptr);
     if (sjisLen == 0) {
-        Logging::err << "[ShiftJISUtil::convertToShiftJIS] WideCharToMultiByte failed: " << GetLastError() << std::endl;
+        Logging::error("[ShiftJISUtil::convertToShiftJIS] WideCharToMultiByte failed: {}", GetLastError());
         return "";
     }
 
@@ -83,7 +83,7 @@ std::string ShiftJISUtil::convertToShiftJIS(const char* string, const size_t str
 #else
     iconv_t convDesc = iconv_open("SHIFT-JIS", "UTF-8");
     if (convDesc == (iconv_t)-1) {
-        Logging::err << "[ShiftJISUtil::convertToShiftJIS] iconv_open failed: " << std::strerror(errno) << std::endl;
+        Logging::error("[ShiftJISUtil::convertToShiftJIS] iconv_open failed: {}", std::strerror(errno));
         return "";
     }
 
@@ -99,7 +99,7 @@ std::string ShiftJISUtil::convertToShiftJIS(const char* string, const size_t str
     iconv_close(convDesc);
 
     if (convRes == (size_t)-1) {
-        Logging::err << "[ShiftJISUtil::convertToShiftJIS] iconv failed: " << std::strerror(errno) << std::endl;
+        Logging::error("[ShiftJISUtil::convertToShiftJIS] iconv failed: {}", std::strerror(errno));
         return "";
     }
 

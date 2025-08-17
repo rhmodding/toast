@@ -11,8 +11,6 @@
 
 #include <vector>
 
-#include "Logging.hpp"
-
 // TODO: move out
 class PromptPopup {
 public:

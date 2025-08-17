@@ -142,13 +142,13 @@ GLuint TPLTexture::createGPUTexture() const {
 
 TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
     if (dataSize < sizeof(TPLPalette)) {
-        Logging::err << "[TPLObject::TPLObject] Invalid TPL binary: data size smaller than palette size!" << std::endl;
+        Logging::error("[TPLObject::TPLObject] Invalid TPL binary: data size smaller than palette size!");
         return;
     }
 
     const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
     if (palette->versionNumber != TPL_VERSION_NUMBER) {
-        Logging::err << "[TPLObject::TPLObject] Invalid TPL binary: invalid version number!" << std::endl;
+        Logging::error("[TPLObject::TPLObject] Invalid TPL binary: invalid version number!");
         return;
     }
 
@@ -163,7 +163,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
         const TPLDescriptor* descriptor = descriptors + i;
 
         if (descriptor->textureHeaderOffset == 0) {
-            Logging::err << "[TPLObject::TPLObject] Texture no. " << i+1 << " could not be read (texture header offset is zero)!" << std::endl;
+            Logging::error("[TPLObject::TPLObject] Texture no. {} could not be read (texture header offset is zero)!", i + 1);
             continue;
         }
 
@@ -214,7 +214,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
     std::vector<unsigned char> result;
 
     if (!mInitialized) {
-        Logging::err << "[TPLObject::Serialize] Unable to serialize: not initialized!" << std::endl;
+        Logging::error("[TPLObject::Serialize] Unable to serialize: not initialized!");
         return result;
     }
 
@@ -345,9 +345,8 @@ std::vector<unsigned char> TPLObject::Serialize() {
         TPLHeader* header = headers + i;
 
         if (texture.width > 1024 || texture.height > 1024) {
-            Logging::warn << "[TPLObject::Serialize] The dimensions of the texture exceed 1024x1024 (" <<
-                texture.width << 'x' << texture.height << ");" << std::endl;
-            Logging::warn << "                       the game will most likely be unable to read it properly." << std::endl;
+            Logging::warn("[TPLObject::Serialize] The dimensions of the texture exceed 1024x1024 ({}x{});", texture.width, texture.height);
+            Logging::warn("                       the game will most likely be unable to read it properly.");
         }
 
         header->width = BYTESWAP_16(static_cast<uint16_t>(texture.width));
@@ -361,7 +360,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.wrapS != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.width)
         ) {
-            Logging::warn << "[TPLObject::Serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP" << std::endl;
+            Logging::warn("[TPLObject::Serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP");
             header->wrapS = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
@@ -371,7 +370,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.wrapT != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.height)
         ) {
-            Logging::warn << "[TPLObject::Serialize] Image height is not a power of two, so vertical wrap will be set to CLAMP" << std::endl;
+            Logging::warn("[TPLObject::Serialize] Image height is not a power of two, so vertical wrap will be set to CLAMP");
             header->wrapT = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
@@ -397,10 +396,13 @@ std::vector<unsigned char> TPLObject::Serialize() {
         writeOffset = ALIGN_UP_32(writeOffset);
         headers[i].dataOffset = BYTESWAP_32(writeOffset);
 
-        Logging::info <<
-            "[TPLObject::Serialize] Writing data for texture no. " << (i+1) << " (" <<
-            texture.width << 'x' << texture.height << ", " <<
-            getImageFormatName(texture.format) << ").." << std::endl;
+        Logging::info(
+            "[TPLObject::Serialize] Writing data for texture no. {} ({}x{}, {})..",
+            (i+1),
+            texture.width,
+            texture.height,
+            getImageFormatName(texture.format)
+        );
 
         const size_t imageSize = RvlImageConvert::getImageByteSize(texture);
 

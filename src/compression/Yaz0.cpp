@@ -30,11 +30,11 @@ namespace Yaz0 {
 
 std::optional<std::vector<unsigned char>> compress(const unsigned char* data, const size_t dataSize, int compressionLevel) {
     if (dataSize > 0xFFFFFFFF) {
-        Logging::err << "[Yaz0::compress] Unable to compress: size of data is more than 4GiB!" << std::endl;
+        Logging::error("[Yaz0::compress] Unable to compress: size of data is more than 4GiB!");
         return std::nullopt; // return nothing (std::optional)
     }
     if (dataSize == 0) {
-        Logging::err << "[Yaz0::compress] Unable to compress: size of data is zero" << std::endl;
+        Logging::error("[Yaz0::compress] Unable to compress: size of data is zero");
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -55,15 +55,22 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
     auto compressTotalTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(compressTotalTime).count();
 
     if (result.size() >= dataSize) {
-        Logging::info <<
-            "[Yaz0::compress] Successfully stored " << (dataSize / 1000) << "kb of data in " <<
-            compressTotalTimeMs << "ms (final size: " << (result.size() / 1000) << "kb)." << std::endl;
+        Logging::info(
+            "[Yaz0::compress] Successfully stored {}kb of data in {}ms (final size: {}kb).",
+            dataSize / 1000,
+            compressTotalTimeMs,
+            result.size() / 1000
+        );
     }
     else {
         float reductionRate = ((dataSize - result.size()) / static_cast<float>(dataSize)) * 100.f;
-        Logging::info <<
-            "[Yaz0::compress] Successfully compressed " << (dataSize / 1000) << "kb of data down to " <<
-            (result.size() / 1000) << "kb in " << compressTotalTimeMs << "ms (" << reductionRate << "% reduction)." << std::endl;
+        Logging::info(
+            "[Yaz0::compress] Successfully compressed {}kb of data down to {}kb in {}ms ({}% reduction).",
+            dataSize / 1000,
+            result.size() / 1000,
+            compressTotalTimeMs,
+            reductionRate
+        );
     }
 
     return result;
@@ -71,19 +78,19 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
 std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(Yaz0Header)) {
-        Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: data size smaller than header size!" << std::endl;
+        Logging::error("[Yaz0::decompress] Invalid Yaz0 binary: data size smaller than header size!");
         return std::nullopt; // return nothing (std::optional)
     }
 
     const Yaz0Header* header = reinterpret_cast<const Yaz0Header*>(data);
     if (header->magic != YAZ0_MAGIC) {
-        Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: header magic is nonmatching!" << std::endl;
+        Logging::error("[Yaz0::decompress] Invalid Yaz0 binary: header magic is nonmatching!");
         return std::nullopt; // return nothing (std::optional)
     }
 
     const uint32_t decompressedSize = BYTESWAP_32(header->decompressedSize);
     if (decompressedSize == 0) {
-        Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: decompressed size is zero!" << std::endl;
+        Logging::error("[Yaz0::decompress] Invalid Yaz0 binary: decompressed size is zero!");
         return std::nullopt; // return nothing (std::optional)
     }
 
@@ -121,7 +128,7 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
             for (; runLen > 0; runLen--, dstByte++, runSrcIdx++) {
                 if (UNLIKELY(dstByte >= dstEnd)) {
-                    Logging::err << "[Yaz0::decompress] Invalid Yaz0 binary: run length is out of bounds!" << std::endl;
+                    Logging::error("[Yaz0::decompress] Invalid Yaz0 binary: run length is out of bounds!");
                     return std::nullopt; // return nothing (std::optional)
                 }
 
@@ -134,9 +141,12 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
     auto decompressWorkTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(decompressEndTime).count();
 
-    Logging::info <<
-            "[Yaz0::decompress] Decompressed " << (decompressedSize / 1000) << "kb of data in " <<
-            decompressWorkTimeMs << "ms from " << (dataSize / 1000) << "kb of compressed data." << std::endl;
+    Logging::info(
+        "[Yaz0::decompress] Decompressed {}kb of data in {}ms from {}kb of compressed data.",
+        decompressedSize / 1000,
+        decompressWorkTimeMs,
+        dataSize / 1000
+    );
 
     return destination;
 }

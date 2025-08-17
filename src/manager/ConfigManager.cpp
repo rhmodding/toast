@@ -40,7 +40,7 @@ void ConfigManager::LoadConfig() {
 void ConfigManager::SaveConfig() const {
     std::ofstream file(mConfigPath);
     if (!file.is_open()) {
-        Logging::err << "[ConfigManager::Save] Unable to open file for saving." << std::endl;
+        Logging::error("[ConfigManager::Save] Unable to open file for saving.");
         return;
     }
 

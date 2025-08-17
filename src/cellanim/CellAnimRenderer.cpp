@@ -96,14 +96,14 @@ static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, std::st
         glGetProgramiv(shader, flag, &success);
         if (success == GL_FALSE) {
             glGetProgramInfoLog(shader, sizeof(error), NULL, error);
-            Logging::err << errorMessage << ": " << error << std::endl;
+            Logging::error("{}: {}", errorMessage, error);
         }
     }
     else {
         glGetShaderiv(shader, flag, &success);
         if (success == GL_FALSE) {
             glGetShaderInfoLog(shader, sizeof(error), NULL, error);
-            Logging::err << errorMessage << ": " << error << std::endl;
+            Logging::error("{}: {}", errorMessage, error);
         }
     }
 }

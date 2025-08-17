@@ -413,7 +413,7 @@ struct CtrAnimation {
 
 bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(RvlCellAnimHeader)) {
-        Logging::err << "[CellAnimObject::InitImpl_Rvl] Invalid RCAD binary: data size smaller than header size!" << std::endl;
+        Logging::error("[CellAnimObject::InitImpl_Rvl] Invalid RCAD binary: data size smaller than header size!");
         return false;
     }
 
@@ -479,7 +479,7 @@ bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const siz
 
 bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(CtrCellAnimHeader)) {
-        Logging::err << "[CellAnimObject::InitImpl_Ctr] Invalid CCAD binary: data size smaller than header size!" << std::endl;
+        Logging::error("[CellAnimObject::InitImpl_Ctr] Invalid CCAD binary: data size smaller than header size!");
         return false;
     }
 
@@ -766,7 +766,7 @@ CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize)
         return;
 
     default:
-        Logging::err << "[CellAnimObject::CellAnimObject] Invalid cellanim binary: revision date doesn't match RVL or CTR!" << std::endl;
+        Logging::error("[CellAnimObject::CellAnimObject] Invalid cellanim binary: revision date doesn't match RVL or CTR!");
         return;
     }
 }
@@ -779,8 +779,7 @@ std::vector<unsigned char> CellAnimObject::Serialize() {
         return SerializeImpl_Ctr();
 
     default:
-        Logging::err << "[CellAnimObject::Serialize] Invalid type (" <<
-            static_cast<int>(mType) << ")!" << std::endl;
+        Logging::error("[CellAnimObject::Serialize] Invalid type ({})!", static_cast<int>(mType));
         return std::vector<unsigned char>();
     }
 }

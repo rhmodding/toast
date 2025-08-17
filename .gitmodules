@@ -14,3 +14,6 @@
 [submodule "ext/zlib-ng"]
 	path = ext/zlib-ng
 	url = https://github.com/zlib-ng/zlib-ng.git
+[submodule "ext/spdlog"]
+	path = ext/spdlog
+	url = https://github.com/gabime/spdlog.git

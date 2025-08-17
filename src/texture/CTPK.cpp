@@ -153,19 +153,21 @@ GLuint CTPKTexture::createGPUTexture() const {
 
 CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
     if (dataSize < sizeof(CtpkFileHeader)) {
-        Logging::err << "[CTPKObject::CTPKObject] Invalid CTPK binary: data size smaller than header size!" << std::endl;
+        Logging::error("[CTPKObject::CTPKObject] Invalid CTPK binary: data size smaller than header size!");
         return;
     }
 
     const CtpkFileHeader* header = reinterpret_cast<const CtpkFileHeader*>(ctpkData);
     if (header->magic != CTPK_MAGIC) {
-        Logging::err << "[CTPKObject::CTPKObject] Invalid CTPK binary: header magic is nonmatching!" << std::endl;
+        Logging::error("[CTPKObject::CTPKObject] Invalid CTPK binary: header magic is nonmatching!");
         return;
     }
 
     if (header->formatVersion != CTPK_VERSION) {
-        Logging::err << "[CTPKObject::CTPKObject] Expected CTPK version " << CTPK_VERSION <<
-            ", got version 0x" << header->formatVersion << " instead!";
+        Logging::error(
+            "[CTPKObject::CTPKObject] Expected CTPK version {:#x}, got version {:#x} instead!",
+            CTPK_VERSION, header->formatVersion
+        );
         return;
     }
 
@@ -176,8 +178,10 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
         CTPKTexture& textureOut = mTextures[i];
 
         if (textureIn->type != 2) {
-            Logging::err << "[CTPKObject::CTPKObject] Unsupported texture (no. " << i+1 <<
-                "): non-2D textures are not supported!" << std::endl;
+            Logging::error(
+                "[CTPKObject::CTPKObject] Unsupported texture (no. {}): non-2D textures are not supported!",
+                i + 1
+            );
             return;
         }
 
@@ -197,9 +201,10 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
 
         const size_t expectedImageDataSize = CtrImageConvert::getImageByteSize(textureOut);
         if (textureIn->dataSize < expectedImageDataSize) {
-            Logging::err << "[CTPKObject::CTPKObject] Invalid texture (no. " << i+1 <<
-                "): image data size was less than expected (" << textureIn->dataSize << " < " <<
-                expectedImageDataSize << ")" << std::endl;
+            Logging::error(
+                "[CTPKObject::CTPKObject] Invalid texture (no. {}): image data size was less than expected ({} < {})",
+                i + 1, textureIn->dataSize, expectedImageDataSize
+            );
             return;
         }
 
@@ -223,7 +228,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
     std::vector<unsigned char> result;
 
     if (!mInitialized) {
-        Logging::err << "[CTPKObject::Serialize] Unable to serialize: not initialized!" << std::endl;
+        Logging::error("[CTPKObject::Serialize] Unable to serialize: not initialized!");
         return result;
     }
 
@@ -259,8 +264,8 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         texEntry->dataFormat = static_cast<uint32_t>(texture.targetFormat);
 
         if (texture.width > 1024 || texture.height > 1024) {
-            Logging::err << "[CTPKObject::Serialize] Texture no. " << i+1 << " exceeds the dimensions limit of 1024x1024; the" << std::endl;
-            Logging::err << "                        texture will be scaled down to fit within the bounds." << std::endl;
+            Logging::error("[CTPKObject::Serialize] Texture no. {} exceeds the dimensions limit of 1024x1024", i + 1);
+            Logging::error("                        The texture will be scaled down to fit within the bounds.");
 
             float scale = std::min(
                 1024.f / texture.width,
@@ -397,10 +402,10 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         }
 
         for (unsigned j = 0; j < dstTexture.mipCount; j++) {
-            Logging::info <<
-                "[CTPKObject::Serialize] Writing data for texture no. " << (i+1) << " (mip-level no. " <<
-                j+1 << ") (" << dstTexture.width << 'x' << dstTexture.height << ", " <<
-                getImageFormatName(dstTexture.targetFormat) << ").." << std::endl;
+            Logging::info(
+                "[CTPKObject::Serialize] Writing data for texture no. {} (mip-level no. {}) ({}x{}, {})..",
+                i+1, j+1, dstTexture.width, dstTexture.height, getImageFormatName(dstTexture.targetFormat)
+            );
 
             CtrImageConvert::fromRGBA32(dstTexture, currentData);
             currentData += CtrImageConvert::getImageByteSize(

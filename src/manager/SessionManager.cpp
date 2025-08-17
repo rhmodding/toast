@@ -83,11 +83,11 @@ void SessionManager::setCurrentSessionIndex(ssize_t index) {
 
     if (index >= 0) {
         mCurrentSessionIndex = index;
-        Logging::info << "[SessionManager::setCurrentSessionIndex] Selected session no. " << mCurrentSessionIndex + 1 << '.' << std::endl;
+        Logging::info("[SessionManager::setCurrentSessionIndex] Selected session no. {}.", mCurrentSessionIndex + 1);
     }
     else {
         mCurrentSessionIndex = -1;
-        Logging::info << "[SessionManager::setCurrentSessionIndex] Deselected current session." << std::endl;
+        Logging::info("[SessionManager::setCurrentSessionIndex] Deselected current session.");
     }
 
     PlayerManager::getInstance().correctState();
@@ -109,9 +109,10 @@ void SessionManager::setCurrentSessionModified(bool modified) {
         currentSession->modified = modified;
     }
     else {
-        Logging::warn <<
+        Logging::warn(
             "[SessionManager::setCurrentSessionModified] Attempted to set current "
-            "session modified when current session does not exist.." << std::endl;
+            "session modified when current session does not exist.."
+        );
     }
 }
 
@@ -495,7 +496,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
 
 ssize_t SessionManager::CreateSession(std::string_view filePath) {
     if (!FileUtil::doesFileExist(filePath)) {
-        Logging::err << "[SessionManager::CreateSession] File does not exist: " << filePath << std::endl;
+        Logging::error("[SessionManager::CreateSession] File does not exist: {}", filePath);
 
         PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
@@ -505,12 +506,11 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
         return -1;
     }
 
-    Logging::info <<
-        "[SessionManager::CreateSession] Creating session from path \"" << filePath << "\".." << std::endl;
+    Logging::info("[SessionManager::CreateSession] Creating session from path \"{}\"..", filePath);
 
     auto data = FileUtil::openFileData(filePath);
     if (!data.has_value()) {
-        Logging::err << "[SessionManager::CreateSession] Error opening file at path: " << filePath << std::endl;
+        Logging::error("[SessionManager::CreateSession] Error opening file at path: {}", filePath);
 
         PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
@@ -634,8 +634,10 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
     mSessions.push_back(std::move(newSession));
     const ssize_t sessionIndex = static_cast<ssize_t>(mSessions.size()) - 1;
 
-    Logging::info <<
-        "[SessionManager::CreateSession] Created session no. " << sessionIndex + 1 << '.' << std::endl;
+    Logging::info(
+        "[SessionManager::CreateSession] Created session no. {}.",
+        sessionIndex + 1
+    );
 
     return sessionIndex;
 }
@@ -652,8 +654,10 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
 
         Archive::File file(cellanim.object->getName() + ".brcad");
 
-        Logging::info <<
-            "[SerializeRvlSession] Serializing cellanim \"" << cellanim.object->getName() << "\".." << std::endl;
+        Logging::info(
+            "[SerializeRvlSession] Serializing cellanim \"{}\"..",
+            cellanim.object->getName()
+        );
 
         const auto& sheet = session.sheets->getTextureByIndex(session.cellanims[i].object->getSheetIndex());
 
@@ -673,8 +677,10 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
             "rcad_" + cellanimName + "_labels.h"
         );
 
-        Logging::info <<
-            "[SerializeRvlSession] Writing label header for cellanim \"" << cellanimName << "\".." << std::endl;
+        Logging::info(
+            "[SerializeRvlSession] Writing label header for cellanim \"{}\"..",
+            cellanimName
+        );
 
         std::ostringstream stream;
         for (size_t j = 0; j < session.cellanims[i].object->getAnimations().size(); j++) {
@@ -726,7 +732,7 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
         if (didError)
             return false;
 
-        Logging::info << "[SerializeRvlSession] Serializing textures.." << std::endl;
+        Logging::info("[SerializeRvlSession] Serializing textures..");
 
         file.data = tplObject.Serialize();
 
@@ -743,13 +749,13 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
         directory.AddFile(std::move(file));
     }
 
-    Logging::info << "[SerializeRvlSession] Serializing archive.." << std::endl;
+    Logging::info("[SerializeRvlSession] Serializing archive..");
 
     directory.SortAlphabetic();
 
     auto archiveBinary = archive.Serialize();
 
-    Logging::info << "[SerializeRvlSession] Compressing archive.." << std::endl;
+    Logging::info("[SerializeRvlSession] Compressing archive..");
 
     auto compressedArchive = Yaz0::compress(
         archiveBinary.data(), archiveBinary.size(),
@@ -783,8 +789,10 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
 
         Archive::File file(cellanim.object->getName() + ".bccad");
 
-        Logging::info <<
-            "[SerializeCtrSession] Serializing cellanim \"" << cellanim.object->getName() << "\".." << std::endl;
+        Logging::info(
+            "[SerializeCtrSession] Serializing cellanim \"{}\"..",
+            cellanim.object->getName()
+        );
 
         file.data = cellanim.object->Serialize();
 
@@ -832,7 +840,10 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
         CTPK::CTPKObject ctpkObject;
         ctpkObject.mTextures.assign(1, std::move(ctpkTex));
 
-        Logging::info << "[SerializeCtrSession] Serializing texture \"" << texture->getName() << "\".." << std::endl;
+        Logging::info(
+            "[SerializeCtrSession] Serializing texture \"{}\"..",
+            texture->getName()
+        );
 
         file.data = ctpkObject.Serialize();
 
@@ -851,11 +862,11 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
         directory.AddFile(std::move(file));
     }
 
-    Logging::info << "[SerializeCtrSession] Serializing archive.." << std::endl;
+    Logging::info("[SerializeCtrSession] Serializing archive..");
 
     auto archiveBinary = archive.Serialize();
 
-    Logging::info << "[SerializeCtrSession] Compressing archive.." << std::endl;
+    Logging::info("[SerializeCtrSession] Compressing archive..");
 
     auto compressedArchive = NZlib::compress(
         archiveBinary.data(), archiveBinary.size(),
@@ -888,9 +899,10 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
     if (dstFilePath.empty())
         dstFilePath = session.resourcePath;
 
-    Logging::info <<
-        "[SessionManager::ExportSession] Exporting session no. " << sessionIndex+1 <<
-        " to path \"" << dstFilePath << "\".." << std::endl;
+    Logging::info(
+        "[SessionManager::ExportSession] Exporting session no. {} to path \"{}\"..",
+        sessionIndex+1, dstFilePath
+    );
 
     bool initOk = false;
     std::vector<unsigned char> result;
@@ -918,8 +930,10 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
     ) {
         std::string backupPath = std::string(dstFilePath) + ".bak";
 
-        Logging::info << "[SessionManager::ExportSession] Backing up file at \"" 
-                    << dstFilePath << "\" to \"" << backupPath << "\".." << std::endl;
+        Logging::info(
+            "[SessionManager::ExportSession] Backing up file at \"{}\" to \"{}\"..",
+            dstFilePath, backupPath
+        );
 
         bool success = FileUtil::copyFile(
             dstFilePath, backupPath,
@@ -927,7 +941,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         );
 
         if (!success) {
-            Logging::err << "[SessionManager::ExportSession] Failed to save backup of file! Aborting.." << std::endl;
+            Logging::error("[SessionManager::ExportSession] Failed to save backup of file! Aborting..");
 
             PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
                 std::string(EXPORT_SESSION_ERR_POPUP_TITLE),
@@ -949,7 +963,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         file.close();
     }
     else {
-        Logging::err << "[SessionManager::ExportSession] Could not open output file! Aborting.." << std::endl;
+        Logging::error("[SessionManager::ExportSession] Could not open output file! Aborting..");
 
         PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
             std::string(EXPORT_SESSION_ERR_POPUP_TITLE),
@@ -962,8 +976,10 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
 
     session.modified = false;
 
-    Logging::info <<
-            "[SessionManager::ExportSession] Finished exporting session no. " << sessionIndex+1 << '.' << std::endl;
+    Logging::info(
+        "[SessionManager::ExportSession] Finished exporting session no. {}.",
+        sessionIndex+1
+    );
 
     return true;
 }
@@ -974,7 +990,10 @@ void SessionManager::RemoveSession(unsigned sessionIndex) {
     if (sessionIndex >= mSessions.size())
         return;
 
-    Logging::info << "[SessionManager::RemoveSession] Removing session no. " << sessionIndex+1 << ".." << std::endl;
+    Logging::info(
+        "[SessionManager::RemoveSession] Removing session no. {}..",
+        sessionIndex + 1
+    );
 
     auto sessionIt = mSessions.begin() + sessionIndex;
     mSessions.erase(sessionIt);
@@ -1000,5 +1019,5 @@ void SessionManager::RemoveAllSessions() {
     mCurrentSessionIndex = -1;
 
     if (sessionCount != 0)
-        Logging::info << "[SessionManager::RemoveAllSessions] Removed all sessions (" << sessionCount << ")." << std::endl;
+        Logging::info("[SessionManager::RemoveAllSessions] Removed all sessions ({}).", sessionCount);
 }

@@ -56,7 +56,9 @@ void Session::setCurrentCellAnimIndex(unsigned index) {
 
     PlayerManager::getInstance().correctState();
 
-    Logging::info <<
-        "[Session::setCurrentCellAnimIndex] Selected cellanim no. " << index+1 << " (\"" <<
-        cellanim.object->getName() << "\")." << std::endl;
+    Logging::info(
+        "[Session::setCurrentCellAnimIndex] Selected cellanim no. {} (\"{}\").",
+        index+1,
+        cellanim.object->getName()
+    );
 }

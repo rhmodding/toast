@@ -9,8 +9,7 @@
 std::optional<std::vector<unsigned char>> FileUtil::openFileData(std::string_view filePath) {
     std::ifstream file(filePath.data(), std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        Logging::err << "[FileUtil::openFileData] Error opening file at path: " << filePath << std::endl;
-
+        Logging::error("[FileUtil::openFileData] Error opening file at path: {}", filePath);
         return std::nullopt;
     }
 
@@ -45,13 +44,13 @@ bool FileUtil::copyFile(std::string_view filePathSrc, std::string_view filePathD
 
     std::ifstream src(filePathSrc.data(), std::ios::binary);
     if (!src) {
-        Logging::err << "[FileUtil::copyFile] Unable to open source file at path \"" << filePathSrc << "\"!" << std::endl;
+        Logging::error("[FileUtil::copyFile] Unable to open source file at path \"{}\"!", filePathSrc);
         return false;
     }
 
     std::ofstream dst(filePathDst.data(), std::ios::binary);
     if (!dst) {
-        Logging::err << "[FileUtil::copyFile] Unable to open destination file at path \"" << filePathDst << "\"!" << std::endl;
+        Logging::error("[FileUtil::copyFile] Unable to open destination file at path \"{}\"!", filePathDst);
         return false;
     }
 

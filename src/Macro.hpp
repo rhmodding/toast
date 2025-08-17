@@ -79,9 +79,10 @@
 #define NONFATAL_ASSERT_RET(condition, shouldReturn) \
     do { \
         if (!(condition)) { \
-            Logging::err << "[NONFATAL_ASSERT_RET] Assertion failed: (" #condition "), " \
-                         << "function " << __FUNCTION__ << ", file " << __FILE__ \
-                         << ", line " << __LINE__ << "." << std::endl; \
+            Logging::error( \
+                "[NONFATAL_ASSERT_RET] Assertion failed: (" #condition "), function {}, file {}, line {}.", \
+                __FUNCTION__, __FILE__, __LINE__ \
+            ); \
             if (shouldReturn) return; \
         } \
     } while (0)
@@ -89,9 +90,10 @@
 #define NONFATAL_ASSERT_RETVAL(condition, ret) \
     do { \
         if (!(condition)) { \
-            Logging::err << "[NONFATAL_ASSERT_RETVAL] Assertion failed: (" #condition "), " \
-                         << "function " << __FUNCTION__ << ", file " << __FILE__ \
-                         << ", line " << __LINE__ << "." << std::endl; \
+            Logging::error( \
+                "[NONFATAL_ASSERT_RETVAL] Assertion failed: (" #condition "), function {}, file {}, line {}.", \
+                __FUNCTION__, __FILE__, __LINE__ \
+            ); \
             return (ret); \
         } \
     } while (0)
