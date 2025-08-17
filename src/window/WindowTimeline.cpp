@@ -29,6 +29,77 @@ static const uint32_t u32_one = 1;
 static const uint8_t  u8_min  = 0;
 static const uint8_t  u8_max  = 0xFFu;
 
+static ImU32 itemButtonColorU32() {
+    const bool held    = ImGui::IsItemHovered() && ImGui::IsItemActive();
+    const bool hovered = ImGui::IsItemHovered() && (ImGui::GetActiveID() !=  ImGui::GetCurrentWindowRead()->MoveId);
+
+    const ImU32 color = ImGui::GetColorU32(
+        (held & hovered) ? ImGuiCol_ButtonActive
+        : hovered ? ImGuiCol_ButtonHovered
+        : ImGuiCol_Button
+    );
+
+    return color;
+}
+
+static bool SplitButton(const char *strId, const char *label, const ImVec2 &sizeArg = ImVec2(0, 0)) {
+    if (ImGui::GetCurrentWindowRead()->SkipItems)
+        return false;
+
+    ImDrawList &drawList = *ImGui::GetCurrentWindow()->DrawList;
+
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const float fontSize = ImGui::GetFontSize();
+
+    ImGui::PushID(strId);
+
+    bool togglePressed = false;
+    float buttonHeight = 0.0;
+    {
+        const ImVec2 pos     = ImGui::GetCursorScreenPos();
+        const ImVec2 minSize = ImGui::CalcTextSize(label, NULL, true) + style.FramePadding * 2.0f;
+        const ImVec2 size    = ImGui::CalcItemSize(sizeArg, minSize.x, minSize.y);
+        buttonHeight = size.y;
+
+        togglePressed = ImGui::InvisibleButton("toggle", size, ImGuiButtonFlags_EnableNav);
+
+        const ImRect bb(pos, pos + size);
+        drawList.AddRectFilled(
+            bb.Min, bb.Max,
+            itemButtonColorU32(),
+            style.FrameRounding, ImDrawFlags_RoundCornersLeft
+        );
+        drawList.AddText(pos + style.FramePadding, ImGui::GetColorU32(ImGuiCol_Text), label);
+    }
+
+    {
+        ImGui::SameLine(0.0, 1.0);
+        const ImVec2 pos  = ImGui::GetCursorScreenPos();
+        const ImVec2 size = ImVec2(buttonHeight, buttonHeight);
+
+        if (ImGui::InvisibleButton("dropdown", size, ImGuiButtonFlags_EnableNav))
+            ImGui::OpenPopup("");
+
+        const ImRect bb(pos, pos + size);
+        drawList.AddRectFilled(
+            bb.Min, bb.Max,
+            itemButtonColorU32(),
+            style.FrameRounding, ImDrawFlags_RoundCornersRight
+        );
+
+        ImVec2 mid = bb.Min + ImVec2(
+            ImMax(0.0f, (size.x - fontSize) * 0.5f),
+            ImMax(0.0f, (size.y - fontSize) * 0.5f)
+        );
+
+        ImGui::RenderArrow(&drawList, mid, ImGui::GetColorU32(ImGuiCol_Text), ImGuiDir_Down);
+    }
+
+    ImGui::PopID();
+
+    return togglePressed;
+}
+
 void WindowTimeline::ChildToolbar() {
     PlayerManager& playerManager = PlayerManager::getInstance();
 
@@ -173,14 +244,11 @@ void WindowTimeline::ChildToolbar() {
         OnionSkinState& onionSkinState = playerManager.getOnionSkinState();
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-        if (ImGui::Button((const char*)ICON_FA_EYE " Onion Skin ..", { 0.f, 32.f - 6.f }))
-            ImGui::OpenPopup("###OnionSkinOptions");
+
+        if (SplitButton("###OnionSkinOptions", (const char*) ICON_FA_EYE " Onion Skin", { 0.f, 32.f - 6.f }))
+            onionSkinState.enabled ^= true;
 
         if (ImGui::BeginPopup("###OnionSkinOptions")) {
-            ImGui::Checkbox("Enabled", &onionSkinState.enabled);
-
-            ImGui::Separator();
-
             ImGui::InputScalar("Back count", ImGuiDataType_U32, &onionSkinState.backCount, &u32_one);
             ImGui::InputScalar("Front count", ImGuiDataType_U32, &onionSkinState.frontCount, &u32_one);
 
