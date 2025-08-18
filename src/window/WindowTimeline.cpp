@@ -49,8 +49,10 @@ static bool SplitButton(const char *strId, const char *label, const ImVec2 &size
     ImDrawList &drawList = *ImGui::GetCurrentWindow()->DrawList;
 
     const ImGuiStyle& style = ImGui::GetStyle();
-    const float fontSize = ImGui::GetFontSize();
+    const float fontSize    = ImGui::GetFontSize();
+    const ImVec2 groupPos   = ImGui::GetCursorScreenPos();
 
+    ImGui::BeginGroup();
     ImGui::PushID(strId);
 
     bool togglePressed = false;
@@ -72,18 +74,23 @@ static bool SplitButton(const char *strId, const char *label, const ImVec2 &size
         drawList.AddText(pos + style.FramePadding, ImGui::GetColorU32(ImGuiCol_Text), label);
     }
 
+    bool popupOpen = ImGui::IsPopupOpen("");
     {
         ImGui::SameLine(0.0, 1.0);
         const ImVec2 pos  = ImGui::GetCursorScreenPos();
         const ImVec2 size = ImVec2(buttonHeight, buttonHeight);
 
-        if (ImGui::InvisibleButton("dropdown", size, ImGuiButtonFlags_EnableNav))
+        bool pressed = ImGui::InvisibleButton("dropdown", size, ImGuiButtonFlags_EnableNav);
+
+        if (pressed && !popupOpen) {
             ImGui::OpenPopup("");
+            popupOpen = true;
+        }
 
         const ImRect bb(pos, pos + size);
         drawList.AddRectFilled(
             bb.Min, bb.Max,
-            itemButtonColorU32(),
+            popupOpen ? ImGui::GetColorU32(ImGuiCol_ButtonHovered) : itemButtonColorU32(),
             style.FrameRounding, ImDrawFlags_RoundCornersRight
         );
 
@@ -96,6 +103,27 @@ static bool SplitButton(const char *strId, const char *label, const ImVec2 &size
     }
 
     ImGui::PopID();
+    ImGui::EndGroup();
+    ImVec2 groupSize = ImGui::GetItemRectSize();
+
+    if (popupOpen) {
+        char name[20];
+        ImFormatString(name, IM_ARRAYSIZE(name), "##Popup_%08x", ImGui::GetCurrentWindow()->GetID(strId));
+
+        if (ImGuiWindow *popupWindow = ImGui::FindWindowByName(name)) {
+            const ImRect bb(groupPos, groupPos + groupSize);
+
+            popupWindow->AutoPosLastDirection = ImGuiDir_Down;
+            ImGui::SetNextWindowPos(ImGui::FindBestWindowPosForPopupEx(
+                bb.GetBL(),
+                ImGui::CalcWindowNextAutoFitSize(popupWindow),
+                &popupWindow->AutoPosLastDirection,
+                ImGui::GetPopupAllowedExtentRect(popupWindow),
+                bb,
+                ImGuiPopupPositionPolicy_ComboBox
+            ));
+        }
+    }
 
     return togglePressed;
 }
