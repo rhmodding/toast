@@ -823,8 +823,6 @@ void WindowTimeline::Update() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    auto& onionSkinState = playerManager.getOnionSkinState();
-
     const ImGuiIO& io = ImGui::GetIO(); 
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
@@ -840,7 +838,7 @@ void WindowTimeline::Update() {
 
     ChildToolbar();
     ChildKeys();
-    
+
     ImGui::EndDisabled();
 
     ImGui::End();
