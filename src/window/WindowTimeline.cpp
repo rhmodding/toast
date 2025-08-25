@@ -23,6 +23,7 @@
 #include "command/CompositeCommand.hpp"
 
 #include "util/TweenAnimUtil.hpp"
+#include "util/UIUtil.hpp"
 
 static const uint32_t u32_one = 1;
 
@@ -173,14 +174,11 @@ void WindowTimeline::ChildToolbar() {
         OnionSkinState& onionSkinState = playerManager.getOnionSkinState();
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3);
-        if (ImGui::Button((const char*)ICON_FA_EYE " Onion Skin ..", { 0.f, 32.f - 6.f }))
-            ImGui::OpenPopup("###OnionSkinOptions");
+
+        if (UIUtil::Widget::SplitButton("###OnionSkinOptions", (const char*) ICON_FA_EYE " Onion Skin", { 0.f, 32.f - 6.f }))
+            onionSkinState.enabled ^= true;
 
         if (ImGui::BeginPopup("###OnionSkinOptions")) {
-            ImGui::Checkbox("Enabled", &onionSkinState.enabled);
-
-            ImGui::Separator();
-
             ImGui::InputScalar("Back count", ImGuiDataType_U32, &onionSkinState.backCount, &u32_one);
             ImGui::InputScalar("Front count", ImGuiDataType_U32, &onionSkinState.frontCount, &u32_one);
 
@@ -727,8 +725,6 @@ void WindowTimeline::Update() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    auto& onionSkinState = playerManager.getOnionSkinState();
-
     const ImGuiIO& io = ImGui::GetIO(); 
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
@@ -744,7 +740,7 @@ void WindowTimeline::Update() {
 
     ChildToolbar();
     ChildKeys();
-    
+
     ImGui::EndDisabled();
 
     ImGui::End();

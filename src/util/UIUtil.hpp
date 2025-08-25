@@ -7,9 +7,7 @@
 
 #include <imgui.h>
 
-namespace UIUtil {
-
-namespace Widget {
+namespace UIUtil::Widget {
 
 template <typename T>
 void ValueEditor(
@@ -32,8 +30,8 @@ void ValueEditor(
 
 bool StdStringTextInput(const char* label, std::string& str);
 
-} // namespace Widget
+bool SplitButton(const char *strId, const char *label, const ImVec2 &sizeArg = ImVec2(0, 0));
 
-} // namespace UIUtil
+} // namespace UIUtil::Widget
 
 #endif // UI_UTIL_HPP
