@@ -640,39 +640,27 @@ void Toast::Menubar() {
 
             ImGui::Separator();
 
-            // Duplicate option
-            {
+            if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
                 auto& cellAnim = *sessionManager.getCurrentSession()->getCurrentCellAnim().object;
 
-                const unsigned keyIndex = playerManager.getKeyIndex();
                 auto& key = playerManager.getKey();
 
-                bool arrangementUnique = cellAnim.isArrangementUnique(arrangementIndex);
-                ImGui::BeginDisabled(arrangementUnique);
+                unsigned index = cellAnim.duplicateArrangement(key.arrangementIndex);
 
-                if (ImGui::MenuItem("Make arrangement unique (duplicate)")) {
-                    unsigned index = cellAnim.duplicateArrangement(key.arrangementIndex);
+                if (!appState.getArrangementMode()) {
+                    auto newKey = key;
+                    newKey.arrangementIndex = index;
 
-                    if (!appState.getArrangementMode()) {
-                        auto newKey = key;
-                        newKey.arrangementIndex = index;
-
-                        sessionManager.getCurrentSession()->addCommand(
-                        std::make_shared<CommandModifyAnimationKey>(
-                            sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
-                            playerManager.getAnimationIndex(),
-                            keyIndex,
-                            newKey
-                        ));
-                    }
-                    else
-                        key.arrangementIndex = index;
+                    sessionManager.getCurrentSession()->addCommand(
+                    std::make_shared<CommandModifyAnimationKey>(
+                        sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                        playerManager.getAnimationIndex(),
+                        playerManager.getKeyIndex(),
+                        newKey
+                    ));
                 }
-
-                ImGui::EndDisabled();
-
-                if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled))
-                    ImGui::SetTooltip("This arrangement is only used once.");
+                else
+                    key.arrangementIndex = index;
             }
 
             ImGui::Separator();
