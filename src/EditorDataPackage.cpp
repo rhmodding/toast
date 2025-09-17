@@ -38,7 +38,12 @@ struct TedFileHeader {
 
     uint32_t flags { TED_FLAG_NONE }; // See TedFlag.
 
-    // (Compressed) data starts at ((unsigned char*)this + headerSize).
+    const unsigned char *getDataStart() const {
+        return reinterpret_cast<const unsigned char *>(this) + headerSize;
+    }
+    unsigned char *getDataStart() {
+        return reinterpret_cast<unsigned char *>(this) + headerSize;
+    }
 };
 
 enum TedEntryType {
@@ -75,7 +80,9 @@ struct TedEntry {
 };
 
 #define TED_ENTRY_SIZE(typefield) \
-    (offsetof(TedEntry, typefield) + sizeof(((TedEntry*)nullptr)->typefield))
+    (offsetof(TedEntry, typefield) + sizeof(((TedEntry *)nullptr)->typefield))
+
+#define TED_ENTRY_SIZE_HALF(typefield) (TED_ENTRY_SIZE(typefield) / 2)
 
 struct TedWorkHeader {
     uint32_t entryCount { 0 };
@@ -175,7 +182,7 @@ static CellAnim::ArrangementPart* getPart(
 static bool ApplyImpl(Session& session, const unsigned char *data, const size_t dataSize) {
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
 
-    const unsigned char* compressedStart = data + fileHeader->headerSize;
+    const unsigned char* compressedStart = fileHeader->getDataStart();
     const size_t compressedSize = fileHeader->dataSize;
 
     std::vector<unsigned char> workData (fileHeader->decompressedSize);
@@ -266,7 +273,7 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
 // TODO: remove on public release
 static bool ApplyImpl_Old(Session& session, const unsigned char *data, const size_t dataSize) {
     Logging::warn("[EditorDataProc::Apply] ---   <<-- USING MALFORM TED HACK -->>   ---");
-    Logging::warn("[EditorDataProc::Apply] TED size is {}kb long", dataSize / 1000);
+    Logging::warn("[EditorDataProc::Apply] TED size is {}kb long", dataSize / 1024);
 
     const TedFileHeaderOld* fileHeader = reinterpret_cast<const TedFileHeaderOld*>(data);
 
@@ -447,9 +454,9 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
     auto trySetFollowCellAnim = [&](bool& alreadySet, size_t idx) {
         if (!alreadySet) {
-            entries.push_back(TedEntry{
+            entries.push_back(TedEntry {
                 .type = TED_ENTRY_TYPE_SETFOLLOW_CELLANIM_IDX,
-                .sizeHalf = TED_ENTRY_SIZE(setFollowCellAnimIdx) / 2,
+                .sizeHalf = TED_ENTRY_SIZE_HALF(setFollowCellAnimIdx),
                 .setFollowCellAnimIdx = {
                     .cellAnimIndex = static_cast<uint16_t>(idx)
                 }
@@ -474,7 +481,7 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
                     TedEntry entry;
                     entry.type = TED_ENTRY_TYPE_PART_NAME;
-                    entry.sizeHalf = TED_ENTRY_SIZE(partName) / 2;
+                    entry.sizeHalf = TED_ENTRY_SIZE_HALF(partName);
                     entry.partName.arrangementIndex = static_cast<uint16_t>(arrangementIdx);
                     entry.partName.partIndex = static_cast<uint16_t>(partIdx);
 
@@ -495,7 +502,7 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
                     TedEntry entry;
                     entry.type = TED_ENTRY_TYPE_PART_LOCK;
-                    entry.sizeHalf = TED_ENTRY_SIZE(partLock) / 2;
+                    entry.sizeHalf = TED_ENTRY_SIZE_HALF(partLock);
                     entry.partLock.arrangementIndex = static_cast<uint16_t>(arrangementIdx);
                     entry.partLock.partIndex = static_cast<uint16_t>(partIdx);
 
@@ -507,7 +514,7 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
                     TedEntry entry;
                     entry.type = TED_ENTRY_TYPE_PART_HIDE;
-                    entry.sizeHalf = TED_ENTRY_SIZE(partHide) / 2;
+                    entry.sizeHalf = TED_ENTRY_SIZE_HALF(partHide);
                     entry.partHide.arrangementIndex = static_cast<uint16_t>(arrangementIdx);
                     entry.partHide.partIndex = static_cast<uint16_t>(partIdx);
                     entry.partHide.originalOpacity = part.opacity;
@@ -579,7 +586,7 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
     fileHeader->flags = TED_FLAG_COMPRESSED_ZLIB;
 
-    unsigned char* compressedDataStart = reinterpret_cast<unsigned char*>(fileHeader + 1);
+    unsigned char* compressedDataStart = fileHeader->getDataStart();
 
     std::memcpy(compressedDataStart, compressedWork.data(), compressedWork.size());
 
@@ -589,7 +596,7 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
     Logging::info(
         "[EditorDataProc::Create] Created compressed editor data package ({}kb of data down to {}kb) in {}ms.",
-        workDataSize / 1000, resultData.size() / 1000, createTotalTimeMs
+        workDataSize / 1024, resultData.size() / 1024, createTotalTimeMs
     );
 
     return resultData;
