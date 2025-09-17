@@ -261,7 +261,6 @@ static void IMPLEMENTATION_FROM_RGBA32(unsigned char* result, unsigned srcWidth,
     }
 }
 
-
 static void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, unsigned srcHeight, const unsigned char* data, const uint32_t*) {
     unsigned readOffset { 0 };
 
@@ -272,33 +271,46 @@ static void IMPLEMENTATION_FROM_CMPR(unsigned char* result, unsigned srcWidth, u
 
             // Decode each CMPR-subblock
             for (unsigned i = 0; i < 4; i++) {
-                const unsigned char* blockData = data + readOffset + (i * 8);
+                const unsigned char *blockData = data + readOffset + (i * 8);
                 uint8_t (*block)[4][4] = blocks[i];
 
-                const uint16_t color1    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 0));
-                const uint16_t color2    = BYTESWAP_16(*reinterpret_cast<const uint16_t*>(blockData + 2));
-                const uint32_t indexBits = BYTESWAP_32(*reinterpret_cast<const uint32_t*>(blockData + 4));
+                const uint16_t color1    = BYTESWAP_16(*reinterpret_cast<const uint16_t *>(blockData + 0));
+                const uint16_t color2    = BYTESWAP_16(*reinterpret_cast<const uint16_t *>(blockData + 2));
+                const uint32_t indexBits = BYTESWAP_32(*reinterpret_cast<const uint32_t *>(blockData + 4));
 
                 uint8_t colors[4][4];
-                colors[0][0] = ((color1 >> 11) & 0x1f) << 3;
-                colors[0][1] = ((color1 >> 5) & 0x3f) << 2;
-                colors[0][2] = ((color1 >> 0) & 0x1f) << 3;
+
+                colors[0][0] = (((color1 >> 11) & 0x1f) << 3) | (((color1 >> 11) & 0x1f) >> 2);
+                colors[0][1] = (((color1 >>  5) & 0x3f) << 2) | (((color1 >>  5) & 0x3f) >> 4);
+                colors[0][2] = (((color1 >>  0) & 0x1f) << 3) | (((color1 >>  0) & 0x1f) >> 2);
                 colors[0][3] = 0xFFu;
-                colors[1][0] = ((color2 >> 11) & 0x1f) << 3;
-                colors[1][1] = ((color2 >> 5) & 0x3f) << 2;
-                colors[1][2] = ((color2 >> 0) & 0x1f) << 3;
+
+                colors[1][0] = (((color2 >> 11) & 0x1f) << 3) | (((color2 >> 11) & 0x1f) >> 2);
+                colors[1][1] = (((color2 >>  5) & 0x3f) << 2) | (((color2 >>  5) & 0x3f) >> 4);
+                colors[1][2] = (((color2 >>  0) & 0x1f) << 3) | (((color2 >>  0) & 0x1f) >> 2);
                 colors[1][3] = 0xFFu;
 
                 if (color1 > color2) {
-                    for (unsigned j = 0; j < 4; ++j)
-                        colors[2][j] = (unsigned)colors[0][j] * 2 / 3 + (unsigned)colors[1][j] / 3;
-                    for (unsigned j = 0; j < 4; ++j)
-                        colors[3][j] = (unsigned)colors[0][j] / 3 + (unsigned)colors[1][j] * 2 / 3;
+                    colors[2][0] = ((static_cast<int>(colors[1][0]) * 3 + colors[0][0] * 5) >> 3);
+                    colors[2][1] = ((static_cast<int>(colors[1][1]) * 3 + colors[0][1] * 5) >> 3);
+                    colors[2][2] = ((static_cast<int>(colors[1][2]) * 3 + colors[0][2] * 5) >> 3);
+                    colors[2][3] = 0xFFu;
+
+                    colors[3][0] = ((static_cast<int>(colors[0][0]) * 3 + colors[1][0] * 5) >> 3);
+                    colors[3][1] = ((static_cast<int>(colors[0][1]) * 3 + colors[1][1] * 5) >> 3);
+                    colors[3][2] = ((static_cast<int>(colors[0][2]) * 3 + colors[1][2] * 5) >> 3);
+                    colors[3][3] = 0xFFu;
                 }
                 else {
-                    for (unsigned j = 0; j < 4; ++j)
-                        colors[2][j] = ((unsigned)colors[0][j] + colors[1][j]) / 2;
-                    colors[3][0] = colors[3][1] = colors[3][2] = colors[3][3] = 0x00;
+                    colors[2][0] = (static_cast<int>(colors[0][0]) + colors[1][0]) / 2;
+                    colors[2][1] = (static_cast<int>(colors[0][1]) + colors[1][1]) / 2;
+                    colors[2][2] = (static_cast<int>(colors[0][2]) + colors[1][2]) / 2;
+                    colors[2][3] = 0xFFu;
+
+                    colors[3][0] = (static_cast<int>(colors[0][0]) + colors[1][0]) / 2;
+                    colors[3][1] = (static_cast<int>(colors[0][1]) + colors[1][1]) / 2;
+                    colors[3][2] = (static_cast<int>(colors[0][2]) + colors[1][2]) / 2;
+                    colors[3][3] = 0x00;
                 }
 
                 uint8_t indices[16];
