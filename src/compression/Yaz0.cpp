@@ -57,17 +57,17 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
     if (result.size() >= dataSize) {
         Logging::info(
             "[Yaz0::compress] Successfully stored {}kb of data in {}ms (final size: {}kb).",
-            dataSize / 1000,
+            dataSize / 1024,
             compressTotalTimeMs,
-            result.size() / 1000
+            result.size() / 1024
         );
     }
     else {
         float reductionRate = ((dataSize - result.size()) / static_cast<float>(dataSize)) * 100.f;
         Logging::info(
             "[Yaz0::compress] Successfully compressed {}kb of data down to {}kb in {}ms ({}% reduction).",
-            dataSize / 1000,
-            result.size() / 1000,
+            dataSize / 1024,
+            result.size() / 1024,
             compressTotalTimeMs,
             reductionRate
         );
@@ -143,9 +143,9 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
     Logging::info(
         "[Yaz0::decompress] Decompressed {}kb of data in {}ms from {}kb of compressed data.",
-        decompressedSize / 1000,
+        decompressedSize / 1024,
         decompressWorkTimeMs,
-        dataSize / 1000
+        dataSize / 1024
     );
 
     return destination;
