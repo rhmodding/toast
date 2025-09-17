@@ -784,17 +784,15 @@ std::vector<unsigned char> CellAnimObject::Serialize() {
     }
 }
 
-bool CellAnimObject::isArrangementUnique(const Arrangement& arrangement) const {
-    size_t matchCount = 0;
-    for (const auto &arrng : mArrangements) {
-        if (arrng == arrangement) {
-            matchCount++;
-            if (matchCount >= 2) {
-                return false;
-            }
+size_t CellAnimObject::countArrangementUses(unsigned arrangementIndex) const {
+    size_t usageCount = 0;
+    for (const auto &animation : mAnimations) {
+        for (const auto &key : animation.keys) {
+            if (key.arrangementIndex == arrangementIndex)
+                usageCount++;
         }
     }
-    return true;
+    return usageCount;
 }
 
 std::vector<Arrangement>::iterator CellAnimObject::insertArrangement(const Arrangement& arrangement) {

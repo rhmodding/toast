@@ -62,8 +62,8 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
 
     auto& cellAnim = *sessionManager.getCurrentSession()->getCurrentCellAnim().object;
 
-    bool arrangementUnique = cellAnim.isArrangementUnique(playerManager.getArrangementIndex());
-    ImGui::BeginDisabled(arrangementUnique);
+    size_t usageCount = cellAnim.countArrangementUses(playerManager.getArrangementIndex());
+    ImGui::BeginDisabled(usageCount <= 1);
 
     if (ImGui::Button("Make arrangement unique (duplicate)")) {
         newKey.arrangementIndex = cellAnim.duplicateArrangement(originalKey.arrangementIndex);
@@ -72,7 +72,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
     ImGui::EndDisabled();
 
     if (
-        arrangementUnique &&
+        (usageCount <= 1) &&
         ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
         ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)
     )
@@ -82,7 +82,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
         ImGui::TextUnformatted("Would you like to duplicate this\narrangement anyway?");
         ImGui::Separator();
 
-        if (ImGui::Selectable("Ok")) {
+        if (ImGui::Selectable("OK")) {
             newKey.arrangementIndex = cellAnim.duplicateArrangement(originalKey.arrangementIndex);
         }
         ImGui::Selectable("Nevermind");
@@ -90,8 +90,13 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
         ImGui::EndPopup();
     }
 
-    if (arrangementUnique && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled)) {
-        ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled)) {
+        if (usageCount == 0) {
+            ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
+        }
+        else if (usageCount == 1) {
+            ImGui::SetTooltip("This arrangement isn't used.\nYou can right-click to duplicate anyway.");
+        }
     }
 }
 

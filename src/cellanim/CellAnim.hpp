@@ -465,10 +465,7 @@ public:
         return std::distance(mArrangements.begin(), it);
     }
 
-    bool isArrangementUnique(const Arrangement& arrangement) const;
-    bool isArrangementUnique(unsigned arrangementIndex) const {
-        return isArrangementUnique(mArrangements.at(arrangementIndex));
-    }
+    size_t countArrangementUses(unsigned arrangementIndex) const;
 
 private:
     bool InitImpl_Rvl(const unsigned char* data, const size_t dataSize);
