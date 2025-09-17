@@ -51,8 +51,8 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     Logging::info(
         "[NZlib::compress] Successfully compressed {}kb of data down to {}kb ({}% reduction) in {}ms.",
-        dataSize / 1000,
-        destLen / 1000,
+        dataSize / 1024,
+        destLen / 1024,
         reductionRate,
         compressTotalTimeMs
     );
@@ -109,9 +109,9 @@ std::optional<std::vector<unsigned char>> decompress(const unsigned char* data, 
 
     Logging::info(
         "[NZlib::decompress] Decompressed {}kb of data in {}ms from {}kb of compressed data.",
-        inflateSize / 1000,
+        inflateSize / 1024,
         decompressWorkTimeMs,
-        dataSize / 1000
+        dataSize / 1024
     );
 
     return inflated;
