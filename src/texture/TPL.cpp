@@ -12,12 +12,11 @@
 #include "Macro.hpp"
 
 // Feb 14, 2000
-// Pre-byteswapped to BE.
-constexpr uint32_t TPL_VERSION_NUMBER = BYTESWAP_32(2142000);
+constexpr uint32_t TPL_VERSION_NUMBER = 2142000;
 
 struct TPLPalette {
     // Compare to TPL_VERSION_NUMBER.
-    uint32_t versionNumber { TPL_VERSION_NUMBER };
+    uint32_t versionNumber { BYTESWAP_32(TPL_VERSION_NUMBER) };
 
     // Amount of descriptors in the descriptor table.
     uint32_t descriptorCount;
@@ -147,7 +146,7 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
     }
 
     const TPLPalette* palette = reinterpret_cast<const TPLPalette*>(tplData);
-    if (palette->versionNumber != TPL_VERSION_NUMBER) {
+    if (palette->versionNumber != BYTESWAP_32(TPL_VERSION_NUMBER)) {
         Logging::error("[TPLObject::TPLObject] Invalid TPL binary: invalid version number!");
         return;
     }
@@ -245,9 +244,8 @@ std::vector<unsigned char> TPLObject::Serialize() {
                 )
             });
 
-            // Convieniently, every palette format's pixel is 16-bit
-            paletteEntriesSize +=
-                ALIGN_UP_16(paletteTextures.back().palette.size()) * 2;
+            // Conveniently, every palette format's pixel is 16-bit
+            paletteEntriesSize += ALIGN_UP_16(paletteTextures.back().palette.size()) * 2;
         }
     }
 
