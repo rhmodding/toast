@@ -468,11 +468,11 @@ public:
     size_t countArrangementUses(unsigned arrangementIndex) const;
 
 private:
-    bool InitImpl_Rvl(const unsigned char* data, const size_t dataSize);
-    bool InitImpl_Ctr(const unsigned char* data, const size_t dataSize);
+    bool deserializeImpl_RVL(const unsigned char* data, const size_t dataSize);
+    bool deserializeImpl_CTR(const unsigned char* data, const size_t dataSize);
 
-    std::vector<unsigned char> SerializeImpl_Rvl();
-    std::vector<unsigned char> SerializeImpl_Ctr();
+    std::vector<unsigned char> serializeImpl_RVL();
+    std::vector<unsigned char> serializeImpl_CTR();
 
 private:
     bool mInitialized { false };

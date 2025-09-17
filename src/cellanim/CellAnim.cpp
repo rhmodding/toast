@@ -9,15 +9,14 @@
 #include "Macro.hpp"
 
 // 12 Mar 2010
-// Pre-byteswapped to BE.
-constexpr uint32_t RCAD_REVISION_DATE = BYTESWAP_32(20100312);
+constexpr uint32_t RCAD_REVISION_DATE = 20100312;
 
 // 7 Oct 2013
 constexpr uint32_t CCAD_REVISION_DATE = 20131007;
 
 struct RvlCellAnimHeader {
     // Compare to RCAD_REVISION_DATE.
-    uint32_t revisionDate { RCAD_REVISION_DATE };
+    uint32_t revisionDate { BYTESWAP_32(RCAD_REVISION_DATE) };
 
     // Load textures in paletted (CI) mode; also enables varyings.
     uint8_t usePalette;
@@ -411,9 +410,9 @@ struct CtrAnimation {
     CtrAnimationKey keys[0];
 } __attribute__((packed));
 
-bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const size_t dataSize) {
+bool CellAnim::CellAnimObject::deserializeImpl_RVL(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(RvlCellAnimHeader)) {
-        Logging::error("[CellAnimObject::InitImpl_Rvl] Invalid RCAD binary: data size smaller than header size!");
+        Logging::error("[CellAnimObject::deserializeImpl_RVL] Invalid RCAD binary: data size smaller than header size!");
         return false;
     }
 
@@ -477,9 +476,9 @@ bool CellAnim::CellAnimObject::InitImpl_Rvl(const unsigned char* data, const siz
     return true;
 }
 
-bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const size_t dataSize) {
+bool CellAnim::CellAnimObject::deserializeImpl_CTR(const unsigned char* data, const size_t dataSize) {
     if (dataSize < sizeof(CtrCellAnimHeader)) {
-        Logging::error("[CellAnimObject::InitImpl_Ctr] Invalid CCAD binary: data size smaller than header size!");
+        Logging::error("[CellAnimObject::deserializeImpl_CTR] Invalid CCAD binary: data size smaller than header size!");
         return false;
     }
 
@@ -577,7 +576,7 @@ bool CellAnim::CellAnimObject::InitImpl_Ctr(const unsigned char* data, const siz
     return true;
 }
 
-std::vector<unsigned char> CellAnim::CellAnimObject::SerializeImpl_Rvl() {
+std::vector<unsigned char> CellAnim::CellAnimObject::serializeImpl_RVL() {
     size_t fullSize = sizeof(RvlCellAnimHeader) + sizeof(AnimationsHeader);
     for (const CellAnim::Arrangement& arrangement : mArrangements)
         fullSize += sizeof(RvlArrangement) + (sizeof(RvlArrangementPart) * arrangement.parts.size());
@@ -639,7 +638,7 @@ std::vector<unsigned char> CellAnim::CellAnimObject::SerializeImpl_Rvl() {
     return result;
 }
 
-std::vector<unsigned char> CellAnim::CellAnimObject::SerializeImpl_Ctr() {
+std::vector<unsigned char> CellAnim::CellAnimObject::serializeImpl_CTR() {
     std::map<std::string, unsigned> emitterNames;
     unsigned nextEmitterIndex { 0 };
 
@@ -756,13 +755,13 @@ CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize)
     const uint32_t revisionDate = *reinterpret_cast<const uint32_t*>(data);
 
     switch (revisionDate) {
-    case RCAD_REVISION_DATE:
+    case BYTESWAP_32(RCAD_REVISION_DATE):
         mType = CELLANIM_TYPE_RVL;
-        mInitialized = InitImpl_Rvl(data, dataSize);
+        mInitialized = deserializeImpl_RVL(data, dataSize);
         return;
     case CCAD_REVISION_DATE:
         mType = CELLANIM_TYPE_CTR;
-        mInitialized = InitImpl_Ctr(data, dataSize);
+        mInitialized = deserializeImpl_CTR(data, dataSize);
         return;
 
     default:
@@ -774,9 +773,9 @@ CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize)
 std::vector<unsigned char> CellAnimObject::Serialize() {
     switch (mType) {
     case CELLANIM_TYPE_RVL:
-        return SerializeImpl_Rvl();
+        return serializeImpl_RVL();
     case CELLANIM_TYPE_CTR:
-        return SerializeImpl_Ctr();
+        return serializeImpl_CTR();
 
     default:
         Logging::error("[CellAnimObject::Serialize] Invalid type ({})!", static_cast<int>(mType));
