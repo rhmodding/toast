@@ -364,21 +364,17 @@ void WindowCanvas::Update() {
     drawList->AddRectFilled(mCanvasTopLeft, canvasBottomRight, backgroundColor);
 
     // This catches interactions (dragging, hovering, clicking, etc.)
-    if (mCanvasSize.x != 0.f && mCanvasSize.y != 0.f)
+    if (mCanvasSize.x != 0.f && mCanvasSize.y != 0.f) {
         ImGui::InvisibleButton("CanvasInteraction", mCanvasSize,
             ImGuiButtonFlags_MouseButtonLeft |
             ImGuiButtonFlags_MouseButtonRight |
             ImGuiButtonFlags_MouseButtonMiddle
         );
+    }
 
     const bool interactionHovered     = ImGui::IsItemHovered();
     const bool interactionActive      = ImGui::IsItemActive();      // Held
     const bool interactionDeactivated = ImGui::IsItemDeactivated(); // Un-held
-
-    const ImVec2 origin(
-        mCanvasTopLeft.x + mState.offset.x + static_cast<int>(mCanvasSize.x / 2),
-        mCanvasTopLeft.y + mState.offset.y + static_cast<int>(mCanvasSize.y / 2)
-    );
 
     // Dragging
     const float mouseDragThreshold = 1.f;
@@ -390,6 +386,26 @@ void WindowCanvas::Update() {
     );
 
     static bool panningCanvas { false };
+
+    if (panningCanvas) {
+        mState.offset.x += io.MouseDelta.x;
+        mState.offset.y += io.MouseDelta.y;
+    }
+
+    // Canvas zooming
+    if (interactionHovered && io.MouseWheel != 0.f) {
+        if (io.KeyShift)
+            mState.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
+        else
+            mState.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED;
+
+        mState.clampZoomFactor();
+    }
+
+    const ImVec2 origin(
+        mCanvasTopLeft.x + mState.offset.x + static_cast<int>(mCanvasSize.x / 2),
+        mCanvasTopLeft.y + mState.offset.y + static_cast<int>(mCanvasSize.y / 2)
+    );
 
     enum PartsTransformType {
         PartsTransformType_None = 0,
@@ -438,21 +454,6 @@ void WindowCanvas::Update() {
 
         for (size_t i = 0; i < arrangement.parts.size(); i++)
             selectionState.setBatchPartSelection(i, true);
-    }
-
-    if (panningCanvas) {
-        mState.offset.x += io.MouseDelta.x;
-        mState.offset.y += io.MouseDelta.y;
-    }
-
-    // Canvas zooming
-    if (interactionHovered && io.MouseWheel != 0.f) {
-        if (io.KeyShift)
-            mState.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED_FAST;
-        else
-            mState.zoomFactor += io.MouseWheel * CANVAS_ZOOM_SPEED;
-
-        mState.clampZoomFactor();
     }
 
     mCellAnimRenderer.setOffset(origin);
