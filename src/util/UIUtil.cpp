@@ -56,7 +56,7 @@ bool UIUtil::Widget::SplitButton(const char *strId, const char *label, const ImV
     float buttonHeight = 0.0;
     {
         const ImVec2 pos     = ImGui::GetCursorScreenPos();
-        const ImVec2 minSize = ImGui::CalcTextSize(label, NULL, true) + style.FramePadding * 2.0f;
+        const ImVec2 minSize = ImGui::CalcTextSize(label, nullptr, true) + style.FramePadding * 2.0f;
         const ImVec2 size    = ImGui::CalcItemSize(sizeArg, minSize.x, minSize.y);
         buttonHeight = size.y;
 

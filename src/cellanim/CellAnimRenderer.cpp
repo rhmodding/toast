@@ -95,14 +95,14 @@ static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, std::st
     if (isProgram) {
         glGetProgramiv(shader, flag, &success);
         if (success == GL_FALSE) {
-            glGetProgramInfoLog(shader, sizeof(error), NULL, error);
+            glGetProgramInfoLog(shader, sizeof(error), nullptr, error);
             Logging::error("{}: {}", errorMessage, error);
         }
     }
     else {
         glGetShaderiv(shader, flag, &success);
         if (success == GL_FALSE) {
-            glGetShaderInfoLog(shader, sizeof(error), NULL, error);
+            glGetShaderInfoLog(shader, sizeof(error), nullptr, error);
             Logging::error("{}: {}", errorMessage, error);
         }
     }
@@ -110,7 +110,7 @@ static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, std::st
 
 void CellAnimRenderer::InitShader() {
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
     glCompileShader(vertexShader);
 
     checkShaderError(
@@ -119,7 +119,7 @@ void CellAnimRenderer::InitShader() {
     );
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
     glCompileShader(fragmentShader);
 
     checkShaderError(
