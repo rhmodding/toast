@@ -21,9 +21,9 @@ void Popups::MTransformArrangement::update() {
 
     CellAnim::Arrangement* arrangement { nullptr };
 
-    if (sessionManager.getCurrentSessionIndex() >= 0)
+    if (sessionManager.getCurrentSessionIndex() >= 0) {
         arrangement = &playerManager.getArrangement();
-
+    }
 
     if (!active && lateOpen && arrangement) {
         arrangement->tempOffset = { 0, 0 };
@@ -41,6 +41,7 @@ void Popups::MTransformArrangement::update() {
         static CellAnim::FltVec2 scale { 1.f, 1.f };
 
         static bool uniformScale { true };
+        static bool onlySelected { false };
 
         ImGui::DragInt2("Offset XY", offset.asArray(), 1.f);
 
@@ -59,14 +60,24 @@ void Popups::MTransformArrangement::update() {
             }
         }
 
+        ImGui::Checkbox("Only Transform Selected", &onlySelected);
+
         ImGui::Separator();
 
         if (ImGui::Button("Apply")) {
             arrangement->tempOffset = { 0, 0 };
             arrangement->tempScale = { 1.f, 1.f };
 
+            SelectionState &selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+
             auto newArrangement = *arrangement;
-            for (auto& part : newArrangement.parts) {
+            for (size_t i = 0; i < newArrangement.parts.size(); i++) {
+                if (onlySelected && !selectionState.isPartSelected(i)) {
+                    continue;
+                }
+                
+                auto& part = newArrangement.parts[i];
+
                 part.transform.position.x = static_cast<int16_t>(
                     (part.transform.position.x * scale.x) + offset.x
                 );
@@ -81,8 +92,6 @@ void Popups::MTransformArrangement::update() {
                 if (scale.y < 0.f)
                     part.transform.angle = -part.transform.angle;
             }
-
-            SessionManager& sessionManager = SessionManager::getInstance();
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(
@@ -107,8 +116,14 @@ void Popups::MTransformArrangement::update() {
             lateOpen = false;
         }
 
-        arrangement->tempOffset = offset;
-        arrangement->tempScale = scale;
+        if (!onlySelected) {
+            arrangement->tempOffset = offset;
+            arrangement->tempScale = scale;
+        }
+        else {
+            arrangement->tempOffset = { 0, 0 };
+            arrangement->tempScale = { 1.f, 1.f };
+        }
 
         ImGui::EndPopup();
     }
