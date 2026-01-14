@@ -20,7 +20,7 @@ extern "C" const char gConsoleSplash[] =
 "       See the GNU General Public License for    " "\n"
 "                    more details.                " "\n"
 "                                                 " "\n"
-"            copyright \xC2\xA9 2025 conhlee           " "\n"
+"            copyright \xC2\xA9 2026 conhlee           " "\n"
 "                                                 " "\n"
 "         https://github.com/conhlee/toast        "
 ;
