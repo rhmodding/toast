@@ -131,7 +131,7 @@ void CTPKTexture::rotateCW() {
 GLuint CTPKTexture::createGPUTexture() const {
     GLuint textureId { 0 };
 
-    MainThreadTaskManager::getInstance().QueueTask([this, &textureId]() {
+    MainThreadTaskManager::getInstance().queueTask([this, &textureId]() {
         glGenTextures(1, &textureId);
         glBindTexture(GL_TEXTURE_2D, textureId);
 
@@ -224,11 +224,11 @@ CTPKObject::CTPKObject(const unsigned char* ctpkData, const size_t dataSize) {
     mInitialized = true;
 }
 
-std::vector<unsigned char> CTPKObject::Serialize() {
+std::vector<unsigned char> CTPKObject::serialize() {
     std::vector<unsigned char> result;
 
     if (!mInitialized) {
-        Logging::error("[CTPKObject::Serialize] Unable to serialize: not initialized!");
+        Logging::error("[CTPKObject::serialize] Unable to serialize: not initialized!");
         return result;
     }
 
@@ -264,7 +264,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
         texEntry->dataFormat = static_cast<uint32_t>(texture.targetFormat);
 
         if (texture.width > 1024 || texture.height > 1024) {
-            Logging::error("[CTPKObject::Serialize] Texture no. {} exceeds the dimensions limit of 1024x1024", i + 1);
+            Logging::error("[CTPKObject::serialize] Texture no. {} exceeds the dimensions limit of 1024x1024", i + 1);
             Logging::error("                        The texture will be scaled down to fit within the bounds.");
 
             float scale = std::min(
@@ -316,7 +316,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
             currentTexFilename - reinterpret_cast<char*>(result.data())
         );
 
-        strcpy(currentTexFilename, texture.sourcePath.c_str());
+        std::strcpy(currentTexFilename, texture.sourcePath.c_str());
         currentTexFilename += ALIGN_UP_4(texture.sourcePath.size() + 1);
     }
 
@@ -403,7 +403,7 @@ std::vector<unsigned char> CTPKObject::Serialize() {
 
         for (unsigned j = 0; j < dstTexture.mipCount; j++) {
             Logging::info(
-                "[CTPKObject::Serialize] Writing data for texture no. {} (mip-level no. {}) ({}x{}, {})..",
+                "[CTPKObject::serialize] Writing data for texture no. {} (mip-level no. {}) ({}x{}, {})..",
                 i+1, j+1, dstTexture.width, dstTexture.height, getImageFormatName(dstTexture.targetFormat)
             );
 

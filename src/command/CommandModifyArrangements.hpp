@@ -23,18 +23,18 @@ public:
     }
     ~CommandModifyArrangements() = default;
 
-    void Execute() override {
+    void execute() override {
         getArrangements() = mNewArrangements;
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         getArrangements() = mOldArrangements;
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

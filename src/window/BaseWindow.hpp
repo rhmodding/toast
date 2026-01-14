@@ -3,7 +3,9 @@
 
 class BaseWindow {
 public:
-    virtual void Update() {}
+    virtual void update() = 0;
+
+    virtual void setOpen(bool open) {}
 
     virtual ~BaseWindow() {}
 };

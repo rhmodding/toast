@@ -3,7 +3,7 @@
 #include "ArrangePartMatchUtil.hpp"
 
 CellAnim::AnimationKey TweenAnimUtil::tweenAnimKeys(
-    std::vector<CellAnim::Arrangement>& arrangements,
+    std::vector<CellAnim::Arrangement>& arrangements, bool dontTweenArrangement,
     const CellAnim::AnimationKey& k0, const CellAnim::AnimationKey& k1, float t
 ) {
     CellAnim::AnimationKey newKey = k0;
@@ -18,7 +18,7 @@ CellAnim::AnimationKey TweenAnimUtil::tweenAnimKeys(
     newKey.backColor = newKey.backColor.lerp(k1.backColor, t);
 
     // Create new interpolated arrangement if not equal
-    if (k0.arrangementIndex != k1.arrangementIndex) {
+    if ((!dontTweenArrangement) && k0.arrangementIndex != k1.arrangementIndex) {
         const CellAnim::Arrangement& endArrangement = arrangements.at(k1.arrangementIndex);
         
         CellAnim::Arrangement newArrangement;

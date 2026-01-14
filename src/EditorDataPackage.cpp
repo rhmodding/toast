@@ -19,7 +19,7 @@ constexpr uint32_t TED_MAGIC = 6132025; // Jun 13 2025
 
 // Major version must be changed for any breaking changes.
 constexpr unsigned int TED_VERSION_MAJOR = 1;
-constexpr unsigned int TED_VERSION_MINOR = 0;
+constexpr unsigned int TED_VERSION_MINOR = 1;
 
 enum TedFlag {
     TED_FLAG_NONE = 0,
@@ -51,6 +51,7 @@ enum TedEntryType {
     TED_ENTRY_TYPE_PART_NAME = 1, // Set a part's name.
     TED_ENTRY_TYPE_PART_LOCK = 2, // Set a part to locked.
     TED_ENTRY_TYPE_PART_HIDE = 3, // Set a part to hidden.
+    TED_ENTRY_TYPE_ANIM_COMMENT = 4, // Set a animation's comment.
 };
 
 struct TedEntry {
@@ -76,6 +77,10 @@ struct TedEntry {
             // serialized. The opacity is restored to this value when loaded
             uint8_t originalOpacity;
         } partHide;
+        struct {
+            uint16_t animationIndex;
+            uint32_t stringOffset; // Relative to the start of the string table.
+        } animComment;
     };
 };
 
@@ -145,39 +150,67 @@ static CellAnim::ArrangementPart* getPart(
     unsigned cellIndex, unsigned arrngIndex, unsigned partIndex
 ) {
     if (cellIndex >= session.cellanims.size()) {
-            Logging::error(
-                "[TedApply] Invalid editor data binary: oob cellanim index!:\n"
-                "   - Cellanim Index: {}",
-                cellIndex
-            );
-            return nullptr;
-        }
+        Logging::error(
+            "[TedApply] Invalid editor data binary: oob cellanim index!:\n"
+            "   - Cellanim Index: {}",
+            cellIndex
+        );
+        return nullptr;
+    }
 
-        auto& arrangements = session.cellanims.at(cellIndex).object->getArrangements();
-        if (arrngIndex >= arrangements.size()) {
-            Logging::error(
-                "[TedApply] Invalid editor data binary: oob arrangement index!:\n"
-                "   - Cellanim Index: {}\n"
-                "   - Arrangement Index: {}",
-                cellIndex, arrngIndex
-            );
-            return nullptr;
-        }
+    auto& arrangements = session.cellanims.at(cellIndex).object->getArrangements();
+    if (arrngIndex >= arrangements.size()) {
+        Logging::error(
+            "[TedApply] Invalid editor data binary: oob arrangement index!:\n"
+            "   - Cellanim Index: {}\n"
+            "   - Arrangement Index: {}",
+            cellIndex, arrngIndex
+        );
+        return nullptr;
+    }
 
-        auto& arrangement = arrangements.at(arrngIndex);
-        if (partIndex >= arrangement.parts.size()) {
-            Logging::error(
-                "[TedApply] Invalid editor data binary: oob part index!:\n"
-                "   - Cellanim Index: {}" "\n"
-                "   - Arrangement Index: {}" "\n"
-                "   - Part Index: {}",
-                cellIndex, arrngIndex, partIndex
-            );
-            return nullptr;
-        }
+    auto& arrangement = arrangements.at(arrngIndex);
+    if (partIndex >= arrangement.parts.size()) {
+        Logging::error(
+            "[TedApply] Invalid editor data binary: oob part index!:\n"
+            "   - Cellanim Index: {}" "\n"
+            "   - Arrangement Index: {}" "\n"
+            "   - Part Index: {}",
+            cellIndex, arrngIndex, partIndex
+        );
+        return nullptr;
+    }
 
-        return &arrangement.parts.at(partIndex);
+    return &arrangement.parts.at(partIndex);
 }
+
+static CellAnim::Animation* getAnimation(
+    const Session& session,
+    unsigned cellIndex, unsigned animIndex
+) {
+    if (cellIndex >= session.cellanims.size()) {
+        Logging::error(
+            "[TedApply] Invalid editor data binary: oob cellanim index!:\n"
+            "   - Cellanim Index: {}",
+            cellIndex
+        );
+        return nullptr;
+    }
+
+    auto& animations = session.cellanims.at(cellIndex).object->getAnimations();
+    if (animIndex >= animations.size()) {
+        Logging::error(
+            "[TedApply] Invalid editor data binary: oob animation index!:\n"
+            "   - Cellanim Index: {}\n"
+            "   - Animation Index: {}",
+            cellIndex, animIndex
+        );
+        return nullptr;
+    }
+
+    return &animations[animIndex];
+}
+
 
 static bool ApplyImpl(Session& session, const unsigned char *data, const size_t dataSize) {
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
@@ -255,6 +288,17 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
 
             part->opacity = currentEntry->partHide.originalOpacity;
             part->editorVisible = false;
+        } break;
+
+        case TED_ENTRY_TYPE_ANIM_COMMENT: {
+            auto* anim = getAnimation(
+                session, currentCellAnimIdx,
+                currentEntry->animComment.animationIndex
+            );
+            if (!anim)
+                return false;
+
+            anim->comment.assign(stringPool + currentEntry->animComment.stringOffset);
         } break;
 
         default:
@@ -521,6 +565,33 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
                     entries.push_back(entry);
                 }
+            }
+        }
+
+        const auto& animations = session.cellanims[cellAnimIdx].object->getAnimations();
+        for (size_t animationIdx = 0; animationIdx < animations.size(); animationIdx++) {
+            const auto& animation = animations[animationIdx];
+
+            // RVL already stores comments in a header file, so it's redundant to store
+            // them here as well.
+            if (!animation.comment.empty() && (session.type != CellAnim::CELLANIM_TYPE_RVL)) {
+                trySetFollowCellAnim(alreadySetFollowCellAnim, cellAnimIdx);
+
+                TedEntry entry;
+                entry.type = TED_ENTRY_TYPE_ANIM_COMMENT;
+                entry.sizeHalf = TED_ENTRY_SIZE_HALF(animComment);
+                entry.animComment.animationIndex = static_cast<uint16_t>(animationIdx);
+
+                auto [it, inserted] = stringPoolMap.emplace(animation.comment, nextStringPoolOffs);
+                if (inserted) {
+                    entry.animComment.stringOffset = nextStringPoolOffs;
+                    nextStringPoolOffs += animation.comment.size() + 1;
+                }
+                else {
+                    entry.animComment.stringOffset = it->second;
+                }
+
+                entries.push_back(entry);
             }
         }
     }

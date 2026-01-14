@@ -68,11 +68,11 @@ void Popups::MTransformArrangement::update() {
             arrangement->tempOffset = { 0, 0 };
             arrangement->tempScale = { 1.f, 1.f };
 
-            SelectionState &selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+            SelectionState &selectionState = sessionManager.getCurrentSession()->getPartSelectState();
 
             auto newArrangement = *arrangement;
             for (size_t i = 0; i < newArrangement.parts.size(); i++) {
-                if (onlySelected && !selectionState.isPartSelected(i)) {
+                if (onlySelected && !selectionState.checkSelected(i)) {
                     continue;
                 }
                 

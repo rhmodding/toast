@@ -114,7 +114,7 @@ GLuint TPLTexture::createGPUTexture() const {
         break;
     }
 
-    MainThreadTaskManager::getInstance().QueueTask([this, &textureId, &minFilter, &magFilter]() {
+    MainThreadTaskManager::getInstance().queueTask([this, &textureId, &minFilter, &magFilter]() {
         glGenTextures(1, &textureId);
         glBindTexture(GL_TEXTURE_2D, textureId);
 
@@ -209,11 +209,11 @@ TPLObject::TPLObject(const unsigned char* tplData, const size_t dataSize) {
     mInitialized = true;
 }
 
-std::vector<unsigned char> TPLObject::Serialize() {
+std::vector<unsigned char> TPLObject::serialize() {
     std::vector<unsigned char> result;
 
     if (!mInitialized) {
-        Logging::error("[TPLObject::Serialize] Unable to serialize: not initialized!");
+        Logging::error("[TPLObject::serialize] Unable to serialize: not initialized!");
         return result;
     }
 
@@ -343,7 +343,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
         TPLHeader* header = headers + i;
 
         if (texture.width > 1024 || texture.height > 1024) {
-            Logging::warn("[TPLObject::Serialize] The dimensions of the texture exceed 1024x1024 ({}x{});", texture.width, texture.height);
+            Logging::warn("[TPLObject::serialize] The dimensions of the texture exceed 1024x1024 ({}x{});", texture.width, texture.height);
             Logging::warn("                       the game will most likely be unable to read it properly.");
         }
 
@@ -358,7 +358,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.wrapS != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.width)
         ) {
-            Logging::warn("[TPLObject::Serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP");
+            Logging::warn("[TPLObject::serialize] Image width is not a power of two, so horizontal wrap will be set to CLAMP");
             header->wrapS = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
@@ -368,7 +368,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
             texture.wrapT != TPL_WRAP_MODE_CLAMP &&
             !IS_POWER_OF_TWO(texture.height)
         ) {
-            Logging::warn("[TPLObject::Serialize] Image height is not a power of two, so vertical wrap will be set to CLAMP");
+            Logging::warn("[TPLObject::serialize] Image height is not a power of two, so vertical wrap will be set to CLAMP");
             header->wrapT = BYTESWAP_32(static_cast<uint32_t>(TPL_WRAP_MODE_CLAMP));
         }
         else
@@ -395,7 +395,7 @@ std::vector<unsigned char> TPLObject::Serialize() {
         headers[i].dataOffset = BYTESWAP_32(writeOffset);
 
         Logging::info(
-            "[TPLObject::Serialize] Writing data for texture no. {} ({}x{}, {})..",
+            "[TPLObject::serialize] Writing data for texture no. {} ({}x{}, {})..",
             (i+1),
             texture.width,
             texture.height,

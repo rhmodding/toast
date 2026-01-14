@@ -22,13 +22,13 @@ public:
     }
     ~CommandModifyArrangementPart() = default;
 
-    void Execute() override {
+    void execute() override {
         getPart() = mNewPart;
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         getPart() = mOldPart;
 
         SessionManager::getInstance().setCurrentSessionModified(true);

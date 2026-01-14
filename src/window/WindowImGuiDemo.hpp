@@ -5,7 +5,7 @@
 
 class WindowImGuiDemo : public BaseWindow {
 public:
-    void Update() override;
+    void update() override;
 
 public:
     bool mOpen { false };

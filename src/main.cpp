@@ -12,17 +12,17 @@
 
 #include <clocale>
 
-int main(int argc, const char** argv) {
+int main(int argc, const char **argv) {
     std::setlocale(LC_ALL, "C.UTF-8");
 
     // Attach our custom terminate (exception) handler.
-    TerminateHandler::Init();
+    TerminateHandler::init();
 
-    std::cout << consoleSplash << '\n' << std::endl;
+    std::cout << gConsoleSplash << '\n' << std::endl;
 
     Toast toast (argc, argv);
-    while (LIKELY(toast.isRunning())) {
-        toast.Update();
-        toast.Draw();
+    while (LIKELY(toast.getRunning())) {
+        toast.update();
+        toast.draw();
     }
 }

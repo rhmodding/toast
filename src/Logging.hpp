@@ -22,8 +22,8 @@ private:
 public:
     ~Logging() = default;
 
-    static void Open(std::string_view filename);
-    static void Close();
+    static void open(std::string_view filename);
+    static void close();
 
     template <typename... Args>
     static inline void info(spdlog::format_string_t<Args...> fmt, Args &&...args) {

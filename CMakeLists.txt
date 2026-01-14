@@ -97,6 +97,7 @@ set(SOURCES
     src/util/BezierUtil.cpp
     src/util/CxxDemangleUtil.cpp
     src/util/FileUtil.cpp
+    src/util/MyPathUtil.cpp
     src/util/ShiftJISUtil.cpp
     src/util/SpritesheetFixUtil.cpp
     src/util/TweenAnimUtil.cpp
@@ -112,12 +113,15 @@ set(SOURCES
     src/window/WindowHybridList.cpp
     src/window/WindowImGuiDemo.cpp
     src/window/WindowInspector.cpp
+    src/window/WindowRoot.cpp
     src/window/WindowSpritesheet.cpp
     src/window/WindowTimeline.cpp
 
     src/EditorDataPackage.cpp
 
     src/Logging.cpp
+
+    src/ConsoleSplash.cpp
 
     src/main.cpp
 
@@ -142,7 +146,7 @@ target_compile_definitions(toast PRIVATE
     IMGUI_DISABLE_DEFAULT_FONT
     IMGUI_DEFINE_MATH_OPERATORS
 )
-IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+IF (CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_definitions(toast PRIVATE RG_ETC1_BUILD_DEBUG)
 ENDIF()
 
@@ -158,6 +162,7 @@ target_include_directories(toast PRIVATE
     ${CMAKE_SOURCE_DIR}/ext/imgui/backends
     ${CMAKE_SOURCE_DIR}/ext/tinyfiledialogs
     ${CMAKE_SOURCE_DIR}/ext/rg-etc1
+    ${CMAKE_SOURCE_DIR}/ext/cparse
 
     ${CMAKE_SOURCE_DIR}/libs/glfw/include
 )
@@ -200,7 +205,7 @@ IF (WIN32) # Windows
 
         -static
     )
-ELSEIF(APPLE) # macOS
+ELSEIF (APPLE) # macOS
     target_link_libraries(toast PRIVATE
         glfw3
         "-framework OpenGL"

@@ -19,8 +19,8 @@ void Popups::MPadRegion::update() {
     bool openConditions = sessionManager.getCurrentSessionIndex() >= 0;
 
     if (openConditions) {
-        SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
-        openConditions &= selectionState.singlePartSelected();
+        SelectionState& selectionState = sessionManager.getCurrentSession()->getPartSelectState();
+        openConditions &= selectionState.singleSelected();
     }
 
     static CellAnim::UintVec2 origCellOrigin;
@@ -29,9 +29,9 @@ void Popups::MPadRegion::update() {
     static CellAnim::IntVec2 origPosition;
 
     if (!active && lateOpen && openConditions) {
-        SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+        SelectionState& selectionState = sessionManager.getCurrentSession()->getPartSelectState();
 
-        auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
+        auto& part = playerManager.getArrangement().parts.at(selectionState.mSelected[0].index);
 
         part.cellOrigin = origCellOrigin;
         part.cellSize = origCellSize;
@@ -42,9 +42,9 @@ void Popups::MPadRegion::update() {
     }
 
     if (active && openConditions) {
-        SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+        SelectionState& selectionState = sessionManager.getCurrentSession()->getPartSelectState();
 
-        auto& part = playerManager.getArrangement().parts.at(selectionState.mSelectedParts[0].index);
+        auto& part = playerManager.getArrangement().parts.at(selectionState.mSelected[0].index);
 
         if (!lateOpen) {
             origCellOrigin = part.cellOrigin;
@@ -89,13 +89,13 @@ void Popups::MPadRegion::update() {
                 newPart.transform.position.y = origPosition.y;
             }
 
-            SelectionState& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+            SelectionState& selectionState = sessionManager.getCurrentSession()->getPartSelectState();
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangementPart>(
                 sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
                 playerManager.getArrangementIndex(),
-                selectionState.mSelectedParts[0].index,
+                selectionState.mSelected[0].index,
                 newPart
             ));
 

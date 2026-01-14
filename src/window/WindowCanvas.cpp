@@ -88,13 +88,13 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellAnimRenderer& rend
 
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    const auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+    const auto& selectionState = SessionManager::getInstance().getCurrentSession()->getPartSelectState();
 
-    if (!selectionState.anyPartsSelected())
+    if (!selectionState.anySelected())
         return partsBounding;
 
-    if (selectionState.singlePartSelected()) {
-        unsigned index = selectionState.mSelectedParts[0].index;
+    if (selectionState.singleSelected()) {
+        unsigned index = selectionState.mSelected[0].index;
         const auto& part = arrangement.parts.at(index);
 
         if (!part.editorLocked) {
@@ -113,7 +113,7 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellAnimRenderer& rend
 
     bool any { false };
 
-    for (const auto& [index, _] : selectionState.mSelectedParts) {
+    for (const auto& [index, _] : selectionState.mSelected) {
         const auto& part = arrangement.parts.at(index);
 
         if (part.editorLocked)
@@ -145,9 +145,9 @@ static std::array<ImVec2, 4> calculatePartsBounding(const CellAnimRenderer& rend
 static bool selectionChangedSinceLastCycle() {
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    const auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+    const auto& selectionState = SessionManager::getInstance().getCurrentSession()->getPartSelectState();
 
-    const auto& currentSelected = selectionState.mSelectedParts;
+    const auto& currentSelected = selectionState.mSelected;
     unsigned currentArrangeIdx = playerManager.getArrangementIndex();
 
     static auto lastSelected { currentSelected };
@@ -314,7 +314,7 @@ void WindowCanvas::Menubar() {
     }
 }
 
-void WindowCanvas::Update() {
+void WindowCanvas::update() {
     static bool firstOpen { true };
     if (firstOpen) {
         mState.setDefaultGridType();
@@ -443,17 +443,17 @@ void WindowCanvas::Update() {
 
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getPartSelectState();
 
     CellAnim::Arrangement& arrangement = playerManager.getArrangement();
 
     // Select all parts with CTRL+A
     if (ImGui::Shortcut(ImGuiKey_A | ImGuiMod_Ctrl)) {
-        selectionState.clearSelectedParts();
-        selectionState.mSelectedParts.reserve(arrangement.parts.size());
+        selectionState.clearSelectedElements();
+        selectionState.mSelected.reserve(arrangement.parts.size());
 
         for (size_t i = 0; i < arrangement.parts.size(); i++)
-            selectionState.setBatchPartSelection(i, true);
+            selectionState.setBatchSelection(i, true);
     }
 
     mCellAnimRenderer.setOffset(origin);
@@ -673,7 +673,7 @@ void WindowCanvas::Update() {
 
             float partCompensateRot = 0.f;
             ImVec2 partAvgCenter ( 0.f, 0.f );
-            for (const auto& [index, _] : selectionState.mSelectedParts) {
+            for (const auto& [index, _] : selectionState.mSelected) {
                 const auto& part = arrangement.parts.at(index);
 
                 partCompensateRot -= part.transform.angle;
@@ -684,10 +684,10 @@ void WindowCanvas::Update() {
                 partAvgCenter.x += centerX;
                 partAvgCenter.y += centerY;
             }
-            partCompensateRot /= selectionState.mSelectedParts.size();
+            partCompensateRot /= selectionState.mSelected.size();
 
-            partAvgCenter.x = (partAvgCenter.x / selectionState.mSelectedParts.size()) * keyTransform.scale.x * mState.zoomFactor;
-            partAvgCenter.y = (partAvgCenter.y / selectionState.mSelectedParts.size()) * keyTransform.scale.y * mState.zoomFactor;
+            partAvgCenter.x = (partAvgCenter.x / selectionState.mSelected.size()) * keyTransform.scale.x * mState.zoomFactor;
+            partAvgCenter.y = (partAvgCenter.y / selectionState.mSelected.size()) * keyTransform.scale.y * mState.zoomFactor;
 
             ImVec2 partOrigin = { origin.x + partAvgCenter.x, origin.y + partAvgCenter.y };
 
@@ -786,7 +786,7 @@ void WindowCanvas::Update() {
         }
 
         // Apply transformation
-        for (const auto& [index, _] : selectionState.mSelectedParts) {
+        for (const auto& [index, _] : selectionState.mSelected) {
             auto& part = arrangement.parts.at(index);
 
             if (part.editorLocked)
@@ -910,7 +910,7 @@ void WindowCanvas::Update() {
             ));
         }
         else
-            selectionState.clearSelectedParts();
+            selectionState.clearSelectedElements();
     }
 
     // All drawing operations
@@ -982,7 +982,7 @@ void WindowCanvas::Update() {
                 bool drawUnder = onionSkinState.drawUnder;
 
                 if (drawOnionSkin && drawUnder) {
-                    mCellAnimRenderer.DrawOnionSkin(
+                    mCellAnimRenderer.drawOnionSkin(
                         drawList,
                         playerManager.getAnimation(), playerManager.getKeyIndex(),
                         onionSkinState.backCount,
@@ -992,14 +992,14 @@ void WindowCanvas::Update() {
                     );
                 }
 
-                mCellAnimRenderer.Draw(
+                mCellAnimRenderer.draw(
                     drawList,
                     playerManager.getAnimation(), playerManager.getKeyIndex(),
                     mState.allowTransparentDraw
                 );
 
                 if (drawOnionSkin && !drawUnder) {
-                    mCellAnimRenderer.DrawOnionSkin(
+                    mCellAnimRenderer.drawOnionSkin(
                         drawList,
                         playerManager.getAnimation(), playerManager.getKeyIndex(),
                         onionSkinState.backCount,

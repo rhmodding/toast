@@ -23,7 +23,7 @@ public:
     {}
     ~CommandSwapAnimations() = default;
 
-    void Execute() override {
+    void execute() override {
         std::swap(
             getAnimations().at(mAnimationIndexA), getAnimations().at(mAnimationIndexB)
         );
@@ -39,9 +39,9 @@ public:
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         // Re-swap
-        Execute();
+        execute();
     }
 
 private:
@@ -74,7 +74,7 @@ private:
             if (selectedDifferentAnimation)
                 playerManager.setKeyIndex(0);
 
-            PlayerManager::getInstance().correctState();
+            PlayerManager::getInstance().validateState();
         }
     }
 

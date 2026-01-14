@@ -15,23 +15,23 @@ AsyncTask::AsyncTask(AsyncTaskId id, const char* message) :
     mStartTime = static_cast<float>(ImGui::GetTime());
 };
 
-void AsyncTask::Start() {
+void AsyncTask::start() {
     mIsComplete = false;
 
     std::thread([this]() {
-        Run();
+        run();
         mIsComplete = true;
     }).detach();
 }
 
-void AsyncTask::RunEffectIfComplete() {
+void AsyncTask::update() {
     if (mIsComplete && !mHasEffectRun) {
-        Effect();
+        effect();
         mHasEffectRun = true;
     }
 }
 
-void AsyncTask::ShowPopup() const {
+void AsyncTask::showPopup() const {
     ImGui::PushID(static_cast<int>(mId));
 
     if (!mIsComplete)

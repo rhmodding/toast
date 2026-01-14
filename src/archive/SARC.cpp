@@ -173,7 +173,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
                 newFile.parent = currentDir;
                 newFile.data = std::vector<unsigned char>(nodeDataStart, nodeDataEnd);
 
-                currentDir->AddFile(std::move(newFile));
+                currentDir->addFile(std::move(newFile));
 
                 break;
             }
@@ -189,7 +189,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
             // Directory doesn't exist; create and add it.
             if (it == currentDir->subdirectories.end()) {
                 Archive::Directory newDir(currentSegment, currentDir);
-                currentDir->AddDirectory(std::move(newDir));
+                currentDir->addDirectory(std::move(newDir));
 
                 currentDir = &currentDir->subdirectories.back();
             }
@@ -202,7 +202,7 @@ SARCObject::SARCObject(const unsigned char* data, const size_t dataSize) {
     mInitialized = true;
 }
 
-std::vector<unsigned char> SARCObject::Serialize() {
+std::vector<unsigned char> SARCObject::serialize() {
     struct FileEntry {
         const Archive::File* file;
         std::string path;
@@ -297,7 +297,7 @@ std::vector<unsigned char> SARCObject::Serialize() {
         node->setCollisionCount(entry.collisionCount);
         node->setNameOffset(currentName - sfntSection->data);
 
-        strcpy(currentName, entry.path.c_str());
+        std::strcpy(currentName, entry.path.c_str());
         currentName += ALIGN_UP_4(entry.path.size() + 1);
     }
 

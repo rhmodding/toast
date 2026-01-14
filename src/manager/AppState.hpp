@@ -27,7 +27,7 @@ public:
     bool getArrangementMode() const {
         SessionManager& sessionManager = SessionManager::getInstance();
 
-        if (sessionManager.isSessionAvailable())
+        if (sessionManager.anySessionOpened())
             return sessionManager.getCurrentSession()->arrangementMode;
         else
             return false;

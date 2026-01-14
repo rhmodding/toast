@@ -7,7 +7,11 @@
 
 class WindowConfig : public BaseWindow {
 public:
-    void Update() override;
+    void update() override;
+
+    void setOpen(bool open) override {
+        mOpen = open;
+    }
 
 public:
     bool mOpen { false };

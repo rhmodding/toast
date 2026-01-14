@@ -50,7 +50,7 @@ const std::string& getDisplayChord(ShortcutAction action) {
     return shortcut->displayChord;
 }
 
-void Process() {
+void process() {
     SessionManager& sessionManager = SessionManager::getInstance();
 
     for (const auto& [action, shortcut] : ShortcutMap) {
@@ -70,11 +70,11 @@ void Process() {
                 case ShortcutAction::SaveAs:
                     return Actions::ExportSessionPromptPath();
                 case ShortcutAction::Undo:
-                    if (sessionManager.isSessionAvailable())
+                    if (sessionManager.anySessionOpened())
                         return sessionManager.getCurrentSession()->undo();
                     break;
                 case ShortcutAction::Redo:
-                    if (sessionManager.isSessionAvailable())
+                    if (sessionManager.anySessionOpened())
                         return sessionManager.getCurrentSession()->redo();
                     break;
                 default:

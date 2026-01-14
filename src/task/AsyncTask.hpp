@@ -14,20 +14,19 @@ public:
     AsyncTask(AsyncTaskId id, const char* message);
     virtual ~AsyncTask() = default;
 
-    void Start();
+    void start();
 
-    // Run effect if this task is complete & the effect hasn't run already.
-    void RunEffectIfComplete();
+    void update();
 
-    void ShowPopup() const;
+    void showPopup() const;
 
     AsyncTaskId getId() const { return mId; }
     bool getIsComplete() const { return mIsComplete; }
     bool getHasEffectRun() const { return mHasEffectRun; }
 
 protected:
-    virtual void Run() = 0;
-    virtual void Effect() = 0;
+    virtual void run() = 0;
+    virtual void effect() = 0;
 
 private:
     AsyncTaskId mId;
@@ -35,7 +34,7 @@ private:
     std::atomic<bool> mIsComplete { false };
     std::atomic<bool> mHasEffectRun { false };
 
-    const char* mMessage;
+    const char *mMessage;
 
     float mStartTime;
 };

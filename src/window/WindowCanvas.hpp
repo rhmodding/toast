@@ -13,7 +13,7 @@
 
 class WindowCanvas : public BaseWindow {
 public:
-    void Update() override;
+    void update() override;
 
 private:
     void Menubar();

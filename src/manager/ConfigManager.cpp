@@ -13,7 +13,7 @@ inline void clampRecentlyOpened(std::vector<std::string>& recentlyOpened) {
     }
 }
 
-void ConfigManager::LoadConfig() {
+void ConfigManager::loadConfig() {
     std::lock_guard<std::mutex> lock(mMtx);
 
     std::ifstream file(mConfigPath);
@@ -22,8 +22,8 @@ void ConfigManager::LoadConfig() {
     if (!file.is_open()) {
         mFirstTime = true;
 
-        LoadDefaults();
-        SaveConfig();
+        loadDefault();
+        saveConfig();
 
         return;
     }
@@ -37,7 +37,7 @@ void ConfigManager::LoadConfig() {
     clampRecentlyOpened(mConfig.recentlyOpened);
 }
 
-void ConfigManager::SaveConfig() const {
+void ConfigManager::saveConfig() const {
     std::ofstream file(mConfigPath);
     if (!file.is_open()) {
         Logging::error("[ConfigManager::Save] Unable to open file for saving.");
@@ -50,11 +50,11 @@ void ConfigManager::SaveConfig() const {
     file.close();
 }
 
-void ConfigManager::LoadDefaults() {
+void ConfigManager::loadDefault() {
     mConfig = Config {};
 }
 
-void ConfigManager::addRecentlyOpened(const std::string_view path) {
+void ConfigManager::pushRecentlyOpened(const std::string_view path) {
     std::lock_guard<std::mutex> lock(mMtx);
 
     auto& recentlyOpened = mConfig.recentlyOpened;

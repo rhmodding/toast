@@ -26,9 +26,9 @@ public:
     ~PlayerManager() = default;
 
 public:
-    void Update();
+    void update();
 
-    void ResetTimer();
+    void resetTiming();
 
     unsigned getAnimationIndex() const { return mAnimationIndex; }
     void setAnimationIndex(unsigned index);
@@ -95,7 +95,7 @@ public:
     // After for example a session switch or another change that can reduce the amount
     // of animations, keys, or parts, the state needs to be 'corrected' to align with
     // the new circumstances.
-    void correctState();
+    void validateState();
 
     unsigned getArrangementModeIdx() const;
     void setArrangementModeIdx(unsigned index);

@@ -5,7 +5,7 @@
 #include "Logging.hpp"
 
 void Session::addCommand(std::shared_ptr<BaseCommand> command) {
-    command->Execute();
+    command->execute();
     if (this->undoQueue.size() >= COMMANDS_MAX)
         this->undoQueue.pop_front();
 
@@ -20,7 +20,7 @@ void Session::undo() {
     auto command = undoQueue.back();
     this->undoQueue.pop_back();
 
-    command->Rollback();
+    command->rollback();
 
     this->redoQueue.push_back(command);
 
@@ -34,7 +34,7 @@ void Session::redo() {
     auto command = redoQueue.back();
     this->redoQueue.pop_back();
 
-    command->Execute();
+    command->execute();
 
     if (this->undoQueue.size() == COMMANDS_MAX)
         this->undoQueue.pop_front();
@@ -54,7 +54,7 @@ void Session::setCurrentCellAnimIndex(unsigned index) {
     this->sheets->setBaseTextureIndex(cellanim.object->getSheetIndex());
     this->sheets->setVaryingEnabled(cellanim.object->getUsePalette());
 
-    PlayerManager::getInstance().correctState();
+    PlayerManager::getInstance().validateState();
 
     Logging::info(
         "[Session::setCurrentCellAnimIndex] Selected cellanim no. {} (\"{}\").",

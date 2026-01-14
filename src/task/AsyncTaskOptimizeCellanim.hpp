@@ -28,8 +28,8 @@ public:
     );
 
 protected:
-    void Run() override;
-    void Effect() override;
+    void run() override;
+    void effect() override;
 
 private:
     Session* mSession;

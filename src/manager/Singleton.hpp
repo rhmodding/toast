@@ -65,7 +65,8 @@ T& Singleton<T>::getInstance() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!instance_) {
         throw std::runtime_error(
-            "Singleton<" + CxxDemangleUtil::Demangle<T>() + ">::getInstance: Singleton instance does not exist (anymore)!"
+            std::string("Singleton<") + CxxDemangleUtil::Demangle<T>() +
+            ">::getInstance: Singleton instance does not exist (anymore)!"
         );
     }
     return *instance_;

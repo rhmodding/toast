@@ -44,7 +44,7 @@ static void _ApplyInterpolation(
     for (unsigned i = 0; i < addKeysCount; i++) {
         float t = BezierUtil::ApproxY((((i+1) * interval)) / (float)backKey.holdFrames, curve.data());
 
-        addKeys[i] = TweenAnimUtil::tweenAnimKeys(newArrangements, backKey, frontKey, t);
+        addKeys[i] = TweenAnimUtil::tweenAnimKeys(newArrangements, false, backKey, frontKey, t);
         addKeys[i].holdFrames = interval;
     }
 
@@ -107,7 +107,7 @@ void Popups::MInterpolateKeys::update() {
 
     if (!active && lateOpen && condition) {
         *currentAnimation = animationBackup;
-        playerManager.correctState();
+        playerManager.validateState();
 
         lateOpen = false;
     }

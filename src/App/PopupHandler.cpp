@@ -10,12 +10,14 @@
 
 #include "manager/AppState.hpp"
 
-static std::array<Popup*, 13> sPopups;
+static std::array<Popup *, 13> sPopups;
 static bool sPopupsInitialized = false;
 
 void Popups::createSingletons() {
-    if (sPopupsInitialized)
+    if (sPopupsInitialized) {
         return;
+    }
+
     sPopups = {
         &EditAnimationName::createSingleton(),
         &SheetRepackFailed::createSingleton(),
@@ -35,10 +37,13 @@ void Popups::createSingletons() {
 }
 
 void Popups::destroySingletons() {
-    if (!sPopupsInitialized)
+    if (!sPopupsInitialized) {
         return;
-    for (int i = 0; i < sPopups.size(); i++)
+    }
+
+    for (size_t i = 0; i < sPopups.size(); i++) {
         sPopups[i] = nullptr;
+    }
 
     EditAnimationName::destroySingleton();
     SheetRepackFailed::destroySingleton();
@@ -59,12 +64,12 @@ void Popups::destroySingletons() {
 
 void Popups::update() {
     if (!sPopupsInitialized) {
-        throw new std::runtime_error("Popups::update: popups not (yet) initialized!");
+        throw std::runtime_error("Popups::update: popups not (yet) initialized!");
     }
 
     ImGui::PushOverrideID(GLOBAL_POPUP_ID);
 
-    for (Popup* p : sPopups) {
+    for (Popup *p : sPopups) {
         p->update();
     }
 

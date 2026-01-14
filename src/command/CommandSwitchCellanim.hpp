@@ -22,22 +22,22 @@ public:
     }
     ~CommandSwitchCellanim() = default;
 
-    void Execute() override {
+    void execute() override {
         SessionManager& sessionManager = SessionManager::getInstance();
 
         auto& session = sessionManager.getSession(mSessionIndex);
         session.setCurrentCellAnimIndex(mCellAnimIndex);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
     }
 
-    void Rollback() override {
+    void rollback() override {
         SessionManager& sessionManager = SessionManager::getInstance();
 
         auto& session = sessionManager.getSession(mSessionIndex);
         session.setCurrentCellAnimIndex(mPreviousCellAnimIndex);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
     }
 
 private:

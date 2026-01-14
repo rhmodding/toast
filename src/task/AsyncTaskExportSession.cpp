@@ -13,7 +13,8 @@ AsyncTaskExportSession::AsyncTaskExportSession(
     AsyncTask(id, "Exporting session.."),
 
     mSessionIndex(sessionIndex), mFilePath(std::move(filePath)),
-    mUseSessionPath(false)
+    mUseSessionPath(false),
+    mResult(false)
 {}
 
 AsyncTaskExportSession::AsyncTaskExportSession(
@@ -26,19 +27,19 @@ AsyncTaskExportSession::AsyncTaskExportSession(
     mUseSessionPath(true)
 {}
 
-void AsyncTaskExportSession::Run() {
+void AsyncTaskExportSession::run() {
     std::string_view dstFilePath = "";
     if (!mUseSessionPath) {
         dstFilePath = mFilePath;
     }
 
-    bool exportResult = SessionManager::getInstance().ExportSession(
+    bool exportResult = SessionManager::getInstance().exportSession(
         mSessionIndex, dstFilePath
     );
     mResult.store(exportResult);
 }
 
-void AsyncTaskExportSession::Effect() {
+void AsyncTaskExportSession::effect() {
     if (!mResult) {
         return;
     }
@@ -48,7 +49,7 @@ void AsyncTaskExportSession::Effect() {
         session.resourcePath = mFilePath;
     }
 
-    ConfigManager::getInstance().addRecentlyOpened(
+    ConfigManager::getInstance().pushRecentlyOpened(
         mUseSessionPath ? session.resourcePath : mFilePath
     );
 }

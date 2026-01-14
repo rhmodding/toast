@@ -9,7 +9,7 @@
 
 class WindowInspector : public BaseWindow {
 public:
-    void Update() override;
+    void update() override;
 
 private:
     void drawPreview();

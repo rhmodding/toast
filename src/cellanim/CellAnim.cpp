@@ -423,6 +423,8 @@ bool CellAnim::CellAnimObject::deserializeImpl_RVL(const unsigned char* data, co
     mSheetW = BYTESWAP_16(header->sheetW);
     mSheetH = BYTESWAP_16(header->sheetH);
 
+    // Logging::info("[CellAnimObject::deserializeImpl_RVL] mSheetW={}, mSheetH={}", mSheetW, mSheetH);
+
     mUsePalette = header->usePalette != 0x00;
 
     const unsigned char* currentData = data + sizeof(RvlCellAnimHeader);
@@ -770,7 +772,7 @@ CellAnimObject::CellAnimObject(const unsigned char* data, const size_t dataSize)
     }
 }
 
-std::vector<unsigned char> CellAnimObject::Serialize() {
+std::vector<unsigned char> CellAnimObject::serialize() {
     switch (mType) {
     case CELLANIM_TYPE_RVL:
         return serializeImpl_RVL();
@@ -778,7 +780,7 @@ std::vector<unsigned char> CellAnimObject::Serialize() {
         return serializeImpl_CTR();
 
     default:
-        Logging::error("[CellAnimObject::Serialize] Invalid type ({})!", static_cast<int>(mType));
+        Logging::error("[CellAnimObject::serialize] Invalid type ({})!", static_cast<int>(mType));
         return std::vector<unsigned char>();
     }
 }

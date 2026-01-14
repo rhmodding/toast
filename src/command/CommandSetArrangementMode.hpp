@@ -16,7 +16,7 @@ public:
     {}
     ~CommandSetArrangementMode() = default;
 
-    void Execute() override {
+    void execute() override {
         SessionManager& sessionManager = SessionManager::getInstance();
         PlayerManager& playerManager = PlayerManager::getInstance();
 
@@ -27,16 +27,16 @@ public:
 
         sessionManager.getCurrentSession()->arrangementMode = mEnabled;
 
-        playerManager.correctState();
+        playerManager.validateState();
     }
 
-    void Rollback() override {
+    void rollback() override {
         SessionManager& sessionManager = SessionManager::getInstance();
         PlayerManager& playerManager = PlayerManager::getInstance();
 
         sessionManager.getCurrentSession()->arrangementMode = !mEnabled;
 
-        playerManager.correctState();
+        playerManager.validateState();
     }
 
 private:

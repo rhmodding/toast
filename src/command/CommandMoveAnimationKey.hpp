@@ -21,7 +21,7 @@ public:
     {}
     ~CommandMoveAnimationKey() = default;
 
-    void Execute() override {
+    void execute() override {
         CellAnim::Animation& animation = getAnimation();
 
         int nSwap = mKeyIndex + (mMoveDown ? -1 : 1);
@@ -41,7 +41,7 @@ public:
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         CellAnim::Animation& animation = getAnimation();
 
         int nSwap = mKeyIndex + (mMoveDown ? -1 : 1);

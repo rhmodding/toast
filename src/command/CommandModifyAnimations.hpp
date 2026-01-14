@@ -22,18 +22,18 @@ public:
     }
     ~CommandModifyAnimations() = default;
 
-    void Execute() override {
+    void execute() override {
         getAnimations() = mNewAnimations;
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         getAnimations() = mOldAnimations;
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

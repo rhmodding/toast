@@ -20,9 +20,9 @@ public:
 
 public:
     template <typename TaskType, typename... Args>
-    AsyncTaskId StartTask(Args&&... args);
+    AsyncTaskId startTask(Args&&... args);
 
-    void UpdateTasks();
+    void update();
 
     template <typename TaskType>
     bool hasTaskOfType() const;
@@ -33,11 +33,11 @@ private:
 };
 
 template <typename TaskType, typename... Args>
-AsyncTaskId AsyncTaskManager::StartTask(Args&&... args) {
+AsyncTaskId AsyncTaskManager::startTask(Args&&... args) {
     AsyncTaskId id = mNextId++;
 
     auto task = std::make_unique<TaskType>(id, std::forward<Args>(args)...);
-    task->Start();
+    task->start();
 
     mTasks.emplace_back(std::move(task));
 

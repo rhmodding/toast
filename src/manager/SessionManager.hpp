@@ -21,7 +21,9 @@ class SessionManager : public Singleton<SessionManager> {
 private:
     SessionManager() = default;
 public:
-    ~SessionManager() = default;
+    ~SessionManager() {
+        removeAllSessions();
+    }
 
 public:
     std::vector<Session>& getSessions() { return mSessions; }
@@ -38,27 +40,28 @@ public:
     ssize_t getCurrentSessionIndex() const { return mCurrentSessionIndex; }
     void setCurrentSessionIndex(ssize_t index);
 
-    bool isCurrentSessionModified() const;
+    bool getCurrentSessionModified() const;
     void setCurrentSessionModified(bool modified);
 
-    bool isSessionAvailable() const { return mCurrentSessionIndex >= 0; }
+    bool anySessionOpened() const { return mCurrentSessionIndex >= 0; }
 
     // Create a new session from the path of a cellanim archive (.szs).
     //
     // Returns: index of new session if succeeded, -1 if failed
-    ssize_t CreateSession(std::string_view filePath);
+    ssize_t createSession(std::string_view filePath);
+    inline ssize_t createSession(const std::string& filePath) {
+        return createSession(std::string_view(filePath));
+    }
 
     // Export a session as a cellanim archive (.szs) to the specified path.
     // Note: if dstFilePath is empty, then the session's resourcePath is used.
     //
     // Returns: true if succeeded, false if failed
-    bool ExportSession(unsigned sessionIndex, std::string_view dstFilePath = {});
+    bool exportSession(unsigned sessionIndex, std::string_view dstFilePath = {});
 
-    // Remove a session by its index.
-    void RemoveSession(unsigned sessionIndex);
+    void removeSession(unsigned sessionIndex);
 
-    // Remove all sessions.
-    void RemoveAllSessions();
+    void removeAllSessions();
 
 private:
     std::vector<Session> mSessions;

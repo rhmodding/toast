@@ -15,8 +15,8 @@
 
 class CellAnimRenderer {
 public:
-    static void InitShader();
-    static void DestroyShader();
+    static void beginShader();
+    static void endShader();
 
 private:
     static void renderPartCallback(const ImDrawList* parentList, const ImDrawCmd* cmd);
@@ -56,19 +56,19 @@ public:
     bool getVisible() const { return mVisible; }
     void setVisible(bool visible) { mVisible = visible; }
 
-    void Draw(
+    void draw(
         ImDrawList* drawList,
         const CellAnim::Animation& animation, unsigned keyIndex,
         bool allowOpacity = true
     ) __attribute__((nonnull));
 
-    void DrawTex(
+    void drawTex(
         GLuint textureId,
         const CellAnim::Animation& animation, unsigned keyIndex,
         bool allowOpacity = true
     );
 
-    void DrawOnionSkin(
+    void drawOnionSkin(
         ImDrawList* drawList,
         const CellAnim::Animation& animation, unsigned keyIndex,
         unsigned backCount, unsigned frontCount,
@@ -89,7 +89,7 @@ private:
     ImDrawList* currentDrawList;
     GLuint currentDrawTex;
 
-    void InternDraw(
+    void drawImpl(
         DrawMethod drawMethod,
         const CellAnim::AnimationKey& key, int partIndex,
         uint32_t colorMod,

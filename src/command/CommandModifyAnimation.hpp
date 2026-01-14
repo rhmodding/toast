@@ -8,6 +8,7 @@
 #include "manager/SessionManager.hpp"
 #include "manager/PlayerManager.hpp"
 
+#include "Logging.hpp"
 
 class CommandModifyAnimation : public BaseCommand {
 public:
@@ -17,24 +18,39 @@ public:
         CellAnim::Animation newAnimation
     ) :
         mCellAnimIndex(cellanimIndex), mAnimationIndex(animationIndex),
-        mNewAnimation(newAnimation)
+        mNewAnimation(newAnimation),
+        mIsError(false)
     {
+        if (mNewAnimation.keys.empty()) {
+            Logging::error("[CommmandModifyAnimation] Cannot submit animation with no keys: it's super illegal!!!");
+            mIsError = true;
+            return;
+        }
+
         mOldAnimation = getAnimation();
     }
     ~CommandModifyAnimation() = default;
 
-    void Execute() override {
+    void execute() override {
+        if (mIsError) {
+            return;
+        }
+
         getAnimation() = mNewAnimation;
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
+        if (mIsError) {
+            return;
+        }
+
         getAnimation() = mOldAnimation;
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
@@ -45,6 +61,8 @@ private:
 
     CellAnim::Animation mOldAnimation;
     CellAnim::Animation mNewAnimation;
+
+    bool mIsError;
 
     CellAnim::Animation& getAnimation() {
         return

@@ -72,7 +72,7 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
     std::memset(newImage.get(), 0x00, (pixelCount * 4));
 
     std::unique_ptr<unsigned char[]> srcImage(new unsigned char[pixelCount * 4]);
-    cellanimSheet->GetRGBA32(srcImage.get());
+    cellanimSheet->getRGBA32(srcImage.get());
 
     for (unsigned i = 0; i < numRects; i++) {
         const auto& rect = sortedRects[i];
@@ -144,7 +144,7 @@ bool SpritesheetFixUtil::FixRepack(Session& session, int sheetIndex) {
     }
 
     auto newTexture = std::make_shared<TextureEx>();
-    newTexture->LoadRGBA32(newImage.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
+    newTexture->loadRGBA32(newImage.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
 
     for (auto& arrangement : arrangements) {
         for (auto& part : arrangement.parts) {
@@ -194,7 +194,7 @@ bool SpritesheetFixUtil::FixAlphaBleed(Session& session, int sheetIndex) {
     const unsigned pixelCount = cellanimSheet->getPixelCount();
 
     std::unique_ptr<unsigned char[]> texture(new unsigned char[pixelCount * 4]());
-    cellanimSheet->GetRGBA32(texture.get());
+    cellanimSheet->getRGBA32(texture.get());
 
     // Attempt to 'fix' every pixel
     for (unsigned y = 0; y < height; y++) {
@@ -228,7 +228,7 @@ bool SpritesheetFixUtil::FixAlphaBleed(Session& session, int sheetIndex) {
     }
 
     auto newTexture = std::make_shared<TextureEx>();
-    newTexture->LoadRGBA32(texture.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
+    newTexture->loadRGBA32(texture.get(), cellanimSheet->getWidth(), cellanimSheet->getHeight());
 
     newTexture->setName(cellanimSheet->getName());
 

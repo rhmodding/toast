@@ -22,7 +22,7 @@ AsyncTaskOptimizeCellanim::AsyncTaskOptimizeCellanim(
 static void removeAnimationNames(Session* session) {
     auto& animations = session->getCurrentCellAnim().object->getAnimations();
 
-    MainThreadTaskManager::getInstance().QueueTask([&animations]() {
+    MainThreadTaskManager::getInstance().queueTask([&animations]() {
         for (auto& animation : animations)
             animation.name.clear();
     }).get();
@@ -47,7 +47,7 @@ static void removeUnusedArrangements(Session* session) {
     auto& animations = cellanim->getAnimations();
     auto& arrangements = cellanim->getArrangements();
 
-    MainThreadTaskManager::getInstance().QueueTask(
+    MainThreadTaskManager::getInstance().queueTask(
     [&arrangements, &toErase, &animations]() {
         for (size_t i = 0; i < toErase.size(); i++) {
             unsigned index = toErase.at(i);
@@ -68,7 +68,7 @@ static void removeUnusedArrangements(Session* session) {
             }
         }
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
     }).get();
 }
 
@@ -97,7 +97,7 @@ static void removeDuplicateArrangements(Session* session) {
     std::sort(toErase.begin(), toErase.end());
     toErase.erase(std::unique(toErase.begin(), toErase.end()), toErase.end());
 
-    MainThreadTaskManager::getInstance().QueueTask(
+    MainThreadTaskManager::getInstance().queueTask(
     [&arrangements, &animations, toErase, remap]() mutable {
         for (auto& animation : animations) {
             for (auto& key : animation.keys) {
@@ -124,7 +124,7 @@ static void removeDuplicateArrangements(Session* session) {
             }
         }
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
     }).get();
 }
 
@@ -158,7 +158,7 @@ static void downscaleSpritesheet(Session* session, const OptimizeCellanimOptions
     // RGBA image
     unsigned char* originalPixels = new unsigned char[sheet->getWidth() * sheet->getHeight() * 4];
 
-    MainThreadTaskManager::getInstance().QueueTask([&sheet, originalPixels]() {
+    MainThreadTaskManager::getInstance().queueTask([&sheet, originalPixels]() {
         glBindTexture(GL_TEXTURE_2D, sheet->getTextureId());
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, originalPixels);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -177,12 +177,12 @@ static void downscaleSpritesheet(Session* session, const OptimizeCellanimOptions
 
     delete[] originalPixels;
 
-    sheet->LoadRGBA32(downscaledPixels, newWidth, newHeight);
+    sheet->loadRGBA32(downscaledPixels, newWidth, newHeight);
 
     delete[] downscaledPixels;
 }
 
-void AsyncTaskOptimizeCellanim::Run() {
+void AsyncTaskOptimizeCellanim::run() {
     if (mOptions.removeAnimationNames)
         removeAnimationNames(mSession);
 
@@ -196,7 +196,7 @@ void AsyncTaskOptimizeCellanim::Run() {
         downscaleSpritesheet(mSession, mOptions);
 }
 
-void AsyncTaskOptimizeCellanim::Effect() {
+void AsyncTaskOptimizeCellanim::effect() {
     // TODO: make this whole thing undo-able
     mSession->clearUndoRedo();
     //SessionManager::getInstance().SessionChanged();

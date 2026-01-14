@@ -13,9 +13,9 @@ static CellAnim::Animation arrangementModeAnim {
 };
 
 static void matchSelectedParts(const CellAnim::Arrangement& before, const CellAnim::Arrangement& after) {
-    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getPartSelectState();
 
-    for (auto& part : selectionState.mSelectedParts) {
+    for (auto& part : selectionState.mSelected) {
         const auto& beforePart = before.parts.at(part.index);
 
         int matcher = ArrangePartMatchUtil::tryMatchByName(beforePart, after, part.index);
@@ -28,10 +28,10 @@ static void matchSelectedParts(const CellAnim::Arrangement& before, const CellAn
         }
     }
 
-    selectionState.correctSelectedParts();
+    selectionState.validateSelection();
 }
 
-void PlayerManager::Update() {
+void PlayerManager::update() {
     if (!mPlaying || arrangementModeEnabled())
         return;
 
@@ -92,7 +92,7 @@ void PlayerManager::Update() {
         mTimeLeft = 1.f / mFrameRate;
     }
 
-    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getPartSelectState();
 
     if (arrangementIdxBefore != keys.at(mKeyIndex).arrangementIndex) {
         matchSelectedParts(
@@ -100,19 +100,20 @@ void PlayerManager::Update() {
             arrangements.at(keys.at(mKeyIndex).arrangementIndex)
         );
 
-        selectionState.correctSelectedParts();
+        selectionState.validateSelection();
     }
 
     mTimeLeft -= delta;
 }
 
-void PlayerManager::ResetTimer() {
+void PlayerManager::resetTiming() {
     mTimeLeft = 1.f / mFrameRate;
     mTickPrev = std::chrono::steady_clock::now();
 }
 
 void PlayerManager::setAnimationIndex(unsigned index) {
-    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+    auto &partSelState = SessionManager::getInstance().getCurrentSession()->getPartSelectState();
+    auto &keySelState = SessionManager::getInstance().getCurrentSession()->getKeySelectState();
 
     mAnimationIndex = index;
     mKeyIndex = std::min<unsigned>(
@@ -124,7 +125,8 @@ void PlayerManager::setAnimationIndex(unsigned index) {
         mHoldFramesLeft, static_cast<int>(getKey().holdFrames)
     );
 
-    selectionState.correctSelectedParts();
+    partSelState.validateSelection();
+    keySelState.validateSelection();
 }
 
 CellAnim::Animation& PlayerManager::getAnimation() const {
@@ -145,12 +147,12 @@ void PlayerManager::setKeyIndex(unsigned index) {
         );
     }
 
-    auto& selectionState = SessionManager::getInstance().getCurrentSession()->getCurrentSelectionState();
+    auto& partSelect = SessionManager::getInstance().getCurrentSession()->getPartSelectState();
 
     mKeyIndex = index;
     mHoldFramesLeft = keys.at(index).holdFrames;
 
-    selectionState.correctSelectedParts();
+    partSelect.validateSelection();
 }
 
 unsigned PlayerManager::getTotalFrames() const {
@@ -203,7 +205,7 @@ void PlayerManager::setElapsedFrames(size_t frames) {
     }
 }
 
-void PlayerManager::correctState() {
+void PlayerManager::validateState() {
     if (SessionManager::getInstance().getCurrentSessionIndex() >= 0) {
         unsigned arrangementCount = getCellAnim()->getArrangements().size();
         if (getArrangementModeIdx() >= arrangementCount)

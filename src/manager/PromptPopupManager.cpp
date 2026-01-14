@@ -27,7 +27,7 @@ static const ResponseEntry sResponseEntries[] = {
     { PromptPopup::RESPONSE_ABORT,  "Abort"  },
 };
 
-bool PromptPopup::Show() {
+bool PromptPopup::show() {
     bool didShow = false;
 
     const std::string popupName = this->title + "###PromptPopup_" + std::to_string(this->id);
@@ -66,7 +66,7 @@ bool PromptPopup::Show() {
                 }
 
                 if (ImGui::Button(entry.label)) {
-                    this->DoCallback(static_cast<PromptPopup::Response>(entry.flag));
+                    this->doCallback(static_cast<PromptPopup::Response>(entry.flag));
                     this->hasEnded = true;
 
                     ImGui::CloseCurrentPopup();
@@ -85,12 +85,12 @@ bool PromptPopup::Show() {
     return didShow;
 }
 
-void PromptPopupManager::Update() {
-    FlushQueue();
+void PromptPopupManager::update() {
+    queueFlush();
 
     ImGui::PushOverrideID(CRC32Util::compute("PromptPopups"));
     for (auto& popup : mActivePopups) {
-        popup.Show();
+        popup.show();
     }
     ImGui::PopID();
 
@@ -102,5 +102,5 @@ void PromptPopupManager::Update() {
         mActivePopups.end()
     );
 
-    FlushQueue();
+    queueFlush();
 }

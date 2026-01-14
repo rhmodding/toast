@@ -1,29 +1,6 @@
 #ifndef CONSOLE_SPLASH_HPP
 #define CONSOLE_SPLASH_HPP
 
-const char* consoleSplash =
-"                                                 " "\n"
-"  ,d                                      ,d     " "\n"
-"  88                                      88     " "\n"
-"MM88MMM ,adPPYba,  ,adPPYYba, ,adPPYba, MM88MMM  " "\n"
-"  88   a8\"     \"8a \"\"     `Y8 I8[    \"\"   88     " "\n"
-"  88   8b       d8 ,adPPPPP88  `\"Y8ba,    88     " "\n"
-"  88,  \"8a,   ,a8\" 88,    ,88 aa    ]8I   88,    " "\n"
-"  \"Y888 `\"YbbdP\"'  `\"8bbdP\"Y8 `\"YbbdP\"'   \"Y888  " "\n"
-"                                                 " "\n"
-"                                                 " "\n"
-"        the ultimate cellanim modding tool       " "\n"
-" for Rhythm Heaven Fever / Rhythm Heaven Megamix " "\n"
-"                                                 " "\n"
-"      toast comes with ABSOLUTELY NO WARRANTY.   " "\n"
-"     This is free software, and you are welcome  " "\n"
-"    to redistribute it under certain conditions. " "\n"
-"       See the GNU General Public License for    " "\n"
-"                    more details.                " "\n"
-"                                                 " "\n"
-"            copyright \xC2\xA9 2025 conhlee           " "\n"
-"                                                 " "\n"
-"         https://github.com/conhlee/toast        "
-;
+extern "C" { extern const char gConsoleSplash[]; }
 
 #endif // CONSOLE_SPLASH_HPP

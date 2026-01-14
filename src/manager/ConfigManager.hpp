@@ -148,12 +148,12 @@ public:
         mConfig = newConfig;
     }
 
-    void LoadConfig();
-    void SaveConfig() const;
+    void loadConfig();
+    void saveConfig() const;
 
-    void LoadDefaults();
+    void loadDefault();
 
-    void addRecentlyOpened(const std::string_view path);
+    void pushRecentlyOpened(const std::string_view path);
 
 private:
     Config mConfig {};

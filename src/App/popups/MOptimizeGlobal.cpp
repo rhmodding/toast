@@ -69,7 +69,7 @@ void Popups::MOptimizeGlobal::update() {
         if (ImGui::Button("OK", { 120.f, 0.f })) {
             ImGui::CloseCurrentPopup();
 
-            AsyncTaskManager::getInstance().StartTask<AsyncTaskOptimizeCellanim>(
+            AsyncTaskManager::getInstance().startTask<AsyncTaskOptimizeCellanim>(
                 sessionManager.getCurrentSession(), options
             );
         } ImGui::SetItemDefaultFocus();

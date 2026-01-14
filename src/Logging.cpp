@@ -19,18 +19,19 @@ std::shared_ptr<spdlog::logger> Logging::sStdoutLogger = nullptr;
 std::shared_ptr<spdlog::logger> Logging::sStderrLogger = nullptr;
 std::shared_ptr<spdlog::logger> Logging::sFileLogger = nullptr;
 
-void Logging::Open(std::string_view filename) {
+void Logging::open(std::string_view filename) {
     sStdoutLogger = makeDedupedLogger<sink::stdout_color_sink_mt>("stdout_logger");
     sStderrLogger = makeDedupedLogger<sink::stderr_color_sink_mt>("stderr_logger");
 
     try {
         sFileLogger = makeDedupedLogger<sink::basic_file_sink_mt>("file_logger", std::string { filename });
-    } catch (const spdlog::spdlog_ex &ex) {
-        sStderrLogger->error("[Logging::Open] Failed to open logfile at path \"{}\"!", filename);
-        sStderrLogger->error("[Logging::Open] {}", ex.what());
+    }
+    catch (const spdlog::spdlog_ex &ex) {
+        sStderrLogger->error("[Logging::open] Failed to open logfile at path \"{}\"!", filename);
+        sStderrLogger->error("[Logging::open] {}", ex.what());
     }
 }
-void Logging::Close() {
+void Logging::close() {
     sStdoutLogger = nullptr;
     sStderrLogger = nullptr;
     sFileLogger = nullptr;

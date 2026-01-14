@@ -38,7 +38,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
         return std::nullopt; // return nothing (std::optional)
     }
 
-    std::vector<unsigned char> result(detail::MaxCompressedSize(dataSize));
+    std::vector<unsigned char> result(detail::maxCompressedSize(dataSize));
 
     Yaz0Header* header = reinterpret_cast<Yaz0Header*>(result.data());
     *header = Yaz0Header {
@@ -47,7 +47,7 @@ std::optional<std::vector<unsigned char>> compress(const unsigned char* data, co
 
     auto compressStartTime = std::chrono::high_resolution_clock::now();
 
-    size_t finalSize = detail::CompressImpl(data, dataSize, result.data());
+    size_t finalSize = detail::compressImpl(data, dataSize, result.data());
     result.resize(finalSize);
 
     auto compressTotalTime = std::chrono::high_resolution_clock::now() - compressStartTime;

@@ -122,7 +122,7 @@ public:
 
     bool isInitialized() const { return mInitialized; }
 
-    [[nodiscard]] std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> serialize();
 
 public:
     bool mInitialized { false };

@@ -49,29 +49,29 @@ public:
     bool hasEnded { false };
 
 public:
-    bool Show();
+    bool show();
 
 private:
-    void DoCallback(Response selectedRes) {
+    void doCallback(Response selectedRes) {
         if (callback) {
             callback(selectedRes, hasInputField ? &currentInputText : nullptr);
         }
     }
 
 public: // Building methods
-    PromptPopup& WithResponses(ResponseFlags flags, Response defaultSelect = RESPONSE_NULL) {
+    PromptPopup& withResponses(ResponseFlags flags, Response defaultSelect = RESPONSE_NULL) {
         availableResponseFlags = flags;
         defaultResponse = defaultSelect;
         return *this;
     }
 
-    PromptPopup& WithInput(std::string defaultInput = {}) {
+    PromptPopup& withInput(std::string defaultInput = {}) {
         hasInputField = true;
         currentInputText = std::move(defaultInput);
         return *this;
     }
 
-    PromptPopup& WithCallback(std::function<void(Response, const std::string* input)> cb) {
+    PromptPopup& withCallback(std::function<void(Response, const std::string* input)> cb) {
         callback = std::move(cb);
         return *this;
     }
@@ -86,7 +86,7 @@ public:
     ~PromptPopupManager() = default;
 
 public:
-    [[nodiscard]] static PromptPopup CreatePrompt(std::string title, std::string message) {
+    [[nodiscard]] static PromptPopup createPrompt(std::string title, std::string message) {
         PromptPopup popup;
         popup.id = sNextId++;
         popup.title = std::move(title);
@@ -94,14 +94,14 @@ public:
         return popup;
     }
 
-    void Queue(PromptPopup popup) {
+    void queue(PromptPopup popup) {
         mQueuedPopups.push_back(std::move(popup));
     }
     
-    void Update();
+    void update();
 
 private:
-    void FlushQueue() {
+    void queueFlush() {
         if (!mQueuedPopups.empty()) {
             mActivePopups.insert(
                 mActivePopups.end(),

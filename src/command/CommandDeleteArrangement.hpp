@@ -20,7 +20,7 @@ public:
     }
     ~CommandDeleteArrangement() = default;
 
-    void Execute() override {
+    void execute() override {
         auto& arrangements = getArrangements();
 
         auto it = arrangements.begin() + mArrangementIndex;
@@ -38,12 +38,12 @@ public:
             }
         }
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         auto& arrangements = getArrangements();
 
         auto it = arrangements.begin() + mArrangementIndex;
@@ -59,7 +59,7 @@ public:
             }
         }
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

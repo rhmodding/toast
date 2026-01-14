@@ -90,10 +90,10 @@ void SessionManager::setCurrentSessionIndex(ssize_t index) {
         Logging::info("[SessionManager::setCurrentSessionIndex] Deselected current session.");
     }
 
-    PlayerManager::getInstance().correctState();
+    PlayerManager::getInstance().validateState();
 }
 
-bool SessionManager::isCurrentSessionModified() const {
+bool SessionManager::getCurrentSessionModified() const {
     const Session* currentSession = getCurrentSession();
     if (currentSession) {
         return currentSession->modified;
@@ -127,7 +127,7 @@ static bool InitRvlSession(Session& session, const Archive::DARCHObject& archive
     );
 
     if (rootDirIt == archive.getStructure().subdirectories.end()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The archive does not contain the root directory: are you sure this is a cellanim archive?"
         ));
@@ -143,7 +143,7 @@ static bool InitRvlSession(Session& session, const Archive::DARCHObject& archive
     );
 
     if (blytDirIt != rootDirIt->subdirectories.end()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The selected file is a layout archive; please choose a cellanim archive instead."
         ));
@@ -152,7 +152,7 @@ static bool InitRvlSession(Session& session, const Archive::DARCHObject& archive
 
     const Archive::File* __tplSearch = Archive::findFile("cellanim.tpl", *rootDirIt);
     if (!__tplSearch) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The texture file (cellanim.tpl) was not found: are you sure this is a cellanim archive?"
         ));
@@ -161,7 +161,7 @@ static bool InitRvlSession(Session& session, const Archive::DARCHObject& archive
 
     TPL::TPLObject tplObject (__tplSearch->data.data(), __tplSearch->data.size());
     if (!tplObject.isInitialized()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The texture file (cellanim.tpl) could not be deserialized; it might be corrupted."
         ));
@@ -178,7 +178,7 @@ static bool InitRvlSession(Session& session, const Archive::DARCHObject& archive
     }
 
     if (brcadFiles.empty()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The archive does not contain any cellanim data files (.brcad): are you\n"
             "sure this is a cellanim archive?"
@@ -210,7 +210,7 @@ static bool InitRvlSession(Session& session, const Archive::DARCHObject& archive
         cellanim.object->setName(file->name.substr(0, file->name.size() - STR_LIT_LEN(".brcad")));
 
         if (!cellanim.object->isInitialized()) {
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                 "A cellanim data file (.brcad) could not be deserialized; it might be corrupted."
             ));
@@ -218,7 +218,7 @@ static bool InitRvlSession(Session& session, const Archive::DARCHObject& archive
         }
 
         if (cellanim.object->getType() != CellAnim::CELLANIM_TYPE_RVL) {
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                 "A cellanim data file (.brcad) is in the wrong format (expected Wii, got 3DS)."
             ));
@@ -289,7 +289,7 @@ static bool InitRvlSession(Session& session, const Archive::DARCHObject& archive
     // Note: this is wrapped in a MainThreadTask since we need to get access to the
     //       GL context to create GPU textures. This can be outside of a MainThreadTask
     //       but then it would use multiple MainThreadTasks instead of just one.
-    MainThreadTaskManager::getInstance().QueueTask([&tplObject, &session]() {
+    MainThreadTaskManager::getInstance().queueTask([&tplObject, &session]() {
         for (auto& texture : tplObject.mTextures) {
             std::shared_ptr<TextureEx> sheet = std::make_shared<TextureEx>(
                 texture.width, texture.height,
@@ -320,7 +320,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
     );
 
     if (blytDirIt != archive.getStructure().subdirectories.end()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The selected file is a layout archive; please choose a cellanim archive instead."
         ));
@@ -334,7 +334,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
     );
 
     if (rootDirIt == archive.getStructure().subdirectories.end()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The archive does not contain the root directory: are you sure this is a cellanim archive?"
         ));
@@ -351,7 +351,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
     }
 
     if (bccadFiles.empty()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The archive does not contain any cellanim data files (.bccad): are you\n"
             "sure this is a cellanim archive?"
@@ -393,7 +393,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
         }
 
         if (!foundMatch) {
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                 "One or more cellanim data files (.bccad) could not be matched with a\n"
                 "texture file (.ctpk); one may be missing."
@@ -416,7 +416,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
         cellanim.object->setName(file->name.substr(0, file->name.size() - STR_LIT_LEN(".bccad")));
 
         if (!cellanim.object->isInitialized()) {
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                 "A cellanim data file (.bccad) could not be deserialized; it might be corrupted."
             ));
@@ -424,7 +424,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
         }
 
         if (cellanim.object->getType() != CellAnim::CELLANIM_TYPE_CTR) {
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                 "A cellanim data file (.bccad) is in the wrong format (expected 3DS, got Wii)."
             ));
@@ -440,7 +440,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
     //       but then it would use multiple MainThreadTasks instead of just one.
     bool didError = false;
 
-    MainThreadTaskManager::getInstance().QueueTask([&didError, &ctpkFiles, &session]() {
+    MainThreadTaskManager::getInstance().queueTask([&didError, &ctpkFiles, &session]() {
         for (size_t i = 0; i < ctpkFiles.size(); i++) {
             const auto* file = ctpkFiles[i];
 
@@ -448,7 +448,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
                 file->data.data(), file->data.size()
             );
             if (!ctpkObject.isInitialized()) {
-                PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                     std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                     "A texture file (.ctpk) could not be deserialized; it might be corrupted."
                 ));
@@ -457,7 +457,7 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
             }
 
             if (ctpkObject.mTextures.empty()) {
-                PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                     std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                     "No textures were found in a texture file (.ctpk) when at least one was expected."
                 ));
@@ -494,11 +494,11 @@ static bool InitCtrSession(Session& session, const Archive::SARCObject& archive)
     return true;
 }
 
-ssize_t SessionManager::CreateSession(std::string_view filePath) {
+ssize_t SessionManager::createSession(std::string_view filePath) {
     if (!FileUtil::doesFileExist(filePath)) {
-        Logging::error("[SessionManager::CreateSession] File does not exist: {}", filePath);
+        Logging::error("[SessionManager::createSession] File does not exist: {}", filePath);
 
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The specified file could not be opened because it does not exist."
         ));
@@ -506,13 +506,13 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
         return -1;
     }
 
-    Logging::info("[SessionManager::CreateSession] Creating session from path \"{}\"..", filePath);
+    Logging::info("[SessionManager::createSession] Creating session from path \"{}\"..", filePath);
 
     auto data = FileUtil::openFileData(filePath);
     if (!data.has_value()) {
-        Logging::error("[SessionManager::CreateSession] Error opening file at path: {}", filePath);
+        Logging::error("[SessionManager::createSession] Error opening file at path: {}", filePath);
 
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The specified file could not be opened; do you have read permissions?"
         ));
@@ -528,7 +528,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
 
         const auto decompressedData = Yaz0::decompress(data->data(), data->size());
         if (!decompressedData.has_value()) {
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                 "The archive data could not be decompressed; it might be corrupted."
             ));
@@ -542,7 +542,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
 
         const auto decompressedData = NZlib::decompress(data->data(), data->size());
         if (!decompressedData.has_value()) {
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                 "The archive data could not be decompressed; it might be corrupted."
             ));
@@ -552,7 +552,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
         data = std::move(decompressedData);
     }
     else {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(CREATE_SESSION_ERR_POPUP_TITLE),
             "The compressed data is invalid: are you sure this is a cellanim archive?"
         ));
@@ -570,7 +570,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
 
         if (!archive.isInitialized()) {
             initOk = false;
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                 "The archive data could not be deserialized: are you sure this is a cellanim archive?"
             ));
@@ -589,20 +589,20 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
                 const uint32_t observedMagic = *reinterpret_cast<const uint32_t*>(data->data());
                 switch (observedMagic) {
                 case IDENTIFIER_TO_U32('C','G','F','X'):
-                    PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                    PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                         std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                         "The selected file is a BCRES; please choose a cellanim archive instead."
                     ));
                     break;
                 case IDENTIFIER_TO_U32('S','P','B','D'):
-                    PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                    PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                         std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                         "The selected file is an effect file; please choose a cellanim archive instead."
                     ));
                     break;
 
                 default:
-                    PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                    PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                         std::string(CREATE_SESSION_ERR_POPUP_TITLE),
                         "The archive data could not be deserialized: are you sure this is a cellanim archive?"
                     ));
@@ -617,7 +617,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
     } break;
 
     default:
-        throw std::runtime_error("SessionManager::CreateSession: invalid type; this shouldn't be reached");
+        throw std::runtime_error("SessionManager::createSession: invalid type; this shouldn't be reached");
     }
 
     if (!initOk) {
@@ -635,7 +635,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
     const ssize_t sessionIndex = static_cast<ssize_t>(mSessions.size()) - 1;
 
     Logging::info(
-        "[SessionManager::CreateSession] Created session no. {}.",
+        "[SessionManager::createSession] Created session no. {}.",
         sessionIndex + 1
     );
 
@@ -645,8 +645,7 @@ ssize_t SessionManager::CreateSession(std::string_view filePath) {
 static bool SerializeRvlSession(const Session& session, std::vector<unsigned char>& output) {
     Archive::DARCHObject archive;
 
-    archive.getStructure().AddDirectory(Archive::Directory("."));
-    auto& directory = archive.getStructure().subdirectories.back();
+    auto& directory = archive.getStructure().newDirectory(".");
 
     // BRCAD files
     for (size_t i = 0; i < session.cellanims.size(); i++) {
@@ -664,9 +663,9 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
         // Make sure usePalette is synced.
         session.cellanims[i].object->setUsePalette(TPL::getImageFormatPaletted(sheet->getTPLOutputFormat()));
 
-        file.data = session.cellanims[i].object->Serialize();
+        file.data = session.cellanims[i].object->serialize();
 
-        directory.AddFile(std::move(file));
+        directory.addFile(std::move(file));
     }
 
     // Header files
@@ -698,7 +697,7 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
 
         file.data.insert(file.data.end(), strShiftJIS.begin(), strShiftJIS.end());
 
-        directory.AddFile(std::move(file));
+        directory.addFile(std::move(file));
     }
 
     // TPL file
@@ -708,14 +707,14 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
         TPL::TPLObject tplObject;
         bool didError = false;
 
-        MainThreadTaskManager::getInstance().QueueTask([&session, &tplObject, &didError]() {
+        MainThreadTaskManager::getInstance().queueTask([&session, &tplObject, &didError]() {
             tplObject.mTextures.resize(session.sheets->getTextureCount());
             for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
                 const auto& sheet = session.sheets->getTextureByIndex(i);
 
                 auto tplTexture = sheet->TPLTexture();
                 if (!tplTexture.has_value()) {
-                    PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                    PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                         std::string(EXPORT_SESSION_ERR_POPUP_TITLE),
                         "An error occurred when serializing the texture file; please check the log\n"
                         "for more details."
@@ -734,9 +733,9 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
 
         Logging::info("[SerializeRvlSession] Serializing textures..");
 
-        file.data = tplObject.Serialize();
+        file.data = tplObject.serialize();
 
-        directory.AddFile(std::move(file));
+        directory.addFile(std::move(file));
     }
 
     // TED file
@@ -746,14 +745,14 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
 
         file.data = std::move(*editorDataOpt);
 
-        directory.AddFile(std::move(file));
+        directory.addFile(std::move(file));
     }
 
     Logging::info("[SerializeRvlSession] Serializing archive..");
 
-    directory.SortAlphabetic();
+    directory.sortAlphabetic();
 
-    auto archiveBinary = archive.Serialize();
+    auto archiveBinary = archive.serialize();
 
     Logging::info("[SerializeRvlSession] Compressing archive..");
 
@@ -763,7 +762,7 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
     );
 
     if (!compressedArchive.has_value()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(EXPORT_SESSION_ERR_POPUP_TITLE),
             "An error occurred when compressing the archive; please check the log for\n"
             "more details."
@@ -780,8 +779,7 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
 static bool SerializeCtrSession(const Session& session, std::vector<unsigned char>& output) {
     Archive::SARCObject archive;
 
-    archive.getStructure().AddDirectory(Archive::Directory("arc"));
-    auto& directory = archive.getStructure().subdirectories.back();
+    auto& directory = archive.getStructure().newDirectory("arc");
 
     // BCCAD files
     for (size_t i = 0; i < session.cellanims.size(); i++) {
@@ -794,23 +792,23 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
             cellanim.object->getName()
         );
 
-        file.data = cellanim.object->Serialize();
+        file.data = cellanim.object->serialize();
 
-        directory.AddFile(std::move(file));
+        directory.addFile(std::move(file));
     }
 
     // CTPK files
     std::vector<CTPK::CTPKTexture> ctpkTextures;
     bool didError = false;
 
-    MainThreadTaskManager::getInstance().QueueTask([&session, &ctpkTextures, &didError]() {
+    MainThreadTaskManager::getInstance().queueTask([&session, &ctpkTextures, &didError]() {
         ctpkTextures.resize(session.sheets->getTextureCount());
         for (unsigned i = 0; i < session.sheets->getTextureCount(); i++) {
             const auto& sheet = session.sheets->getTextureByIndex(i);
 
             auto ctpkTexture = sheet->CTPKTexture();
             if (!ctpkTexture.has_value()) {
-                PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+                PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                     std::string(EXPORT_SESSION_ERR_POPUP_TITLE),
                     "An error occurred when serializing a texture file; please check the log\n"
                     "for more details."
@@ -845,9 +843,9 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
             texture->getName()
         );
 
-        file.data = ctpkObject.Serialize();
+        file.data = ctpkObject.serialize();
 
-        directory.AddFile(std::move(file));
+        directory.addFile(std::move(file));
     }
 
     ctpkTextures.clear();
@@ -859,12 +857,12 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
 
         file.data = std::move(*editorDataOpt);
 
-        directory.AddFile(std::move(file));
+        directory.addFile(std::move(file));
     }
 
     Logging::info("[SerializeCtrSession] Serializing archive..");
 
-    auto archiveBinary = archive.Serialize();
+    auto archiveBinary = archive.serialize();
 
     Logging::info("[SerializeCtrSession] Compressing archive..");
 
@@ -874,7 +872,7 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
     );
 
     if (!compressedArchive.has_value()) {
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(EXPORT_SESSION_ERR_POPUP_TITLE),
             "An error occurred when compressing the archive; please check the log for\n"
             "more details."
@@ -888,7 +886,7 @@ static bool SerializeCtrSession(const Session& session, std::vector<unsigned cha
     return true;
 }
 
-bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFilePath) {
+bool SessionManager::exportSession(unsigned sessionIndex, std::string_view dstFilePath) {
     std::lock_guard<std::mutex> lock(mMtx);
 
     if (sessionIndex >= mSessions.size())
@@ -900,7 +898,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         dstFilePath = session.resourcePath;
 
     Logging::info(
-        "[SessionManager::ExportSession] Exporting session no. {} to path \"{}\"..",
+        "[SessionManager::exportSession] Exporting session no. {} to path \"{}\"..",
         sessionIndex+1, dstFilePath
     );
 
@@ -916,7 +914,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         break;
 
     default:
-        throw std::runtime_error("SessionManager::ExportSession: invalid type; this shouldn't be reached");
+        throw std::runtime_error("SessionManager::exportSession: invalid type; this shouldn't be reached");
     }
 
     if (!initOk)
@@ -931,7 +929,7 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         std::string backupPath = std::string(dstFilePath) + ".bak";
 
         Logging::info(
-            "[SessionManager::ExportSession] Backing up file at \"{}\" to \"{}\"..",
+            "[SessionManager::exportSession] Backing up file at \"{}\" to \"{}\"..",
             dstFilePath, backupPath
         );
 
@@ -941,9 +939,9 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         );
 
         if (!success) {
-            Logging::error("[SessionManager::ExportSession] Failed to save backup of file! Aborting..");
+            Logging::error("[SessionManager::exportSession] Failed to save backup of file! Aborting..");
 
-            PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+            PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
                 std::string(EXPORT_SESSION_ERR_POPUP_TITLE),
                 "The output file could not be backed up; do you have file creation and/or\n"
                 "writing permissions?"
@@ -963,9 +961,9 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
         file.close();
     }
     else {
-        Logging::error("[SessionManager::ExportSession] Could not open output file! Aborting..");
+        Logging::error("[SessionManager::exportSession] Could not open output file! Aborting..");
 
-        PromptPopupManager::getInstance().Queue(PromptPopupManager::CreatePrompt(
+        PromptPopupManager::getInstance().queue(PromptPopupManager::createPrompt(
             std::string(EXPORT_SESSION_ERR_POPUP_TITLE),
             "The output file could not be opened for writing; do you have file creation\n"
             "and/or writing permissions?"
@@ -977,21 +975,21 @@ bool SessionManager::ExportSession(unsigned sessionIndex, std::string_view dstFi
     session.modified = false;
 
     Logging::info(
-        "[SessionManager::ExportSession] Finished exporting session no. {}.",
+        "[SessionManager::exportSession] Finished exporting session no. {}.",
         sessionIndex+1
     );
 
     return true;
 }
 
-void SessionManager::RemoveSession(unsigned sessionIndex) {
+void SessionManager::removeSession(unsigned sessionIndex) {
     std::lock_guard<std::mutex> lock(mMtx);
 
     if (sessionIndex >= mSessions.size())
         return;
 
     Logging::info(
-        "[SessionManager::RemoveSession] Removing session no. {}..",
+        "[SessionManager::removeSession] Removing session no. {}..",
         sessionIndex + 1
     );
 
@@ -1006,11 +1004,11 @@ void SessionManager::RemoveSession(unsigned sessionIndex) {
             static_cast<ssize_t>(mSessions.size()) - 1
         );
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
     }
 }
 
-void SessionManager::RemoveAllSessions() {
+void SessionManager::removeAllSessions() {
     std::lock_guard<std::mutex> lock(mMtx);
 
     unsigned sessionCount = mSessions.size();
@@ -1019,5 +1017,5 @@ void SessionManager::RemoveAllSessions() {
     mCurrentSessionIndex = -1;
 
     if (sessionCount != 0)
-        Logging::info("[SessionManager::RemoveAllSessions] Removed all sessions ({}).", sessionCount);
+        Logging::info("[SessionManager::removeAllSessions] Removed all sessions ({}).", sessionCount);
 }

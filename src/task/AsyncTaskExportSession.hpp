@@ -17,8 +17,8 @@ public:
     );
 
 protected:
-    void Run() override;
-    void Effect() override;
+    void run() override;
+    void effect() override;
 
 private:
     unsigned mSessionIndex;
@@ -26,7 +26,7 @@ private:
 
     bool mUseSessionPath;
 
-    std::atomic<bool> mResult { 0 };
+    std::atomic<bool> mResult;
 };
 
 #endif // ASYNC_TASK_EXPORTSESSION_HPP

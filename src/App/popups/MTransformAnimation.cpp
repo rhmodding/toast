@@ -14,7 +14,7 @@ void Popups::MTransformAnimation::update() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 
-    if (!sessionManager.isSessionAvailable())
+    if (!sessionManager.anySessionOpened())
         return;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 15.f, 15.f });

@@ -32,6 +32,7 @@ static const uint8_t  u8_max  = 0xFFu;
 
 void WindowTimeline::ChildToolbar() {
     PlayerManager& playerManager = PlayerManager::getInstance();
+    SessionManager& sessionManager = SessionManager::getInstance();
 
     ImGui::BeginChild("TimelineToolbar", { 0.f, 0.f }, ImGuiChildFlags_AutoResizeY);
 
@@ -46,6 +47,8 @@ void WindowTimeline::ChildToolbar() {
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 15.f, 0.f });
 
     if (ImGui::BeginTable("Table", 3, ImGuiTableFlags_BordersInnerV)) {
+        SelectionState &selectionState = sessionManager.getCurrentSession()->getKeySelectState();
+
         ImGui::TableNextRow();
 
         ImGui::TableSetColumnIndex(0);
@@ -71,7 +74,7 @@ void WindowTimeline::ChildToolbar() {
                 playerManager.setKeyIndex(0);
             }
 
-            playerManager.ResetTimer();
+            playerManager.resetTiming();
             playerManager.setPlaying(!playerManager.getPlaying());
         }
         ImGui::SameLine();
@@ -217,8 +220,8 @@ static void drawFrameIndic(float height, float keyWidth, float holdWidth, float 
 
     unsigned currentFrame = 1;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.f, 0.f });
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, 0.f });
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, 0.0f });
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.0f, 0.0f });
     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 
     ImGui::BeginGroup();
@@ -237,7 +240,7 @@ static void drawFrameIndic(float height, float keyWidth, float holdWidth, float 
 
         for (unsigned j = 0; j < keyDuration; ++j) {
             float width = (j == 0) ? keyWidth : holdWidth;
-            float spacing = (j == 0 || j == (keyDuration - 1)) ? keySpacing : 0.f;
+            float spacing = (j == 0 || j == (keyDuration - 1)) ? keySpacing : 0.0f;
 
             char textBuf[16];
             std::snprintf(textBuf, sizeof(textBuf), "%u", currentFrame++);
@@ -251,7 +254,6 @@ static void drawFrameIndic(float height, float keyWidth, float holdWidth, float 
 
             drawList->AddText({ textX, textY }, ImGui::GetColorU32(ImGuiCol_TextDisabled), textBuf);
 
-
             cursorX += width + spacing;
         }
     }
@@ -260,6 +262,122 @@ static void drawFrameIndic(float height, float keyWidth, float holdWidth, float 
 
     ImGui::PopStyleColor();
     ImGui::PopStyleVar(2);
+}
+
+static bool keySelectable(const char *label, bool selected, const ImVec2 &sizeArg) {
+    using namespace ImGui;
+
+    constexpr ImGuiSelectableFlags flags = ImGuiSelectableFlags_SelectOnNav;
+
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) {
+        return false;
+    }
+
+    ImGuiContext &g = *GImGui;
+    const ImGuiStyle &style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 labelSize = CalcTextSize(label, nullptr, true);
+
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 size = CalcItemSize(sizeArg, labelSize.x + style.FramePadding.x * 2.0f, labelSize.y + style.FramePadding.y * 2.0f);
+
+    const ImRect bb (pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+
+    const bool amIDisabled = (flags & ImGuiSelectableFlags_Disabled) != 0;
+    const ImGuiItemFlags extraItemFlags = amIDisabled ? (ImGuiItemFlags)ImGuiItemFlags_Disabled : ImGuiItemFlags_None;
+
+    bool amIVisible = ItemAdd(bb, id, nullptr, extraItemFlags);
+
+    const bool multiSelect = (g.LastItemData.ItemFlags & ImGuiItemFlags_IsMultiSelect) != 0;
+
+    if (!amIVisible) {
+        // Extra layer of "no logic clip" for box-select support (would be more overhead to add to ItemAdd)
+        if (!multiSelect || !g.BoxSelectState.UnclipMode || !g.BoxSelectState.UnclipRect.Overlaps(bb)) {
+            return false;
+        }
+    }
+
+    const bool globalDisable = (g.CurrentItemFlags & ImGuiItemFlags_Disabled) != 0;
+    if (amIDisabled && !globalDisable) { // Only testing this as an optimization
+        BeginDisabled();
+    }
+
+    ImGuiButtonFlags buttonFlags = ImGuiButtonFlags_None;
+
+    const bool wasSelected = selected;
+    if (multiSelect) {
+        // Handle multi-select + alter button flags for it
+        MultiSelectItemHeader(id, &selected, &buttonFlags);
+    }
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
+    bool autoSelected = false;
+
+    if (multiSelect) {
+        MultiSelectItemFooter(id, &selected, &pressed);
+    }
+    else {
+        // Auto-select when moved into
+        // - This will be more fully fleshed in the range-select branch
+        // - This is not exposed as it won't nicely work with some user side handling of shift/control
+        // - We cannot do 'if (g.NavJustMovedToId != id) { selected = false; pressed = was_selected; }' for two reasons
+        //   - (1) it would require focus scope to be set, need exposing PushFocusScope() or equivalent (e.g. BeginSelection() calling PushFocusScope())
+        //   - (2) usage will fail with clipped items
+        //   The multi-select API aim to fix those issues, e.g. may be replaced with a BeginSelection() API.
+        if ((flags & ImGuiSelectableFlags_SelectOnNav) && g.NavJustMovedToId != 0 && g.NavJustMovedToFocusScopeId == g.CurrentFocusScopeId)
+            if (g.NavJustMovedToId == id && (g.NavJustMovedToKeyMods & ImGuiMod_Ctrl) == 0)
+                selected = pressed = autoSelected = true;
+    }
+
+    // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with keyboard/gamepad
+    if (pressed || (hovered && (flags & ImGuiSelectableFlags_SetNavIdOnHover))) {
+        if (!g.NavHighlightItemUnderNav && g.NavWindow == window && g.NavLayer == window->DC.NavLayerCurrent) {
+            SetNavID(id, window->DC.NavLayerCurrent, g.CurrentFocusScopeId, WindowRectAbsToRel(window, bb)); // (bb == NavRect)
+            if (g.IO.ConfigNavCursorVisibleAuto)
+                g.NavCursorVisible = false;
+        }
+    }
+    if (pressed) {
+        MarkItemEdited(id);
+    }
+
+    if (selected != wasSelected) {
+        g.LastItemData.StatusFlags |= ImGuiItemStatusFlags_ToggledSelection;
+    }
+
+    if (amIVisible) {
+        const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+        RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
+
+        if (g.NavId == id) {
+            ImGuiNavRenderCursorFlags navRenderCursorFlags = ImGuiNavRenderCursorFlags_Compact | ImGuiNavRenderCursorFlags_NoRounding;
+            if (multiSelect) {
+                navRenderCursorFlags |= ImGuiNavRenderCursorFlags_AlwaysDraw; // Always show the nav rectangle
+            }
+            RenderNavCursor(bb, id, navRenderCursorFlags);
+        }
+    }
+
+    if (amIVisible) {
+        RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, nullptr, &labelSize, style.ButtonTextAlign, &bb);
+    }
+
+    // Automatically close popups
+    if (
+        pressed && !autoSelected && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_NoAutoClosePopups) &&
+        (g.LastItemData.ItemFlags & ImGuiItemFlags_AutoClosePopups)
+    ) {
+        CloseCurrentPopup();
+    }
+
+    if (amIDisabled && !globalDisable) {
+        EndDisabled();
+    }
+
+    return pressed;
 }
 
 void WindowTimeline::ChildKeys() {
@@ -308,11 +426,31 @@ void WindowTimeline::ChildKeys() {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { keySpacing, 4.f });
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.f);
 
+        SelectionState &selectionState = sessionManager.getCurrentSession()->getKeySelectState();
+
+        ImGuiMultiSelectFlags msFlags =
+            ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_ClearOnClickVoid |
+            ImGuiMultiSelectFlags_BoxSelect1d;
+        ImGuiMultiSelectIO *msIo = ImGui::BeginMultiSelect(
+            msFlags, selectionState.mSelected.size(), playerManager.getKeyCount()
+        );
+
+        selectionState.processMultiSelectRequests(msIo);
+
+        bool wantDeleteSelected = (
+            ImGui::Shortcut(ImGuiKey_Backspace | ImGuiMod_Ctrl, ImGuiInputFlags_Repeat) ||
+            ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat)
+        ) && selectionState.anySelected();
+
+        int itemCurrentIndexToFocus = wantDeleteSelected ?
+            selectionState.getNextElementIndexAfterDel(msIo, playerManager.getKeyCount()) :
+            -1;
+
         for (unsigned i = 0; i < playerManager.getKeyCount(); i++) {
             ImGui::PushID(i);
 
             bool popColor { false };
-            if (playerManager.getKeyIndex() == i) {
+            if (playerManager.getKeyIndex() == i || selectionState.checkSelected(i)) {
                 popColor = true;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
             }
@@ -331,8 +469,19 @@ void WindowTimeline::ChildKeys() {
                 ImGui::PushStyleVar(ImGuiStyleVar_Alpha, guiContext->Style.Alpha * guiContext->Style.DisabledAlpha);
             }
 
-            if (ImGui::Button(buttonLabel, buttonSize))
+            const bool amISelected = selectionState.checkSelected(i);
+
+            ImGui::SetNextItemSelectionUserData(i);
+            if (keySelectable(buttonLabel, amISelected, buttonSize)) {
                 playerManager.setKeyIndex(i);
+
+                if (!ImGui::GetIO().KeyCtrl) {
+                    selectionState.clearSelectedElements();
+                    selectionState.setSelected(i, true);
+                }
+            }
+            if (itemCurrentIndexToFocus == i)
+                ImGui::SetKeyboardFocusHere(-1);
 
             if (buttonIsTransparent)
                 ImGui::PopStyleVar();
@@ -361,39 +510,31 @@ void WindowTimeline::ChildKeys() {
                 ImGui::Separator();
 
                 // Key splitting
-                // TODO: interp util??
                 {
-                    bool splitPossible { false };
-                    const CellAnim::Arrangement* arrangementA { nullptr };
-                    const CellAnim::Arrangement* arrangementB { nullptr };
+                    auto& cellAnim = sessionManager.getCurrentSession()->getCurrentCellAnim().object;
 
-                    auto& arrangements =
-                        sessionManager.getCurrentSession()
-                            ->getCurrentCellAnim().object->getArrangements();
+                    auto& animation = playerManager.getAnimation();
 
-                    if (i+1 < playerManager.getKeyCount()) {
+                    bool splitPossible = false;
+                    if ((i + 1) < playerManager.getKeyCount() && (animation.keys.at(i).holdFrames > 1)) {
                         splitPossible = true;
                     }
-
+                    
                     ImGui::BeginDisabled(!splitPossible);
                     if (ImGui::Selectable("Split key (interp, new arrange)")) {
-                        auto newArrangements = arrangements;
-                        auto newAnimation = playerManager.getAnimation();
+                        auto newArrangements = cellAnim->getArrangements();
+                        auto newAnimation = animation;
 
                         CellAnim::AnimationKey& k0 = newAnimation.keys.at(i);
                         const CellAnim::AnimationKey& k1 = newAnimation.keys.at(i + 1);
 
-                        unsigned totalDuration = k0.holdFrames;
+                        unsigned totalFrames = k0.holdFrames;
+                        float t = (totalFrames / 2) / static_cast<float>(totalFrames);
 
-                        unsigned firstSegment = totalDuration / 2;
-                        unsigned secondSegment = totalDuration - firstSegment;
+                        CellAnim::AnimationKey newKey = TweenAnimUtil::tweenAnimKeys(newArrangements, false, k0, k1, t);
 
-                        float tweenT = static_cast<float>(firstSegment) / totalDuration;
-
-                        k0.holdFrames = firstSegment;
-
-                        CellAnim::AnimationKey newKey = TweenAnimUtil::tweenAnimKeys(newArrangements, k0, k1, tweenT);
-                        newKey.holdFrames = secondSegment;
+                        k0.holdFrames = totalFrames / 2;
+                        newKey.holdFrames = totalFrames - k0.holdFrames;
 
                         newAnimation.keys.insert(newAnimation.keys.begin() + i + 1, newKey);
 
@@ -577,6 +718,27 @@ void WindowTimeline::ChildKeys() {
             }
         }
 
+        msIo = ImGui::EndMultiSelect();
+        selectionState.processMultiSelectRequests(msIo);
+
+        if (wantDeleteSelected) {
+            auto newAnimation = playerManager.getAnimation();
+            selectionState.deleteAllSelected(msIo, newAnimation.keys, itemCurrentIndexToFocus);
+
+            if (newAnimation.keys.empty()) {
+                // Add a default key
+                newAnimation.keys.emplace_back();
+            }
+
+            sessionManager.getCurrentSession()->addCommand(
+                std::make_shared<CommandModifyAnimation>(
+                    sessionManager.getCurrentSession()->getCurrentCellAnimIndex(),
+                    playerManager.getAnimationIndex(),
+                    newAnimation
+                )
+            );
+        }
+
         ImGui::PopStyleVar(3);
 
         // Hold Frames
@@ -721,7 +883,7 @@ void WindowTimeline::ChildKeys() {
 }
 
 // TODO: this whole thing is in desperate need of a refactor ...
-void WindowTimeline::Update() {
+void WindowTimeline::update() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
 

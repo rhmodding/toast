@@ -3,7 +3,7 @@
 
 namespace TerminateHandler {
 
-void Init();
+void init();
 
 } // namespace TerminateHandler
 

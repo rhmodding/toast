@@ -18,7 +18,7 @@ public:
     {}
     ~CommandModifySpritesheet() = default;
 
-    void Execute() override {
+    void execute() override {
         getSheet() = mNewSheet;
 
         Session* currentSession = SessionManager::getInstance().getCurrentSession();
@@ -32,7 +32,7 @@ public:
         currentSession->modified = true;
     }
 
-    void Rollback() override {
+    void rollback() override {
         getSheet() = mOldSheet;
 
         Session* currentSession = SessionManager::getInstance().getCurrentSession();

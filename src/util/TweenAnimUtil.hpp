@@ -8,7 +8,7 @@
 namespace TweenAnimUtil {
 
 CellAnim::AnimationKey tweenAnimKeys(
-    std::vector<CellAnim::Arrangement>& arrangements,
+    std::vector<CellAnim::Arrangement>& arrangements, bool dontTweenArrangement,
     const CellAnim::AnimationKey& k0, const CellAnim::AnimationKey& k1, float t
 );
 

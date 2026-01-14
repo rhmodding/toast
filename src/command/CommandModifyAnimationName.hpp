@@ -21,13 +21,13 @@ public:
     }
     ~CommandModifyAnimationName() = default;
 
-    void Execute() override {
+    void execute() override {
         getAnimation().name = mNewName;
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         getAnimation().name = mOldName;
 
         SessionManager::getInstance().setCurrentSessionModified(true);

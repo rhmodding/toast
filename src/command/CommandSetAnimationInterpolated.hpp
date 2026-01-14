@@ -19,13 +19,13 @@ public:
     }
     ~CommandSetAnimationInterpolated() = default;
 
-    void Execute() override {
+    void execute() override {
         getAnimation().isInterpolated = mNewIsInterpolated;
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         getAnimation().isInterpolated = mOldIsInterpolated;
 
         SessionManager::getInstance().setCurrentSessionModified(true);

@@ -49,7 +49,7 @@ void WindowInspector::drawPreview() {
     ImVec2 keyCenter = mBoxPreviewRenderer.getKeyWorldRect(playerManager.getKey()).GetCenter();
     mBoxPreviewRenderer.setOffset(ImVec2(origin.x - keyCenter.x, origin.y - keyCenter.y));
 
-    mBoxPreviewRenderer.Draw(drawList, playerManager.getAnimation(), playerManager.getKeyIndex());
+    mBoxPreviewRenderer.draw(drawList, playerManager.getAnimation(), playerManager.getKeyIndex());
 
     drawList->PopClipRect();
 
@@ -100,7 +100,7 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
     }
 }
 
-void WindowInspector::Update() {
+void WindowInspector::update() {
     ImGuiWindowFlags windowFlag = ImGuiWindowFlags_MenuBar;
     if (
         mInspectorLevel == InspectorLevel_Arrangement ||

@@ -2,7 +2,7 @@
 
 #include "Toast.hpp"
 
-std::future<void> MainThreadTaskManager::QueueTask(std::function<void()> func) {
+std::future<void> MainThreadTaskManager::queueTask(std::function<void()> func) {
     // If we're already on the main thread, run the task now
     if (std::this_thread::get_id() == Toast::getInstance()->getMainThreadId()) {
         func();
@@ -28,7 +28,7 @@ std::future<void> MainThreadTaskManager::QueueTask(std::function<void()> func) {
     return future;
 }
 
-void MainThreadTaskManager::Update() {
+void MainThreadTaskManager::update() {
     std::unique_lock<std::mutex> lock(mMtx);
 
     while (!mTaskQueue.empty()) {

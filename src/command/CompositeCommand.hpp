@@ -13,14 +13,14 @@ public:
         commands.push_back(command);
     }
 
-    void Execute() override {
+    void execute() override {
         for (const auto& cmd : commands) {
-            cmd->Execute();
+            cmd->execute();
         }
     }
-    void Rollback() override {
+    void rollback() override {
         for (auto it = commands.rbegin(); it != commands.rend(); ++it) {
-            (*it)->Rollback();
+            (*it)->rollback();
         }
     }
 

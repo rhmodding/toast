@@ -61,14 +61,17 @@ static const char* fragmentShaderSource =
     "\n"
     "out vec4 Out_Color;\n"
     "\n"
+    "vec3 doMulScreen(vec3 base, vec3 mul, vec3 scr)\n"
+    "{\n"
+    "    return base * mul + scr - (base * mul) * scr;\n"
+    "}\n"
+    "\n"
     "void main() {\n"
     "    vec4 texColor = texture(Texture, Frag_UV.st);\n"
     "\n"
-    "    vec3 multipliedColorA = texColor.xyz * Fore_Color_A;\n"
-    "    vec3 passA = vec3(1.0) - (vec3(1.0) - multipliedColorA) * (vec3(1.0) - Back_Color_A);\n"
+    "    vec3 passA = doMulScreen(texColor.rgb, Fore_Color_A, Back_Color_A);\n"
     "\n"
-    "    vec3 multipliedColorB = passA * Fore_Color_B;\n"
-    "    vec3 passB = vec3(1.0) - (vec3(1.0) - multipliedColorB) * (vec3(1.0) - Back_Color_B);\n"
+    "    vec3 passB = doMulScreen(passA, Fore_Color_B, Back_Color_B);\n"
     "\n"
     "    Out_Color = vec4(passB, texColor.a) * Frag_Color;\n"
     "}\n";
@@ -108,14 +111,14 @@ static void checkShaderError(GLuint shader, GLenum flag, bool isProgram, std::st
     }
 }
 
-void CellAnimRenderer::InitShader() {
+void CellAnimRenderer::beginShader() {
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
     glCompileShader(vertexShader);
 
     checkShaderError(
         vertexShader, GL_COMPILE_STATUS, false,
-        "[CellAnimRenderer::InitShader] Vertex shader compilation failed"
+        "[CellAnimRenderer::beginShader] Vertex shader compilation failed"
     );
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -124,7 +127,7 @@ void CellAnimRenderer::InitShader() {
 
     checkShaderError(
         fragmentShader, GL_COMPILE_STATUS, false,
-        "[CellAnimRenderer::InitShader] Fragment shader compilation failed"
+        "[CellAnimRenderer::beginShader] Fragment shader compilation failed"
     );
 
     sShaderProgram = glCreateProgram();
@@ -134,7 +137,7 @@ void CellAnimRenderer::InitShader() {
 
     checkShaderError(
         sShaderProgram, GL_LINK_STATUS, true,
-        "[CellAnimRenderer::InitShader] Shader program link failed"
+        "[CellAnimRenderer::beginShader] Shader program link failed"
     );
 
     glDeleteShader(vertexShader);
@@ -158,7 +161,7 @@ void CellAnimRenderer::InitShader() {
     glGenFramebuffers(1, &sTexDrawFramebuffer);
 }
 
-void CellAnimRenderer::DestroyShader() {
+void CellAnimRenderer::endShader() {
     glDeleteProgram(sShaderProgram);
 
     glDeleteFramebuffers(1, &sTexDrawFramebuffer);
@@ -203,7 +206,7 @@ void CellAnimRenderer::renderPartCallback(const ImDrawList* parentList, const Im
     glUniformMatrix4fv(sProjMtxUniform, 1, GL_FALSE, orthoProjection[0]);
 }
 
-void CellAnimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
+void CellAnimRenderer::draw(ImDrawList* drawList, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
     NONFATAL_ASSERT_RET(mCellAnim, true);
     NONFATAL_ASSERT_RET(mTextureGroup, true);
 
@@ -211,10 +214,10 @@ void CellAnimRenderer::Draw(ImDrawList* drawList, const CellAnim::Animation& ani
         return;
 
     currentDrawList = drawList;
-    InternDraw(DrawMethod::DrawList, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
+    drawImpl(DrawMethod::DrawList, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
 }
 
-void CellAnimRenderer::DrawTex(GLuint textureId, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
+void CellAnimRenderer::drawTex(GLuint textureId, const CellAnim::Animation& animation, unsigned keyIndex, bool allowOpacity) {
     NONFATAL_ASSERT_RET(mCellAnim, true);
     NONFATAL_ASSERT_RET(mTextureGroup, true);
 
@@ -222,10 +225,10 @@ void CellAnimRenderer::DrawTex(GLuint textureId, const CellAnim::Animation& anim
         return;
 
     currentDrawTex = textureId;
-    InternDraw(DrawMethod::Texture, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
+    drawImpl(DrawMethod::Texture, animation.keys.at(keyIndex), -1, IM_COL32_WHITE, allowOpacity);
 }
 
-void CellAnimRenderer::DrawOnionSkin(
+void CellAnimRenderer::drawOnionSkin(
     ImDrawList* drawList,
     const CellAnim::Animation& animation, unsigned keyIndex,
     unsigned backCount, unsigned frontCount,
@@ -258,7 +261,7 @@ void CellAnimRenderer::DrawOnionSkin(
                 break;
 
             currentDrawList = drawList;
-            InternDraw(DrawMethod::DrawList, animation.keys.at(wrappedIndex), -1, color, true);
+            drawImpl(DrawMethod::DrawList, animation.keys.at(wrappedIndex), -1, color, true);
             i += step;
         }
     };
@@ -546,7 +549,7 @@ static inline std::array<ImVec2, 6> quadToTriangles(const std::array<ImVec2, 4>&
     });
 }
 
-void CellAnimRenderer::InternDraw(
+void CellAnimRenderer::drawImpl(
     DrawMethod drawMethod,
     const CellAnim::AnimationKey& key, int partIndex,
     uint32_t colorMod,

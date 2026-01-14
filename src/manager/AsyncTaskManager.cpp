@@ -2,10 +2,10 @@
 
 #include <algorithm>
 
-void AsyncTaskManager::UpdateTasks() {
+void AsyncTaskManager::update() {
     for (auto& task : mTasks) {
-        task->ShowPopup();
-        task->RunEffectIfComplete();
+        task->update();
+        task->showPopup();
     }
 
     mTasks.erase(

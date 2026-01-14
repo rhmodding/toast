@@ -20,24 +20,24 @@ public:
     }
     ~CommandDeleteAnimationKey() = default;
 
-    void Execute() override {
+    void execute() override {
         CellAnim::Animation& animation = getAnimation();
 
         auto it = animation.keys.begin() + mKeyIndex;
         animation.keys.erase(it);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         CellAnim::Animation& animation = getAnimation();
 
         auto it = animation.keys.begin() + mKeyIndex;
         animation.keys.insert(it, mKey);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

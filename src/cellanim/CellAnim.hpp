@@ -320,12 +320,12 @@ struct AnimationKey {
     // On CTR only.
     float translateZ { 0.f };
 
-    uint8_t opacity { 0xFFu };
-
     // On CTR only.
     CTRColor foreColor { 1.f, 1.f, 1.f };
     // On CTR only.
     CTRColor backColor { 0.f, 0.f, 0.f };
+
+    uint8_t opacity { 0xFFu };
 
     bool operator==(const AnimationKey& rhs) const {
         return
@@ -418,7 +418,7 @@ public:
 
     Arrangement& getArrangement(unsigned arrangementIndex) {
         if (arrangementIndex >= mArrangements.size()) {
-            throw std::runtime_error(
+            throw std::range_error(
                 "CellAnimObject::getArrangement: arrangement index out of bounds (" +
                 std::to_string(arrangementIndex) + " >= " + std::to_string(mArrangements.size()) + ")"
             );
@@ -427,7 +427,7 @@ public:
     }
     const Arrangement& getArrangement(unsigned arrangementIndex) const {
         if (arrangementIndex >= mArrangements.size()) {
-            throw std::runtime_error(
+            throw std::range_error(
                 "CellAnimObject::getArrangement: arrangement index out of bounds (" +
                 std::to_string(arrangementIndex) + " >= " + std::to_string(mArrangements.size()) + ")"
             );
@@ -440,7 +440,7 @@ public:
 
     Animation& getAnimation(unsigned animationIndex) {
         if (animationIndex >= mAnimations.size()) {
-            throw std::runtime_error(
+            throw std::range_error(
                 "CellAnimObject::getAnimation: animation index out of bounds (" +
                 std::to_string(animationIndex) + " >= " + std::to_string(mAnimations.size()) + ")"
             );
@@ -449,7 +449,7 @@ public:
     }
     const Animation& getAnimation(unsigned animationIndex) const {
         if (animationIndex >= mAnimations.size()) {
-            throw std::runtime_error(
+            throw std::range_error(
                 "CellAnimObject::getAnimation: animation index out of bounds (" +
                 std::to_string(animationIndex) + " >= " + std::to_string(mAnimations.size()) + ")"
             );
@@ -457,7 +457,7 @@ public:
         return mAnimations[animationIndex];
     }
 
-    [[nodiscard]] std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> serialize();
 
     std::vector<Arrangement>::iterator insertArrangement(const Arrangement& arrangement);
     unsigned duplicateArrangement(unsigned arrangementIndex) {

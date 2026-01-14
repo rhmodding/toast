@@ -89,18 +89,16 @@ void WindowInspector::Level_Animation() {
         }
     );
 
-    if (!isCtr) {
-        UIUtil::Widget::ValueEditor<std::string>("Comment", animation.comment,
-            [&]() { return originalAnimation.comment; },
-            [&](const std::string& oldValue, const std::string& newValue) {
-                originalAnimation.comment = oldValue;
-                newAnimation.comment = newValue;
-            },
-            [](const char* label, std::string* value) {
-                return UIUtil::Widget::StdStringTextInput(label, *value);
-            }
-        );
-    }
+    UIUtil::Widget::ValueEditor<std::string>("Comment", animation.comment,
+        [&]() { return originalAnimation.comment; },
+        [&](const std::string& oldValue, const std::string& newValue) {
+            originalAnimation.comment = oldValue;
+            newAnimation.comment = newValue;
+        },
+        [](const char* label, std::string* value) {
+            return UIUtil::Widget::StdStringTextInput(label, *value);
+        }
+    );
 
     if (isCtr) {
         ImGui::Dummy({ 0.f, 1.f });
@@ -120,7 +118,7 @@ void WindowInspector::Level_Animation() {
     ImGui::SameLine();
 
     if (ImGui::Button("Time scale ..")) {
-
+        // TODO: implement
     }
 
     if (!isCtr) {

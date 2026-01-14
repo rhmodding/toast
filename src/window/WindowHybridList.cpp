@@ -72,7 +72,7 @@ static CellAnim::Animation createNewAnimation() {
     return newAnimation;
 }
 
-void WindowHybridList::Update() {
+void WindowHybridList::update() {
     SessionManager& sessionManager = SessionManager::getInstance();
 
     int currentSessionIdx = sessionManager.getCurrentSessionIndex();
@@ -299,13 +299,13 @@ void WindowHybridList::Update() {
                                 "at this index.";
                         }
 
-                        PromptPopupManager::getInstance().Queue(
-                            PromptPopupManager::CreatePrompt("Hang on!", promptMsg)
-                            .WithResponses(
+                        PromptPopupManager::getInstance().queue(
+                            PromptPopupManager::createPrompt("Hang on!", promptMsg)
+                            .withResponses(
                                 PromptPopup::RESPONSE_YES | PromptPopup::RESPONSE_CANCEL,
                                 PromptPopup::RESPONSE_CANCEL
                             )
-                            .WithCallback([n](auto res, const std::string*) {
+                            .withCallback([n](auto res, const std::string*) {
                                 if (res == PromptPopup::RESPONSE_YES) {
                                     SessionManager& sessionManager = SessionManager::getInstance();
 
@@ -410,15 +410,15 @@ void WindowHybridList::Update() {
 
         if (newAnimationSelect >= 0) {
             playerManager.setAnimationIndex(newAnimationSelect);
-            playerManager.correctState();
+            playerManager.validateState();
         }
         if (newAnimKeySet >= 0) {
             playerManager.setKeyIndex(newAnimKeySet);
-            playerManager.correctState();
+            playerManager.validateState();
         }
         if (newArrangementSelect >= 0) {
             playerManager.setArrangementModeIdx(newArrangementSelect);
-            playerManager.correctState();
+            playerManager.validateState();
         }
     }
     ImGui::EndChild();

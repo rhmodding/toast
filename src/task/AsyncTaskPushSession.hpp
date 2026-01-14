@@ -10,13 +10,13 @@ public:
     AsyncTaskPushSession(uint32_t id, std::string filePath);
 
 protected:
-    void Run() override;
-    void Effect() override;
+    void run() override;
+    void effect() override;
 
 private:
     std::string mFilePath;
 
-    std::atomic<int> mResult { 0 };
+    std::atomic<ssize_t> mResult;
 };
 
 #endif // ASYNC_TASK_PUSHSESSION_HPP

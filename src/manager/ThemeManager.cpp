@@ -12,7 +12,7 @@
 
 #include "Logging.hpp"
 
-void ThemeManager::Initialize() {
+void ThemeManager::initialize() {
     ImGuiIO& io = ImGui::GetIO();
 
     { // normal: Noto Sans (18px)
@@ -61,7 +61,7 @@ void ThemeManager::applyTheming() {
         break;
     }
 
-    MainThreadTaskManager::getInstance().QueueTask([theme = config.theme]() {
+    MainThreadTaskManager::getInstance().queueTask([theme = config.theme]() {
         ImGuiStyle& style = ImGui::GetStyle();
 
         switch (theme) {

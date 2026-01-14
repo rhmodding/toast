@@ -14,7 +14,7 @@ public:
     DARCHObject(const unsigned char* data, const size_t dataSize);
     DARCHObject() = default;
 
-    [[nodiscard]] std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> serialize();
 };
 
 } // namespace Archive

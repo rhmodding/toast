@@ -21,7 +21,7 @@ public:
     {}
     ~CommandMoveArrangementPart() = default;
 
-    void Execute() override {
+    void execute() override {
         SessionManager& sessionManager = SessionManager::getInstance();
 
         CellAnim::Arrangement& arrangement = getArrangement();
@@ -33,23 +33,23 @@ public:
                 arrangement.parts.at(nSwap)
             );
 
-        auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+        auto& selectionState = sessionManager.getCurrentSession()->getPartSelectState();
 
-        if (selectionState.isPartSelected(mPartIndex)) {
-            selectionState.setPartSelected(mPartIndex, false);
-            selectionState.setPartSelected(nSwap, true);
+        if (selectionState.checkSelected(mPartIndex)) {
+            selectionState.setSelected(mPartIndex, false);
+            selectionState.setSelected(nSwap, true);
         }
-        else if (selectionState.isPartSelected(nSwap)) {
-            selectionState.setPartSelected(nSwap, false);
-            selectionState.setPartSelected(mPartIndex, true);
+        else if (selectionState.checkSelected(nSwap)) {
+            selectionState.setSelected(nSwap, false);
+            selectionState.setSelected(mPartIndex, true);
         }
 
         sessionManager.setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         // Re-swap
-        Execute();
+        execute();
     }
 
 private:

@@ -36,14 +36,14 @@ void CreateSessionPromptPath() {
     if (!path)
         return;
 
-    AsyncTaskManager::getInstance().StartTask<AsyncTaskPushSession>(std::string(path));
+    AsyncTaskManager::getInstance().startTask<AsyncTaskPushSession>(std::string(path));
 }
 
 void ExportSessionPromptPath() {
     auto& sessionManager = SessionManager::getInstance();
     auto& asyncTaskManager = AsyncTaskManager::getInstance();
 
-    if (!sessionManager.isSessionAvailable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
+    if (!sessionManager.anySessionOpened() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
         return;
 
     const bool isRvl = sessionManager.getCurrentSession()->type == CellAnim::CELLANIM_TYPE_RVL;
@@ -59,7 +59,7 @@ void ExportSessionPromptPath() {
     );
 
     if (savePath) {
-        asyncTaskManager.StartTask<AsyncTaskExportSession>(
+        asyncTaskManager.startTask<AsyncTaskExportSession>(
             sessionManager.getCurrentSessionIndex(),
             std::string(savePath)
         );
@@ -70,10 +70,10 @@ void ExportSession() {
     auto& sessionManager = SessionManager::getInstance();
     auto& asyncTaskManager = AsyncTaskManager::getInstance();
 
-    if (!sessionManager.isSessionAvailable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
+    if (!sessionManager.anySessionOpened() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
         return;
 
-    asyncTaskManager.StartTask<AsyncTaskExportSession>(
+    asyncTaskManager.startTask<AsyncTaskExportSession>(
         sessionManager.getCurrentSessionIndex()
     );
 }
@@ -125,7 +125,7 @@ void ExportSessionAsOther() {
     auto& sessionManager = SessionManager::getInstance();
     auto& asyncTaskManager = AsyncTaskManager::getInstance();
 
-    if (!sessionManager.isSessionAvailable() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
+    if (!sessionManager.anySessionOpened() || asyncTaskManager.hasTaskOfType<AsyncTaskExportSession>())
         return;
 
     auto* session = sessionManager.getCurrentSession();
@@ -193,7 +193,7 @@ void ExportSessionAsOther() {
         }
     }
 
-    asyncTaskManager.StartTask<AsyncTaskExportSession>(
+    asyncTaskManager.startTask<AsyncTaskExportSession>(
         sessionManager.getCurrentSessionIndex(),
         std::string(savePath)
     );

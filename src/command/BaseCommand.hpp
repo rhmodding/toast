@@ -3,10 +3,10 @@
 
 class BaseCommand {
 public:
-    virtual void Execute() {}
-    virtual void Rollback() {}
-
     virtual ~BaseCommand() {}
+
+    virtual void execute() {}
+    virtual void rollback() {}
 };
 
 #endif // BASE_COMMAND_HPP

@@ -160,7 +160,7 @@ void WindowSpritesheet::FormatPopup() {
             if (selectedFormatIndex > selectedMax)
                 selectedFormatIndex = selectedMax;
 
-            unsigned char* imageData = cellanimSheet->GetRGBA32();
+            unsigned char* imageData = cellanimSheet->getRGBA32();
             if (!imageData)
                 return;
 
@@ -234,7 +234,7 @@ void WindowSpritesheet::FormatPopup() {
                 delete[] imageBuffer;
             }
 
-            mFormattingNewTex->LoadRGBA32(
+            mFormattingNewTex->loadRGBA32(
                 imageData,
                 cellanimSheet->getWidth(), cellanimSheet->getHeight()
             );
@@ -252,9 +252,9 @@ void WindowSpritesheet::FormatPopup() {
 
             mFormattingNewTex = std::make_shared<TextureEx>();
 
-            unsigned char* imageData = cellanimSheet->GetRGBA32();
+            unsigned char* imageData = cellanimSheet->getRGBA32();
             if (imageData) {
-                mFormattingNewTex->LoadRGBA32(
+                mFormattingNewTex->loadRGBA32(
                     imageData,
                     cellanimSheet->getWidth(), cellanimSheet->getHeight()
                 );
@@ -535,7 +535,7 @@ void WindowSpritesheet::FormatPopup() {
         ImGui::PopID();
 }
 
-void WindowSpritesheet::Update() {
+void WindowSpritesheet::update() {
     static bool firstOpen { true };
     if (firstOpen) {
         mGridType = ThemeManager::getInstance().getThemeIsLight() ?
@@ -607,18 +607,18 @@ void WindowSpritesheet::Update() {
             if (ImGui::MenuItem("Edit in editing tool...", nullptr, false, imageEditorDefined)) {
                 const ConfigManager& configManager = ConfigManager::getInstance();
 
-                if (cellanimSheet->ExportToFile(configManager.getConfig().textureEditPath.c_str())) {
+                if (cellanimSheet->exportToFile(configManager.getConfig().textureEditPath.c_str())) {
                     Popups::WaitForModifiedTexture::getInstance().open();
                     RunEditor();
                 }
                 else {
-                    PromptPopupManager::getInstance().Queue(
-                        PromptPopupManager::CreatePrompt(
+                    PromptPopupManager::getInstance().queue(
+                        PromptPopupManager::createPrompt(
                             "An error occurred while exporting the texture..",
                             "The texture could not be exported to the PNG file; please\n"
                             "check the log for more details."
                         )
-                        .WithResponses(PromptPopup::RESPONSE_OK)
+                        .withResponses(PromptPopup::RESPONSE_OK)
                     );
                 }
             }
@@ -636,7 +636,7 @@ void WindowSpritesheet::Update() {
                     SessionManager& sessionManager = SessionManager::getInstance();
 
                     std::shared_ptr<TextureEx> newTexture = std::make_shared<TextureEx>();
-                    if (newTexture->LoadSTBFile(openFileDialog)) {
+                    if (newTexture->loadSTBFile(openFileDialog)) {
                         bool diffSize =
                             newTexture->getWidth()  != cellanimSheet->getWidth() ||
                             newTexture->getHeight() != cellanimSheet->getHeight();
@@ -669,7 +669,7 @@ void WindowSpritesheet::Update() {
                 );
 
                 if (saveFileDialog)
-                    cellanimSheet->ExportToFile(saveFileDialog);
+                    cellanimSheet->exportToFile(saveFileDialog);
             }
 
             if (ImGui::MenuItem((const char*)ICON_FA_STAR " Re-pack sheet", nullptr, false)) {
@@ -859,9 +859,9 @@ void WindowSpritesheet::Update() {
         const auto& arrangement = playerManager.getArrangement();
 
         for (size_t i = 0; i < arrangement.parts.size(); i++) {
-            const auto& selectionState = sessionManager.getCurrentSession()->getCurrentSelectionState();
+            const auto& selectionState = sessionManager.getCurrentSession()->getPartSelectState();
 
-            if (appState.mFocusOnSelectedPart && !selectionState.isPartSelected(i))
+            if (appState.mFocusOnSelectedPart && !selectionState.checkSelected(i))
                 continue;
 
             const auto& part = arrangement.parts[i];

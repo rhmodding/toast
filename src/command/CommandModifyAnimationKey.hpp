@@ -22,18 +22,18 @@ public:
     }
     ~CommandModifyAnimationKey() = default;
 
-    void Execute() override {
+    void execute() override {
         getKey() = mNewKey;
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         getKey() = mOldKey;
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

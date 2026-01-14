@@ -20,20 +20,20 @@ public:
     }
     ~CommandDeleteAnimation() = default;
 
-    void Execute() override {
+    void execute() override {
         auto it = getAnimations().begin() + mAnimationIndex;
         getAnimations().erase(it);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         auto it = getAnimations().begin() + mAnimationIndex;
         getAnimations().insert(it, mAnimation);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

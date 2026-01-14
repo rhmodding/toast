@@ -35,7 +35,7 @@ std::optional<TPL::TPLTexture> TextureEx::TPLTexture() {
         TPL::TPL_WRAP_MODE_REPEAT :
         TPL::TPL_WRAP_MODE_CLAMP;
 
-    MainThreadTaskManager::getInstance().QueueTask([this, &tplTexture]() {
+    MainThreadTaskManager::getInstance().queueTask([this, &tplTexture]() {
         glBindTexture(GL_TEXTURE_2D, mTextureId);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, tplTexture.data.data());
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -70,7 +70,7 @@ std::optional<CTPK::CTPKTexture> TextureEx::CTPKTexture() {
     else
         ctpkTexture.cachedTargetData = std::vector<unsigned char>();
 
-    MainThreadTaskManager::getInstance().QueueTask([this, &ctpkTexture]() {
+    MainThreadTaskManager::getInstance().queueTask([this, &ctpkTexture]() {
         glBindTexture(GL_TEXTURE_2D, mTextureId);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, ctpkTexture.data.data());
         glBindTexture(GL_TEXTURE_2D, 0);

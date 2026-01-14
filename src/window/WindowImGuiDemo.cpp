@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 
-void WindowImGuiDemo::Update() {
+void WindowImGuiDemo::update() {
     if (!mOpen) {
         return;
     }

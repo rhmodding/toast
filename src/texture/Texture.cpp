@@ -10,7 +10,7 @@
 Texture::Texture(unsigned width, unsigned height, GLuint textureId) :
     mWidth(width), mHeight(height), mTextureId(textureId)
 {
-    MainThreadTaskManager::getInstance().QueueTask([this]() {
+    MainThreadTaskManager::getInstance().queueTask([this]() {
         glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &mWrapS);
         glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &mWrapT);
         glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &mMinFilter);
@@ -19,45 +19,45 @@ Texture::Texture(unsigned width, unsigned height, GLuint textureId) :
 }
 
 Texture::~Texture() {
-    DestroyTexture();
+    destroyTexture();
 }
 
 void Texture::setWrapS(GLint wrapS) {
-    MainThreadTaskManager::getInstance().QueueTask([this, wrapS]() {
+    MainThreadTaskManager::getInstance().queueTask([this, wrapS]() {
         mWrapS = wrapS;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
     }).get();
 }
 void Texture::setWrapT(GLint wrapT) {
-    MainThreadTaskManager::getInstance().QueueTask([this, wrapT]() {
+    MainThreadTaskManager::getInstance().queueTask([this, wrapT]() {
         mWrapT = wrapT;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
     }).get();
 }
 
 void Texture::setMinFilter(GLint minFilter) {
-    MainThreadTaskManager::getInstance().QueueTask([this, minFilter]() {
+    MainThreadTaskManager::getInstance().queueTask([this, minFilter]() {
         mMinFilter = minFilter;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
     }).get();
 }
 void Texture::setMagFilter(GLint magFilter) {
-    MainThreadTaskManager::getInstance().QueueTask([this, magFilter]() {
+    MainThreadTaskManager::getInstance().queueTask([this, magFilter]() {
         mMagFilter = magFilter;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, magFilter);
     }).get();
 }
 
-void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned height) {
+void Texture::loadRGBA32(const unsigned char *data, unsigned width, unsigned height) {
     if (data == nullptr) {
-        Logging::error("[Texture::LoadRGBA32] Failed to load image data: data is NULL");
+        Logging::error("[Texture::loadRGBA32] Failed to load image data: data is NULL");
         return;
     }
 
     mWidth = width;
     mHeight = height;
 
-    MainThreadTaskManager::getInstance().QueueTask([this, data]() {
+    MainThreadTaskManager::getInstance().queueTask([this, data]() {
         if (mTextureId == INVALID_TEXTURE_ID)
             glGenTextures(1, &mTextureId);
 
@@ -76,60 +76,60 @@ void Texture::LoadRGBA32(const unsigned char* data, unsigned width, unsigned hei
     }).get();
 }
 
-bool Texture::LoadSTBMem(const unsigned char* data, int dataSize) {
+bool Texture::loadSTBMem(const unsigned char *data, int dataSize) {
     if (data == nullptr) {
-        Logging::error("[Texture::LoadSTBFile] Failed to load image data: data is NULL");
+        Logging::error("[Texture::loadSTBMem] Failed to load image data: data is NULL");
         return false;
     }
 
     int w, h;
-    unsigned char* imageData = stbi_load_from_memory(data, dataSize, &w, &h, nullptr, 4);
+    unsigned char *imageData = stbi_load_from_memory(data, dataSize, &w, &h, nullptr, 4);
 
     if (imageData == nullptr) {
-        Logging::error("[Texture::LoadSTBMem] Failed to load image data from memory location {}", reinterpret_cast<const void *>(data));
+        Logging::error("[Texture::loadSTBMem] Failed to load image data from memory location {}", reinterpret_cast<const void *>(data));
         return false;
     }
 
-    LoadRGBA32(imageData, w, h);
+    loadRGBA32(imageData, w, h);
 
     stbi_image_free(imageData);
 
     return true;
 }
 
-bool Texture::LoadSTBFile(std::string_view filename) {
+bool Texture::loadSTBFile(std::string_view filename) {
     if (filename.empty()) {
-        Logging::error("[Texture::LoadSTBFile] Failed to export to file: filename is empty");
+        Logging::error("[Texture::loadSTBFile] Failed to export to file: filename is empty");
         return false;
     }
 
     int imageWidth, imageHeight;
-    unsigned char* imageData = stbi_load(filename.data(), &imageWidth, &imageHeight, nullptr, 4);
+    unsigned char *imageData = stbi_load(filename.data(), &imageWidth, &imageHeight, nullptr, 4);
 
     if (imageData == nullptr) {
-        Logging::error("[Texture::LoadSTBFile] Failed to load image data from file path \"{}\"!", filename);
+        Logging::error("[Texture::loadSTBFile] Failed to load image data from file path \"{}\"!", filename);
         return false;
     }
 
-    LoadRGBA32(imageData, imageWidth, imageHeight);
+    loadRGBA32(imageData, imageWidth, imageHeight);
 
     stbi_image_free(imageData);
 
     return true;
 }
 
-bool Texture::GetRGBA32(unsigned char* buffer) {
+bool Texture::getRGBA32(unsigned char* buffer) {
     if (buffer == nullptr) {
-        Logging::error("[Texture::GetRGBA32] Failed to download image data: buffer is NULL");
+        Logging::error("[Texture::getRGBA32] Failed to download image data: buffer is NULL");
         return false;
     }
 
     if (mTextureId == INVALID_TEXTURE_ID) {
-        Logging::error("[Texture::GetRGBA32] Failed to download image data: textureId is invalid");
+        Logging::error("[Texture::getRGBA32] Failed to download image data: textureId is invalid");
         return false;
     }
 
-    MainThreadTaskManager::getInstance().QueueTask([this, buffer]() {
+    MainThreadTaskManager::getInstance().queueTask([this, buffer]() {
         glBindTexture(GL_TEXTURE_2D, mTextureId);
 
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
@@ -140,52 +140,64 @@ bool Texture::GetRGBA32(unsigned char* buffer) {
     return true;
 }
 
-unsigned char* Texture::GetRGBA32() {
-    unsigned char* imageData = new unsigned char[mWidth * mHeight * 4];
+unsigned char* Texture::getRGBA32() {
+    unsigned char *imageData = new unsigned char[mWidth * mHeight * 4];
 
-    if (Texture::GetRGBA32(imageData))
+    if (Texture::getRGBA32(imageData)) {
         return imageData;
+    }
     else {
         delete[] imageData;
         return nullptr;
     }
 }
 
-bool Texture::ExportToFile(std::string_view filename) {
+bool Texture::exportToFile(std::string_view filename) {
     if (filename.empty()) {
-        Logging::error("[Texture::ExportToFile] Failed to export to file: filename is empty");
+        Logging::error("[Texture::exportToFile] Failed to export to file: filename is empty");
         return false;
     }
 
-    unsigned char* imageData = GetRGBA32();
+    unsigned char *imageData = getRGBA32();
     if (imageData == nullptr) {
-        Logging::error("[Texture::ExportToFile] Failed to export to file \"{}\": GetRGBA32 failed", filename);
+        Logging::error("[Texture::exportToFile] Failed to export to file \"{}\": getRGBA32 failed", filename);
         return false;
     }
 
-    int write = stbi_write_png(
-        filename.data(), // filename
-        mWidth, mHeight, // x, y
-        4, // comp
-        imageData, // data
-        mWidth * 4 // stride_bytes
-    );
+    int write;
+    if (filename.ends_with(".tga")) {
+        write = stbi_write_tga(
+            filename.data(), // filename
+            mWidth, mHeight, // w, h
+            4, // comp
+            imageData // data
+        );
+    }
+    else {
+        write = stbi_write_png(
+            filename.data(), // filename
+            mWidth, mHeight, // w, h
+            4, // comp
+            imageData, // data
+            mWidth * 4 // stride_in_bytes
+        );
+    }
 
     delete[] imageData;
 
-    if (!write) {
-        Logging::error("[Texture::ExportToFile] Failed to export to file \"{}\": stbi_write_png failed", filename);
+    if (write == 0) {
+        Logging::error("[Texture::exportToFile] Failed to export to file \"{}\": stbi_write_png failed", filename);
         return false;
     }
 
     return true;
 }
 
-void Texture::DestroyTexture() {
+void Texture::destroyTexture() {
     if (mTextureId == INVALID_TEXTURE_ID)
         return;
 
-    MainThreadTaskManager::getInstance().QueueTask([textureId = mTextureId]() {
+    MainThreadTaskManager::getInstance().queueTask([textureId = mTextureId]() {
         glDeleteTextures(1, &textureId);
     });
     mTextureId = 0;

@@ -68,7 +68,7 @@ void WindowInspector::Level_Key() {
             playerManager.getKey().arrangementIndex = std::min<unsigned>(
                 newArrangement - 1, arrangements.size() - 1
             );
-            playerManager.correctState();
+            playerManager.validateState();
         }
 
         if (ImGui::IsItemActivated())
@@ -87,9 +87,9 @@ void WindowInspector::Level_Key() {
 
     duplicateArrangementButton(newKey, originalKey);
 
-    ImGui::SeparatorText((const char*)ICON_FA_PAUSE " Hold");
+    ImGui::SeparatorText((const char*)ICON_FA_HOURGLASS " Frames");
 
-    UIUtil::Widget::ValueEditor<unsigned>("Hold Frames", key.holdFrames,
+    UIUtil::Widget::ValueEditor<unsigned>("Frames", key.holdFrames,
         [&]() { return originalKey.holdFrames; },
         [&](const unsigned& oldValue, const unsigned& newValue) {
             originalKey.holdFrames = oldValue;
@@ -108,7 +108,7 @@ void WindowInspector::Level_Key() {
         }
     );
 
-    ImGui::BulletText("A hold frames value of 0 will cause this key to be skipped.");
+    ImGui::BulletText("A frames value of 0 will cause this key to be skipped.");
     ImGui::Dummy({ 0.f, 1.f });
 
     ImGui::SeparatorText((const char*)ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT " Transform");

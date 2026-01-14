@@ -14,7 +14,7 @@ public:
     SARCObject(const unsigned char* data, const size_t dataSize);
     SARCObject() = default;
 
-    [[nodiscard]] std::vector<unsigned char> Serialize();
+    [[nodiscard]] std::vector<unsigned char> serialize();
 };
 
 } // namespace Archive

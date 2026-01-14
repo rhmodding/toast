@@ -16,8 +16,8 @@ namespace Yaz0 {
 
 namespace detail {
 
-size_t MaxCompressedSize(const size_t dataSize);
-size_t CompressImpl(
+size_t maxCompressedSize(const size_t dataSize);
+size_t compressImpl(
     const unsigned char* dataStart, const size_t dataSize,
     unsigned char* bufferStart
 );

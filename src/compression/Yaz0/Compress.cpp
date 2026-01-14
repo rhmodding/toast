@@ -19,12 +19,12 @@ constexpr size_t HEADER_SIZE = 0x10;
 constexpr size_t MIN_MATCH_LENGTH = 3;
 constexpr size_t MAX_MATCH_LENGTH = 0xFF + 0x12;
 
-size_t MaxCompressedSize(const size_t dataSize) {
+size_t maxCompressedSize(const size_t dataSize) {
     // Header + every byte + all op bytes needed (just copy, no RLE).
     return HEADER_SIZE + dataSize + ((dataSize + 7) / 8);
 }
 
-size_t CompressImpl(
+size_t compressImpl(
     const unsigned char* dataStart, const size_t dataSize,
     unsigned char* bufferStart
 ) {
@@ -37,13 +37,13 @@ size_t CompressImpl(
     size_t opMask = (1 << 7);
 
     while (srcPosition < dataSize) {
-        detail::Window::SearchResult search = window->search(srcPosition);
+        Window::SearchResult search = window->search(srcPosition);
         if (search.length < MIN_MATCH_LENGTH) {
             bufferStart[opPosition] |= opMask;
             bufferStart[dstPosition++] = dataStart[srcPosition++];
         }
         else {
-            detail::Window::SearchResult secondSearch = window->search(srcPosition + 1);
+            Window::SearchResult secondSearch = window->search(srcPosition + 1);
             if ((search.length + 1) < secondSearch.length) {
                 bufferStart[opPosition] |= opMask;
                 bufferStart[dstPosition++] = dataStart[srcPosition++];

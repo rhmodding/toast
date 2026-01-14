@@ -21,24 +21,24 @@ public:
     {}
     ~CommandInsertAnimation() = default;
 
-    void Execute() override {
+    void execute() override {
         auto& animations = getCellAnim()->getAnimations();
 
         auto it = animations.begin() + mAnimationIndex;
         animations.insert(it, mAnimation);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         auto& animations = getCellAnim()->getAnimations();
 
         auto it = animations.begin() + mAnimationIndex;
         animations.erase(it);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

@@ -22,18 +22,18 @@ public:
     {}
     ~CommandInsertArrangement() = default;
 
-    void Execute() override {
+    void execute() override {
         auto& arrangements = getCellAnim()->getArrangements();
 
         auto it = arrangements.begin() + mArrangementIndex;
         arrangements.insert(it, mArrangement);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         auto& arrangements = getCellAnim()->getArrangements();
 
         auto it = arrangements.begin() + mArrangementIndex;
@@ -45,7 +45,7 @@ public:
                     key.arrangementIndex = 0;
             }
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

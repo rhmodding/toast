@@ -27,9 +27,9 @@ public:
     };
 
 public:
-    std::future<void> QueueTask(std::function<void()> func);
+    std::future<void> queueTask(std::function<void()> func);
 
-    void Update();
+    void update();
 
 private:
     std::queue<MainThreadTask> mTaskQueue;

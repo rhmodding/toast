@@ -20,24 +20,24 @@ public:
     {}
     ~CommandInsertArrangementPart() = default;
 
-    void Execute() override {
+    void execute() override {
         CellAnim::Arrangement& arrangement = getArrangement();
 
         auto it = arrangement.parts.begin() + mPartIndex;
         arrangement.parts.insert(it, mPart);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }
 
-    void Rollback() override {
+    void rollback() override {
         CellAnim::Arrangement& arrangement = getArrangement();
 
         auto it = arrangement.parts.begin() + mPartIndex;
         arrangement.parts.erase(it);
 
-        PlayerManager::getInstance().correctState();
+        PlayerManager::getInstance().validateState();
 
         SessionManager::getInstance().setCurrentSessionModified(true);
     }

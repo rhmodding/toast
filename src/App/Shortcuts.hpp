@@ -33,7 +33,7 @@ struct Shortcut {
 [[nodiscard]] std::string getDisplayName(ShortcutAction action, const char8_t* icon = nullptr);
 [[nodiscard]] const std::string& getDisplayChord(ShortcutAction action);
 
-void Process();
+void process();
 
 } // namespace Shortcuts
 

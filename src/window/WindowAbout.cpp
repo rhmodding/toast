@@ -96,7 +96,7 @@ static const char* githubURLCmd =
 
 static char sBuildString[64];
 
-constexpr ImVec2 windowSize (880.f, 520.f);
+constexpr ImVec2 windowSize (880.f, 540.f);
 
 static void drawLines(const Line* lines, unsigned lineCount, ImVec2& position, ImGuiWindow* window) {
     float additiveLineHeight { 0.f };
@@ -208,12 +208,12 @@ WindowAbout::WindowAbout() {
     std::snprintf(sBuildString, sizeof(sBuildString), "built on: %s", gBuildDate);
 }
 
-void WindowAbout::Update() {
+void WindowAbout::update() {
     if (!mOpen)
         return;
 
     if (mImage.getTextureId() == Texture::INVALID_TEXTURE_ID)
-        mImage.LoadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
+        mImage.loadSTBMem(toastIcon_title_png, toastIcon_title_png_size);
 
     ImGui::SetNextWindowPos(
         ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(.5f, .5f)

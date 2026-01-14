@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <imgui.h>
+
 #include "cellanim/CellAnim.hpp"
 
 class SelectionState {
@@ -13,63 +15,100 @@ public:
 private:
     void resetSelectionOrder();
 
-    void applyRangeSelectionOrder(const ImGuiSelectionRequest& req);
+    void applyRangeSelectionOrder(const ImGuiSelectionRequest &req);
 
 public:
-    void clearSelectedParts() {
-        mSelectedParts.clear();
+    void clearSelectedElements() {
+        mSelected.clear();
         mNextSelectionOrder = 0;
     }
 
-    bool multiplePartsSelected() const {
-        return mSelectedParts.size() > 1;
+    bool multipleSelected() const {
+        return mSelected.size() > 1;
     }
-    bool anyPartsSelected() const {
-        return !mSelectedParts.empty();
+    bool anySelected() const {
+        return !mSelected.empty();
     }
-    bool singlePartSelected() const {
-        return mSelectedParts.size() == 1;
+    bool singleSelected() const {
+        return mSelected.size() == 1;
     }
 
-    bool isPartSelected(unsigned partIndex) const {
+    bool checkSelected(unsigned elementIndex) const {
         return std::any_of(
-            mSelectedParts.begin(), mSelectedParts.end(),
-            [partIndex](const SelectedPart& sp) {
-                return sp.index == partIndex;
+            mSelected.begin(), mSelected.end(),
+            [elementIndex](const Selection &sel) {
+                return sel.index == elementIndex;
             }
         );
     }
-    void setPartSelected(unsigned partIndex, bool selected);
+    void setSelected(unsigned elementIndex, bool selected);
 
-    void setBatchPartSelection(unsigned partIndex, bool selected);
+    void setBatchSelection(unsigned elementIndex, bool selected);
 
-    void processMultiSelectRequests(ImGuiMultiSelectIO* msIo);
+    void processMultiSelectRequests(ImGuiMultiSelectIO *msIo);
 
-    void deleteSelectedParts(
-        ImGuiMultiSelectIO* msIo,
-        std::vector<CellAnim::ArrangementPart>& parts,
+    template <typename T>
+    void deleteAllSelected(
+        ImGuiMultiSelectIO *msIo,
+        std::vector<T> &elements,
         int itemCurrentIndexToSelect
-    );
+    ) {
+        std::vector<T> newElements;
+        newElements.reserve(elements.size() - mSelected.size());
 
-    int getNextPartIndexAfterDeletion(ImGuiMultiSelectIO* msIo, unsigned partCount);
+        int itemNextIndexToSelect = -1;
+        for (size_t i = 0; i < elements.size(); i++) {
+            if (!checkSelected(i)) {
+                newElements.push_back(elements[i]);
+            }
+            if (itemCurrentIndexToSelect == static_cast<int>(i)) {
+                itemNextIndexToSelect = newElements.size() - 1;
+            }
+        }
+        elements.swap(newElements);
 
-    void correctSelectedParts();
+        clearSelectedElements();
+        if (itemNextIndexToSelect != -1 && msIo->NavIdSelected) {
+            setSelected(itemNextIndexToSelect, true);
+        }
+    }
+
+    int getNextElementIndexAfterDel(ImGuiMultiSelectIO *msIo, unsigned elementCount);
+
+    void validateSelection();
+
+    void sortDescending() {
+        std::sort(
+            mSelected.begin(), mSelected.end(),
+            [](const Selection &a, const Selection &b) {
+                return a.index > b.index;
+            }
+        );
+    }
+    void sortAscending() {
+        std::sort(
+            mSelected.begin(), mSelected.end(),
+            [](const Selection &a, const Selection &b) {
+                return a.index < b.index;
+            }
+        );
+    }
 
 public:
-    struct SelectedPart {
+    struct Selection {
         unsigned index;
         int selectionOrder;
 
-        bool operator==(const SelectedPart& other) const {
+        bool operator==(const Selection &other) const {
             return
                 index == other.index &&
                 selectionOrder == other.selectionOrder;
         }
-        bool operator!=(const SelectedPart& other) const {
+        bool operator!=(const Selection &other) const {
             return !(*this == other);
         }
     };
-    std::vector<SelectedPart> mSelectedParts;
+    std::vector<Selection> mSelected;
 
     int mNextSelectionOrder { 0 };
 };

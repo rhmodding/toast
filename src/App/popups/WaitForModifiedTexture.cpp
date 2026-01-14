@@ -46,7 +46,7 @@ void Popups::WaitForModifiedTexture::update() {
             const char* texturePath = ConfigManager::getInstance().getConfig().textureEditPath.c_str();
 
             std::shared_ptr<TextureEx> newTexture = std::make_shared<TextureEx>();
-            if (newTexture->LoadSTBFile(texturePath)) {
+            if (newTexture->loadSTBFile(texturePath)) {
                 auto& cellanimSheet = sessionManager.getCurrentSession()
                     ->getCurrentCellAnimSheet();
                 switch (selectedFormatIndex) {

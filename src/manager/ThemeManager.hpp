@@ -21,7 +21,7 @@ public:
         ImFont* icon { nullptr };
     };
 
-    void Initialize();
+    void initialize();
 
     void applyTheming();
 

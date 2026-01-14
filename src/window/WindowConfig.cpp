@@ -5,9 +5,13 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <tinyfiledialogs.h>
+
 #include "manager/ThemeManager.hpp"
 
 #include "util/UIUtil.hpp"
+
+#include "font/FontAwesome.h"
 
 enum Categories {
     Category_General,
@@ -25,7 +29,7 @@ static const char* categoryNames[Categories_Count] {
     "Paths"
 };
 
-void WindowConfig::Update() {
+void WindowConfig::update() {
     ConfigManager& configManager = ConfigManager::getInstance();
 
     if (!mOpen)
@@ -196,8 +200,47 @@ void WindowConfig::Update() {
             } break;
 
             case Category_Paths: {
+                float buttonSize = ImGui::GetFontSize() + (ImGui::GetStyle().FramePadding.y * 2.0f);
+                ImVec2 buttonSizeVec = ImVec2(buttonSize, buttonSize);
+
+                if (ImGui::Button((const char *)ICON_FA_FOLDER_OPEN "##ImageEditorPathLoc", buttonSizeVec)) {
+                    const char* filterPatterns[] = {
+                #ifdef _WIN32
+                    "*.exe"
+                #elif __APPLE__
+                    // "*.app"
+                #endif // __APPLE__, _WIN32
+                    };
+                    char *openFileDialog = tinyfd_openFileDialog(
+                        "Select your preferred image editor",
+                        nullptr,
+                        ARRAY_LENGTH(filterPatterns), filterPatterns,
+                        "Executable program file",
+                        false
+                    );
+
+                    if (openFileDialog != nullptr) {
+                        mMyConfig.imageEditorPath.assign(openFileDialog);
+                    }
+                }
+                ImGui::SameLine(0.0f, 4.0f);
                 UIUtil::Widget::StdStringTextInput("Image editor path", mMyConfig.imageEditorPath);
-                UIUtil::Widget::StdStringTextInput("Texture edit path", mMyConfig.textureEditPath);
+
+                if (ImGui::Button((const char *)ICON_FA_FOLDER_OPEN "##TextureEditPathLoc", buttonSizeVec)) {
+                    const char* filterPatterns[] = { "*.png", "*.tga" };
+                    char *saveFileDialog = tinyfd_saveFileDialog(
+                        "Select a file to save temporary textures to",
+                        nullptr,
+                        ARRAY_LENGTH(filterPatterns), filterPatterns,
+                        "Image file (.png, .tga)"
+                    );
+
+                    if (saveFileDialog != nullptr) {
+                        mMyConfig.textureEditPath.assign(saveFileDialog);
+                    }
+                }
+                ImGui::SameLine(0.0f, 4.0f);
+                UIUtil::Widget::StdStringTextInput("Temp texture path", mMyConfig.textureEditPath);
             } break;
 
             default:
@@ -215,7 +258,7 @@ void WindowConfig::Update() {
 
             if (ImGui::Button("Save & Apply")) {
                 configManager.setConfig(mMyConfig);
-                configManager.SaveConfig();
+                configManager.saveConfig();
 
                 ThemeManager::getInstance().applyTheming();
             }
