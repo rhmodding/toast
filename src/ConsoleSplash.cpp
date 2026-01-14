@@ -17,7 +17,7 @@ extern "C" const char gConsoleSplash[] =
 "      toast comes with ABSOLUTELY NO WARRANTY.   " "\n"
 "     This is free software, and you are welcome  " "\n"
 "    to redistribute it under certain conditions. " "\n"
-"       See the GNU General Public License for    " "\n"
+"       See the Mozilla Public License for    " "\n"
 "                    more details.                " "\n"
 "                                                 " "\n"
 "            copyright \xC2\xA9 2026 conhlee           " "\n"
