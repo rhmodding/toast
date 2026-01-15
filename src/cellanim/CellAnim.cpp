@@ -373,8 +373,6 @@ struct CtrAnimationKey {
 
             .translateZ = positionZ,
 
-            .opacity = opacity,
-
             .foreColor = CellAnim::CTRColor (
                 foreColor[0] / 255.f,
                 foreColor[1] / 255.f,
@@ -384,7 +382,9 @@ struct CtrAnimationKey {
                 backColor[0] / 255.f,
                 backColor[1] / 255.f,
                 backColor[2] / 255.f
-            )
+            ),
+
+            .opacity = opacity
         };
     }
 } __attribute__((packed));

@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-latest, macos-13]
+        os: [ubuntu-22.04, windows-latest, macos-14-large]
         include:
           - os: windows-latest
             c_compiler: gcc
@@ -19,7 +19,7 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
-          - os: macos-13
+          - os: macos-14-large # NOTE: start using macos-15-intel once this gets too old
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
