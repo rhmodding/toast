@@ -1,12 +1,16 @@
 # toast
-[icon?]
+
+<img src=".github/img/toast_title.png" style="margin:5px;margin-block:-30px -20px;" align="right" width="40%" alt="toast">
+
+<br/>
+
 the ultimate cellanim modding tool for Rhythm Heaven Fever and Rhythm Heaven Megamix
 
 [![version 0.9](https://img.shields.io/badge/version-0.9-slateblue)]()
 
 toast is a more modern RH cellanim (BCCAD/BRCAD) editor, made with QoL in mind, for modders with varying levels of experience.
 
-![Screenshot of toast in action](img/image.png)
+<img src=".github/img/screencap_300725.png" style="margin-top:15px" alt="Screenshot of toast in action">
 
 ## Why not Bread?
 
