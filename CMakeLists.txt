@@ -224,6 +224,7 @@ ELSE() # Generic
         dl
         pthread
         m
+        X11
     )
 ENDIF()
 
