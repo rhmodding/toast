@@ -186,11 +186,23 @@ Toast::Toast(int argc, const char **argv) {
     glfwSwapInterval(1); // enable VSync
 
 #if defined(USING_GLEW)
-    if (glewInit() != GLEW_OK) {
+    if (GLenum glewInitResult = glewInit(); glewInitResult == GLEW_ERROR_NO_GLX_DISPLAY) {
+        Logging::warn("[Toast::Toast] No GLX display; either running under Wayland or something is very wrong with your X11 server");
+        tinyfd_messageBox(
+            "Running under Wayland?",
+            "Running toast under Wayland can lead to some stuff not working as it should. (blame glew/glfw)\n"
+            "Consider using Xwayland by setting environment variable XDG_SESSION_TYPE=x11",
+            "ok", 
+            "warning", 
+            1
+        );
+    } else if (glewInitResult != GLEW_OK) {
+        std::string errorMesg ("Toast::Toast: Failed to init GLEW: ");
+        errorMesg.append(reinterpret_cast<const char*>(glewGetErrorString(glewInitResult)));
         glfwDestroyWindow(mGlfwWindowHndl);
         glfwTerminate();
 
-        throw std::runtime_error("Toast::Toast: Failed to init GLEW!");
+        throw std::runtime_error(errorMesg);
     }
 #endif
 
