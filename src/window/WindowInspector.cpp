@@ -91,10 +91,10 @@ void WindowInspector::duplicateArrangementButton(CellAnim::AnimationKey& newKey,
     }
 
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone | ImGuiHoveredFlags_AllowWhenDisabled)) {
-        if (usageCount == 0) {
+        if (usageCount == 1) {
             ImGui::SetTooltip("This arrangement is only used once.\nYou can right-click to duplicate anyway.");
         }
-        else if (usageCount == 1) {
+        else if (usageCount == 0) {
             ImGui::SetTooltip("This arrangement isn't used.\nYou can right-click to duplicate anyway.");
         }
     }
