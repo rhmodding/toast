@@ -92,8 +92,6 @@ void WindowConfig::update() {
             case Category_General: {
                 ImGui::Checkbox("Enable panning canvas with LMB", &mMyConfig.canvasLMBPanEnabled);
 
-                ImGui::Checkbox("Allow creation of new animations", &mMyConfig.allowNewAnimCreate);
-
                 ImGui::Separator();
 
                 static const unsigned min = 30;

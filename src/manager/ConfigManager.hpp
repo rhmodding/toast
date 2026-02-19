@@ -80,8 +80,6 @@ public:
 
     ETC1Quality etc1Quality { ETC1Quality::Medium };
 
-    bool allowNewAnimCreate { false };
-
     bool operator==(const Config& rhs) const {
         return
             theme == rhs.theme &&
@@ -94,8 +92,7 @@ public:
             updateRate == rhs.updateRate &&
             backupBehaviour == rhs.backupBehaviour &&
             compressionLevel == rhs.compressionLevel &&
-            etc1Quality == rhs.etc1Quality &&
-            allowNewAnimCreate == rhs.allowNewAnimCreate;
+            etc1Quality == rhs.etc1Quality;
     }
 
     // Friend functions for JSON (de-)serialization
@@ -113,7 +110,6 @@ public:
             { "backupBehaviour", _config.backupBehaviour },
             { "compressionLevel", _config.compressionLevel },
             { "etc1Quality", _config.etc1Quality },
-            { "allowNewAnimCreate", _config.allowNewAnimCreate }
         };
     }
     friend void from_json(const nlohmann::ordered_json& j, Config& _config) {
@@ -129,7 +125,6 @@ public:
         _config.backupBehaviour =     j.value("backupBehaviour", _config.backupBehaviour);
         _config.compressionLevel =    j.value("compressionLevel", _config.compressionLevel);
         _config.etc1Quality =         j.value("etc1Quality", _config.etc1Quality);
-        _config.allowNewAnimCreate =  j.value("allowNewAnimCreate", _config.allowNewAnimCreate);
     }
 };
 

@@ -176,26 +176,24 @@ void WindowHybridList::update() {
 
                     ImGui::Separator();
 
-                    if (config.allowNewAnimCreate) {
-                        if (ImGui::Selectable("Insert new animation above")) {
-                            command = std::make_shared<CommandInsertAnimation>(
-                                currentSession->getCurrentCellAnimIndex(),
-                                n+1,
-                                createNewAnimation()
-                            );
-                            newAnimationSelect = n+1;
-                        }
-                        if (ImGui::Selectable("Insert new animation below")) {
-                            command = std::make_shared<CommandInsertAnimation>(
-                                currentSession->getCurrentCellAnimIndex(),
-                                n,
-                                createNewAnimation()
-                            );
-                            newAnimationSelect = n;
-                        }
-
-                        ImGui::Separator();
+                    if (ImGui::Selectable("Insert new animation above")) {
+                        command = std::make_shared<CommandInsertAnimation>(
+                            currentSession->getCurrentCellAnimIndex(),
+                            n,
+                            createNewAnimation()
+                        );
+                        newAnimationSelect = n;
                     }
+                    if (ImGui::Selectable("Insert new animation below")) {
+                        command = std::make_shared<CommandInsertAnimation>(
+                            currentSession->getCurrentCellAnimIndex(),
+                            n+1,
+                            createNewAnimation()
+                        );
+                        newAnimationSelect = n+1;
+                    }
+
+                    ImGui::Separator();
 
                     if (ImGui::Selectable("Paste animation..", allowPasteAnimation)) {
                         CellAnim::Animation newAnimation = copyAnimation;
