@@ -31,6 +31,7 @@
 
 // TODO: include ordering
 #include "WindowCanvas.hpp"
+#include "WindowCellQuickSel.hpp"
 #include "WindowHybridList.hpp"
 #include "WindowInspector.hpp"
 #include "WindowTimeline.hpp"
@@ -73,6 +74,11 @@ WindowRoot::WindowRoot() {
     });
     registerWindow<WindowCanvas>(SubWindowOptions {
         .name = "Canvas",
+        .showOnlyWithSession = true,
+        .showInAppMenu = false,
+    });
+    registerWindow<WindowCellQuickSel>(SubWindowOptions {
+        .name = "Cell Quick Select",
         .showOnlyWithSession = true,
         .showInAppMenu = false,
     });

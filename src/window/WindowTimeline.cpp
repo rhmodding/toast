@@ -274,7 +274,7 @@ static bool keySelectable(const char *label, bool selected, const ImVec2 &sizeAr
         return false;
     }
 
-    ImGuiContext &g = *GImGui;
+    ImGuiContext &g = *ImGui::GetCurrentContext();
     const ImGuiStyle &style = g.Style;
     const ImGuiID id = window->GetID(label);
     const ImVec2 labelSize = CalcTextSize(label, nullptr, true);

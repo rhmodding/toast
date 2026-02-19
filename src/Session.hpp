@@ -46,10 +46,28 @@ public:
     }
 
 public:
+    struct SavedCell {
+        int cellOrigin[2]; // X,Y
+        int cellSize[2]; // X,Y
+
+        bool operator==(const SavedCell& rhs) const {
+            return cellOrigin[0] == rhs.cellOrigin[0] &&
+                   cellOrigin[1] == rhs.cellOrigin[1] &&
+                   cellSize[0] == rhs.cellSize[0] &&
+                   cellSize[1] == rhs.cellSize[1];
+        }
+        bool operator!=(const SavedCell& rhs) const {
+            return !(*this == rhs);
+        }
+    };
+
     struct CellAnimGroup {
         std::shared_ptr<CellAnim::CellAnimObject> object;
         SelectionState partSelectionState;
         SelectionState keySelectionState;
+        bool useBackgroundColor { false };
+        float backgroundColor[3] { 0.0f, 0.0f, 0.0f }; // normalized RGB
+        std::vector<SavedCell> mSavedCell;
     };
 
     void addCommand(std::shared_ptr<BaseCommand> command);
