@@ -7,7 +7,6 @@
 #include <sstream>
 #include <string>
 
-#include "manager/SessionManager.hpp"
 #include "manager/ConfigManager.hpp"
 #include "manager/PlayerManager.hpp"
 #include "manager/ThemeManager.hpp"
@@ -19,6 +18,8 @@
 #include "texture/APNGHack.hpp"
 
 #include "Macro.hpp"
+
+WindowCanvas *WindowCanvas::sInstance;
 
 constexpr float CANVAS_ZOOM_SPEED = .04f;
 constexpr float CANVAS_ZOOM_SPEED_FAST = .08f;
@@ -71,6 +72,10 @@ static bool pointInPolygon(const ImVec2& point, const ImVec2* vertices, unsigned
     }
 
     return inside;
+}
+
+static float calcColorLumi(ImVec4 color) {
+    return (0.2126f * color.x) + (0.7152f * color.y) + (0.0722f * color.z);
 }
 
 constexpr float BOUNDING_INVALID = std::numeric_limits<float>::max();
@@ -212,33 +217,41 @@ void WindowCanvas::Menubar() {
 
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Grid")) {
-            if (ImGui::MenuItem("None", nullptr, mState.gridType == CanvasGridType::None))
+            bool usingCustomBG = useCustomBGColor();
+            if (ImGui::MenuItem("None", nullptr, !usingCustomBG && (mState.gridType == CanvasGridType::None))) {
                 mState.gridType = CanvasGridType::None;
+                setUseCustomBGColor(false);
+            }
 
-            if (ImGui::MenuItem("Dark", nullptr, mState.gridType == CanvasGridType::Dark))
+            if (ImGui::MenuItem("Dark", nullptr, !usingCustomBG && (mState.gridType == CanvasGridType::Dark))) {
                 mState.gridType = CanvasGridType::Dark;
+                setUseCustomBGColor(false);
+            }
 
-            if (ImGui::MenuItem("Light", nullptr, mState.gridType == CanvasGridType::Light))
+            if (ImGui::MenuItem("Light", nullptr, !usingCustomBG && (mState.gridType == CanvasGridType::Light))) {
                 mState.gridType = CanvasGridType::Light;
+                setUseCustomBGColor(false);
+            }
 
             if (ImGui::BeginMenu("Custom")) {
-                bool enabled = mState.gridType == CanvasGridType::User;
+                bool enabled = useCustomBGColor();
                 if (ImGui::Checkbox("Enabled", &enabled)) {
-                    if (enabled)
-                        mState.gridType = CanvasGridType::User;
-                    else
-                        mState.setDefaultGridType();
+                    setUseCustomBGColor(enabled);
                 }
 
                 ImGui::SeparatorText("Color Picker");
 
-                ImGui::BeginDisabled(mState.gridType != CanvasGridType::User);
-                ImGui::ColorPicker4(
+                ImGui::BeginDisabled(!enabled);
+
+                ImVec4 color = getCustomBGColor();
+                if (ImGui::ColorPicker4(
                     "##ColorPicker",
-                    &mState.userGridColor.x,
+                    &color.x,
                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHex,
                     nullptr
-                );
+                )) {
+                    setCustomBGColor(color);
+                }
                 ImGui::EndDisabled();
 
                 ImGui::EndMenu();
@@ -339,27 +352,7 @@ void WindowCanvas::update() {
 
     Menubar();
 
-    uint32_t backgroundColor;
-    switch (mState.gridType) {
-    case CanvasGridType::Dark:
-        backgroundColor = IM_COL32(50, 50, 50, 255);
-        break;
-    case CanvasGridType::Light:
-        backgroundColor = IM_COL32(255, 255, 255, 255);
-        break;
-    case CanvasGridType::User:
-        backgroundColor = IM_COL32(
-            mState.userGridColor.x * 255,
-            mState.userGridColor.y * 255,
-            mState.userGridColor.z * 255,
-            mState.userGridColor.w * 255
-        );
-        break;
-    case CanvasGridType::None:
-    default:
-        backgroundColor = IM_COL32_BLACK_TRANS;
-        break;
-    }
+    uint32_t backgroundColor = getBackgroundColor();
 
     drawList->AddRectFilled(mCanvasTopLeft, canvasBottomRight, backgroundColor);
 
@@ -897,10 +890,10 @@ void WindowCanvas::update() {
                 partsAnmSpaceCenter.y + newPivotY
             );
 
-            SessionManager& sessionManager = SessionManager::getInstance();
-
             // Reverse the role of arrangementBeforeMutation for the command submit
             std::swap(arrangementBeforeMutation, arrangement);
+
+            SessionManager &sessionManager = SessionManager::getInstance();
 
             sessionManager.getCurrentSession()->addCommand(
             std::make_shared<CommandModifyArrangement>(
@@ -915,22 +908,9 @@ void WindowCanvas::update() {
 
     // All drawing operations
     {
-        bool isBackgroundLight = false;
-        switch (mState.gridType) {
-        case CanvasGridType::Dark:
-            isBackgroundLight = false;
-            break;
-        case CanvasGridType::Light:
-            isBackgroundLight = true;
-            break;
-        case CanvasGridType::User:
-            isBackgroundLight = mState.getUserGridColorLumi() > .5f;
-            break;
-        case CanvasGridType::None:
-        default:
-            isBackgroundLight = ThemeManager::getInstance().getThemeIsLight();
-            break;
-        }
+        bool isBackgroundLight = calcColorLumi(
+            ImGui::ColorConvertU32ToFloat4(getBackgroundColor())
+        ) > 0.5f;
 
         drawList->PushClipRect(mCanvasTopLeft, canvasBottomRight, true);
         {
@@ -1154,22 +1134,11 @@ void WindowCanvas::update() {
 void WindowCanvas::DrawCanvasText() {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    uint32_t textColor { IM_COL32_BLACK };
-    switch (mState.gridType) {
-    case CanvasGridType::Dark:
-        textColor = IM_COL32_WHITE;
-        break;
-    case CanvasGridType::Light:
-        textColor = IM_COL32_BLACK;
-        break;
-    case CanvasGridType::User:
-        textColor = (mState.getUserGridColorLumi() > .5f) ? IM_COL32_BLACK : IM_COL32_WHITE;
-        break;
-    case CanvasGridType::None:
-    default:
-        textColor = ThemeManager::getInstance().getThemeIsLight() ? IM_COL32_BLACK : IM_COL32_WHITE;
-        break;
-    }
+    bool isBackgroundLight = calcColorLumi(
+        ImGui::ColorConvertU32ToFloat4(getBackgroundColor())
+    ) > 0.5f;
+
+    uint32_t textColor = isBackgroundLight ? IM_COL32_BLACK : IM_COL32_WHITE;
 
     const float textDrawLeft = mCanvasTopLeft.x + 10.f;
     float textDrawTop = mCanvasTopLeft.y + 5.f;

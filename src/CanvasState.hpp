@@ -11,8 +11,6 @@ enum class CanvasGridType {
     None,
     Dark,
     Light,
-
-    User
 };
 
 struct CanvasState {
@@ -24,7 +22,6 @@ public:
     float zoomFactor { 1.f };
 
     CanvasGridType gridType;
-    ImVec4 userGridColor { 1.f, 1.f, 1.f, 1.f };
     bool gridLinesEnable { true };
 
     bool safeAreaEnable { false };
@@ -46,13 +43,6 @@ public:
     void setDefaultGridType() {
         this->gridType = ThemeManager::getInstance().getThemeIsLight() ?
             CanvasGridType::Light : CanvasGridType::Dark;
-    }
-
-    float getUserGridColorLumi() const {
-        return
-            .2126f * this->userGridColor.x +
-            .7152f * this->userGridColor.y +
-            .0722f * this->userGridColor.z;
     }
 
     void clampZoomFactor() {

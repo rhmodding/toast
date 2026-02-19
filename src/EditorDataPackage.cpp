@@ -19,7 +19,7 @@ constexpr uint32_t TED_MAGIC = 6132025; // Jun 13 2025
 
 // Major version must be changed for any breaking changes.
 constexpr unsigned int TED_VERSION_MAJOR = 1;
-constexpr unsigned int TED_VERSION_MINOR = 1;
+constexpr unsigned int TED_VERSION_MINOR = 2;
 
 enum TedFlag {
     TED_FLAG_NONE = 0,
@@ -52,6 +52,7 @@ enum TedEntryType {
     TED_ENTRY_TYPE_PART_LOCK = 2, // Set a part to locked.
     TED_ENTRY_TYPE_PART_HIDE = 3, // Set a part to hidden.
     TED_ENTRY_TYPE_ANIM_COMMENT = 4, // Set a animation's comment.
+    TED_ENTRY_TYPE_BG_COLOR = 5, // Set the canvas' background color.
 };
 
 struct TedEntry {
@@ -81,6 +82,9 @@ struct TedEntry {
             uint16_t animationIndex;
             uint32_t stringOffset; // Relative to the start of the string table.
         } animComment;
+        struct {
+            uint8_t bgColor[3];
+        } bgColor;
     };
 };
 
@@ -145,9 +149,8 @@ struct TedNamedPartEntryOld {
     uint32_t nameOffset; // relative to fileHeader->stringPoolOffset.
 } __attribute__((packed));
 
-static CellAnim::ArrangementPart* getPart(
-    const Session& session,
-    unsigned cellIndex, unsigned arrngIndex, unsigned partIndex
+static Session::CellAnimGroup* getCellAnim(
+    Session& session, unsigned cellIndex
 ) {
     if (cellIndex >= session.cellanims.size()) {
         Logging::error(
@@ -155,6 +158,47 @@ static CellAnim::ArrangementPart* getPart(
             "   - Cellanim Index: {}",
             cellIndex
         );
+        return nullptr;
+    }
+
+    return &session.cellanims.at(cellIndex);
+}
+
+static const Session::CellAnimGroup* getCellAnim(
+    const Session& session, unsigned cellIndex
+) {
+    return getCellAnim(const_cast<Session&>(session), cellIndex);
+}
+
+static CellAnim::Animation* getAnimation(
+    const Session& session,
+    unsigned cellIndex, unsigned animIndex
+) {
+    const auto *cellAnim = getCellAnim(session, cellIndex);
+    if (cellAnim == nullptr) {
+        return nullptr;
+    }
+
+    auto& animations = session.cellanims.at(cellIndex).object->getAnimations();
+    if (animIndex >= animations.size()) {
+        Logging::error(
+            "[TedApply] Invalid editor data binary: oob animation index!:\n"
+            "   - Cellanim Index: {}\n"
+            "   - Animation Index: {}",
+            cellIndex, animIndex
+        );
+        return nullptr;
+    }
+
+    return &animations[animIndex];
+}
+
+static CellAnim::ArrangementPart* getPart(
+    const Session& session,
+    unsigned cellIndex, unsigned arrngIndex, unsigned partIndex
+) {
+    const auto *cellAnim = getCellAnim(session, cellIndex);
+    if (cellAnim == nullptr) {
         return nullptr;
     }
 
@@ -183,34 +227,6 @@ static CellAnim::ArrangementPart* getPart(
 
     return &arrangement.parts.at(partIndex);
 }
-
-static CellAnim::Animation* getAnimation(
-    const Session& session,
-    unsigned cellIndex, unsigned animIndex
-) {
-    if (cellIndex >= session.cellanims.size()) {
-        Logging::error(
-            "[TedApply] Invalid editor data binary: oob cellanim index!:\n"
-            "   - Cellanim Index: {}",
-            cellIndex
-        );
-        return nullptr;
-    }
-
-    auto& animations = session.cellanims.at(cellIndex).object->getAnimations();
-    if (animIndex >= animations.size()) {
-        Logging::error(
-            "[TedApply] Invalid editor data binary: oob animation index!:\n"
-            "   - Cellanim Index: {}\n"
-            "   - Animation Index: {}",
-            cellIndex, animIndex
-        );
-        return nullptr;
-    }
-
-    return &animations[animIndex];
-}
-
 
 static bool ApplyImpl(Session& session, const unsigned char *data, const size_t dataSize) {
     const TedFileHeader* fileHeader = reinterpret_cast<const TedFileHeader*>(data);
@@ -299,6 +315,15 @@ static bool ApplyImpl(Session& session, const unsigned char *data, const size_t 
                 return false;
 
             anim->comment.assign(stringPool + currentEntry->animComment.stringOffset);
+        } break;
+
+        case TED_ENTRY_TYPE_BG_COLOR: {
+            auto *cellAnim = getCellAnim(session, currentCellAnimIdx);
+
+            cellAnim->useBackgroundColor = true;
+            cellAnim->backgroundColor[0] = currentEntry->bgColor.bgColor[0] / 255.0f;
+            cellAnim->backgroundColor[1] = currentEntry->bgColor.bgColor[1] / 255.0f;
+            cellAnim->backgroundColor[2] = currentEntry->bgColor.bgColor[2] / 255.0f;
         } break;
 
         default:
@@ -593,6 +618,19 @@ std::optional<std::vector<unsigned char>> EditorDataProc::Create(const Session &
 
                 entries.push_back(entry);
             }
+        }
+    
+        if (session.cellanims[cellAnimIdx].useBackgroundColor) {
+            trySetFollowCellAnim(alreadySetFollowCellAnim, cellAnimIdx);
+
+            TedEntry entry;
+            entry.type = TED_ENTRY_TYPE_BG_COLOR;
+            entry.sizeHalf = TED_ENTRY_SIZE_HALF(bgColor);
+            entry.bgColor.bgColor[0] = session.cellanims[cellAnimIdx].backgroundColor[0] * 255.0f;
+            entry.bgColor.bgColor[1] = session.cellanims[cellAnimIdx].backgroundColor[1] * 255.0f;
+            entry.bgColor.bgColor[2] = session.cellanims[cellAnimIdx].backgroundColor[2] * 255.0f;
+
+            entries.push_back(entry);
         }
     }
 
