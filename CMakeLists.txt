@@ -111,6 +111,7 @@ set(SOURCES
 
     src/window/WindowAbout.cpp
     src/window/WindowCanvas.cpp
+    src/window/WindowCellQuickSel.cpp
     src/window/WindowConfig.cpp
     src/window/WindowHybridList.cpp
     src/window/WindowImGuiDemo.cpp
