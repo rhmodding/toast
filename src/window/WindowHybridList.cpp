@@ -285,18 +285,15 @@ void WindowHybridList::update() {
 
                     ImGui::Separator();
 
+                    ImGui::BeginDisabled(animations.size() == 1);
+
                     if (ImGui::Selectable("Delete animation")) {
                         std::string promptMsg =
                             "Are you sure you want to delete animation no. " +
-                            std::to_string(n) + "?";
+                            std::to_string(n+1) + "?";
 
                         if (n != (animations.size() - 1)) {
                             promptMsg += "\nThis change will shift other animations indices.";
-                        }
-                        else {
-                            promptMsg += "\n"
-                                "The game will likely crash if it attempts to load an animation\n"
-                                "at this index.";
                         }
 
                         PromptPopupManager::getInstance().queue(
@@ -318,6 +315,8 @@ void WindowHybridList::update() {
                             })
                         );
                     }
+
+                    ImGui::EndDisabled();
 
                     ImGui::EndPopup();
                 }
