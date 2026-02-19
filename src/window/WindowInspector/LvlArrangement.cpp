@@ -17,53 +17,6 @@
 
 #include "font/FontAwesome.h"
 
-// Used for the part visibillity & lock buttons.
-static bool partToggleButton(const char* label, bool toggled) {
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-    const ImGuiID id = window->GetID(label);
-    const ImVec2 labelSize = ImGui::CalcTextSize(label, nullptr, true);
-
-    const ImGuiStyle& style = ImGui::GetStyle();
-
-    ImVec2 pos = window->DC.CursorPos;
-
-    // Try to vertically align buttons that are smaller/have no padding so that
-    // text baseline matches (bit hacky, since it shouldn't be a flag)
-    if (0.f < window->DC.CurrLineTextBaseOffset)
-        pos.y += window->DC.CurrLineTextBaseOffset;
-
-    const ImVec2 size = ImGui::CalcItemSize(
-        { 0.f, 0.f }, labelSize.x, labelSize.y
-    );
-
-    const ImRect bb(pos, { pos.x + size.x, pos.y + size.y });
-
-    ImGui::ItemSize(size, 0.f);
-    if (!ImGui::ItemAdd(bb, id))
-        return false;
-
-    bool hovered { false }, held { false };
-    const bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
-
-    ImVec4 color = toggled ?
-        ImVec4(1.f, 0.f, 0.f, 1.f) : style.Colors[ImGuiCol_Text];
-    color.w *= style.Alpha * (hovered ? 1.f : .5f);
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertFloat4ToU32(color));
-    ImGui::RenderTextClipped(
-        bb.Min, bb.Max,
-        label, nullptr,
-        &labelSize,
-        { .5f, .5f },
-
-        &bb
-    );
-    ImGui::PopStyleColor();
-
-    return pressed;
-}
-
 void WindowInspector::Level_Arrangement() {
     SessionManager& sessionManager = SessionManager::getInstance();
     PlayerManager& playerManager = PlayerManager::getInstance();
@@ -495,8 +448,6 @@ void WindowInspector::Level_Arrangement() {
                     ImGui::BulletText("Locked: %s", (locked == 0) ? "no" : (locked == 1) ? "yes" : "mixed");
                     ImGui::Separator();
 
-                    ImGui::BeginDisabled(locked);
-
                     if (ImGui::Selectable("Insert new part above"))
                         insertNewPart = n + 1;
                     if (ImGui::Selectable("Insert new part below"))
@@ -554,6 +505,8 @@ void WindowInspector::Level_Arrangement() {
 
                         ImGui::Separator();
 
+                        ImGui::BeginDisabled(locked);
+
                         if (ImGui::MenuItem("..here (replace)")) {
                             auto newArrangement = playerManager.getArrangement();
 
@@ -585,8 +538,13 @@ void WindowInspector::Level_Arrangement() {
                                     selectionState.setSelected(n + i, true);
                             }
                         }
+
+                        ImGui::EndDisabled();
+
                         ImGui::EndMenu();
                     }
+
+                    ImGui::BeginDisabled(locked);
 
                     if (ImGui::BeginMenu("Paste single part (special)..", copyParts.size() == 1)) {
                         if (ImGui::MenuItem(".. transform")) {
@@ -646,6 +604,8 @@ void WindowInspector::Level_Arrangement() {
                         ImGui::EndMenu();
                     }
 
+                    ImGui::EndDisabled();
+
                     ImGui::Separator();
 
                     if (isPartSelected) {
@@ -691,6 +651,8 @@ void WindowInspector::Level_Arrangement() {
                         std::strcpy(label, "Delete part");
                     }
 
+                    ImGui::BeginDisabled(locked);
+
                     if (ImGui::Selectable(label)) {
                         if (isPartSelected) {
                             wantDeleteSelected = true;
@@ -708,7 +670,7 @@ void WindowInspector::Level_Arrangement() {
                 }
 
                 ImGui::SameLine(4.f, 0.f);
-                if (partToggleButton((const char*)ICON_FA_EYE "##Visible", !part.editorVisible)) {
+                if (UIUtil::Widget::LabelButton((const char*)ICON_FA_EYE "##Visible", !part.editorVisible)) {
                     auto newArrangement = arrangement;
 
                     if (!isPartSelected)
@@ -728,7 +690,7 @@ void WindowInspector::Level_Arrangement() {
                 }
 
                 ImGui::SameLine();
-                if (partToggleButton((const char*)ICON_FA_LOCK "##Locked", part.editorLocked)) {
+                if (UIUtil::Widget::LabelButton((const char*)ICON_FA_LOCK "##Locked", part.editorLocked)) {
                     auto newArrangement = arrangement;
 
                     if (!isPartSelected)

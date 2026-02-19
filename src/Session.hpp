@@ -75,6 +75,13 @@ public:
         return cellanims.at(currentCellAnim);
     }
 
+    const CellAnimGroup &getCellAnim(size_t index) const {
+        return cellanims.at(index);
+    }
+    CellAnimGroup &getCellAnim(size_t index) {
+        return cellanims.at(index);
+    }
+
     const std::shared_ptr<TextureEx> &getCurrentCellAnimSheet() const {
         return sheets->getTextureByIndex(
             getCurrentCellAnim().object->getSheetIndex()
@@ -98,6 +105,16 @@ public:
     }
     SelectionState &getKeySelectState() {
         return getCurrentCellAnim().keySelectionState;
+    }
+
+    const std::string &getResourcePath() const {
+        return resourcePath;
+    }
+    void setResourcePath(const std::string &path) {
+        resourcePath = path;
+    }
+    void setResourcePath(std::string &&path) {
+        resourcePath = std::move(path);
     }
 
 private:

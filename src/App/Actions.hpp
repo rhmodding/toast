@@ -3,6 +3,7 @@
 
 namespace Actions {
 
+void StartNewWizard();
 void CreateSessionPromptPath();
 void ExportSessionPromptPath();
 void ExportSession();

@@ -44,6 +44,7 @@ set(SOURCES
     src/App/popups/MTransformAnimation.cpp
     src/App/popups/MTransformArrangement.cpp
     src/App/popups/MTransformCellanim.cpp
+    src/App/popups/NewWizard.cpp
 
     src/archive/Archive.cpp
     src/archive/DARCH.cpp
@@ -53,6 +54,7 @@ set(SOURCES
     src/BIN/fontdata/NotoSans.cpp
     src/BIN/fontdata/NotoSansJP.cpp
 
+    src/BIN/image/sheetDefault.png.cpp
     src/BIN/image/toastIcon_title.png.cpp
     src/BIN/image/toastIcon.png.cpp
 

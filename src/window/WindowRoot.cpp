@@ -203,9 +203,19 @@ void WindowRoot::doMenubar() {
 
         CellAnim::CellAnimType cellanimType { CellAnim::CELLANIM_TYPE_INVALID };
             if (sessionManager.anySessionOpened())
-                cellanimType = sessionManager.getCurrentSession()->type;
+            cellanimType = sessionManager.getCurrentSession()->type;
 
         if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem(
+                Shortcuts::getDisplayName(Shortcuts::ShortcutAction::New, ICON_FA_FILE_CIRCLE_PLUS).c_str(),
+                Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::New).c_str(),
+                nullptr
+            )) {
+                Actions::StartNewWizard();
+            }
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem(
                 Shortcuts::getDisplayName(Shortcuts::ShortcutAction::Open, ICON_FA_FILE_IMPORT).c_str(),
                 Shortcuts::getDisplayChord(Shortcuts::ShortcutAction::Open).c_str(),

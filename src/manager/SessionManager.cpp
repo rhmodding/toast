@@ -39,6 +39,8 @@
 
 #include "util/ShiftJISUtil.hpp"
 
+#include "BIN/image/sheetDefault.png.h"
+
 #include "Macro.hpp"
 
 Session& SessionManager::getSession(size_t index) {
@@ -627,6 +629,86 @@ ssize_t SessionManager::createSession(std::string_view filePath) {
     newSession.type = type;
 
     newSession.resourcePath = filePath;
+    newSession.setCurrentCellAnimIndex(0);
+
+    std::lock_guard<std::mutex> lock(mMtx);
+
+    mSessions.push_back(std::move(newSession));
+    const ssize_t sessionIndex = static_cast<ssize_t>(mSessions.size()) - 1;
+
+    Logging::info(
+        "[SessionManager::createSession] Created session no. {}.",
+        sessionIndex + 1
+    );
+
+    return sessionIndex;
+}
+
+ssize_t SessionManager::createSessionDefault(CellAnim::CellAnimType type, size_t cellAnimCount) {
+    if (type == CellAnim::CELLANIM_TYPE_INVALID) {
+        Logging::info("[SessionManager::createSessionDefault] type param is invalid!");
+        return -1;
+    }
+
+    Logging::info(
+        "[SessionManager::createSessionDefault] Creating default session ({}, {} cellanim(s)) ..",
+        (type == CellAnim::CELLANIM_TYPE_RVL) ? "RVL" : "CTR",
+        cellAnimCount
+    );
+    
+    Session newSession;
+
+    newSession.sheets->getVector().reserve(cellAnimCount);
+    for (size_t i = 0; i < cellAnimCount; i++) {
+        std::string name = "default_" + std::to_string(i);
+
+        std::shared_ptr<TextureEx> sheet = std::make_shared<TextureEx>();
+        sheet->loadSTBMem(sheetDefault_png, sheetDefault_png_size);
+
+        sheet->setName(name);
+        sheet->setOutputMipCount(1);
+        sheet->setCTPKOutputFormat(CTPK::CTPK_IMAGE_FORMAT_ETC1A4);
+        sheet->setTPLOutputFormat(TPL::TPL_IMAGE_FORMAT_RGB5A3);
+
+        newSession.sheets->addTexture(std::move(sheet));
+    }
+
+    newSession.cellanims.resize(cellAnimCount);
+    for (size_t i = 0; i < cellAnimCount; i++) {
+        std::string name = "default_" + std::to_string(i);
+
+        newSession.cellanims[i].object = std::make_shared<CellAnim::CellAnimObject>();
+        auto cellAnim = newSession.cellanims[i].object;
+
+        cellAnim->setName(name);
+        cellAnim->setType(type);
+        cellAnim->setSheetIndex(0);
+        cellAnim->setSheetWidth(newSession.sheets->getTextureByIndex(i)->getWidth());
+        cellAnim->setSheetHeight(newSession.sheets->getTextureByIndex(i)->getHeight());
+        cellAnim->setUsePalette(false);
+        
+        CellAnim::Arrangement arrangement;
+        arrangement.parts.resize(1);
+        arrangement.parts[0].cellOrigin = CellAnim::UintVec2(4, 4);
+        arrangement.parts[0].cellSize = CellAnim::UintVec2(256, 256);
+        arrangement.parts[0].transform.position = CellAnim::IntVec2(-128, -128);
+
+        cellAnim->getArrangements().push_back(std::move(arrangement));
+
+        CellAnim::Animation animation;
+        animation.name.assign("CellAnim0");
+
+        animation.keys.resize(1);
+        animation.keys[0].arrangementIndex = 0;
+
+        cellAnim->getAnimations().push_back(std::move(animation));
+
+        cellAnim->forceInit();
+    }
+
+    newSession.type = type;
+
+    newSession.resourcePath.assign("");
     newSession.setCurrentCellAnimIndex(0);
 
     std::lock_guard<std::mutex> lock(mMtx);

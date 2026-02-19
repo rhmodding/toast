@@ -389,6 +389,11 @@ public:
 
     bool isInitialized() const { return mInitialized; }
 
+    // Be careful!
+    void forceInit() {
+        mInitialized = true;
+    }
+
     CellAnimType getType() const { return mType; }
     void setType(CellAnimType type) { mType = type; }
 

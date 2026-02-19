@@ -16,5 +16,6 @@
 #include "MTransformAnimation.hpp"
 #include "MTransformArrangement.hpp"
 #include "MTransformCellanim.hpp"
+#include "NewWizard.hpp"
 
 #endif // POPUP_ALLPOPUPS_HPP

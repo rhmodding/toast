@@ -17,6 +17,7 @@ namespace Shortcuts {
 namespace {
 
 const std::unordered_map<ShortcutAction, Shortcut> ShortcutMap = {
+    { ShortcutAction::New, { "New...", std::string(CTRL_SYMBOL) + "+N", ImGuiKey_N | ImGuiMod_Ctrl } },
     { ShortcutAction::Open, { "Open (szs, zlib)...", std::string(CTRL_SYMBOL) + "+O", ImGuiKey_O | ImGuiMod_Ctrl } },
     { ShortcutAction::SaveAs, { "Save as...", std::string(CTRL_SYMBOL) + "+Shift+S", ImGuiKey_S | ImGuiMod_Ctrl | ImGuiMod_Shift } },
     { ShortcutAction::Save, { "Save", std::string(CTRL_SYMBOL) + "+S", ImGuiKey_S | ImGuiMod_Ctrl } },
@@ -63,6 +64,8 @@ void process() {
 
         if (ImGui::Shortcut(shortcut.chord, flags)) {
             switch (action) {
+                case ShortcutAction::New:
+                    return Actions::StartNewWizard();
                 case ShortcutAction::Open:
                     return Actions::CreateSessionPromptPath();
                 case ShortcutAction::Save:

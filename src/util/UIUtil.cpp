@@ -4,6 +4,52 @@
 
 #include <stdexcept>
 
+bool UIUtil::Widget::LabelButton(const char* label, bool toggled) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 labelSize = ImGui::CalcTextSize(label, nullptr, true);
+
+    const ImGuiStyle& style = ImGui::GetStyle();
+
+    ImVec2 pos = window->DC.CursorPos;
+
+    // Try to vertically align buttons that are smaller/have no padding so that
+    // text baseline matches (bit hacky, since it shouldn't be a flag)
+    if (0.f < window->DC.CurrLineTextBaseOffset)
+        pos.y += window->DC.CurrLineTextBaseOffset;
+
+    const ImVec2 size = ImGui::CalcItemSize(
+        { 0.f, 0.f }, labelSize.x, labelSize.y
+    );
+
+    const ImRect bb(pos, { pos.x + size.x, pos.y + size.y });
+
+    ImGui::ItemSize(size, 0.f);
+    if (!ImGui::ItemAdd(bb, id))
+        return false;
+
+    bool hovered { false }, held { false };
+    const bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
+
+    ImVec4 color = toggled ?
+        ImVec4(1.f, 0.f, 0.f, 1.f) : style.Colors[ImGuiCol_Text];
+    color.w *= style.Alpha * (hovered ? 1.f : .5f);
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertFloat4ToU32(color));
+    ImGui::RenderTextClipped(
+        bb.Min, bb.Max,
+        label, nullptr,
+        &labelSize,
+        { .5f, .5f },
+
+        &bb
+    );
+    ImGui::PopStyleColor();
+
+    return pressed;
+}
+
 bool UIUtil::Widget::StdStringTextInput(const char* label, std::string& str) {
     constexpr ImGuiTextFlags flags = ImGuiInputTextFlags_CallbackResize;
 

@@ -10,7 +10,7 @@
 
 #include "manager/AppState.hpp"
 
-static std::array<Popup *, 13> sPopups;
+static std::array<Popup *, 14> sPopups;
 static bool sPopupsInitialized = false;
 
 void Popups::createSingletons() {
@@ -32,6 +32,7 @@ void Popups::createSingletons() {
         &ModifiedTextureSize::createSingleton(),
         &SwapAnimation::createSingleton(),
         &SpritesheetManager::createSingleton(),
+        &NewWizard::createSingleton()
     };
     sPopupsInitialized = true;
 }

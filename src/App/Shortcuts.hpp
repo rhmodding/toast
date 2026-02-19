@@ -16,6 +16,7 @@ constexpr const char* EXIT_SHORTCUT = "Alt+F4";
 #endif
 
 enum class ShortcutAction {
+    New,
     Open,
     Save,
     SaveAs,

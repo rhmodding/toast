@@ -53,6 +53,8 @@ public:
         return createSession(std::string_view(filePath));
     }
 
+    ssize_t createSessionDefault(CellAnim::CellAnimType type, size_t cellAnimCount);
+
     // Export a session as a cellanim archive (.szs) to the specified path.
     // Note: if dstFilePath is empty, then the session's resourcePath is used.
     //

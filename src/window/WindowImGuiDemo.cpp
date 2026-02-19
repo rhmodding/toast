@@ -3,9 +3,7 @@
 #include <imgui.h>
 
 void WindowImGuiDemo::update() {
-    if (!mOpen) {
-        return;
+    if (mOpen) {
+        ImGui::ShowDemoWindow(&mOpen);
     }
-
-    ImGui::ShowDemoWindow(&mOpen);
 }

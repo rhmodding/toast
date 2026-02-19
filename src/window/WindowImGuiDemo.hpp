@@ -6,6 +6,9 @@
 class WindowImGuiDemo : public BaseWindow {
 public:
     void update() override;
+    void setOpen(bool open) override {
+        mOpen = open;
+    }
 
 public:
     bool mOpen { false };

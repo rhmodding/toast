@@ -7,7 +7,10 @@
 
 #include <imgui.h>
 
-namespace UIUtil::Widget {
+namespace UIUtil {
+namespace Widget {
+
+bool LabelButton(const char* label, bool toggled);
 
 template <typename T>
 void ValueEditor(
@@ -32,6 +35,7 @@ bool StdStringTextInput(const char* label, std::string& str);
 
 bool SplitButton(const char *strId, const char *label, const ImVec2 &sizeArg = ImVec2(0, 0));
 
-} // namespace UIUtil::Widget
+} // namespace Widget
+} // namespace UIUtil
 
 #endif // UI_UTIL_HPP

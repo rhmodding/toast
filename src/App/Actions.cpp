@@ -19,9 +19,16 @@
 #include "task/AsyncTaskPushSession.hpp"
 #include "task/AsyncTaskExportSession.hpp"
 
+#include "App/PopupHandler.hpp"
+#include "App/popups/AllPopups.hpp"
+
 #include "Macro.hpp"
 
 namespace Actions {
+
+void StartNewWizard() {
+    Popups::NewWizard::getInstance().open();
+}
 
 void CreateSessionPromptPath() {
     const char* filterPatterns[] = { "*.szs", "*.zlib" };
