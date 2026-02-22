@@ -36,8 +36,8 @@
 #include "manager/PromptPopupManager.hpp"
 
 #include "util/FileUtil.hpp"
-
 #include "util/ShiftJISUtil.hpp"
+#include "util/AnimLabelHeaderUtil.hpp"
 
 #include "BIN/image/sheetDefault.png.h"
 
@@ -763,18 +763,7 @@ static bool SerializeRvlSession(const Session& session, std::vector<unsigned cha
             cellanimName
         );
 
-        std::ostringstream stream;
-        for (size_t j = 0; j < session.cellanims[i].object->getAnimations().size(); j++) {
-            const auto& animation = session.cellanims[i].object->getAnimation(j);
-            if (animation.name.empty())
-                continue;
-
-            stream <<
-                "#define " << cellanimName << '_' << animation.name << '\t' << std::to_string(j) <<
-                "\t// " << (animation.comment.empty() ? "(null)" : animation.comment) << "\r\n";
-        }
-
-        const std::string strUtf8 = stream.str();
+        const std::string strUtf8 = AnimLabelHeaderUtil::build(*session.cellanims[i].object);
         const std::string strShiftJIS = ShiftJISUtil::convertToShiftJIS(strUtf8.c_str(), strUtf8.length());
 
         file.data.insert(file.data.end(), strShiftJIS.begin(), strShiftJIS.end());

@@ -9,6 +9,7 @@ void ExportSessionPromptPath();
 void ExportSession();
 void ExportSessionAsOther();
 void OpenSessionSourceFolder();
+void ExportCellAnimLabelHeader();
 
 } // namespace Actions
 

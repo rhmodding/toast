@@ -95,6 +95,7 @@ set(SOURCES
     src/texture/TextureEx.cpp
     src/texture/TPL.cpp
 
+    src/util/AnimLabelHeaderUtil.cpp
     src/util/ArrangePartMatchUtil.cpp
     src/util/BezierUtil.cpp
     src/util/CxxDemangleUtil.cpp

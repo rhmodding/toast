@@ -29,6 +29,8 @@
 
 #include "Toast.hpp"
 
+#include "util/UIUtil.hpp"
+
 // TODO: include ordering
 #include "WindowCanvas.hpp"
 #include "WindowCellQuickSel.hpp"
@@ -356,6 +358,13 @@ void WindowRoot::doMenubar() {
 
             if (ImGui::MenuItem("Transform .."))
                 Popups::MTransformCellanim::getInstance().open();
+
+            ImGui::Separator();
+
+            ImGui::BeginDisabled(cellanimType != CellAnim::CELLANIM_TYPE_RVL);
+            if (ImGui::MenuItem("Export label header .."))
+                Actions::ExportCellAnimLabelHeader();
+            ImGui::EndDisabled();
 
             ImGui::EndMenu();
         }

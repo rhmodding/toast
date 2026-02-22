@@ -86,7 +86,6 @@ void WindowCellQuickSel::update() {
 
     SelectionState &selectionState = currentSession.getPartSelectState();
     bool canApply = selectionState.anySelected();
-    // auto &part = playerManager.getArrangement().parts.at(selectionState.mSelected[0].index);
 
     ImGui::Begin("Cell Quick Select", nullptr, ImGuiWindowFlags_MenuBar);
 

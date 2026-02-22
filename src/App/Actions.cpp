@@ -6,6 +6,8 @@
 
 #include <filesystem>
 
+#include <fstream>
+
 #include <string>
 
 #include <thread>
@@ -21,6 +23,8 @@
 
 #include "App/PopupHandler.hpp"
 #include "App/popups/AllPopups.hpp"
+
+#include "util/AnimLabelHeaderUtil.hpp"
 
 #include "Macro.hpp"
 
@@ -219,6 +223,38 @@ void OpenSessionSourceFolder() {
 #endif
 
     std::thread([command] { std::system(command.c_str()); }).detach();
+}
+
+void ExportCellAnimLabelHeader() {
+    CellAnim::CellAnimObject &cellAnim =
+        *SessionManager::getInstance().getCurrentSession()->getCurrentCellAnim().object;
+
+    const char* filterDesc = "RVL Animation Label Header file";
+    const char* filterPatterns[] = { ".h" };
+
+    std::string defaultHeaderName = std::string("rcad_") + cellAnim.getName() + "_labels.h";
+    
+    char *savePath = tinyfd_saveFileDialog(
+        "Select a file to save to",
+        defaultHeaderName.data(),
+        ARRAY_LENGTH(filterPatterns), filterPatterns,
+        filterDesc
+    );
+
+    if (savePath) {
+        std::string headerContents = AnimLabelHeaderUtil::build(
+            *SessionManager::getInstance().getCurrentSession()->getCurrentCellAnim().object
+        );
+
+        std::ofstream file (savePath);
+        if (file.is_open()) {
+            file.write(headerContents.data(), headerContents.size());
+            file.close();
+        }
+        else {
+            Logging::error("[ExportCellAnimLabelHeader] Failed to export anim label header!");
+        }
+    }
 }
 
 } // namespace Actions
